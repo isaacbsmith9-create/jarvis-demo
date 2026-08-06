@@ -152,8 +152,10 @@ key again.
   merged on (see *What a build is allowed to do*), so edit this file to change
   both, but don't expect it to be the exact file a build runs under. It turns
   hooks off, so a speak-hook you installed in your own Claude Code setup doesn't
-  narrate over the assistant (hooks fire inside the spawned build too), and it
-  turns extended thinking off. Because
+  narrate over the assistant (hooks fire inside the spawned build too — see
+  `hooks/` for an optional global Stop hook that narrates your normal terminal
+  usage of Claude Code, separate from this demo), and it turns extended thinking
+  off. Because
   thinking is off here, the build also pins its own effort level rather than
   inheriting yours — the two settings conflict, and inheriting a maximum-effort
   config would fail every build.
