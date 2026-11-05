@@ -251,6 +251,33 @@ td.n{font-family:var(--num);font-weight:700}
 .pause-title{font-size:40px!important;text-align:center}
 .confirm-text{color:#c4cee2;font-size:14px;line-height:1.5}
 
+/* Levels */
+.play-row{display:grid;grid-template-columns:1.4fr 1fr;gap:10px}
+.btn.lv{background:linear-gradient(180deg,#ffd97a,#e8a92e);color:#2a1a00;box-shadow:0 5px 0 #7a5410,0 0 30px rgba(255,209,102,.18)}
+.btn.lv small{display:block;font-size:11px;letter-spacing:.12em;opacity:.8;margin-top:2px}
+.lv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.lv-card{position:relative;display:flex;flex-direction:column;gap:6px;text-align:left;padding:12px;border-radius:14px;cursor:pointer;min-width:0;
+  background:linear-gradient(180deg,#15213a,#0f1829);border:2px solid var(--line-2);box-shadow:0 4px 0 #060b15;transition:transform .08s,border-color .15s}
+.lv-card:not(:disabled):hover{border-color:var(--gold)}
+.lv-card:active{transform:translateY(3px)}
+.lv-card:disabled{cursor:not-allowed;opacity:.42}
+.lv-card .no{font-family:var(--num);font-weight:800;font-size:12px;color:var(--muted)}
+.lv-card b{font-size:15px;font-weight:900;letter-spacing:.02em;line-height:1.15}
+.lv-card .tg{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan)}
+.stars{display:flex;gap:2px;font-size:16px;line-height:1;color:#334363}
+.stars i{font-style:normal}.stars i.on{color:var(--gold);text-shadow:0 0 10px rgba(255,209,102,.6)}
+.stars.big{font-size:36px;gap:6px}
+.stars.big i.on{animation:pop .4s both}
+.stars.big i:nth-child(2).on{animation-delay:.15s}.stars.big i:nth-child(3).on{animation-delay:.3s}
+.brief-tag{display:inline-block;padding:4px 9px;border-radius:7px;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;background:#0f2a3a;color:var(--cyan);border:1px solid #1f5a7a}
+.brief-desc{font-size:15px;line-height:1.55;color:#c9d3e6}
+.goals{display:flex;flex-direction:column;gap:6px}
+.goals div{display:flex;gap:10px;align-items:center;font-size:14px;padding:9px 12px;border-radius:10px;background:var(--panel);border:1px solid var(--line)}
+.goals div i{font-style:normal;font-size:18px;color:#334363;width:20px;text-align:center}
+.goals div.met{border-color:#5c4b1a;background:#1a1810}
+.goals div.met i{color:var(--gold)}
+.goals div.now i{color:var(--gold)}
+.goals div em{margin-left:auto;font-style:normal;font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--go)}
 /* responsive */
 @media (max-width:760px){
   #hud{grid-template-columns:1fr auto;grid-template-areas:"l c" "r c";row-gap:6px}
@@ -266,6 +293,7 @@ td.n{font-family:var(--num);font-weight:700}
   .sig-btn{padding:10px 12px;gap:10px}.sig-text b{font-size:14px}.sig-text small{font-size:10px}
   .seg{grid-template-columns:repeat(2,1fr)}
   .menu-grid{grid-template-columns:repeat(2,1fr)}
+  .play-row{grid-template-columns:1fr}
   .res-top{grid-template-columns:1fr;justify-items:center;text-align:center}
 }
 @media (max-height:620px){
@@ -330,7 +358,10 @@ body.reduced *{animation-duration:.01ms!important;animation-iteration-count:1!im
       <h3>Difficulty</h3>
       <div class="seg" id="diffSel"></div>
     </div>
-    <button class="btn go xl" id="btnPlay">▶ Start Shift</button>
+    <div class="play-row">
+      <button class="btn go xl" id="btnPlay">▶ Arcade Shift</button>
+      <button class="btn lv xl" id="btnLevels">★ Levels<small id="lvStarCount">0 / 30 stars</small></button>
+    </div>
     <div class="card challenge" id="challengeCard"></div>
     <div class="menu-grid">
       <button class="btn" data-go="scrScores">High Scores</button>
@@ -338,7 +369,29 @@ body.reduced *{animation-duration:.01ms!important;animation-iteration-count:1!im
       <button class="btn" data-go="scrSettings">Settings</button>
       <button class="btn" data-go="scrHow">How to Play</button>
     </div>
-    <p class="foot"><kbd>Enter</kbd> start &nbsp;·&nbsp; <kbd>1</kbd>–<kbd>4</kbd> difficulty</p>
+    <p class="foot"><kbd>Enter</kbd> arcade &nbsp;·&nbsp; <kbd>L</kbd> levels &nbsp;·&nbsp; <kbd>1</kbd>–<kbd>4</kbd> difficulty</p>
+  </div>
+</section>
+
+<!-- LEVEL SELECT -->
+<section class="screen" id="scrLevels">
+  <div class="panel wide stack">
+    <div class="head-row"><h2>Levels</h2><div class="row" style="align-items:center"><span class="tag" id="lvTotal">0 / 30 ★</span><button class="btn back" data-back>Back</button></div></div>
+    <p class="foot" style="text-align:left">Every level is one 20-second shift with its own twist. Earn 1 star to unlock the next level. Stars you earn stay earned, so you can go for them one at a time.</p>
+    <div class="lv-grid" id="lvGrid"></div>
+  </div>
+</section>
+
+<!-- LEVEL BRIEFING -->
+<section class="screen" id="scrBrief">
+  <div class="panel stack">
+    <div class="head-row"><h3 id="bNum" style="margin:0">Level 1</h3><button class="btn back" id="btnBriefBack">Back</button></div>
+    <h2 id="bName">First Day</h2>
+    <div class="row" style="align-items:center"><span class="brief-tag" id="bTag">Warm-up</span><span class="tag" id="bDiff">Base: Easy</span></div>
+    <p class="brief-desc" id="bDesc"></p>
+    <div><h3>Star goals</h3><div class="goals" id="bGoals"></div></div>
+    <p class="foot" id="bBest" style="text-align:left"></p>
+    <button class="btn go xl" id="btnBriefStart">▶ Start level</button>
   </div>
 </section>
 
@@ -352,6 +405,7 @@ body.reduced *{animation-duration:.01ms!important;animation-iteration-count:1!im
       <div class="card"><b>Safe switching</b><p>Every switch runs yellow, then all-red, then the new green. Both directions can never be green together.</p><p>Each switch costs time where nobody moves, so switching too often wastes the clock.</p></div>
       <div class="card"><b>Collisions</b><p>Drivers close to the line keep going on yellow. Distracted and aggressive drivers push it further. Trucks and buses are slow to clear the box.</p><p>Switch when the green approach has a gap, not while a platoon is rolling in.</p></div>
       <div class="card"><b>Scoring</b><p>+100 per car cleared, multiplied by your combo (up to x3). +25 for a car that never had to stop. Combo milestones every 10 cars pay a bonus.</p><p>Collision: −500 and your combo resets. The combo also breaks if no car clears for about 2.5 seconds, a driver honks, or the intersection hits gridlock.</p></div>
+      <div class="card"><b>Levels</b><p>Ten handcrafted shifts, each with a twist: one-way floods, closed lanes, ambulances, rain, trucks, street racers and a broken controller. Each has three star goals.</p><p>Ambulances flash red and blue. Get them through fast for +400. If one waits over 2.5 seconds it costs −300.</p></div>
       <div class="card"><b>Congestion</b><p>Long queues fill the meter. Above 80% it is gridlock: your combo breaks and you lose 100 points a second. A driver who waits too long honks for −40.</p><p>At time zero, flow efficiency and a clean-shift bonus are added to your score.</p></div>
     </div>
     <p class="foot"><kbd>Space</kbd> pause · <kbd>R</kbd> restart from results · <kbd>Esc</kbd> back</p>
@@ -423,12 +477,15 @@ body.reduced *{animation-duration:.01ms!important;animation-iteration-count:1!im
         <h3 id="rTitle" style="margin:0">Shift complete · Normal</h3>
         <div class="res-score" id="rScore">0</div>
         <div id="rBestWrap"></div>
+        <div class="stars big" id="rStars" hidden></div>
         <div class="breakdown" id="rBreak"></div>
       </div>
     </div>
+    <div class="goals" id="rGoals" hidden></div>
     <div class="kv" id="rKv"></div>
     <div class="row">
       <button class="btn go flex" id="btnAgain" style="font-size:16px;padding:16px">↻ Play again <kbd>R</kbd></button>
+      <button class="btn lv flex" id="btnNext" hidden>Next level ▶ <kbd>N</kbd></button>
       <button class="btn flex" id="btnMenu">Main menu <kbd>M</kbd></button>
     </div>
     <div class="unlocks" id="rUnlocks"></div>
@@ -477,6 +534,7 @@ const TYPES = {
   van:    { len: 48, wid: 21, acc: 200, vmul: 0.92, w: 8 },
   truck:  { len: 64, wid: 23, acc: 140, vmul: 0.82, w: 6 },
   bus:    { len: 72, wid: 24, acc: 120, vmul: 0.78, w: 5 },
+  ambulance: { len: 46, wid: 21, acc: 330, vmul: 1.12, w: 0 },
 };
 const TYPE_KEYS = Object.keys(TYPES);
 const TYPE_W_TOTAL = TYPE_KEYS.reduce((s, k) => s + TYPES[k].w, 0);
@@ -516,7 +574,7 @@ function buildLanes() {
       if (a === 'W') { ox = -SPAWN_OUT; oy = CY + off; D = CX + SPAWN_OUT; }
       lanes.push({ id: a + i, a, i, axis: AXIS[a], ox, oy, dx, dy, D,
         sStop: D - STOP_OFF, sBoxIn: D - RH, sBoxOut: D + RH, sEnd: 2 * D - SPAWN_OUT + 30,
-        cars: [], backlog: 0, pending: null, blockAt: null });
+        cars: [], backlog: 0, pending: null, blockAt: null, priority: [], closed: false });
     }
   }
   return lanes;
@@ -573,17 +631,23 @@ class Signal {
    ========================================================= */
 class Round {
   constructor(dk, opt = {}) {
-    this.dk = dk; this.d = DIFFS[dk];
+    this.dk = dk; this.mods = opt.mods || {};
+    this.d = Object.assign({}, DIFFS[dk], this.mods.d || {});
     this.rng = opt.seed != null ? mulberry32(opt.seed) : Math.random;
     this.endless = !!opt.endless;
     this.emit = opt.onEvent || (() => {});
+    this.comf = COMF * (this.mods.grip || 1); this.decel = 620 * (this.mods.grip || 1);
     this.lanes = buildLanes();
-    this.byApproach = {}; this.cap = {};
+    for (const L of this.lanes) L.closed = !!(this.mods.closed && this.mods.closed.includes(L.id));
+    this.byApproach = {}; this.open = {}; this.cap = {};
     for (const a of APPROACHES) {
       this.byApproach[a] = this.lanes.filter(l => l.a === a);
+      this.open[a] = this.byApproach[a].filter(l => !l.closed);
       const vis = this.byApproach[a][0].sStop - SPAWN_OUT;
-      this.cap[a] = 2 * Math.max(3, Math.floor(vis / 48));
+      this.cap[a] = this.open[a].length * Math.max(3, Math.floor(vis / 48));
     }
+    this.emergT = this.mods.emergency ? 2.5 + this.rng() * 1.5 : Infinity;
+    this.rescues = 0; this.delayed = 0; this.emergSpawned = 0;
     this.signal = new Signal(this.d.yellow, this.d.allRed, this.rng() < 0.5 ? 'NS' : 'EW');
     this.time = 0; this.state = 'ready';
     this.score = 0; this.cleared = 0; this.crashes = 0; this.combo = 0; this.bestCombo = 0; this.comboT = 0;
@@ -596,20 +660,24 @@ class Round {
     this.seedCars();
   }
   setWeights() {
-    for (const a of APPROACHES) this.weights[a] = (AXIS[a] === this.major ? 1.22 : 0.80) * (0.92 + this.rng() * 0.16);
+    const w = this.mods.weights;
+    for (const a of APPROACHES) this.weights[a] = (w ? w[a] : (AXIS[a] === this.major ? 1.22 : 0.80)) * (0.92 + this.rng() * 0.16);
   }
   get cars() { const out = []; for (const L of this.lanes) for (const c of L.cars) out.push(c); return out; }
   pickType() {
+    const tw = this.mods.types;
+    if (tw) { let tot = 0; for (const k in tw) tot += tw[k]; let r = this.rng() * tot; for (const k in tw) { r -= tw[k]; if (r <= 0) return k; } }
     let r = this.rng() * TYPE_W_TOTAL;
     for (const k of TYPE_KEYS) { r -= TYPES[k].w; if (r <= 0) return k; }
     return 'sedan';
   }
-  makeCar(L) {
+  makeCar(L, forceType) {
     const rng = this.rng, d = this.d;
-    let type = this.pickType();
+    let type = forceType || this.pickType();
     const tf = 1 + (this.time / ROUND_LEN) * 0.8;
     let driver = 'normal'; const r = rng();
-    if (r < d.aggr * tf) { driver = 'aggressive'; if (rng() < 0.5 && type !== 'bus' && type !== 'truck') type = 'sports'; }
+    if (forceType) driver = 'normal';
+    else if (r < d.aggr * tf) { driver = 'aggressive'; if (rng() < 0.5 && type !== 'bus' && type !== 'truck') type = 'sports'; }
     else if (r < (d.aggr + d.dist) * tf) driver = 'distracted';
     const T = TYPES[type];
     let color = CAR_COLORS[Math.floor(rng() * CAR_COLORS.length)], accent = '#ffffff';
@@ -617,6 +685,7 @@ class Round {
     if (type === 'bus') color = BUS_COLORS[Math.floor(rng() * BUS_COLORS.length)];
     if (type === 'truck') accent = TRUCK_BOX[Math.floor(rng() * TRUCK_BOX.length)];
     if (type === 'sports') accent = rng() < 0.5 ? '#ffffff' : '#111111';
+    if (type === 'ambulance') { color = '#f4f6f8'; accent = '#e63946'; }
     const vmax = BASE_V * d.speed * T.vmul * (0.92 + rng() * 0.16) * (driver === 'aggressive' ? 1.08 : 1);
     return {
       id: this.nextId++, type, len: T.len, wid: T.wid, color, accent, lane: L,
@@ -626,14 +695,15 @@ class Round {
       s: 0, v: vmax, waitT: 0, everStopped: false, decisionCycle: -1, goThrough: false, boost: false,
       passedLine: false, cleared: false, crashed: false, eligible: false, ranRed: false, honked: false,
       launchT: 0, startDelay: 0.1 + rng() * 0.18, braking: false, crashT: 0, alpha: 1,
-      wx: 0, wy: 0, wang: 0, wvx: 0, wvy: 0, spin: 0,
+      wx: 0, wy: 0, wang: 0, wvx: 0, wvy: 0, spin: 0, emergency: type === 'ambulance', delayed: false,
     };
   }
   seedCars() {
     for (const a of APPROACHES) {
       const n = 1 + Math.floor(this.rng() * 2);
       for (let k = 0; k < n; k++) {
-        const L = this.byApproach[a][Math.floor(this.rng() * 2)];
+        const op = this.open[a]; if (!op.length) continue;
+        const L = op[Math.floor(this.rng() * op.length)];
         const c = this.makeCar(L);
         const last = L.cars[L.cars.length - 1];
         let s = last ? last.s - last.len - 70 - this.rng() * 60 : L.sStop - 70 - this.rng() * 120;
@@ -660,7 +730,7 @@ class Round {
       if (!this.endless) {
         const st = Math.min(3, Math.floor(this.time / 5));
         if (st !== this.stageIdx) { this.stageIdx = st; this.emit('stage', { stage: st }); }
-        if (!this.shifted && this.time >= 10) { this.shifted = true; this.major = this.major === 'NS' ? 'EW' : 'NS'; this.setWeights(); this.emit('shift', { major: this.major }); }
+        if (!this.shifted && this.time >= 10 && !this.mods.weights) { this.shifted = true; this.major = this.major === 'NS' ? 'EW' : 'NS'; this.setWeights(); this.emit('shift', { major: this.major }); }
         if (this.time >= ROUND_LEN) {
           this.time = ROUND_LEN; this.state = 'resolving'; this.resolveT = 0;
           for (const L of this.lanes) for (const c of L.cars) c.eligible = c.passedLine && !c.cleared && !c.crashed;
@@ -697,23 +767,39 @@ class Round {
       if (this.spawnT[a] <= 0) {
         const rate = STAGE_RATES[st] * this.d.spawn * this.weights[a];
         this.spawnT[a] = clamp(-Math.log(1 - this.rng()) / rate, 0.28, 7);
-        const ls = this.byApproach[a];
+        const ls = this.open[a]; if (!ls.length) continue;
         const sc = L => L.cars.length + L.backlog * 2 + this.rng() * 1.6;
-        const L = sc(ls[0]) <= sc(ls[1]) ? ls[0] : ls[1];
+        const L = ls.length < 2 || sc(ls[0]) <= sc(ls[1]) ? ls[0] : ls[1];
         L.backlog++;
       }
     }
-    for (const L of this.lanes) if (L.backlog > 0) this.trySpawn(L);
+    if (this.mods.emergency) {
+      this.emergT -= dt;
+      if (this.emergT <= 0 && this.time < ROUND_LEN - 3) {
+        this.emergT = this.mods.emergency * (0.8 + this.rng() * 0.4);
+        const cands = APPROACHES.filter(a => this.open[a].length);
+        const a = cands[Math.floor(this.rng() * cands.length)];
+        const ls = this.open[a];
+        const L = ls.length < 2 || ls[0].cars.length <= ls[1].cars.length ? ls[0] : ls[1];
+        L.priority.push(this.makeCar(L, 'ambulance')); this.emergSpawned++;
+        this.emit('siren', { a });
+      }
+    }
+    for (const L of this.lanes) if (L.backlog > 0 || L.priority.length) this.trySpawn(L);
   }
   trySpawn(L) {
-    if (!L.pending) L.pending = this.makeCar(L);
     const last = L.cars[L.cars.length - 1];
     if (last && last.s - last.len < MIN_GAP + 6) return false;
-    const c = L.pending; L.pending = null; L.backlog--;
+    let c;
+    if (L.priority.length) c = L.priority.shift();
+    else {
+      if (!L.pending) L.pending = this.makeCar(L);
+      c = L.pending; L.pending = null; L.backlog--;
+    }
     if (last) {
       const gap = last.s - last.len - MIN_GAP;
       const lv = last.crashed ? 0 : last.v;
-      c.v = Math.min(c.vmax, Math.sqrt(lv * lv + 2 * COMF * Math.max(0, gap - c.vmax * HEADWAY)));
+      c.v = Math.min(c.vmax, Math.sqrt(lv * lv + 2 * this.comf * Math.max(0, gap - c.vmax * HEADWAY)));
     }
     L.cars.push(c); this.spawned++;
     return true;
@@ -743,7 +829,7 @@ class Round {
 
   decide(c, dl) {
     const v = c.v; let go;
-    const stopDist = v * c.reaction + v * v / (2 * 620);
+    const stopDist = v * c.reaction + v * v / (2 * this.decel);
     if (dl < 3) go = true;
     else if (c.driver === 'aggressive') go = v > 50 && dl < Math.max(stopDist * 1.2, v * 1.25);
     else go = dl < stopDist * c.push;
@@ -772,12 +858,12 @@ class Round {
     if (leader) {
       const gap = leader.s - leader.len - c.s - MIN_GAP;
       const lv = leader.crashed ? 0 : leader.v;
-      target = Math.min(target, Math.sqrt(Math.max(0, lv * lv + 2 * COMF * Math.max(0, gap - c.v * HEADWAY))));
+      target = Math.min(target, Math.sqrt(Math.max(0, lv * lv + 2 * this.comf * Math.max(0, gap - c.v * HEADWAY))));
       if (gap < 0.5) target = Math.min(target, lv);
     }
     if (stopAt != null && c.s <= stopAt + 0.01) {
       const g = stopAt - c.s - 0.5;
-      target = g < 1 ? 0 : Math.min(target, Math.sqrt(2 * COMF * g));
+      target = g < 1 ? 0 : Math.min(target, Math.sqrt(2 * this.comf * g));
     }
     c.braking = false;
     if (target > c.v + 0.5) {
@@ -801,7 +887,12 @@ class Round {
 
     if (!c.passedLine && c.v < 12 && c.s > SPAWN_OUT - 30) {
       c.waitT += dt; c.everStopped = true;
-      if (!c.honked && c.waitT > this.d.honk && this.state === 'running') {
+      if (c.emergency && !c.delayed && c.waitT > 2.5 && this.state === 'running') {
+        c.delayed = true; this.delayed++; this.score -= 300; this.penalty += 300;
+        if (this.combo > 0) { this.emit('comboLost', { combo: this.combo }); this.combo = 0; }
+        const [x, y] = carCenter(c); this.emit('delayed', { x, y });
+      }
+      if (!c.emergency && !c.honked && c.waitT > this.d.honk && this.state === 'running') {
         c.honked = true; this.honks++;
         this.score -= 40; this.penalty += 40;
         if (this.combo > 0) { this.emit('comboLost', { combo: this.combo, honk: true }); this.combo = 0; }
@@ -835,6 +926,7 @@ class Round {
     if (smooth) { pts += 25; this.smooth++; }
     this.score += pts;
     const L = c.lane, s = L.sBoxOut + 14;
+    if (c.emergency && !c.delayed) { this.rescues++; this.score += 400; this.emit('rescue', { x: L.ox + L.dx * s, y: L.oy + L.dy * s }); }
     this.emit('clear', { car: c, pts, mult, combo: this.combo, smooth, x: L.ox + L.dx * s, y: L.oy + L.dy * s });
     if (this.combo > 0 && this.combo % 10 === 0 && !this.gridlock) {
       const bonus = this.combo * 50; this.score += bonus;
@@ -877,7 +969,7 @@ class Round {
     for (const a of APPROACHES) {
       let q = 0;
       for (const L of this.byApproach[a]) {
-        q += L.backlog * 1.2;
+        q += (L.backlog + L.priority.length) * 1.2;
         for (const c of L.cars) {
           if (!c.passedLine && !c.crashed && c.v < 30 && c.waitT > 0.2) { q++; if (c.waitT > maxWait) maxWait = c.waitT; }
         }
@@ -916,14 +1008,15 @@ class Round {
       cleared: this.cleared, crashes: this.crashes, bestCombo: this.bestCombo, efficiency: Math.round(eff),
       avgWait: this.waitN ? this.waitSum / this.waitN : 0, congPeak: this.congPeak, congAvg,
       switches: this.switches, runners: this.runners, smooth: this.smooth, penalty: this.penalty, honks: this.honks,
-      grade: gradeFor(final, this.crashes, this.dk),
+      rescues: this.rescues, delayed: this.delayed, emergencies: this.emergSpawned, level: this.mods.levelId || null,
+      grade: gradeFor(final, this.crashes, this.dk, this.mods.par),
     };
     this.emit('end', this.result);
   }
 }
 
-function gradeFor(score, crashes, dk) {
-  const r = score / DIFFS[dk].par;
+function gradeFor(score, crashes, dk, par) {
+  const r = score / (par || DIFFS[dk].par);
   if (r >= 1 && crashes === 0) return 'S';
   if (r >= 0.8) return 'A';
   if (r >= 0.62) return 'B';
@@ -943,7 +1036,8 @@ const Policies = {
       let p = 0;
       for (const L of r.lanes) if (L.axis === ax) {
         p += L.backlog * 1.5;
-        for (const c of L.cars) { if (c.crashed || c.passedLine) continue; if (L.sStop - c.s < 260) p += 1 + c.waitT * 0.35; }
+        p += L.priority.length * 6;
+        for (const c of L.cars) { if (c.crashed || c.passedLine) continue; if (c.emergency) p += 8 + c.waitT * 4; if (L.sStop - c.s < 260) p += 1 + c.waitT * 0.35; }
       }
       return p;
     };
@@ -984,6 +1078,7 @@ function defaultSave() {
     stats: { games: 0, cleared: 0, crashes: 0, bestCombo: 0, playTime: 0, bestEff: 0, cleanRounds: 0, sGrades: 0, totalScore: 0, perDiff: { easy: 0, normal: 0, hard: 0, extreme: 0 } },
     achievements: {},
     challenge: 0,
+    levels: {}, levelBest: {},
   };
 }
 let memStore = null;
@@ -1000,6 +1095,7 @@ function loadSave() {
   out.stats.perDiff = Object.assign(def.stats.perDiff, (raw.stats && raw.stats.perDiff) || {});
   out.achievements = raw.achievements || {};
   out.challenge = raw.challenge | 0;
+  out.levels = raw.levels || {}; out.levelBest = raw.levelBest || {};
   if (!DIFFS[out.settings.difficulty]) out.settings.difficulty = 'normal';
   return out;
 }
@@ -1025,6 +1121,9 @@ const ACHIEVEMENTS = [
   { id: 'srank', icon: 'S', name: 'Perfect Shift', desc: 'Earn an S grade.', test: r => r.grade === 'S' },
   { id: 'veteran', icon: '25', name: 'Veteran Controller', desc: 'Play 25 rounds.', test: (r, s) => s.games >= 25 },
   { id: 'legend', icon: '∞', name: 'Road Legend', desc: 'Clear 500 cars in total.', test: (r, s) => s.cleared >= 500 },
+  { id: 'medic', icon: '+', name: 'Life Saver', desc: 'Rescue 4 ambulances in one round.', test: r => r.rescues >= 4 },
+  { id: 'stars3', icon: '★', name: 'Three-Star Shift', desc: 'Earn all 3 stars on a level.', test: (r, s, sv) => LEVELS.some(l => levelStars(l.id) === 3) },
+  { id: 'campaign', icon: '♛', name: 'City Hall Approved', desc: 'Earn at least 1 star on all 10 levels.', test: (r, s, sv) => LEVELS.every(l => levelStars(l.id) > 0) },
 ];
 const CHALLENGES = [
   { d: 'easy', text: 'Clear 25 cars on Easy', test: r => r.cleared >= 25 },
@@ -1036,6 +1135,43 @@ const CHALLENGES = [
   { d: 'extreme', text: 'Score 12,000 on Extreme', test: r => r.final >= 12000 },
   { d: 'extreme', text: 'Earn an A or better on Extreme', test: r => r.grade === 'A' || r.grade === 'S' },
 ];
+const LEVELS = [
+  { id: 'first', name: 'First Day', tag: 'Warm-up', dk: 'easy', mods: {}, par: 11500,
+    desc: 'Quiet streets and patient drivers. Learn the rhythm: let a queue build, switch in a gap, repeat.',
+    goals: [{ text: 'Clear 28 cars', test: r => r.cleared >= 28 }, { text: 'Score 10,000', test: r => r.final >= 10000 }, { text: 'Finish with no crashes', test: r => r.crashes === 0 }] },
+  { id: 'commute', name: 'Morning Commute', tag: 'Standard traffic', dk: 'normal', mods: {}, par: 16000,
+    desc: 'A normal weekday rush. Balanced traffic from all four sides, building to rush hour.',
+    goals: [{ text: 'Clear 40 cars', test: r => r.cleared >= 40 }, { text: 'Score 14,000', test: r => r.final >= 14000 }, { text: 'No crashes and no honks', test: r => r.crashes === 0 && r.honks === 0 }] },
+  { id: 'stadium', name: 'Stadium Let-Out', tag: 'One-way flood', dk: 'normal', mods: { weights: { E: 2.6, W: 0.35, N: 0.55, S: 0.55 } }, par: 13500,
+    desc: 'The game just ended. A wall of cars pours in from the east while the side streets wait. Hold long greens, but do not forget the north and south.',
+    goals: [{ text: 'Clear 38 cars', test: r => r.cleared >= 38 }, { text: 'Score 12,000', test: r => r.final >= 12000 }, { text: 'No driver honks', test: r => r.honks === 0 }] },
+  { id: 'roadwork', name: 'Road Work', tag: 'Lanes closed', dk: 'normal', mods: { closed: ['N1', 'E1'] }, par: 12500,
+    desc: 'Crews closed a lane on the north and east approaches. Those queues fill twice as fast.',
+    goals: [{ text: 'Clear 36 cars', test: r => r.cleared >= 36 }, { text: 'Score 11,000', test: r => r.final >= 11000 }, { text: 'Keep congestion under 85%', test: r => r.congPeak < 0.85 }] },
+  { id: 'codered', name: 'Code Red', tag: 'Ambulances', dk: 'normal', mods: { emergency: 4.2 }, par: 15500,
+    desc: 'Ambulances are heading to the hospital. Get each one through fast: +400 for a rescue, −300 if one sits waiting over 2.5 seconds.',
+    goals: [{ text: 'Rescue 3 ambulances', test: r => r.rescues >= 3 }, { text: 'Score 14,000', test: r => r.final >= 14000 }, { text: 'No ambulance delayed', test: r => r.emergencies > 0 && r.delayed === 0 }] },
+  { id: 'storm', name: 'Storm Warning', tag: 'Wet roads', dk: 'normal', mods: { rain: true, grip: 0.62, d: { speed: 0.94 } }, par: 15000,
+    desc: 'Heavy rain. Cars need far more room to stop, so more of them slide through on yellow. Leave bigger gaps before you switch.',
+    goals: [{ text: 'Clear 38 cars', test: r => r.cleared >= 38 }, { text: 'Score 13,000', test: r => r.final >= 13000 }, { text: 'Finish with no crashes', test: r => r.crashes === 0 }] },
+  { id: 'freight', name: 'Freight Day', tag: 'Trucks & buses', dk: 'normal', mods: { types: { truck: 30, bus: 20, van: 18, sedan: 18, suv: 14 } }, par: 14500,
+    desc: 'Delivery trucks and city buses everywhere. They launch slowly and take ages to clear the box.',
+    goals: [{ text: 'Clear 38 cars', test: r => r.cleared >= 38 }, { text: 'Score 12,500', test: r => r.final >= 12500 }, { text: 'Finish with no crashes', test: r => r.crashes === 0 }] },
+  { id: 'racers', name: 'Street Racers', tag: 'Red-light runners', dk: 'hard', mods: { d: { aggr: 0.32, dist: 0.04 } }, par: 18000,
+    desc: 'Friday night. A third of the drivers floor it on yellow and some run the red. Watch for the red ! badges.',
+    goals: [{ text: 'Clear 48 cars', test: r => r.cleared >= 48 }, { text: 'Score 15,500', test: r => r.final >= 15500 }, { text: 'Finish with no crashes', test: r => r.crashes === 0 }] },
+  { id: 'fault', name: 'Signal Fault', tag: 'Slow switching', dk: 'hard', mods: { d: { yellow: 1.7, allRed: 1.2 } }, par: 9000,
+    desc: 'The controller is glitching: every switch takes nearly 3 seconds of yellow and all-red. Switch rarely, and switch early before queues explode.',
+    goals: [{ text: 'Clear 40 cars', test: r => r.cleared >= 40 }, { text: 'Score 7,500', test: r => r.final >= 7500 }, { text: '4 honks or fewer', test: r => r.honks <= 4 }] },
+  { id: 'perfect', name: 'Perfect Storm', tag: 'Everything at once', dk: 'hard', mods: { rain: true, grip: 0.65, emergency: 5, closed: ['S1'], d: { speed: 1.04 } }, par: 15500,
+    desc: 'Rain, a closed lane, ambulances and hard-mode traffic in one shift. The final exam.',
+    goals: [{ text: 'Clear 46 cars', test: r => r.cleared >= 46 }, { text: 'Score 13,000', test: r => r.final >= 13000 }, { text: 'No crashes, no ambulance delayed', test: r => r.crashes === 0 && r.delayed === 0 }] },
+];
+LEVELS.forEach((l, i) => { l.num = i + 1; l.mods.levelId = l.id; if (l.par) l.mods.par = l.par; });
+const levelStars = id => { const m = (save.levels[id] | 0); return (m & 1) + ((m >> 1) & 1) + ((m >> 2) & 1); };
+const levelUnlocked = i => i === 0 || levelStars(LEVELS[i - 1].id) > 0;
+const totalStars = () => LEVELS.reduce((s, l) => s + levelStars(l.id), 0);
+
 const THEMES = {
   midnight: { name: 'Midnight', req: 'Unlocked', unlocked: () => true, night: true,
     ground: '#101827', block: '#141e30', sidewalk: '#26324a', curb: '#3b4966', road: '#1a1f29', box: '#181d26', speck: 'rgba(255,255,255,', line: '#e7edf7', center: '#e3b341',
@@ -1133,6 +1269,8 @@ const Sound = {
     const seq = good ? [523, 659, 784, 1047, 784, 1047] : [392, 349, 330, 262];
     seq.forEach((f, i) => this.tone(f, 0.22, { type: 'triangle', vol: 0.12, delay: 0.1 + i * 0.11 }));
   },
+  siren() { if (!this.ok()) return; for (let i = 0; i < 4; i++) this.tone(i % 2 ? 740 : 960, 0.22, { type: 'triangle', vol: 0.07, delay: i * 0.23 }); },
+  thunder() { if (!this.ok()) return; this.noise(1.6, { vol: 0.5, freq: 300, slide: 60 }); this.noise(0.3, { vol: 0.25, freq: 2000, slide: 300 }); },
   unlock() { if (!this.ok()) return; [988, 1319, 1976].forEach((f, i) => this.tone(f, 0.25, { type: 'sine', vol: 0.08, delay: i * 0.08 })); },
   // ---- music: A minor loop, 104 bpm, eighth-note steps
   schedule() {
@@ -1364,6 +1502,14 @@ function drawCarBody(g, t, col, acc, L, Wd) {
     rr(g, hl - 7, -hw + 3, 4.5, Wd - 6, 1.5); g.fillStyle = GLASS; g.fill();
     return;
   }
+  if (t === 'ambulance') {
+    rr(g, -hl, -hw, L, Wd, 4); g.fillStyle = col; g.fill();
+    g.fillStyle = acc; g.fillRect(-hl + 2, -hw, L - 4, 2.4); g.fillRect(-hl + 2, hw - 2.4, L - 4, 2.4);
+    rr(g, -hl + 3, -hw + 3, L - 18, Wd - 6, 2); g.fillStyle = '#e6eaef'; g.fill();
+    g.fillStyle = acc; g.fillRect(-hl + 10, -1.6, 10, 3.2); g.fillRect(-hl + 13.4, -5, 3.2, 10);
+    rr(g, hl - 9, -hw + 2.5, 6, Wd - 5, 2); g.fillStyle = GLASS; g.fill();
+    return;
+  }
   if (t === 'bus') {
     rr(g, -hl, -hw, L, Wd, 4); g.fillStyle = col; g.fill();
     rr(g, -hl + 3, -hw + 3, L - 8, Wd - 6, 3); g.fillStyle = shade(col, 0.18); g.fill();
@@ -1487,6 +1633,25 @@ function render(round, now) {
     g.fillStyle = col; g.globalAlpha = 0.9; g.fillRect(-RH + 3, -STOP_OFF - 6, RH - 5, 6); g.globalAlpha = 1;
     g.restore();
   }
+  // road work cones
+  for (const L of round.lanes) {
+    if (!L.closed) continue;
+    const ang = Math.atan2(L.dy, L.dx);
+    for (let sv = SPAWN_OUT - 10; sv < L.sStop - 40; sv += 26) {
+      const x = L.ox + L.dx * sv, y = L.oy + L.dy * sv;
+      g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.arc(x + 1.5, y + 2, 6, 0, 7); g.fill();
+      g.fillStyle = '#ff7a1a'; g.beginPath(); g.arc(x, y, 5.5, 0, 7); g.fill();
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y, 3, 0, 7); g.fill();
+      g.fillStyle = '#ff7a1a'; g.beginPath(); g.arc(x, y, 1.6, 0, 7); g.fill();
+    }
+    const bs = L.sStop - 34, bx = L.ox + L.dx * bs, by = L.oy + L.dy * bs;
+    g.save(); g.translate(bx, by); g.rotate(ang);
+    g.fillStyle = '#fff'; g.fillRect(-3, -LW / 2 + 2, 6, LW - 4);
+    g.fillStyle = '#ff5a1a'; for (let k = -LW / 2 + 2; k < LW / 2 - 3; k += 6) g.fillRect(-3, k, 6, 3);
+    const blink = Math.floor(now / 300) % 2;
+    g.fillStyle = blink ? '#ffc53d' : '#7a5a10'; g.beginPath(); g.arc(0, -LW / 2 + 2, 2.4, 0, 7); g.arc(0, LW / 2 - 2, 2.4, 0, 7); g.fill();
+    g.restore();
+  }
   // all-red box tint
   if (round.signal.stage === 'allred') { g.fillStyle = 'rgba(255,77,94,.07)'; g.fillRect(CX - RH, CY - RH, RH * 2, RH * 2); }
 
@@ -1534,9 +1699,28 @@ function render(round, now) {
     g.fillStyle = '#ff4d5e'; g.font = '900 12px "Segoe UI",Roboto,sans-serif'; g.fillText('+' + L.backlog, x + L.dy * 0 + (L.axis === 'NS' ? 0 : 0), y + (L.axis === 'NS' ? 0 : 0) + (L.dx !== 0 ? -14 : 0) + (L.dy !== 0 ? 0 : 0) + 0, 40);
   }
   FX.draw(g);
+  if (round.mods.rain) drawRain(g, now);
   g.restore();
   // frame border
   rr(g, 0.5, 0.5, W - 1, H - 1, 18); g.strokeStyle = T.frame; g.lineWidth = 2; g.stroke();
+}
+const RAIN = [];
+for (let i = 0; i < 220; i++) RAIN.push({ x: Math.random() * (W + 200) - 100, y: Math.random() * H, v: 700 + Math.random() * 400, l: 10 + Math.random() * 12 });
+let rainLast = 0;
+function drawRain(g, now) {
+  const dt = Math.min(0.05, (now - rainLast) / 1000 || 0); rainLast = now;
+  const moving = Game.mode !== 'paused';
+  g.fillStyle = 'rgba(30,50,90,.16)'; g.fillRect(0, 0, W, H);
+  g.strokeStyle = 'rgba(190,210,255,.32)'; g.lineWidth = 1.1; g.beginPath();
+  const n = FX.full() ? RAIN.length : 90;
+  for (let i = 0; i < n; i++) {
+    const d = RAIN[i];
+    if (moving) { d.y += d.v * dt; d.x -= d.v * 0.18 * dt; if (d.y > H + 20) { d.y = -20; d.x = Math.random() * (W + 200) - 100; } }
+    g.moveTo(d.x, d.y); g.lineTo(d.x + d.l * 0.18, d.y - d.l);
+  }
+  g.stroke();
+  if (moving && FX.full() && Math.random() < 0.5) FX.parts.push({ t: 'ring', x: Math.random() * W, y: Math.random() * H, life: 0.3, max: 0.3, color: 'rgba(190,210,255,.5)', size: 5 });
+  if (Game.lightning > 0) { g.fillStyle = `rgba(230,240,255,${0.45 * Game.lightning})`; g.fillRect(0, 0, W, H); }
 }
 function fade(c) { return c.crashed ? clamp((WRECK_T - c.crashT) / 0.6, 0, 1) : 1; }
 function drawCar(g, c, T, now) {
@@ -1555,7 +1739,21 @@ function drawCar(g, c, T, now) {
     g.globalCompositeOperation = 'lighter'; g.fillStyle = 'rgba(255,40,60,.35)';
     g.beginPath(); g.arc(-hl, -hw + 3.5, 5, 0, 7); g.arc(-hl, hw - 3.5, 5, 0, 7); g.fill(); g.globalCompositeOperation = 'source-over';
   }
+  if (c.emergency && !c.crashed) {
+    const ph = Math.floor(now / 140) % 2;
+    g.fillStyle = ph ? '#ff2a3d' : '#2f7bff'; g.fillRect(hl - 13, -hw + 2, 3, hw - 2);
+    g.fillStyle = ph ? '#2f7bff' : '#ff2a3d'; g.fillRect(hl - 13, 0, 3, hw - 2);
+    g.globalCompositeOperation = 'lighter';
+    g.fillStyle = ph ? 'rgba(255,40,60,.35)' : 'rgba(50,120,255,.35)';
+    g.beginPath(); g.arc(hl - 11, ph ? -hw / 2 : hw / 2, 16, 0, 7); g.fill();
+    g.globalCompositeOperation = 'source-over';
+  }
   g.restore();
+  if (c.emergency && !c.crashed && !c.cleared && c.waitT > 0.3) {
+    const u = clamp(c.waitT / 2.5, 0, 1);
+    g.strokeStyle = u >= 1 ? '#ff4d5e' : `rgba(255,${Math.round(209 - 130 * u)},${Math.round(102 - 60 * u)},.95)`; g.lineWidth = 3;
+    g.beginPath(); g.arc(x, y, c.len * 0.62, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - u)); g.stroke();
+  }
   // warning badges
   if (!c.crashed && !c.cleared && (c.ranRed || (c.goThrough && c.driver !== 'normal'))) {
     const b = 0.5 + 0.5 * Math.sin(now / 90);
@@ -1602,6 +1800,7 @@ const $ = id => document.getElementById(id);
 const Game = {
   mode: 'menu', round: null, demo: null, demoMem: {}, cd: 0, cdShown: -1, pausedFrom: null,
   diff: save.settings.difficulty, lastRes: null, resultTimer: null, hintShown: false, roundsThisSession: 0,
+  level: null, lightning: 0, nextBolt: 6,
 };
 const hud = {
   score: $('hScore'), mult: $('hMult'), combo: $('hCombo'), comboBar: $('hComboBar'), comboBox: $('comboBox'),
@@ -1625,11 +1824,13 @@ function showScreen(id) {
   if (id === 'scrScores') renderScores();
   if (id === 'scrStats') renderStats();
   if (id === 'scrSettings') renderSettings();
+  if (id === 'scrLevels') renderLevels();
 }
 function hideScreens() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); Game.screen = null; }
 
 function goMenu() {
   clearTimeout(Game.resultTimer);
+  Game.level = null;
   Game.mode = 'menu'; Game.round = null; FX.reset();
   document.body.classList.remove('in-game');
   if (!Game.demo) newDemo();
@@ -1643,7 +1844,9 @@ function startRound() {
   Sound.init();
   FX.reset();
   hud.cache = {}; hud.shownScore = 0;
-  Game.round = new Round(Game.diff, { onEvent: onRoundEvent });
+  const lv = Game.level;
+  Game.round = lv ? new Round(lv.dk, { mods: lv.mods, onEvent: onRoundEvent }) : new Round(Game.diff, { onEvent: onRoundEvent });
+  Game.lightning = 0; Game.nextBolt = 4 + Math.random() * 4;
   Game.mode = 'countdown'; Game.cd = 3.0; Game.cdShown = -1;
   document.body.classList.add('in-game');
   hideScreens();
@@ -1658,7 +1861,7 @@ function pause() {
   if (Game.mode !== 'play' && Game.mode !== 'countdown') return;
   Game.pausedFrom = Game.mode; Game.mode = 'paused';
   const r = Game.round;
-  $('pauseInfo').textContent = `${DIFFS[r.dk].name} · ${Math.max(0, ROUND_LEN - r.time).toFixed(1)}s left · ${fmt(r.score)} pts`;
+ $('pauseInfo').textContent = `${Game.level ? 'Level ' + Game.level.num + ' · ' + Game.level.name : DIFFS[r.dk].name} · ${Math.max(0, ROUND_LEN - r.time).toFixed(1)}s left · ${fmt(r.score)} pts`;
   syncPauseButtons();
   showScreen('scrPause');
 }
@@ -1724,6 +1927,9 @@ function onRoundEvent(type, p) {
     case 'runner': FX.text(p.x, p.y - 26, 'RED LIGHT RUNNER!', '#ff4d5e', 13, 1.1); Sound.runner(); break;
     case 'honk': FX.text(p.x, p.y - 20, 'HONK −40', '#ffc53d', 12, 1.0); Sound.honk(); flashScore(); break;
     case 'penalty': Sound.penalty(); flashScore(); break;
+    case 'siren': banner('Ambulance · ' + { N: 'from north', S: 'from south', E: 'from east', W: 'from west' }[p.a], '#ff5a6a', 'small'); Sound.siren(); break;
+    case 'rescue': FX.text(p.x, p.y - 22, 'RESCUE +400', '#3ee08f', 16, 1.3); FX.burst(p.x, p.y, '#3ee08f', 14); Sound.milestone(); break;
+    case 'delayed': FX.text(p.x, p.y - 24, 'AMBULANCE DELAYED −300', '#ff4d5e', 13, 1.4); Sound.deny(); flashScore(); break;
     case 'yellow': Sound.yellow(); break;
     case 'green': Sound.green(); break;
     case 'stage':
@@ -1751,7 +1957,8 @@ function updateHud(force) {
   hud.timer.classList.toggle('warn', remain <= 10 && remain > 5);
   hud.timer.classList.toggle('crit', remain <= 5 && Game.mode === 'play');
   const st = Math.min(3, Math.floor(r.time / 5));
-  setText(hud.stage, 'stage', Game.mode === 'countdown' ? 'GET READY' : (remain <= 0 ? 'SHIFT OVER' : STAGE_NAMES[st]));
+  const stTxt = Game.mode === 'countdown' ? 'GET READY' : (remain <= 0 ? 'SHIFT OVER' : STAGE_NAMES[st]);
+  setText(hud.stage, 'stage', Game.level ? `LV ${Game.level.num} · ${stTxt}` : stTxt);
   hud.segs.forEach((s, i) => s.classList.toggle('on', i <= st && Game.mode !== 'countdown'));
   setText(hud.cleared, 'cleared', String(r.cleared));
   setText(hud.crashes, 'crashes', String(r.crashes));
@@ -1786,30 +1993,54 @@ function updateHud(force) {
 function showResults(res) {
   const unlocks = [];
   const st = save.stats;
-  const prevBest = save.best[res.difficulty];
+  const lv = res.level ? LEVELS.find(l => l.id === res.level) : null;
+  const prevBest = lv ? (save.levelBest[lv.id] != null ? { score: save.levelBest[lv.id] } : null) : save.best[res.difficulty];
   const isBest = !prevBest || res.final > prevBest.score;
+  let runMask = 0, prevMask = 0;
+  if (lv) {
+    lv.goals.forEach((g, i) => { if (g.test(res)) runMask |= 1 << i; });
+    prevMask = save.levels[lv.id] | 0;
+    const wasNextLocked = lv.num < LEVELS.length && !levelUnlocked(lv.num);
+    save.levels[lv.id] = prevMask | runMask;
+    if (isBest) save.levelBest[lv.id] = res.final;
+    const gained = levelStars(lv.id) - [0, 1, 2].filter(i => prevMask & (1 << i)).length;
+    if (gained > 0) unlocks.push({ kind: 'Stars earned', name: `+${gained} ★ on ${lv.name}`, icon: '★' });
+    if (wasNextLocked && levelUnlocked(lv.num)) unlocks.push({ kind: 'Level unlocked', name: `Level ${lv.num + 1} · ${LEVELS[lv.num].name}`, icon: '▶' });
+  }
   st.games++; st.cleared += res.cleared; st.crashes += res.crashes; st.playTime += ROUND_LEN; st.totalScore += res.final;
   st.bestCombo = Math.max(st.bestCombo, res.bestCombo); st.bestEff = Math.max(st.bestEff, res.efficiency);
   if (res.crashes === 0 && res.cleared >= 5) st.cleanRounds++;
   if (res.grade === 'S') st.sGrades++;
   st.perDiff[res.difficulty] = (st.perDiff[res.difficulty] || 0) + 1;
-  if (isBest) save.best[res.difficulty] = { score: res.final, grade: res.grade, cleared: res.cleared, date: Date.now() };
-  save.recent.unshift({ score: res.final, d: res.difficulty, grade: res.grade, cleared: res.cleared, crashes: res.crashes, combo: res.bestCombo, date: Date.now() });
+  if (isBest && !lv) save.best[res.difficulty] = { score: res.final, grade: res.grade, cleared: res.cleared, date: Date.now() };
+  save.recent.unshift({ score: res.final, d: res.difficulty, lv: lv ? lv.name : null, grade: res.grade, cleared: res.cleared, crashes: res.crashes, combo: res.bestCombo, date: Date.now() });
   save.recent = save.recent.slice(0, 12);
   const themeBefore = Object.keys(THEMES).filter(k => THEMES[k].unlocked(save));
   for (const a of ACHIEVEMENTS) {
-    if (!save.achievements[a.id] && a.test(res, st)) { save.achievements[a.id] = Date.now(); unlocks.push({ kind: 'Achievement', name: a.name, icon: a.icon }); }
+    if (!save.achievements[a.id] && a.test(res, st, save)) { save.achievements[a.id] = Date.now(); unlocks.push({ kind: 'Achievement', name: a.name, icon: a.icon }); }
   }
   const ch = CHALLENGES[save.challenge];
-  if (ch && ch.d === res.difficulty && ch.test(res)) { save.challenge++; unlocks.push({ kind: 'Challenge complete', name: ch.text, icon: '★' }); }
+  if (!lv && ch && ch.d === res.difficulty && ch.test(res)) { save.challenge++; unlocks.push({ kind: 'Challenge complete', name: ch.text, icon: '★' }); }
   for (const k of Object.keys(THEMES)) if (!themeBefore.includes(k) && THEMES[k].unlocked(save)) unlocks.push({ kind: 'Theme unlocked', name: THEMES[k].name + ' city', icon: '◐' });
   persist();
   Game.roundsThisSession++;
 
-  $('rTitle').textContent = `Shift complete · ${DIFFS[res.difficulty].name}`;
+  $('rTitle').textContent = lv ? `Level ${lv.num} · ${lv.name}` : `Shift complete · ${DIFFS[res.difficulty].name}`;
+  const rs = $('rStars'), rg = $('rGoals'), bn = $('btnNext');
+  rs.hidden = rg.hidden = !lv;
+  bn.hidden = !(lv && lv.num < LEVELS.length && levelUnlocked(lv.num));
+  if (lv) {
+    const all = save.levels[lv.id] | 0;
+    const n = levelStars(lv.id);
+    rs.innerHTML = [0, 1, 2].map(i => `<i class="${i < n ? 'on' : ''}">★</i>`).join('');
+    rg.innerHTML = lv.goals.map((g, i) => {
+      const now = runMask & (1 << i), ever = all & (1 << i), fresh = now && !(prevMask & (1 << i));
+      return `<div class="${ever ? 'met' : ''}"><i>${ever ? '★' : '☆'}</i><span>${g.text}</span>${fresh ? '<em>NEW</em>' : now ? '<em style="color:var(--muted)">DONE</em>' : ''}</div>`;
+    }).join('');
+  }
   const gEl = $('rGrade'); gEl.textContent = res.grade; gEl.className = 'grade g-' + res.grade;
   gEl.style.animation = 'none'; void gEl.offsetWidth; gEl.style.animation = '';
-  const best = save.best[res.difficulty];
+  const best = lv ? { score: save.levelBest[lv.id] } : save.best[res.difficulty];
   $('rBestWrap').innerHTML = isBest ? '<span class="newbest">NEW PERSONAL BEST</span>' : `<span class="foot" style="text-align:left;display:block">Personal best: <b style="color:var(--text)">${fmt(best.score)}</b></span>`;
   $('rBreak').innerHTML =
     `<div><span>Driving score</span><span>${fmt(res.base)}</span></div>` +
@@ -1821,6 +2052,8 @@ function showResults(res) {
     ['Avg wait', res.avgWait.toFixed(1) + 's'], ['Peak congestion', Math.round(res.congPeak * 100) + '%'], ['Phase switches', res.switches],
     ['Personal best', fmt(best.score)],
   ];
+  if (res.emergencies) kv.splice(4, 0, ['Ambulances rescued', `${res.rescues} / ${res.emergencies}`]);
+  if (res.honks) kv.splice(5, 0, ['Honks', res.honks]);
   $('rKv').innerHTML = kv.map(([k, v]) => `<div><label>${k}</label><span>${v}</span></div>`).join('');
   $('rUnlocks').innerHTML = unlocks.map(u => `<div><i>${u.icon}</i><span><b>${u.kind}:</b> ${u.name}</span></div>`).join('');
   // count-up
@@ -1854,11 +2087,34 @@ function setDiff(k) {
 }
 function renderMenu() {
   diffButtons($('diffSel'), false);
+  $('lvStarCount').textContent = `${totalStars()} / ${LEVELS.length * 3} stars`;
   const ch = CHALLENGES[save.challenge];
   $('challengeCard').innerHTML = ch
     ? `<span class="ci">${save.challenge + 1}</span><div><small>Next challenge · ${DIFFS[ch.d].name}</small><b>${ch.text}</b></div>`
     : `<span class="ci">★</span><div><small>Challenge ladder</small><b>All ${CHALLENGES.length} challenges complete. Chase S grades.</b></div>`;
 }
+function renderLevels() {
+  $('lvTotal').textContent = `${totalStars()} / ${LEVELS.length * 3} ★`;
+  $('lvGrid').innerHTML = LEVELS.map((l, i) => {
+    const ok = levelUnlocked(i), st = levelStars(l.id);
+    return `<button class="lv-card" data-lv="${i}" ${ok ? '' : 'disabled'}><span class="no">${ok ? 'LEVEL ' + l.num : '🔒 LEVEL ' + l.num}</span><b>${l.name}</b><span class="tg">${l.tag}</span>
+      <span class="stars">${[0, 1, 2].map(k => `<i class="${k < st ? 'on' : ''}">★</i>`).join('')}</span></button>`;
+  }).join('');
+  $('lvGrid').querySelectorAll('.lv-card:not([disabled])').forEach(b => b.addEventListener('click', () => { Sound.click(); openBrief(+b.dataset.lv); }));
+}
+function openBrief(i) {
+  const l = LEVELS[i]; Game.briefIdx = i;
+  $('bNum').textContent = `Level ${l.num} of ${LEVELS.length}`;
+  $('bName').textContent = l.name; $('bTag').textContent = l.tag; $('bDiff').textContent = 'Base traffic: ' + DIFFS[l.dk].name;
+  $('bDesc').textContent = l.desc;
+  const m = save.levels[l.id] | 0;
+  $('bGoals').innerHTML = l.goals.map((g, k) => `<div class="${m & (1 << k) ? 'met' : ''}"><i>${m & (1 << k) ? '★' : '☆'}</i><span>${g.text}</span></div>`).join('');
+  const b = save.levelBest[l.id];
+  $('bBest').textContent = b != null ? `Best score: ${fmt(b)}` : 'Not played yet.';
+  showScreen('scrBrief');
+}
+function startLevel(i) { Game.level = LEVELS[i]; startRound(); }
+
 function renderScores() {
   const rows = DIFF_KEYS.map(k => { const b = save.best[k];
     return `<tr><td><b>${DIFFS[k].name}</b></td><td class="n">${b ? fmt(b.score) : '—'}</td><td>${b ? `<span class="gp g-${b.grade}">${b.grade}</span>` : '—'}</td><td class="n">${b ? b.cleared : '—'}</td><td class="n">${save.stats.perDiff[k] || 0}</td></tr>`; }).join('');
@@ -1867,7 +2123,7 @@ function renderScores() {
   $('scoreTotals').innerHTML = [['Games played', s.games], ['Vehicles cleared', fmt(s.cleared)], ['Highest combo', s.bestCombo]].map(([k, v]) => `<div><label>${k}</label><span>${v}</span></div>`).join('');
   $('recentTbl').innerHTML = save.recent.length
     ? `<tr><th>Score</th><th>Grade</th><th>Mode</th><th>Cars</th><th>Crashes</th><th>When</th></tr>` + save.recent.map(r =>
-      `<tr><td class="n">${fmt(r.score)}</td><td><span class="gp g-${r.grade}">${r.grade}</span></td><td>${DIFFS[r.d] ? DIFFS[r.d].name : r.d}</td><td class="n">${r.cleared}</td><td class="n">${r.crashes}</td><td style="color:var(--muted)">${ago(r.date)}</td></tr>`).join('')
+      `<tr><td class="n">${fmt(r.score)}</td><td><span class="gp g-${r.grade}">${r.grade}</span></td><td>${r.lv ? '★ ' + r.lv : (DIFFS[r.d] ? DIFFS[r.d].name : r.d)}</td><td class="n">${r.cleared}</td><td class="n">${r.crashes}</td><td style="color:var(--muted)">${ago(r.date)}</td></tr>`).join('')
     : `<tr><td style="color:var(--muted);white-space:normal">No shifts yet. Finish a round and it will show up here.</td></tr>`;
 }
 function ago(t) { const s = (Date.now() - t) / 1000; if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s / 60) + 'm ago'; if (s < 86400) return Math.floor(s / 3600) + 'h ago'; return Math.floor(s / 86400) + 'd ago'; }
@@ -1950,12 +2206,19 @@ document.addEventListener('keydown', e => {
   }
   if (Game.screen === 'scrResults') {
     if (k === 'KeyR' || k === 'Enter' || k === 'Space') { e.preventDefault(); Sound.click(); startRound(); }
-    else if (k === 'KeyM' || k === 'Escape') { Sound.click(); goMenu(); }
+    else if (k === 'KeyM' || k === 'Escape') { Sound.click(); leaveResults(); }
+    else if (k === 'KeyN' && !$('btnNext').hidden) { Sound.click(); nextLevel(); }
+    return;
+  }
+  if (Game.screen === 'scrBrief') {
+    if (k === 'Enter') { e.preventDefault(); Sound.click(); startLevel(Game.briefIdx); }
+    else if (k === 'Escape') { Sound.click(); showScreen('scrLevels'); }
     return;
   }
   if (Game.screen === 'scrConfirm') { if (k === 'Escape') showScreen('scrSettings'); return; }
   if (Game.screen === 'scrMenu') {
     if (k === 'Enter' && !(document.activeElement && document.activeElement.tagName === 'BUTTON')) { e.preventDefault(); Sound.click(); startRound(); }
+    if (k === 'KeyL') { Sound.click(); showScreen('scrLevels'); }
     const n = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].indexOf(k);
     if (n >= 0) { setDiff(DIFF_KEYS[n]); Sound.click(); }
     return;
@@ -1968,10 +2231,16 @@ document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', 
 document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => { Sound.click(); showScreen('scrMenu'); }));
 $('btnPlay').addEventListener('click', e => { e.currentTarget.blur(); Sound.init(); Sound.click(); startRound(); });
 $('btnAgain').addEventListener('click', e => { e.currentTarget.blur(); Sound.click(); startRound(); });
-$('btnMenu').addEventListener('click', e => { e.currentTarget.blur(); Sound.click(); goMenu(); });
+$('btnMenu').addEventListener('click', e => { e.currentTarget.blur(); Sound.click(); leaveResults(); });
+$('btnNext').addEventListener('click', e => { e.currentTarget.blur(); Sound.click(); nextLevel(); });
+$('btnLevels').addEventListener('click', e => { e.currentTarget.blur(); Sound.init(); Sound.click(); showScreen('scrLevels'); });
+$('btnBriefStart').addEventListener('click', e => { e.currentTarget.blur(); Sound.click(); startLevel(Game.briefIdx); });
+$('btnBriefBack').addEventListener('click', () => { Sound.click(); showScreen('scrLevels'); });
+function leaveResults() { const wasLevel = !!Game.level; goMenu(); if (wasLevel) showScreen('scrLevels'); }
+function nextLevel() { if (!Game.level) return; const n = Game.level.num; if (n < LEVELS.length && levelUnlocked(n)) { goMenu(); openBrief(n); } }
 $('btnResume').addEventListener('click', e => { e.currentTarget.blur(); Sound.click(); resume(); });
 $('btnRestart').addEventListener('click', e => { e.currentTarget.blur(); Sound.click(); startRound(); });
-$('btnQuit').addEventListener('click', e => { e.currentTarget.blur(); Sound.click(); goMenu(); });
+$('btnQuit').addEventListener('click', e => { e.currentTarget.blur(); Sound.click(); leaveResults(); });
 $('pSound').addEventListener('click', e => { save.settings.sound = !save.settings.sound; persist(); Sound.init(); Sound.applySettings(); Sound.click(); syncPauseButtons(); });
 $('pMusic').addEventListener('click', e => { save.settings.music = !save.settings.music; persist(); Sound.init(); Sound.applySettings(); Sound.click(); syncPauseButtons(); });
 const toggles = { tSound: 'sound', tMusic: 'music', tAnim: 'anim', tShake: 'shake' };
@@ -2015,6 +2284,12 @@ function frame(now) {
     while (acc >= STEP) { Policies.smart(Game.demo, STEP, Game.demoMem); Game.demo.update(STEP); acc -= STEP; }
   } else acc = 0;
   if (m !== 'paused') FX.update(dt);
+  const rr0 = m === 'menu' ? null : Game.round;
+  if (rr0 && rr0.mods.rain && (m === 'play' || m === 'countdown')) {
+    Game.nextBolt -= dt;
+    if (Game.nextBolt <= 0) { Game.nextBolt = 5 + Math.random() * 6; Game.lightning = 1; setTimeout(() => Sound.thunder(), 250 + Math.random() * 400); }
+  }
+  if (m !== 'paused') Game.lightning = Math.max(0, Game.lightning - dt * 2.2);
   headFlash.NS = Math.max(0, headFlash.NS - dt * 3); headFlash.EW = Math.max(0, headFlash.EW - dt * 3);
   if (Game.round && m !== 'menu') updateHud(false);
   render(m === 'menu' ? Game.demo : Game.round, now);
@@ -2026,8 +2301,9 @@ function frame(now) {
    ========================================================= */
 window.TrafficControl = {
   Round, Policies, DIFFS, STEP,
-  simulate(dk, policy = 'smart', seed = 1) {
-    const r = new Round(dk, { seed }); r.start(); const mem = {}; let guard = 0, conflicts = 0, overlaps = 0;
+  LEVELS,
+  simulate(dk, policy = 'smart', seed = 1, mods) {
+    const r = new Round(dk, { seed, mods }); r.start(); const mem = {}; let guard = 0, conflicts = 0, overlaps = 0;
     while (r.state !== 'done' && guard++ < 100000) {
       Policies[policy](r, STEP, mem); r.update(STEP);
       if (r.signal.color('NS') === 'G' && r.signal.color('EW') === 'G') conflicts++;
