@@ -1,0 +1,15 @@
+{
+  "name": "macrolens",
+  "version": "1.0.0",
+  "description": "Food diary + macro tracker with AI photo calorie scanning (Claude vision).",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0"
+  }
+}

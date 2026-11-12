@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1115" />
+  <title>MacroLens</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <button class="icon-btn" id="prev-day" aria-label="Previous day">‹</button>
+    <div class="day-label"><strong id="day-title">Today</strong><span id="day-sub"></span></div>
+    <button class="icon-btn" id="next-day" aria-label="Next day">›</button>
+  </header>
+
+  <main>
+    <!-- TODAY -->
+    <section id="view-today" class="view active">
+      <div class="card summary">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 120 120" class="ring" aria-hidden="true">
+            <circle cx="60" cy="60" r="52" class="ring-bg" />
+            <circle cx="60" cy="60" r="52" class="ring-fg" id="cal-ring" />
+          </svg>
+          <div class="ring-center">
+            <span class="big" id="cal-left">0</span>
+            <span class="muted" id="cal-left-label">kcal left</span>
+          </div>
+        </div>
+        <div class="equation">
+          <div><span id="eq-goal">0</span><small>Goal</small></div>
+          <div>−</div>
+          <div><span id="eq-food">0</span><small>Food</small></div>
+          <div>=</div>
+          <div><span id="eq-left">0</span><small>Left</small></div>
+        </div>
+        <div class="macros" id="macro-bars"></div>
+      </div>
+
+      <div class="card water">
+        <div class="row-between">
+          <div><strong>Water</strong> <span class="muted" id="water-text"></span></div>
+          <div class="water-btns">
+            <button class="chip" data-water="-8">−8 oz</button>
+            <button class="chip primary" data-water="8">+8 oz</button>
+            <button class="chip primary" data-water="16">+16 oz</button>
+          </div>
+        </div>
+        <div class="bar"><div class="bar-fill water-fill" id="water-bar"></div></div>
+      </div>
+
+      <div id="meals"></div>
+    </section>
+
+    <!-- PROGRESS -->
+    <section id="view-progress" class="view">
+      <div class="stats" id="stats"></div>
+      <div class="card">
+        <h3>Calories — last 7 days</h3>
+        <div id="week-chart" class="chart"></div>
+      </div>
+      <div class="card">
+        <h3>Macro averages — last 7 logged days</h3>
+        <div id="macro-avg"></div>
+      </div>
+      <div class="card">
+        <div class="row-between">
+          <h3>Weight</h3>
+          <form id="weight-form" class="inline-form">
+            <input type="number" step="0.1" min="50" max="500" id="weight-input" placeholder="lb" required />
+            <button class="chip primary">Log</button>
+          </form>
+        </div>
+        <div id="weight-chart" class="chart"></div>
+        <ul id="weight-list" class="plain-list"></ul>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="view-profile" class="view">
+      <form id="profile-form" class="card form">
+        <h3>Your profile</h3>
+        <div class="grid2">
+          <label>Sex
+            <select name="sex"><option value="male">Male</option><option value="female">Female</option></select>
+          </label>
+          <label>Age <input name="age" type="number" min="10" max="99" required /></label>
+          <label>Height (ft)
+            <input name="heightFt" type="number" min="3" max="8" required />
+          </label>
+          <label>Height (in)
+            <input name="heightInRem" type="number" min="0" max="11" required />
+          </label>
+          <label>Weight (lb) <input name="weightLb" type="number" step="0.1" min="50" max="500" required /></label>
+          <label>Goal <select name="goal" id="goal-select"></select></label>
+        </div>
+        <label>Activity <select name="activity" id="activity-select"></select></label>
+        <button class="btn primary">Calculate my targets</button>
+      </form>
+      <div class="card" id="targets-card"></div>
+      <form id="custom-targets" class="card form">
+        <h3>Override targets</h3>
+        <p class="muted small">Coach or dietitian gave you numbers? Put them here.</p>
+        <div class="grid2">
+          <label>Calories <input name="calories" type="number" min="1000" max="6000" /></label>
+          <label>Protein (g) <input name="protein" type="number" min="0" max="400" /></label>
+          <label>Carbs (g) <input name="carbs" type="number" min="0" max="900" /></label>
+          <label>Fat (g) <input name="fat" type="number" min="0" max="300" /></label>
+        </div>
+        <button class="btn">Save overrides</button>
+      </form>
+      <div class="card form">
+        <h3>Data</h3>
+        <p class="muted small">Everything is stored on this device only.</p>
+        <div class="row-gap">
+          <button class="btn" id="export-btn">Export backup</button>
+          <label class="btn file-btn">Import backup<input type="file" id="import-file" accept="application/json" hidden /></label>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab active" data-view="today"><span>📒</span>Diary</button>
+    <button class="tab scan-fab" id="fab" aria-label="Add food"><span>＋</span></button>
+    <button class="tab" data-view="progress"><span>📈</span>Progress</button>
+    <button class="tab" data-view="profile"><span>⚙️</span>Profile</button>
+  </nav>
+
+  <!-- ADD FOOD SHEET -->
+  <dialog id="add-sheet" class="sheet">
+    <div class="sheet-head">
+      <strong>Add to</strong>
+      <select id="add-meal"></select>
+      <button class="icon-btn close" data-close aria-label="Close">✕</button>
+    </div>
+    <div class="seg" id="add-tabs">
+      <button data-pane="scan" class="active"><span>📸</span>Scan</button>
+      <button data-pane="search"><span>🔍</span>Search</button>
+      <button data-pane="barcode"><span>▥</span>Barcode</button>
+      <button data-pane="describe"><span>💬</span>Describe</button>
+      <button data-pane="quick"><span>⚡</span>Quick</button>
+    </div>
+
+    <div class="pane active" data-pane="scan">
+      <label class="drop" id="photo-drop">
+        <input type="file" accept="image/*" capture="environment" id="photo-input" hidden />
+        <img id="photo-preview" alt="" hidden />
+        <span id="photo-hint">📸<br /><strong>Snap or upload your meal</strong><br /><small>AI identifies each food and estimates portions</small></span>
+      </label>
+      <input type="text" id="photo-note" placeholder="Optional: 'cooked in butter', 'large size', 'ate half'…" />
+      <button class="btn primary" id="analyze-btn" disabled>Analyze photo</button>
+      <p class="muted small" id="ai-status"></p>
+    </div>
+
+    <div class="pane" data-pane="search">
+      <input type="search" id="search-input" placeholder="Search foods (e.g. chicken, Chobani, banana)" autocomplete="off" />
+      <div id="search-section-label" class="muted small"></div>
+      <ul id="search-results" class="food-list"></ul>
+    </div>
+
+    <div class="pane" data-pane="barcode">
+      <video id="barcode-video" playsinline muted hidden></video>
+      <button class="btn" id="barcode-cam-btn" hidden>Scan with camera</button>
+      <form id="barcode-form" class="inline-form">
+        <input type="text" inputmode="numeric" pattern="\d{6,14}" id="barcode-input" placeholder="Type barcode digits" required />
+        <button class="btn primary">Look up</button>
+      </form>
+      <p class="muted small" id="barcode-status"></p>
+    </div>
+
+    <div class="pane" data-pane="describe">
+      <textarea id="describe-input" rows="4" placeholder="e.g. 2 scrambled eggs, 2 slices of whole wheat toast with butter, and a glass of OJ"></textarea>
+      <button class="btn primary" id="describe-btn">Estimate with AI</button>
+      <p class="muted small" id="describe-status"></p>
+    </div>
+
+    <div class="pane" data-pane="quick">
+      <form id="quick-form" class="form">
+        <label>Name <input name="name" placeholder="Quick add" /></label>
+        <div class="grid2">
+          <label>Calories <input name="calories" type="number" min="0" required /></label>
+          <label>Protein (g) <input name="protein" type="number" step="0.1" min="0" /></label>
+          <label>Carbs (g) <input name="carbs" type="number" step="0.1" min="0" /></label>
+          <label>Fat (g) <input name="fat" type="number" step="0.1" min="0" /></label>
+        </div>
+        <label class="check"><input type="checkbox" name="save" /> Save as a custom food</label>
+        <button class="btn primary">Add</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- FOOD DETAIL -->
+  <dialog id="food-dialog" class="sheet small-sheet">
+    <div class="sheet-head"><strong id="fd-name"></strong><button class="icon-btn close" data-close aria-label="Close">✕</button></div>
+    <p class="muted small" id="fd-meta"></p>
+    <div class="fd-macros" id="fd-macros"></div>
+    <label>Servings <input type="number" id="fd-servings" min="0.25" step="0.25" value="1" /></label>
+    <div class="row-gap">
+      <button class="btn danger" id="fd-delete" hidden>Remove</button>
+      <button class="btn primary grow" id="fd-save">Add</button>
+    </div>
+  </dialog>
+
+  <!-- AI REVIEW -->
+  <dialog id="review-dialog" class="sheet">
+    <div class="sheet-head"><strong id="rv-title">Review</strong><button class="icon-btn close" data-close aria-label="Close">✕</button></div>
+    <div class="rv-total" id="rv-total"></div>
+    <p class="muted small" id="rv-notes"></p>
+    <ul id="rv-items" class="rv-list"></ul>
+    <p class="muted small">Tap a number to fix it. Adjust the portion multiplier if you ate more or less.</p>
+    <button class="btn primary" id="rv-log">Log meal</button>
+  </dialog>
+
+  <div id="toast" role="status"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
