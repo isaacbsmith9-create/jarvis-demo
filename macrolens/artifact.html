@@ -319,6 +319,15 @@ label.check input { width: auto; }
       </div>
       <button class="btn">Save overrides</button>
     </form>
+    <form id="key-card" class="card form" hidden>
+      <h3>AI photo scanning</h3>
+      <p class="muted small" style="margin:0">To scan photos on this website, paste a Claude API key from console.anthropic.com. It is saved in this browser only and sent only to Anthropic. Each scan costs a few cents on that key.</p>
+      <div class="inline-form">
+        <input type="password" id="api-key" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
+        <button class="btn primary">Save</button>
+      </div>
+      <div class="row-between"><span class="muted small" id="key-status"></span><button type="button" class="chip" id="key-remove" hidden>Remove key</button></div>
+    </form>
     <div class="card"><p class="note" id="storage-note" style="margin:0"></p></div>
   </section>
 </div>
@@ -787,7 +796,7 @@ function renderSearch() {
   shownFoods = [...(c.custom || []), ...(c.recents || []), ...FOODS].filter(match).filter((f) => { const k = f.name + '|' + f.serving; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 30);
   $('#search-label').textContent = shownFoods.length ? '' : 'No match in the food list.';
   $('#search-results').innerHTML = shownFoods.map(foodLi).join('') +
-    (aiSample ? `<li><button data-ask="1"><div><div class="entry-name ask-ai">Ask AI about “${esc($('#search-input').value.trim())}”</div><div class="entry-sub">Brand-name and restaurant foods work here</div></div><span class="add-plus" aria-hidden="true">→</span></button></li>` : '');
+    (aiReady() ? `<li><button data-ask="1"><div><div class="entry-name ask-ai">Ask AI about “${esc($('#search-input').value.trim())}”</div><div class="entry-sub">Brand-name and restaurant foods work here</div></div><span class="add-plus" aria-hidden="true">→</span></button></li>` : '');
 }
 $('#search-input').addEventListener('input', renderSearch);
 $('#search-results').addEventListener('click', (e) => {
@@ -882,14 +891,62 @@ const AI_ERRORS = {
   invalid_json: 'The AI answer came back garbled. Tap the button to try again.',
   session_expired: 'Sign in to Claude again, then retry.',
 };
+// ----- Own-key mode (the GitHub Pages site): calls the Claude API from this browser with the viewer's key -----
+const KEY_STORE = 'macrolens-apikey'; // outside the ml: prefix so it is never synced
+const MODEL = 'claude-opus-5-5';
+const SDK_URL = 'https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.8.0/+esm';
+let ownKey = null, sdkModule = null;
+const MEAL_SCHEMA = {
+  type: 'object', additionalProperties: false, required: ['is_food', 'meal_name', 'notes', 'items'],
+  properties: {
+    is_food: { type: 'boolean' }, meal_name: { type: 'string' }, notes: { type: 'string' },
+    items: { type: 'array', items: { type: 'object', additionalProperties: false,
+      required: ['name', 'portion', 'grams', 'calories', 'protein', 'carbs', 'fat', 'confidence'],
+      properties: { name: { type: 'string' }, portion: { type: 'string' }, grams: { type: 'number' }, calories: { type: 'number' },
+        protein: { type: 'number' }, carbs: { type: 'number' }, fat: { type: 'number' }, confidence: { type: 'string', enum: ['low', 'medium', 'high'] } } } },
+  },
+};
+const blobToBase64 = (blob) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(blob); });
+async function ownKeyJson(prompt, images) {
+  sdkModule ??= await import(SDK_URL).catch(() => { throw { code: 'sdk_load' }; });
+  const Anthropic = sdkModule.default;
+  const client = new Anthropic({ apiKey: ownKey, dangerouslyAllowBrowser: true });
+  const content = [];
+  for (const img of images || []) content.push({ type: 'image', source: { type: 'base64', media_type: img.type || 'image/jpeg', data: await blobToBase64(img) } });
+  content.push({ type: 'text', text: prompt });
+  let res;
+  try {
+    res = await client.beta.messages.create({
+      model: MODEL, max_tokens: 8000,
+      betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default',
+      output_config: { effort: 'low', format: { type: 'json_schema', schema: MEAL_SCHEMA } },
+      messages: [{ role: 'user', content }],
+    });
+  } catch (e) {
+    if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) throw { code: 'bad_key' };
+    if (e instanceof Anthropic.RateLimitError) throw { code: 'rate_limited' };
+    if (e instanceof Anthropic.BadRequestError) throw { code: 'bad_request', message: e.message };
+    throw { code: 'upstream_error' };
+  }
+  if (res.stop_reason === 'refusal') throw { code: 'refused' };
+  const block = res.content.find((b) => b.type === 'text');
+  try { return JSON.parse(block.text); } catch { throw { code: 'invalid_json' }; }
+}
+function aiReady() { return !!(aiSample || ownKey); }
+function photosReady() { return !!((aiSample && aiImages) || ownKey); }
+AI_ERRORS.bad_key = 'Your API key was rejected. Check it in Profile.';
+AI_ERRORS.sdk_load = "Couldn't load the AI library. Check your internet connection and try again.";
+AI_ERRORS.bad_request = 'The AI could not read that request. Try a different photo or a shorter description.';
+
 async function runAI(text, images, statusEl, btn) {
-  if (!aiSample) { statusEl.textContent = 'AI is only available when MacroLens is opened in Claude.'; return; }
+  if (!aiReady()) { statusEl.textContent = 'Add your API key in Profile to use AI here.'; return; }
   const label = btn.textContent;
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Analyzing… (10-30 s)';
   statusEl.textContent = '';
   try {
-    const raw = await aiSample.json(AI_PROMPT + '\n\n' + text, images ? { images } : {});
+    const prompt = AI_PROMPT + '\n\n' + text;
+    const raw = aiSample ? await aiSample.json(prompt, images ? { images } : {}) : await ownKeyJson(prompt, images);
     openReview(normalizeMeal(raw));
   } catch (e) {
     if (e?.code === 'not_granted' || e?.code === 'sampling_disabled') hideAI(AI_ERRORS[e.code]);
@@ -920,7 +977,7 @@ async function takePhoto(file) {
     if (img.src.startsWith('blob:')) URL.revokeObjectURL(img.src);
     img.src = URL.createObjectURL(photo);
     img.hidden = false; $('#photo-hint').hidden = true;
-    $('#analyze-btn').disabled = !(aiSample && aiImages);
+    $('#analyze-btn').disabled = !photosReady();
   } catch { toast("Couldn't read that image"); }
 }
 $('#photo-input').addEventListener('change', (e) => takePhoto(e.target.files[0]));
@@ -1007,7 +1064,7 @@ $('#add-meal').innerHTML = MEALS.map(([k, l]) => `<option value="${k}">${l}</opt
 $('#add-tabs').addEventListener('click', (e) => { const b = e.target.closest('button[data-pane]'); if (b) switchPane(b.dataset.pane); });
 $$('[data-close]').forEach((b) => b.addEventListener('click', () => b.closest('dialog').close()));
 $$('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
-$('#fab').addEventListener('click', () => openAdd(day === todayIso() ? defaultMeal() : 'snacks', aiSample ? 'scan' : 'search'));
+$('#fab').addEventListener('click', () => openAdd(day === todayIso() ? defaultMeal() : 'snacks', aiReady() ? 'scan' : 'search'));
 $('#meals').addEventListener('click', (e) => {
   const add = e.target.closest('[data-add]');
   if (add) return openAdd(add.dataset.add, 'search');
@@ -1071,14 +1128,43 @@ function goProfileFirstRun() {
   toast('Set up your profile to get your targets');
 }
 
+// ===================== own API key (outside Claude) =====================
+function setupOwnKey() {
+  $('#key-card').hidden = false;
+  try { ownKey = localStorage.getItem(KEY_STORE) || null; } catch { ownKey = null; }
+  applyKeyState();
+}
+function applyKeyState() {
+  const msg = 'Add your Claude API key in Profile to turn on AI photo scanning. Search and quick add work without it.';
+  $('#key-status').textContent = ownKey ? `Key saved (ends in ${ownKey.slice(-4)}). AI scanning is on.` : 'No key saved. AI scanning is off.';
+  $('#key-remove').hidden = !ownKey;
+  $('#ai-status').textContent = ownKey ? '' : msg;
+  $('#describe-status').textContent = ownKey ? '' : msg;
+  $('#describe-btn').disabled = !ownKey;
+  $('#analyze-btn').disabled = !(photo && ownKey);
+}
+$('#key-card').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const k = $('#api-key').value.trim();
+  if (!/^sk-ant-[\w-]{20,}$/.test(k)) return toast('That does not look like a Claude API key (it starts with sk-ant-)');
+  ownKey = k;
+  try { localStorage.setItem(KEY_STORE, k); } catch { toast('Could not save the key in this browser; it will last until you close the page'); }
+  $('#api-key').value = '';
+  applyKeyState();
+  toast('Key saved. AI scanning is on.');
+});
+$('#key-remove').addEventListener('click', () => {
+  ownKey = null;
+  try { localStorage.removeItem(KEY_STORE); } catch {}
+  applyKeyState();
+  toast('Key removed');
+});
+
 // ===================== boot =====================
 setSync('local');
 render();
 (async () => {
-  if (!window.claude?.use) {
-    hideAI('AI scanning works when MacroLens is opened in Claude. Search and quick add still work.');
-    return;
-  }
+  if (!window.claude?.use) return setupOwnKey();
   const s = await claude.use('sample');
   if (!s) return hideAI('AI is not available in this view. Search and quick add still work.');
   aiSample = s;
