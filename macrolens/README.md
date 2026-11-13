@@ -61,3 +61,11 @@ public/                 the app (vanilla JS, no build step)
 - Saved meals / "log yesterday's breakfast again"
 - Micronutrients (sodium, sugar, iron, calcium)
 - Training-day vs rest-day calorie targets
+
+## Web app on GitHub Pages
+
+`docs/` holds a static copy of the single-page version (`artifact.html`), built with `node macrolens/build-pages.mjs`.
+It works with no server: food search, quick add, targets, water, weight and progress, saved in the browser.
+AI photo scanning and sync need the Claude version of the page.
+
+To publish: repo **Settings → Pages → Build and deployment → Deploy from a branch**, pick this branch and the `/docs` folder, then Save.
