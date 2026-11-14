@@ -285,6 +285,16 @@ label.check input { width: auto; }
 #reminder { position: fixed; left: 50%; transform: translateX(-50%); top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 60; width: min(520px, calc(100vw - 24px));
   display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; background: var(--accent); color: var(--accent-ink); border-radius: 14px; padding: 12px 12px 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
 #reminder .icon-btn { background: transparent; border-color: currentColor; color: inherit; width: 30px; height: 30px; font-size: 13px; }
+.measure-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; margin-top: 10px; }
+.measure-table th, .measure-table td { text-align: right; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+.measure-table th:first-child, .measure-table td:first-child { text-align: left; }
+.measure-table th { color: var(--muted); font-weight: 500; font-size: 12px; }
+.delta-up { color: var(--accent); } .delta-down { color: var(--over); }
+.recipe { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 6px; margin-top: 10px; }
+.recipe-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.recipe-head b { font-family: var(--f-display); }
+.recipe details { font-size: 13px; } .recipe details summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+.recipe ul, .recipe ol { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; }
 .daytype { display: flex; gap: 6px; justify-content: center; }
 .daytype button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; }
 .daytype button.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
@@ -419,9 +429,24 @@ label.check input { width: auto; }
         <label>Tip-off<input type="time" id="g-time" required></label>
         <button class="btn">Set</button>
       </form>
+      <label class="small" style="margin:2px 0 6px">More games the same day? (tournament)<input type="text" id="g-more" placeholder="e.g. 1:30pm, 6:00pm"></label>
       <ol class="timeline" id="game-plan"></ol>
+      <div id="cooler" class="fix" hidden style="margin-top:8px"></div>
       <button class="btn" id="cal-game" type="button" hidden style="width:100%;margin-top:8px">Add game plan to my calendar</button>
     </div>
+
+    <form id="sweat-form" class="card form">
+      <div class="row-between"><h3>Sweat test</h3><span class="muted small" id="sweat-result"></span></div>
+      <p class="muted small" style="margin:0">Weigh yourself right before and right after a practice (same clothes, towel off). It shows how much you really sweat, and your water goal on practice days adjusts to match.</p>
+      <div class="grid2">
+        <label>Weight before (lb)<input id="sw-pre" type="number" step="0.1" min="50" max="500" required></label>
+        <label>Weight after (lb)<input id="sw-post" type="number" step="0.1" min="50" max="500" required></label>
+        <label>Drank during (oz)<input id="sw-drank" type="number" min="0" max="300" value="0"></label>
+        <label>Practice length (min)<input id="sw-mins" type="number" min="20" max="300" value="120"></label>
+      </div>
+      <button class="btn">Calculate my sweat rate</button>
+      <div id="sweat-out"></div>
+    </form>
 
     <div class="card form">
       <div><h3>What should I eat next?</h3>
@@ -443,11 +468,29 @@ label.check input { width: auto; }
     </div>
 
     <div class="card form">
+      <div><h3>Craving swap</h3>
+      <p class="muted small" style="margin:4px 0 0">Want something? Coach finds a version that still fits your day.</p></div>
+      <div class="inline-form"><input type="text" id="crave-input" placeholder="Pizza, a milkshake, hot Cheetos…"><button class="btn primary" id="crave-btn" type="button">Swap</button></div>
+      <p class="muted small" id="crave-status" style="margin:0"></p>
+      <div id="crave-out" class="coach-out"></div>
+    </div>
+
+    <div class="card form">
+      <div class="row-between"><h3>Meal prep plan</h3><span class="muted small" id="prep-date"></span></div>
+      <p class="muted small" style="margin:0">One cooking session (about 90 minutes) that covers lunches and post-practice meals for the week. Each recipe becomes a saved meal you can log in one tap.</p>
+      <input type="text" id="prep-note" placeholder="Optional: only a microwave at school, 5 lunches, $40 budget">
+      <button class="btn" id="prep-btn" type="button">Make my prep plan</button>
+      <p class="muted small" id="prep-status" style="margin:0"></p>
+      <div id="prep-out"></div>
+    </div>
+
+    <div class="card form">
       <div class="row-between"><h3>Weekly report</h3><span class="muted small" id="report-date"></span></div>
       <p class="muted small" style="margin:0">Coach grades your last 7 days and gives you the 3 changes that matter most.</p>
       <button class="btn" id="report-btn">Make my weekly report</button>
       <p class="muted small" id="report-status" style="margin:0"></p>
       <div id="report-out"></div>
+      <button class="btn" id="share-btn" type="button">Copy a summary for a parent</button>
     </div>
 
     <div class="card form">
@@ -486,6 +529,18 @@ label.check input { width: auto; }
       <div id="weight-chart" class="chart"></div>
       <ul id="weight-list" class="plain-list"></ul>
     </div>
+    <form id="measure-form" class="card form">
+      <div class="row-between"><h3>Body measurements</h3><span class="muted small">inches, once every 2-4 weeks</span></div>
+      <div class="grid2">
+        <label>Waist (at belly button)<input id="ms-waist" type="number" step="0.1" min="15" max="70"></label>
+        <label>Chest<input id="ms-chest" type="number" step="0.1" min="20" max="70"></label>
+        <label>Arm (flexed, biggest point)<input id="ms-arm" type="number" step="0.1" min="6" max="30"></label>
+        <label>Thigh (biggest point)<input id="ms-thigh" type="number" step="0.1" min="10" max="45"></label>
+      </div>
+      <button class="btn">Log measurements</button>
+      <div id="measure-out"></div>
+    </form>
+
     <div class="card">
       <h3>Bulk / cut check</h3>
       <div id="trend-out" style="margin-top:8px"></div>
@@ -528,6 +583,16 @@ label.check input { width: auto; }
       </div>
       <div class="row-between"><span class="muted small" id="key-status"></span><button type="button" class="chip" id="key-remove" hidden>Remove key</button></div>
     </form>
+    <form id="prefs-form" class="card form">
+      <div><h3>Sport and food rules</h3>
+      <p class="muted small" style="margin:4px 0 0">Every AI suggestion (Coach, Eat out, fridge, grocery list, meal prep) follows these.</p></div>
+      <label>Sport and position<input id="pf-sport" placeholder="Basketball, guard"></label>
+      <label>Allergies (never suggest)<input id="pf-allergies" placeholder="peanuts, shellfish"></label>
+      <label>Foods you don't eat or dislike<input id="pf-dislikes" placeholder="mushrooms, tuna, pork"></label>
+      <label>Other rules<input id="pf-rules" placeholder="vegetarian, halal, lactose-free, small budget"></label>
+      <button class="btn">Save</button>
+    </form>
+
     <div class="card form">
       <h3>Appearance</h3>
       <div class="mode" role="radiogroup" aria-label="Theme" id="theme-pick">
@@ -880,6 +945,15 @@ function targets(date) {
   const base = c.targets ?? { calories: 2800, protein: 140, carbs: 390, fat: 84, waterOz: 100 };
   const o = c.overrides || {};
   const t = { ...base, ...Object.fromEntries(Object.entries(o).filter(([, v]) => v > 0)) };
+  // Practice/game days with a measured sweat rate: water goal = baseline + what that session's sweat costs.
+  const sw = c.sweat, dd = date ? dayDoc(date) : null;
+  if (sw?.rate && date && dd?.type !== 'rest') {
+    const g = c.game;
+    // Games: about 75 minutes of real activity each (warmups and minutes on the floor), not the whole clock.
+    const mins = g && g.date === date ? 75 * gameStarts(g).length : dd?.practice ? Number(dd.practice.mins) : 0;
+    const base = (c.profile?.weightLb ?? 150) * 0.5;
+    if (mins) t.waterOz = Math.max(t.waterOz, Math.round(Math.min(base + (sw.rate * mins) / 60, base + 140)));
+  }
   // Rest days: same protein and fat, 30% fewer carbs (less glycogen to refill), calories drop to match.
   if (date && dayDoc(date)?.type === 'rest') {
     const cut = Math.round(t.carbs * 0.3);
@@ -924,7 +998,7 @@ function renderToday() {
   $('#micro-note').textContent = tot.missing ? `${tot.missing} item${tot.missing === 1 ? ' has' : 's have'} no nutrient data` : '';
 
   const water = dayDoc(day)?.water || 0;
-  $('#water-text').textContent = `${water} / ${t.waterOz} oz`;
+  $('#water-text').textContent = `${water} / ${t.waterOz} oz${core().sweat && t.waterOz > (core().targets?.waterOz ?? 0) ? ' (includes practice sweat)' : ''}`;
   $('#water-bar').style.width = `${Math.min(100, (water / t.waterOz) * 100)}%`;
 
   const log = dayDoc(day) || blankDay();
@@ -1048,6 +1122,7 @@ function renderProgress() {
 
 // ===================== render: profile =====================
 function renderProfile() {
+  renderPrefs();
   const p = core().profile;
   if (p) {
     $('#pf-sex').value = p.sex; $('#pf-age').value = p.age;
@@ -1068,7 +1143,7 @@ function renderProfile() {
 let currentView = 'today';
 function render() {
   renderToday();
-  if (currentView === 'progress') { renderProgress(); renderTrend(); renderBadges(); }
+  if (currentView === 'progress') { renderProgress(); renderTrend(); renderBadges(); renderMeasures(); }
   if (currentView === 'profile') renderProfile();
   if (currentView === 'coach') renderCoach();
 }
@@ -1543,6 +1618,8 @@ function fuelPlan(pr, t) {
 }
 function renderCoach() {
   renderReport(core().report);
+  renderSweat();
+  renderPrep();
   renderFridgeThumbs();
   $('#cal-practice').hidden = !practiceToday() || dayDoc(todayIso())?.type === 'rest';
   $('#cal-game').hidden = !(core().game && core().game.date >= todayIso());
@@ -1594,9 +1671,15 @@ function dayContext(date) {
     targets: { calories: t.calories, protein: t.protein, carbs: t.carbs, fat: t.fat, fiber: mt.fiber, added_sugar_max: mt.sugar, sodium_max_mg: mt.sodium, iron_mg: mt.iron, calcium_mg: mt.calcium } };
 }
 function athleteLine() {
-  const p = core().profile;
-  return p ? `Athlete: ${p.age}-year-old ${p.sex}, ${p.weightLb} lb, ${p.heightIn} in tall, goal: ${GOALS[p.goal]?.label || p.goal}, activity: ${ACTIVITY[p.activity]?.label || p.activity}. Plays basketball (guard).`
-    : 'Athlete: high school basketball player (guard). No profile details saved.';
+  const p = core().profile, f = core().prefs || {};
+  const sport = f.sport?.trim() || 'Basketball, guard';
+  const base = p ? `Athlete: ${p.age}-year-old ${p.sex}, ${p.weightLb} lb, ${p.heightIn} in tall, goal: ${GOALS[p.goal]?.label || p.goal}, activity: ${ACTIVITY[p.activity]?.label || p.activity}. Sport: ${sport}.`
+    : `Athlete: high school athlete, sport: ${sport}. No profile details saved.`;
+  const rules = [];
+  if (f.allergies?.trim()) rules.push(`ALLERGIES, never include these or anything containing them: ${f.allergies.trim()}.`);
+  if (f.dislikes?.trim()) rules.push(`Does not eat, never suggest: ${f.dislikes.trim()}.`);
+  if (f.rules?.trim()) rules.push(`Always follow: ${f.rules.trim()}.`);
+  return base + (rules.length ? '\n' + rules.join(' ') : '');
 }
 let coachOptions = [];
 $('#coach-btn').addEventListener('click', async () => {
@@ -1722,7 +1805,8 @@ function nightBeforePlan(start) {
 }
 function renderGame() {
   const g = core().game, today = todayIso();
-  if (g && !$('#g-date').value) { $('#g-date').value = g.date; $('#g-time').value = g.start; }
+  if (g && !$('#g-date').value) { $('#g-date').value = g.date; $('#g-time').value = g.start; $('#g-more').value = (g.more || []).map((m) => fmtMin(toMin(m))).join(', '); }
+  renderCooler();
   const el = $('#game-plan');
   if (!g || g.date < today) {
     $('#game-when').textContent = '';
@@ -1732,13 +1816,15 @@ function renderGame() {
   const days = Math.round((new Date(g.date + 'T12:00:00') - new Date(today + 'T12:00:00')) / 864e5);
   const start = toMin(g.start);
   $('#game-when').textContent = days === 0 ? `Today, ${fmtMin(start)}` : days === 1 ? `Tomorrow, ${fmtMin(start)}` : `In ${days} days`;
-  if (days === 0) el.innerHTML = stepsHtml(gamePlan(start), today);
+  if (days === 0) el.innerHTML = stepsHtml(gameDaySteps(g), today);
   else if (days === 1) el.innerHTML = stepsHtml(nightBeforePlan(start), today);
   else el.innerHTML = `<li><span class="t-time"></span><span class="t-dot"></span><div><div class="t-title">Game in ${days} days</div><div class="t-body">Eat and sleep normally. The night-before plan shows up here the day before. Days 2-3 before, keep carbs up and do not try new foods.</div></div></li>`;
 }
 $('#game-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  const g = { date: $('#g-date').value, start: $('#g-time').value };
+  const more = parseTimes($('#g-more').value);
+  if ($('#g-more').value.trim() && !more.length) return toast('Write extra game times like 1:30pm, 6:00pm');
+  const g = { date: $('#g-date').value, start: $('#g-time').value, more };
   if (!g.date || !g.start) return toast('Pick the game date and tip-off time');
   if (g.date < todayIso()) return toast('Pick today or a future date');
   core().game = g; persist('core');
@@ -2010,7 +2096,7 @@ const remindedKey = () => 'ml-reminded-' + todayIso();
 function todaysSteps() {
   const today = todayIso(), out = [];
   const g = core().game;
-  if (g && g.date === today) out.push(...gamePlan(toMin(g.start)).map((s) => ({ ...s, src: 'game' })));
+  if (g && g.date === today) out.push(...gameDaySteps(g).map((s) => ({ ...s, src: 'game' })));
   else if (g && Math.round((new Date(g.date + 'T12:00:00') - new Date(today + 'T12:00:00')) / 864e5) === 1) out.push(...nightBeforePlan(toMin(g.start)).map((s) => ({ ...s, src: 'night' })));
   if (!out.length && practiceToday() && dayDoc(today)?.type !== 'rest') out.push(...fuelPlan(practiceToday(), targets(today)).map((s) => ({ ...s, eat: !s.title.startsWith('Practice') })));
   return out.filter((s) => s.eat);
@@ -2063,7 +2149,7 @@ $('#cal-game').addEventListener('click', () => {
   const g = core().game; if (!g) return;
   const start = toMin(g.start);
   const night = new Date(g.date + 'T12:00:00'); night.setDate(night.getDate() - 1);
-  const parts = [icsFor(isoDate(night), nightBeforePlan(start).filter((s) => s.eat), 'night'), icsFor(g.date, gamePlan(start).filter((s) => s.eat), 'game')];
+  const parts = [icsFor(isoDate(night), nightBeforePlan(start).filter((s) => s.eat), 'night'), icsFor(g.date, gameDaySteps(g).filter((s) => s.eat), 'game')];
   const merged = parts[0].replace(/END:VCALENDAR\r\n$/, '') + parts[1].replace(/^[\s\S]*?CALSCALE:GREGORIAN\r\n/, '');
   saveCalendar(`macrolens-game-${g.date}.ics`, merged);
 });
@@ -2226,6 +2312,224 @@ function wireDictation(d) {
   d.onState(({ state }) => { if (state === 'idle' && micOn) micFinished(); });
   enableMic();
 }
+
+// ===================== Tournament mode =====================
+/** "1:30pm, 6:00, 18:30" -> ["13:30", "18:00", "18:30"]. Without am/pm, 1-7 means afternoon. */
+function parseTimes(text) {
+  const out = [];
+  for (const raw of String(text).split(/[,;]|\band\b/)) {
+    const m = raw.trim().toLowerCase().match(/^(\d{1,2})(?::(\d{2}))?\s*(a|p)?\.?m?\.?$/);
+    if (!m) continue;
+    let h = Number(m[1]); const min = Number(m[2] || 0);
+    if (h > 23 || min > 59) continue;
+    if (m[3] === 'p' && h < 12) h += 12;
+    if (m[3] === 'a' && h === 12) h = 0;
+    if (!m[3] && h >= 1 && h <= 7) h += 12;
+    out.push(`${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`);
+  }
+  return out;
+}
+function gameStarts(g) {
+  return [...new Set([g.start, ...(g.more || [])])].map(toMin).sort((a, b) => a - b);
+}
+function gameDaySteps(g) {
+  const starts = gameStarts(g);
+  return starts.length > 1 ? tournamentPlan(starts) : gamePlan(starts[0]);
+}
+/** Several games in one day: fuel around the first, then size each gap's food to how long the gap is. */
+function tournamentPlan(starts) {
+  const kg = (core().profile?.weightLb ?? 150) * 0.4536;
+  const first = gamePlan(starts[0]).filter((st) => st.title !== 'Post-game recovery');
+  const steps = [...first];
+  for (let i = 0; i < starts.length - 1; i++) {
+    const end = starts[i] + 90, next = starts[i + 1], gap = next - end;
+    if (i > 0) steps.push({ at: starts[i], eat: false, title: `Game ${i + 1}`, body: 'Sip water during timeouts; sports drink at halftime.' });
+    if (gap < 120) steps.push({ at: end + 10, eat: true, title: `Between games ${i + 1} and ${i + 2}`, body: `Short gap: 30-60 g of quick carbs and 16-24 oz of fluid right away. Example: a banana, pretzels, applesauce, a sports drink. Skip protein bars and anything fatty. Top off with a few crackers 30 minutes before game ${i + 2}.` });
+    else if (gap < 240) steps.push({ at: end + 20, eat: true, title: `Light meal before game ${i + 2}`, body: `About ${Math.round(kg * 1)} g carbs with a little protein, low fat. Example: a turkey sandwich, a bagel with peanut butter, fruit, and 20-24 oz of fluid. Finish eating 90 minutes before tip-off.` });
+    else steps.push({ at: end + 30, eat: true, title: `Meal before game ${i + 2}`, body: `Long gap: a real meal like the pre-game meal (about ${Math.round(kg * 1.5)} g carbs, 25-35 g protein), then a top-off snack an hour before game ${i + 2}.` });
+  }
+  const last = starts[starts.length - 1];
+  steps.push({ at: last, eat: false, title: `Game ${starts.length}`, body: 'Last one. Keep sipping, and use a sports drink at halftime.' });
+  steps.push({ at: last + 120, eat: true, title: 'Recovery', body: `Within an hour: 25-40 g protein and about ${Math.round(kg * 1.2)} g carbs, plus 24 oz of fluid. Example: chocolate milk and a burrito bowl.` });
+  return steps.map((st) => ({ ...st, at: Math.max(5 * 60, Math.min(23 * 60 + 30, st.at)) })).sort((a, b) => a.at - b.at);
+}
+function renderCooler() {
+  const g = core().game, el = $('#cooler');
+  if (!g || g.date < todayIso() || gameStarts(g).length < 2) { el.hidden = true; return; }
+  const n = gameStarts(g).length;
+  el.hidden = false;
+  el.innerHTML = `<b>Pack the cooler (${n} games)</b><p>${n + 1} bottles of water and ${n} sports drinks · ${n + 1} bananas or oranges · pretzels or crackers · ${n} PB&J or turkey sandwiches · applesauce pouches · chocolate milk on ice for after the last game.</p><p class="muted">Avoid: greasy concession food, candy-only snacks, energy drinks.</p>`;
+}
+
+// ===================== Food rules (Profile) =====================
+function renderPrefs() {
+  const f = core().prefs || {};
+  $('#pf-sport').value = f.sport || ''; $('#pf-allergies').value = f.allergies || ''; $('#pf-dislikes').value = f.dislikes || ''; $('#pf-rules').value = f.rules || '';
+}
+$('#prefs-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  core().prefs = { sport: $('#pf-sport').value.trim().slice(0, 80), allergies: $('#pf-allergies').value.trim().slice(0, 200), dislikes: $('#pf-dislikes').value.trim().slice(0, 200), rules: $('#pf-rules').value.trim().slice(0, 200) };
+  persist('core'); toast('Saved. Coach will follow these.');
+});
+
+// ===================== Sweat test =====================
+function renderSweat() {
+  const sw = core().sweat;
+  $('#sweat-result').textContent = sw ? `${sw.rate} oz an hour` : '';
+  if (!sw) { $('#sweat-out').innerHTML = ''; return; }
+  const lostPct = r1((sw.lost / sw.pre) * 100);
+  $('#sweat-out').innerHTML = `<div class="fix"><b>You sweat about ${sw.rate} oz an hour</b>
+    <p>During practice: drink about ${Math.round(sw.rate * 0.8 / 4)} oz every 15 minutes (${Math.round(sw.rate * 0.8)} oz an hour).${sw.rate > 32 ? ' That is a heavy sweat rate, so use a sports drink for at least half of it to replace sodium.' : ''}</p>
+    <p>After: drink ${Math.round(sw.lost * 16 * 1.5)} oz in the next 2 hours for the ${r1(sw.lost)} lb you lost (1.5x replaces sweat plus urine).</p>
+    ${lostPct >= 2 ? `<p class="muted">You lost ${lostPct}% of your body weight. Past 2% starts to hurt speed and shooting, so drink more during practice.</p>` : `<p class="muted">You lost ${lostPct}% of your body weight, under the 2% where performance drops. Good.</p>`}
+    <p class="muted">Tested ${new Date(sw.date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}. Your water goal on practice days now includes this. Retest when the weather changes.</p></div>`;
+}
+$('#sweat-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const pre = Number($('#sw-pre').value), post = Number($('#sw-post').value), drank = Number($('#sw-drank').value) || 0, mins = Number($('#sw-mins').value) || 120;
+  if (!(pre > 0 && post > 0)) return toast('Enter both weights');
+  if (post > pre + 0.5) return toast('Weight after is higher than before. Check the numbers.');
+  const lost = Math.max(0, pre - post);
+  const rate = Math.round(((lost * 16 + drank) / mins) * 60);
+  if (rate > 120) return toast("That sweat rate looks too high. Check the weights and minutes.");
+  core().sweat = { rate, lost: r1(lost), pre, drank, mins, date: todayIso() };
+  persist('core'); renderSweat(); renderToday();
+  toast(`Sweat rate: ${rate} oz an hour`);
+});
+
+// ===================== Craving swap =====================
+let craveOptions = [];
+$('#crave-btn').addEventListener('click', async () => {
+  const want = $('#crave-input').value.trim();
+  if (!want) return toast('Type what you are craving');
+  if (!aiReady()) { $('#crave-status').textContent = 'Turn on AI first (open MacroLens in Claude, or add your API key in Profile).'; return; }
+  const pr = practiceToday();
+  const prompt = `You are a sports dietitian who believes no food is off limits. A high school athlete is craving: "${want.slice(0, 120)}".
+${athleteLine()}
+It is ${fmtMin(nowMin())}. ${pr ? `Practice or game today at ${fmtMin(toMin(pr.start))}.` : ''} ${remainingLine()}
+Give 3 options: 1) a smarter homemade or store-bought version that satisfies the same craving with more protein and fewer calories, 2) the real thing in a portion that fits what is left today, with what to pair it with, 3) a quick swap they can get almost anywhere. If timing matters (right before practice), say when to eat it.
+Reply with only JSON in exactly this shape:
+{"headline": "One encouraging sentence", "options": [{"title": "Protein pizza on a tortilla", "when": "Tonight after practice", "why": "Same flavor, double the protein", "items": [{"name": "Tortilla pizza with turkey pepperoni", "portion": "1 large tortilla", "grams": 220, "calories": 450, "protein": 34, "carbs": 40, "fat": 16, "fiber": 3, "added_sugar": 3, "sodium_mg": 1100, "iron_mg": 2.5, "calcium_mg": 420, "confidence": "medium"}]}]}
+Every number is for the whole portion. Calories must be close to 4 x protein + 4 x carbs + 9 x fat.`;
+  const btn = $('#crave-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  $('#crave-status').textContent = 'Finding swaps… (10-30 s)'; $('#crave-out').innerHTML = '';
+  try {
+    const res = await askJson(prompt, COACH_SCHEMA);
+    if (!res || !Array.isArray(res.options) || !res.options.length) throw { code: 'invalid_json' };
+    craveOptions = res.options.slice(0, 3).map((o) => ({ ...o, items: normalizeMeal({ is_food: true, items: o.items }).items }));
+    $('#crave-status').textContent = '';
+    $('#crave-out').innerHTML = `<p style="margin:0"><b>${esc(res.headline || '')}</b></p>` + craveOptions.map((o, i) => optionCard(o, i, 'data-log-crave')).join('');
+  } catch (e) {
+    $('#crave-status').textContent = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
+  } finally { btn.disabled = false; btn.textContent = 'Swap'; }
+});
+$('#crave-out').addEventListener('click', (e) => { const b = e.target.closest('[data-log-crave]'); if (b) logOption(craveOptions[Number(b.dataset.logCrave)], b); });
+
+// ===================== Meal prep plan =====================
+const PREP_SCHEMA = {
+  type: 'object', additionalProperties: false, required: ['overview', 'schedule', 'recipes', 'shopping'],
+  properties: {
+    overview: { type: 'string' }, schedule: { type: 'array', items: { type: 'string' } }, shopping: { type: 'array', items: { type: 'string' } },
+    recipes: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['title', 'servings', 'storage', 'ingredients', 'steps', 'per_serving'],
+      properties: { title: { type: 'string' }, servings: { type: 'number' }, storage: { type: 'string' }, ingredients: { type: 'array', items: { type: 'string' } },
+        steps: { type: 'array', items: { type: 'string' } }, per_serving: ITEM_SCHEMA } } },
+  },
+};
+function renderPrep() {
+  const pp = core().prep;
+  if (!pp) { $('#prep-out').innerHTML = ''; $('#prep-date').textContent = ''; return; }
+  $('#prep-date').textContent = 'Made ' + new Date(pp.at + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  $('#prep-out').innerHTML = `<p style="margin:0">${esc(pp.overview)}</p>
+    <div class="fix" style="margin-top:10px"><b>Prep order</b><ol style="margin:6px 0 0;padding-left:18px">${pp.schedule.map((x) => `<li class="small">${esc(x)}</li>`).join('')}</ol></div>` +
+    pp.recipes.map((r) => { const n = r.item; return `<div class="recipe"><div class="recipe-head"><b>${esc(r.title)}</b><span class="muted small num">${r.servings} servings</span></div>
+      <div class="muted small num">Per serving: ${n.calories} kcal · P ${Math.round(n.protein)} · C ${Math.round(n.carbs)} · F ${Math.round(n.fat)}</div>
+      <div class="small">${esc(r.storage)}</div>
+      <details><summary>Ingredients and steps</summary><ul>${r.ingredients.map((x) => `<li>${esc(x)}</li>`).join('')}</ul><ol>${r.steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol></details></div>`; }).join('') +
+    `<details class="small" style="margin-top:10px"><summary style="cursor:pointer;color:var(--accent);font-weight:600">Shopping list</summary><ul style="margin:6px 0 0;padding-left:18px">${pp.shopping.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></details>
+    <p class="muted small" style="margin:10px 0 0">Each recipe is saved under Search → saved meals, so you can log a serving in one tap.</p>`;
+}
+$('#prep-btn').addEventListener('click', async () => {
+  if (!aiReady()) { $('#prep-status').textContent = 'Turn on AI first (open MacroLens in Claude, or add your API key in Profile).'; return; }
+  const w = weekAverages(), t = targets();
+  const favorites = [...new Set([...(core().meals || []).map((m) => m.name), ...(core().recents || []).slice(0, 15).map((r) => r.name)])];
+  const pr = core().practice;
+  const prompt = `You are a sports dietitian planning a Sunday meal prep for a high school athlete. One cooking session of about 90 minutes in a normal home kitchen, simple techniques, budget-friendly.
+${athleteLine()}
+Daily targets: ${t.calories} kcal, ${t.protein} g protein, ${t.carbs} g carbs, ${t.fat} g fat. ${w ? `Lately averaging ${Math.round(w.avg.calories)} kcal and ${Math.round(w.avg.protein)} g protein a day.` : ''}
+${pr ? `Practice is usually at ${fmtMin(toMin(pr.start))}.` : ''} Foods they like: ${favorites.join('; ') || 'unknown'}.
+${$('#prep-note').value.trim() ? `They say: "${$('#prep-note').value.trim().slice(0, 200)}"` : ''}
+Plan 3-4 recipes that cover 5 school lunches and 4-5 post-practice meals, plus one grab-and-go snack. Each recipe: how many servings, how to store and reheat, ingredients with amounts, short steps, and nutrition for ONE serving. Then give the prep order for the session (what to start first so things cook at the same time) and a combined shopping list with amounts.
+Reply with only JSON in exactly this shape:
+{"overview": "Two sentences on the plan", "schedule": ["0:00 Start rice cooker", "0:05 Season chicken, oven at 425F"], "recipes": [{"title": "Sheet-pan chicken and rice bowls", "servings": 5, "storage": "Fridge 4 days in containers; microwave 2 minutes", "ingredients": ["2.5 lb chicken breast", "3 cups dry rice"], "steps": ["Bake chicken 20 min at 425F"], "per_serving": {"name": "Chicken and rice bowl", "portion": "1 container", "grams": 450, "calories": 620, "protein": 48, "carbs": 75, "fat": 12, "fiber": 4, "added_sugar": 2, "sodium_mg": 700, "iron_mg": 3, "calcium_mg": 60, "confidence": "medium"}}], "shopping": ["2.5 lb chicken breast"]}
+Calories must be close to 4 x protein + 4 x carbs + 9 x fat.`;
+  const btn = $('#prep-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Planning your prep… (20-60 s)';
+  $('#prep-status').textContent = '';
+  try {
+    const r = await askJson(prompt, PREP_SCHEMA);
+    if (!r || !Array.isArray(r.recipes) || !r.recipes.length) throw { code: 'invalid_json' };
+    const recipes = r.recipes.slice(0, 5).map((x) => ({ title: String(x.title || 'Recipe'), servings: Math.max(1, Math.round(Number(x.servings) || 1)), storage: String(x.storage || ''),
+      ingredients: (x.ingredients || []).map(String), steps: (x.steps || []).map(String), item: normalizeMeal({ is_food: true, items: [x.per_serving] }).items[0] }));
+    core().prep = { at: todayIso(), overview: String(r.overview || ''), schedule: (r.schedule || []).map(String).slice(0, 20), shopping: (r.shopping || []).map(String).slice(0, 40),
+      recipes: recipes.map(({ item, ...rest }) => ({ ...rest, item: (({ per, ...f }) => f)(item) })) };
+    // Save each recipe as a one-tap saved meal.
+    const c = core();
+    const prepMeals = recipes.map((x) => { const { per, ...f } = x.item; return { id: 'm' + Date.now() + Math.random().toString(36).slice(2, 6), name: `Prep: ${x.title}`, items: [{ ...f, name: x.title, serving: servingText(x.item), servings: 1 }] }; });
+    c.meals = [...prepMeals, ...(c.meals || []).filter((m) => !m.name.startsWith('Prep: '))].slice(0, 40);
+    persist('core'); renderPrep();
+    toast(`${recipes.length} recipes saved as meals`);
+  } catch (e) {
+    $('#prep-status').textContent = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
+  } finally { btn.disabled = false; btn.textContent = 'Make my prep plan'; }
+});
+
+// ===================== Body measurements =====================
+const MEASURES = [['waist', 'Waist'], ['chest', 'Chest'], ['arm', 'Arm'], ['thigh', 'Thigh']];
+function renderMeasures() {
+  const ms = [...(core().measures || [])].sort((a, b) => a.date.localeCompare(b.date));
+  if (!ms.length) { $('#measure-out').innerHTML = '<p class="muted small" style="margin:0">Measure in the morning, relaxed, tape snug but not tight. Gaining muscle shows up as bigger arms, chest and thighs while your waist stays about the same.</p>'; return; }
+  const first = ms[0], last = ms[ms.length - 1];
+  const delta = (k) => { if (first[k] == null || last[k] == null || ms.length < 2) return ''; const d = r1(last[k] - first[k]); if (!d) return '<span class="muted">0</span>';
+    const good = k === 'waist' ? d < 0 : d > 0; return `<span class="${good ? 'delta-up' : 'delta-down'}">${d > 0 ? '+' : ''}${d}</span>`; };
+  const rows = ms.slice(-5).reverse().map((m) => `<tr><td>${new Date(m.date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</td>${MEASURES.map(([k]) => `<td>${m[k] ?? '–'}</td>`).join('')}<td><button type="button" class="mini" data-del-measure="${m.date}" aria-label="Delete ${m.date}">✕</button></td></tr>`).join('');
+  $('#measure-out').innerHTML = `<div style="overflow-x:auto"><table class="measure-table"><thead><tr><th>Date</th>${MEASURES.map(([, l]) => `<th>${l}</th>`).join('')}<th></th></tr></thead><tbody>${rows}
+    ${ms.length >= 2 ? `<tr><td><b>Change</b></td>${MEASURES.map(([k]) => `<td>${delta(k)}</td>`).join('')}<td></td></tr>` : ''}</tbody></table></div>`;
+}
+$('#measure-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const m = { date: todayIso() };
+  for (const [k] of MEASURES) { const v = $('#ms-' + k).value; if (v !== '') m[k] = r1(Number(v)); }
+  if (Object.keys(m).length === 1) return toast('Enter at least one measurement');
+  const c = core(); c.measures = [...(c.measures || []).filter((x) => x.date !== m.date), m];
+  persist('core'); MEASURES.forEach(([k]) => { $('#ms-' + k).value = ''; }); renderMeasures();
+  toast('Measurements logged');
+});
+$('#measure-out').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-del-measure]'); if (!b) return;
+  const c = core(); c.measures = (c.measures || []).filter((x) => x.date !== b.dataset.delMeasure); persist('core'); renderMeasures();
+});
+
+// ===================== Parent share =====================
+$('#share-btn').addEventListener('click', () => {
+  const w = weekAverages(), r = core().report, g = core().game, p = core().profile;
+  if (!w) return toast('Log some food this week first');
+  const lines = [`MacroLens weekly summary (${w.days} days logged)`, '',
+    `Calories: ${Math.round(w.avg.calories).toLocaleString()} a day (goal ${w.t.calories.toLocaleString()})`,
+    `Protein: ${Math.round(w.avg.protein)} g a day (goal ${w.t.protein} g)`,
+    `Calcium: ${Math.round(w.avg.calcium)} mg (goal ${w.mt.calcium}) · Iron: ${r1(w.avg.iron)} mg (goal ${w.mt.iron})`];
+  const ws = (core().weights || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+  if (ws.length >= 2) lines.push(`Weight: ${ws[0].lb} → ${ws[ws.length - 1].lb} lb${p ? ` (goal: ${GOALS[p.goal].label.toLowerCase()})` : ''}`);
+  if (r) { lines.push('', `Coach grade: ${r.grade}. ${r.summary}`, 'This week:'); r.fixes.forEach((f) => lines.push(`- ${f.title}: ${f.how}`)); }
+  if (g && g.date >= todayIso()) lines.push('', `Next game: ${new Date(g.date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })} at ${fmtMin(toMin(g.start))}${(g.more || []).length ? ` (+${g.more.length} more)` : ''}`);
+  const gl = core().grocery;
+  if (gl) { const need = gl.sections.flatMap((sec) => sec.items.filter((i) => !i.done).map((i) => `${i.item} (${i.amount})`)); if (need.length) lines.push('', 'Groceries I need: ' + need.join(', ')); }
+  const text = lines.join('\n');
+  navigator.clipboard.writeText(text).then(() => toast('Summary copied. Paste it in a text.'), () => {
+    const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('aria-label', 'Summary to copy'); ta.style.cssText = 'width:100%;min-height:160px;margin-top:8px';
+    $('#share-btn').after(ta); ta.select(); toast('Select all and copy');
+  });
+});
 
 // ===================== quick add =====================
 $('#quick-form').addEventListener('submit', (e) => {
