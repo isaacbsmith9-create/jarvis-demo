@@ -155,7 +155,7 @@ h3 { font-size: 16px; font-weight: 600; }
   padding: 8px max(8px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
   background: var(--surface); border-top: 1px solid var(--line);
 }
-.tabbar-inner { max-width: 540px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); align-items: end; }
+.tabbar-inner { max-width: 540px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); align-items: end; }
 .tab { background: none; border: 0; color: var(--muted); font-size: 11px; font-weight: 500; display: grid; justify-items: center; gap: 3px; cursor: pointer; padding: 4px; }
 .tab svg { width: 22px; height: 22px; }
 .tab.active { color: var(--fg); }
@@ -215,6 +215,30 @@ label.check input { width: auto; }
 .micro .row-between { font-size: 13px; flex-wrap: nowrap; }
 .micro.over .num { color: var(--over); font-weight: 600; }
 .micro-line { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.practice-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: end; margin: 12px 0 4px; }
+@media (max-width: 380px) { .practice-row { grid-template-columns: 1fr 1fr; } .practice-row .btn { grid-column: 1 / -1; } }
+.timeline { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 0; }
+.timeline li { display: grid; grid-template-columns: 64px 18px 1fr; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); }
+.timeline li:first-child { border-top: 0; }
+.timeline .t-time { font-weight: 600; font-variant-numeric: tabular-nums; font-size: 13px; }
+.timeline .t-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line); margin-top: 3px; }
+.timeline li.done .t-dot { background: var(--accent); border-color: var(--accent); }
+.timeline li.now .t-dot { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.timeline li.past:not(.done) { opacity: .6; }
+.timeline .t-title { font-weight: 600; }
+.timeline .t-body { font-size: 13px; color: var(--muted); }
+.coach-out { display: grid; gap: 10px; }
+.option { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 6px; }
+.option-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.option-head b { font-family: var(--f-display); }
+.option ul { margin: 0; padding-left: 18px; font-size: 13px; }
+.grade { font-family: var(--f-display); font-size: 44px; font-weight: 700; line-height: 1; color: var(--accent); }
+.report-head { display: flex; gap: 14px; align-items: center; margin-bottom: 10px; }
+.report h4 { margin: 12px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+.report ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.fix { background: var(--surface-2); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+.fix b { display: block; }
+.fix p { margin: 4px 0 0; font-size: 13px; }
 .daytype { display: flex; gap: 6px; justify-content: center; }
 .daytype button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; }
 .daytype button.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
@@ -324,6 +348,36 @@ label.check input { width: auto; }
     <div id="meals" class="view"></div>
   </section>
 
+  <!-- COACH -->
+  <section id="view-coach" class="view" hidden>
+    <div class="card">
+      <div class="row-between"><h3>Today's fuel plan</h3><span class="muted small num" id="coach-left"></span></div>
+      <form id="practice-form" class="practice-row">
+        <label>Practice or game starts<input type="time" id="pr-start" required></label>
+        <label>How long<select id="pr-mins"><option value="60">1 hr</option><option value="90">1.5 hr</option><option value="120">2 hr</option><option value="150">2.5 hr</option><option value="180">3 hr</option></select></label>
+        <button class="btn">Set</button>
+      </form>
+      <ol class="timeline" id="timeline"></ol>
+    </div>
+
+    <div class="card form">
+      <div><h3>What should I eat next?</h3>
+      <p class="muted small" style="margin:4px 0 0">Coach looks at what you've eaten today, what's left, and when you practice, then gives you options you can log in one tap.</p></div>
+      <input type="text" id="coach-q" placeholder="Optional: I'm at school, only have the cafeteria">
+      <button class="btn primary" id="coach-btn">Get suggestions</button>
+      <p class="muted small" id="coach-status" style="margin:0"></p>
+      <div id="coach-out" class="coach-out"></div>
+    </div>
+
+    <div class="card form">
+      <div class="row-between"><h3>Weekly report</h3><span class="muted small" id="report-date"></span></div>
+      <p class="muted small" style="margin:0">Coach grades your last 7 days and gives you the 3 changes that matter most.</p>
+      <button class="btn" id="report-btn">Make my weekly report</button>
+      <p class="muted small" id="report-status" style="margin:0"></p>
+      <div id="report-out"></div>
+    </div>
+  </section>
+
   <!-- PROGRESS -->
   <section id="view-progress" class="view" hidden>
     <div class="stats" id="stats"></div>
@@ -386,6 +440,7 @@ label.check input { width: auto; }
 <nav class="tabbar">
   <div class="tabbar-inner">
     <button class="tab active" data-view="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Diary</button>
+    <button class="tab" data-view="coach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="7"/><path d="M12 9v4l2.5 2M9 3h6"/></svg>Coach</button>
     <button class="tab scan-fab" id="fab" aria-label="Add food"><span class="fab-disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
     <button class="tab" data-view="progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M6 15l4-4 3 3 5-6"/></svg>Progress</button>
     <button class="tab" data-view="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Profile</button>
@@ -895,11 +950,12 @@ function render() {
   renderToday();
   if (currentView === 'progress') renderProgress();
   if (currentView === 'profile') renderProfile();
+  if (currentView === 'coach') renderCoach();
 }
 function showView(v) {
   currentView = v;
   $$('.tab[data-view]').forEach((x) => x.classList.toggle('active', x.dataset.view === v));
-  for (const id of ['today', 'progress', 'profile']) $('#view-' + id).hidden = id !== v;
+  for (const id of ['today', 'coach', 'progress', 'profile']) $('#view-' + id).hidden = id !== v;
   $('#daynav').style.visibility = v === 'today' ? 'visible' : 'hidden';
   render();
   window.scrollTo(0, 0);
@@ -1112,7 +1168,7 @@ const MEAL_SCHEMA = {
   },
 };
 const blobToBase64 = (blob) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(blob); });
-async function ownKeyJson(prompt, images, effort) {
+async function ownKeyJson(prompt, images, effort, schema = MEAL_SCHEMA) {
   sdkModule ??= await import(SDK_URL).catch(() => { throw { code: 'sdk_load' }; });
   const Anthropic = sdkModule.default;
   const client = new Anthropic({ apiKey: ownKey, dangerouslyAllowBrowser: true });
@@ -1124,7 +1180,7 @@ async function ownKeyJson(prompt, images, effort) {
     res = await client.beta.messages.create({
       model: MODEL, max_tokens: 16000,
       betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default',
-      output_config: { effort, format: { type: 'json_schema', schema: MEAL_SCHEMA } },
+      output_config: { effort, format: { type: 'json_schema', schema } },
       messages: [{ role: 'user', content }],
     });
   } catch (e) {
@@ -1317,6 +1373,193 @@ $('#rv-log').addEventListener('click', () => {
   $('#photo-note').value = ''; $('#describe-input').value = '';
   render();
   toast(`Logged ${kept.length} item${kept.length === 1 ? '' : 's'} to ${mealLabel(meal)}`);
+});
+
+// ===================== Coach: fuel plan, next meal, weekly report =====================
+const ITEM_SCHEMA = MEAL_SCHEMA.properties.items.items;
+const COACH_SCHEMA = {
+  type: 'object', additionalProperties: false, required: ['headline', 'options'],
+  properties: {
+    headline: { type: 'string' },
+    options: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['title', 'when', 'why', 'items'],
+      properties: { title: { type: 'string' }, when: { type: 'string' }, why: { type: 'string' }, items: { type: 'array', items: ITEM_SCHEMA } } } },
+  },
+};
+const REPORT_SCHEMA = {
+  type: 'object', additionalProperties: false, required: ['grade', 'summary', 'wins', 'fixes', 'focus'],
+  properties: {
+    grade: { type: 'string' }, summary: { type: 'string' }, focus: { type: 'string' },
+    wins: { type: 'array', items: { type: 'string' } },
+    fixes: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['title', 'why', 'how'],
+      properties: { title: { type: 'string' }, why: { type: 'string' }, how: { type: 'string' } } } },
+  },
+};
+async function askJson(prompt, schema) {
+  if (aiSample) return aiSample.json(prompt, { modelTier: 'default' });
+  return ownKeyJson(prompt, null, 'medium', schema);
+}
+
+const toMin = (hhmm) => { const [h, m] = String(hhmm).split(':').map(Number); return h * 60 + m; };
+const fmtMin = (mins) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setMinutes(mins); return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); };
+const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+function practiceToday() {
+  const d = dayDoc(todayIso());
+  return d?.practice || null;
+}
+
+/** Sports-nutrition timing around one session (ACSM / AND / DC position stand ranges, kept practical). */
+function fuelPlan(pr, t) {
+  const kg = (core().profile?.weightLb ?? 150) * 0.4536;
+  const start = toMin(pr.start), end = start + Number(pr.mins);
+  const carbsMeal = Math.round(kg * 1), carbsRecover = Math.round(kg * 1);
+  const steps = [
+    { at: start - 180, title: 'Pre-practice meal', body: `A normal meal with about ${carbsMeal} g carbs and 25-35 g protein. Keep fat and fiber moderate so it digests. Example: chicken and rice bowl, pasta with meat sauce, or a turkey sandwich with fruit.` },
+    { at: start - 45, title: 'Top-off snack', body: '30-45 g of quick carbs, low in fat, fiber and protein. Example: a banana and a granola bar, pretzels, or applesauce. Drink 8-16 oz of water.' },
+    { at: start, title: `Practice (${Number(pr.mins) / 60} hr)`, body: Number(pr.mins) >= 75 ? 'Sip water every 15-20 minutes. Past an hour, or when it is hot, add a sports drink for carbs and sodium.' : 'Sip water every 15-20 minutes.' },
+    { at: end + 30, title: 'Recovery', body: `Within an hour: 25-35 g protein plus about ${carbsRecover} g carbs. Example: chocolate milk and a turkey sandwich, or Greek yogurt with granola and fruit. Drink 16-24 oz of fluid.` },
+    { at: Math.max(end + 180, 21 * 60), title: 'Before bed', body: '30-40 g of slow protein helps overnight muscle repair. Example: cottage cheese or Greek yogurt.' },
+  ];
+  return steps.map((st) => ({ ...st, at: Math.max(0, Math.min(23 * 60 + 59, st.at)) }));
+}
+function renderCoach() {
+  renderReport(core().report);
+  const today = todayIso(), t = targets(today), tot = totals(entriesOf(today));
+  const left = { kcal: t.calories - tot.calories, p: Math.round(t.protein - tot.protein), c: Math.round(t.carbs - tot.carbs) };
+  $('#coach-left').textContent = `Left today: ${left.kcal.toLocaleString()} kcal · P ${left.p}g · C ${left.c}g`;
+  const pr = practiceToday() || core().practice;
+  if (pr && !$('#pr-start').value) { $('#pr-start').value = pr.start; $('#pr-mins').value = String(pr.mins); }
+  if (!$('#pr-mins').value) $('#pr-mins').value = '120';
+  const tl = $('#timeline');
+  if (dayDoc(today)?.type === 'rest') {
+    tl.innerHTML = `<li><span class="t-time">All day</span><span class="t-dot"></span><div><div class="t-title">Rest day</div><div class="t-body">Carbs are lower today. Spread protein over 4 meals of about ${Math.round(t.protein / 4)} g each, and keep drinking water. Switch the diary to practice day if you have a session.</div></div></li>`;
+    return;
+  }
+  if (!practiceToday()) {
+    tl.innerHTML = `<li><span class="t-time">–</span><span class="t-dot"></span><div><div class="t-title">Set today's practice time</div><div class="t-body">You'll get a meal and snack timeline built around it.</div></div></li>`;
+    return;
+  }
+  const now = nowMin();
+  const logged = entriesOf(today).map((e) => { const d = new Date(e.addedAt || 0); return d.getHours() * 60 + d.getMinutes(); });
+  const steps = fuelPlan(practiceToday(), t);
+  tl.innerHTML = steps.map((st, i) => {
+    const next = steps[i + 1]?.at ?? 24 * 60;
+    const isEat = !st.title.startsWith('Practice');
+    const done = isEat && logged.some((m) => m >= st.at - 75 && m <= st.at + 75);
+    const cls = done ? 'done' : now >= st.at && now < next ? 'now' : now >= next ? 'past' : '';
+    return `<li class="${cls}"><span class="t-time">${fmtMin(st.at)}</span><span class="t-dot" aria-hidden="true"></span><div><div class="t-title">${st.title}${done ? ' ✓' : cls === 'now' ? ' (now)' : ''}</div><div class="t-body">${st.body}</div></div></li>`;
+  }).join('');
+}
+$('#practice-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const pr = { start: $('#pr-start').value, mins: Number($('#pr-mins').value) };
+  if (!pr.start) return toast('Pick a start time');
+  const d = dayDoc(todayIso(), true);
+  d.practice = pr; if (d.type === 'rest') d.type = 'training';
+  core().practice = pr;
+  persist('day-' + todayIso()); persist('core');
+  renderCoach();
+  toast(`Practice set for ${fmtMin(toMin(pr.start))}`);
+});
+
+function dayContext(date) {
+  const t = targets(date), tot = totals(entriesOf(date)), mt = microTargets(t);
+  return { date, day_type: dayDoc(date)?.type === 'rest' ? 'rest' : 'practice/game',
+    eaten: { calories: tot.calories, protein: tot.protein, carbs: tot.carbs, fat: tot.fat, fiber: tot.fiber, added_sugar: tot.sugar, sodium_mg: tot.sodium, iron_mg: tot.iron, calcium_mg: tot.calcium, items_without_nutrient_data: tot.missing },
+    targets: { calories: t.calories, protein: t.protein, carbs: t.carbs, fat: t.fat, fiber: mt.fiber, added_sugar_max: mt.sugar, sodium_max_mg: mt.sodium, iron_mg: mt.iron, calcium_mg: mt.calcium } };
+}
+function athleteLine() {
+  const p = core().profile;
+  return p ? `Athlete: ${p.age}-year-old ${p.sex}, ${p.weightLb} lb, ${p.heightIn} in tall, goal: ${GOALS[p.goal]?.label || p.goal}, activity: ${ACTIVITY[p.activity]?.label || p.activity}. Plays basketball (guard).`
+    : 'Athlete: high school basketball player (guard). No profile details saved.';
+}
+let coachOptions = [];
+$('#coach-btn').addEventListener('click', async () => {
+  if (!aiReady()) { $('#coach-status').textContent = 'Turn on AI first (open MacroLens in Claude, or add your API key in Profile).'; return; }
+  const today = todayIso(), ctx = dayContext(today), pr = practiceToday();
+  const eatenNames = entriesOf(today).map((e) => `${e.name} (${e.serving}${e.servings !== 1 ? ' x' + e.servings : ''})`);
+  const favorites = [...(core().meals || []).map((m) => m.name), ...(core().recents || []).slice(0, 12).map((r) => r.name)];
+  const q = $('#coach-q').value.trim().slice(0, 300);
+  const prompt = `You are a sports dietitian coaching a high school athlete through their day. Be practical: food a teenager can actually get at home, at school, from a gas station or fast food.
+${athleteLine()}
+It is ${fmtMin(nowMin())} now. ${pr ? `Practice or game today at ${fmtMin(toMin(pr.start))} for ${pr.mins} minutes.` : 'No practice time set today.'}
+Today so far: ${JSON.stringify(ctx)}
+Already eaten today: ${eatenNames.join('; ') || 'nothing yet'}.
+Foods and meals they log often (prefer these when they fit): ${favorites.join('; ') || 'none yet'}.
+${q ? `Their situation: "${q}"` : ''}
+Give 3 different options for what to eat NEXT, sized to fit what is left today and timed around practice (light, fast carbs right before practice; protein plus carbs after; protein spread over the day). If they are already over on calories, suggest light, high-protein options and say so. Close the biggest nutrient gaps (protein first, then iron, calcium and fiber) without going over the sodium and added sugar limits.
+Reply with only JSON in exactly this shape:
+{"headline": "One sentence on what matters most for the rest of today", "options": [{"title": "Turkey sandwich + chocolate milk", "when": "Right after practice", "why": "One sentence on why this fits", "items": [{"name": "Turkey sandwich", "portion": "1 sandwich on wheat", "grams": 200, "calories": 350, "protein": 24, "carbs": 38, "fat": 10, "fiber": 4, "added_sugar": 3, "sodium_mg": 1100, "iron_mg": 2.5, "calcium_mg": 100, "confidence": "medium"}]}]}
+Every number is for the whole portion. Calories must be close to 4 x protein + 4 x carbs + 9 x fat.`;
+  const btn = $('#coach-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Thinking… (10-30 s)';
+  $('#coach-status').textContent = '';
+  try {
+    const res = await askJson(prompt, COACH_SCHEMA);
+    if (!res || !Array.isArray(res.options) || !res.options.length) throw { code: 'invalid_json' };
+    coachOptions = res.options.slice(0, 4).map((o) => ({ ...o, items: normalizeMeal({ is_food: true, items: o.items }).items }));
+    $('#coach-out').innerHTML = `<p style="margin:0"><b>${esc(res.headline || '')}</b></p>` + coachOptions.map((o, i) => {
+      const t2 = totals(o.items);
+      return `<div class="option"><div class="option-head"><b>${esc(o.title)}</b><span class="muted small num">${t2.calories} kcal</span></div>
+        <div class="muted small">${esc(o.when)} · P ${Math.round(t2.protein)} · C ${Math.round(t2.carbs)} · F ${Math.round(t2.fat)}</div>
+        <div class="small">${esc(o.why)}</div>
+        <ul>${o.items.map((it) => `<li>${esc(it.name)}, ${esc(it.portion || it.grams + ' g')}</li>`).join('')}</ul>
+        <button class="btn primary" data-log-option="${i}">Log this</button></div>`;
+    }).join('');
+  } catch (e) {
+    $('#coach-status').textContent = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Get suggestions';
+  }
+});
+$('#coach-out').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-log-option]'); if (!b) return;
+  const o = coachOptions[Number(b.dataset.logOption)], meal = defaultMeal();
+  const prev = day; day = todayIso();
+  o.items.forEach((it) => { const { per, ...food } = it; addEntry({ ...food, source: 'AI scan', serving: servingText(it) }, meal, 1); });
+  day = prev;
+  b.disabled = true; b.textContent = 'Logged ✓';
+  render();
+  toast(`Logged ${o.title} to ${mealLabel(meal)}`);
+});
+
+function renderReport(r) {
+  if (!r) { $('#report-out').innerHTML = ''; $('#report-date').textContent = ''; return; }
+  $('#report-date').textContent = 'Made ' + new Date(r.at + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  $('#report-out').innerHTML = `<div class="report">
+    <div class="report-head"><div class="grade">${esc(r.grade)}</div><p style="margin:0">${esc(r.summary)}</p></div>
+    <h4>What you did well</h4><ul>${(r.wins || []).map((w) => `<li>${esc(w)}</li>`).join('')}</ul>
+    <h4>Fix these next</h4>${(r.fixes || []).map((f) => `<div class="fix"><b>${esc(f.title)}</b><p class="muted">${esc(f.why)}</p><p>${esc(f.how)}</p></div>`).join('')}
+    <h4>This week's focus</h4><p style="margin:0">${esc(r.focus)}</p></div>`;
+}
+$('#report-btn').addEventListener('click', async () => {
+  if (!aiReady()) { $('#report-status').textContent = 'Turn on AI first (open MacroLens in Claude, or add your API key in Profile).'; return; }
+  const days = lastNDays(7).filter((d) => entriesOf(d).length);
+  if (days.length < 2) { $('#report-status').textContent = 'Log food on at least 2 days this week first.'; return; }
+  const rows = days.map((d) => ({ ...dayContext(d), foods: entriesOf(d).map((e) => e.name).slice(0, 25), water_oz: dayDoc(d)?.water || 0 }));
+  const weights = (core().weights || []).slice(-14);
+  const prompt = `You are a sports dietitian giving a high school athlete their weekly nutrition review. Be direct, specific and encouraging, and talk like a coach, not a textbook. Base everything on the data; do not invent days or foods.
+${athleteLine()}
+Days logged in the last 7: ${days.length}. Unlogged days are missing data, not zero-calorie days.
+Daily logs: ${JSON.stringify(rows)}
+Weight entries (lb): ${JSON.stringify(weights)}
+Grade the week A, B, C, D or F on how well they fueled for performance and their goal (hitting protein and calories on practice days matters most; then carbs around training, micronutrients, hydration, consistency of logging). Give 2-4 specific wins and exactly 3 fixes. Each fix needs a concrete how with real foods and amounts they can do this week.
+Reply with only JSON in exactly this shape:
+{"grade": "B", "summary": "Two sentences on the week.", "wins": ["Hit protein 5 of 6 days"], "fixes": [{"title": "Eat before practice", "why": "What the data shows", "how": "Exactly what to do"}], "focus": "One sentence: the single habit to nail this week."}`;
+  const btn = $('#report-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Reviewing your week… (15-45 s)';
+  $('#report-status').textContent = '';
+  try {
+    const r = await askJson(prompt, REPORT_SCHEMA);
+    if (!r || !r.grade) throw { code: 'invalid_json' };
+    const report = { at: todayIso(), grade: String(r.grade).slice(0, 2), summary: String(r.summary || ''), wins: (r.wins || []).slice(0, 4).map(String),
+      fixes: (r.fixes || []).slice(0, 3).map((f) => ({ title: String(f.title || ''), why: String(f.why || ''), how: String(f.how || '') })), focus: String(r.focus || '') };
+    core().report = report; persist('core');
+    renderReport(report);
+  } catch (e) {
+    $('#report-status').textContent = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Make my weekly report';
+  }
 });
 
 // ===================== quick add =====================
