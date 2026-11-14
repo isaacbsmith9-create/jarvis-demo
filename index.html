@@ -177,7 +177,7 @@ dialog.sheet::backdrop { background: var(--scrim); }
 .sheet-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
 .sheet-head select { flex: 1; min-width: 0; }
 .sheet-head .icon-btn { margin-left: auto; font-size: 14px; }
-.seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 14px; }
+.seg { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-bottom: 14px; }
 .seg button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 10px; padding: 8px 2px; font-size: 12px; font-weight: 500; cursor: pointer; display: grid; justify-items: center; gap: 3px; }
 .seg button svg { width: 18px; height: 18px; }
 .seg button.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
@@ -262,6 +262,29 @@ label.check input { width: auto; }
 .status-line { font-weight: 600; margin: 0 0 6px; }
 .status-line.good { color: var(--accent); }
 .status-line.warn { color: var(--over); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-btn { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 7px 12px; font-size: 13px; cursor: pointer; }
+.chip-btn.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.favs-card .chips { margin-top: 10px; }
+.fav { border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 8px 10px; font-size: 13px; cursor: pointer; text-align: left; display: grid; gap: 1px; max-width: 100%; }
+.fav b { font-weight: 600; overflow-wrap: anywhere; }
+.fav span { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; margin-top: 12px; }
+.badge-tile { display: grid; justify-items: center; text-align: center; gap: 4px; padding: 10px 4px; border-radius: 12px; background: var(--surface-2); }
+.badge-tile svg { width: 40px; height: 40px; }
+.badge-tile b { font-size: 12px; line-height: 1.2; }
+.badge-tile small { font-size: 11px; color: var(--muted); line-height: 1.2; }
+.badge-tile.locked svg { opacity: .3; filter: grayscale(1); }
+.badge-tile.locked b { color: var(--muted); }
+.btn.mic { gap: 6px; }
+.btn.mic svg { width: 18px; height: 18px; }
+.btn.mic.listening { background: var(--danger); color: #fff; border-color: transparent; }
+.option details { font-size: 13px; }
+.option details summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+.option ol { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; }
+#reminder { position: fixed; left: 50%; transform: translateX(-50%); top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 60; width: min(520px, calc(100vw - 24px));
+  display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; background: var(--accent); color: var(--accent-ink); border-radius: 14px; padding: 12px 12px 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+#reminder .icon-btn { background: transparent; border-color: currentColor; color: inherit; width: 30px; height: 30px; font-size: 13px; }
 .daytype { display: flex; gap: 6px; justify-content: center; }
 .daytype button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; }
 .daytype button.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
@@ -351,6 +374,11 @@ label.check input { width: auto; }
       <div class="macros" id="macro-bars"></div>
     </div>
 
+    <div class="card favs-card" id="favs-card" hidden>
+      <div class="row-between"><h3>Quick add</h3><span class="muted small">Your most-logged foods</span></div>
+      <div class="chips" id="favs"></div>
+    </div>
+
     <div class="card">
       <div class="row-between" style="margin-bottom:10px"><h3>Nutrients</h3><span class="muted small" id="micro-note"></span></div>
       <div class="micros" id="micro-bars"></div>
@@ -381,6 +409,7 @@ label.check input { width: auto; }
         <button class="btn">Set</button>
       </form>
       <ol class="timeline" id="timeline"></ol>
+      <button class="btn" id="cal-practice" type="button" hidden style="width:100%;margin-top:8px">Add reminders to my calendar</button>
     </div>
 
     <div class="card">
@@ -391,6 +420,7 @@ label.check input { width: auto; }
         <button class="btn">Set</button>
       </form>
       <ol class="timeline" id="game-plan"></ol>
+      <button class="btn" id="cal-game" type="button" hidden style="width:100%;margin-top:8px">Add game plan to my calendar</button>
     </div>
 
     <div class="card form">
@@ -400,6 +430,16 @@ label.check input { width: auto; }
       <button class="btn primary" id="coach-btn">Get suggestions</button>
       <p class="muted small" id="coach-status" style="margin:0"></p>
       <div id="coach-out" class="coach-out"></div>
+    </div>
+
+    <div class="card form">
+      <div><h3>What can I make?</h3>
+      <p class="muted small" style="margin:4px 0 0">Snap your fridge and pantry (up to 3 photos). Coach suggests meals you can make right now that fit what you have left today.</p></div>
+      <div class="thumbs" id="fridge-thumbs"></div>
+      <input type="text" id="fridge-note" placeholder="Optional: 15 minutes max, no stove, cooking for 2">
+      <button class="btn primary" id="fridge-btn" disabled>Find meals</button>
+      <p class="muted small" id="fridge-status" style="margin:0"></p>
+      <div id="fridge-out" class="coach-out"></div>
     </div>
 
     <div class="card form">
@@ -428,6 +468,10 @@ label.check input { width: auto; }
   <!-- PROGRESS -->
   <section id="view-progress" class="view" hidden>
     <div class="stats" id="stats"></div>
+    <div class="card">
+      <div class="row-between"><h3>Badges</h3><span class="muted small" id="badge-count"></span></div>
+      <div class="badges" id="badges"></div>
+    </div>
     <div class="card"><h3>Calories, last 7 days</h3><div id="week-chart" class="chart"></div></div>
     <div class="card"><h3 style="margin-bottom:10px">Macro averages, last 7 logged days</h3><div id="macro-avg"></div></div>
     <div class="card"><h3 style="margin-bottom:10px">Nutrient averages, last 7 logged days</h3><div class="micros" id="micro-avg"></div><p class="muted small" id="micro-avg-note" style="margin:10px 0 0"></p></div>
@@ -484,6 +528,14 @@ label.check input { width: auto; }
       </div>
       <div class="row-between"><span class="muted small" id="key-status"></span><button type="button" class="chip" id="key-remove" hidden>Remove key</button></div>
     </form>
+    <div class="card form">
+      <h3>Appearance</h3>
+      <div class="mode" role="radiogroup" aria-label="Theme" id="theme-pick">
+        <button type="button" role="radio" data-theme-opt="system">Auto</button>
+        <button type="button" role="radio" data-theme-opt="light">Light</button>
+        <button type="button" role="radio" data-theme-opt="dark">Dark</button>
+      </div>
+    </div>
     <div class="card"><p class="note" id="storage-note" style="margin:0"></p></div>
   </section>
 </div>
@@ -509,6 +561,7 @@ label.check input { width: auto; }
     <button data-pane="scan" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Scan</button>
     <button data-pane="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>Search</button>
     <button data-pane="describe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>Describe</button>
+    <button data-pane="eatout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v8M5 3v4a2 2 0 0 0 4 0V3M7 11v10M16 3c-2 1-3 4-3 7h3v11"/></svg>Eat out</button>
     <button data-pane="quick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 3L5 14h6l-1 7 8-11h-6z"/></svg>Quick add</button>
   </div>
 
@@ -539,8 +592,21 @@ label.check input { width: auto; }
 
   <div class="pane" data-pane="describe" hidden>
     <textarea id="describe-input" rows="4" placeholder="2 scrambled eggs, 2 slices of wheat toast with butter, a glass of orange juice"></textarea>
-    <button class="btn primary" id="describe-btn">Estimate with AI</button>
+    <div class="row-gap">
+      <button class="btn mic" id="mic-btn" type="button" hidden aria-label="Speak your meal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span id="mic-label">Speak</span></button>
+      <button class="btn primary grow" id="describe-btn">Estimate with AI</button>
+    </div>
     <p class="muted small" id="describe-status" style="margin:0"></p>
+  </div>
+
+  <div class="pane" data-pane="eatout" hidden>
+    <p class="muted small" style="margin:0">Pick where you're eating. Coach builds the best order for what you have left today, using the restaurant's published nutrition.</p>
+    <div class="chips" id="chain-chips"></div>
+    <input type="text" id="chain-input" placeholder="Or type any restaurant: Raising Cane's, Panda Express…">
+    <input type="text" id="chain-craving" placeholder="Optional: what you're craving, or I have $12">
+    <button class="btn primary" id="chain-btn">Build my order</button>
+    <p class="muted small" id="chain-status" style="margin:0"></p>
+    <div id="chain-out" class="coach-out"></div>
   </div>
 
   <div class="pane" data-pane="quick" hidden>
@@ -593,6 +659,7 @@ label.check input { width: auto; }
   <button class="btn primary" id="rv-log" style="width:100%">Log meal</button>
 </dialog>
 
+<div id="reminder" role="alert" hidden><div><b id="reminder-title"></b><div id="reminder-body" class="small"></div></div><button class="icon-btn" id="reminder-close" aria-label="Dismiss reminder">✕</button></div>
 <div id="toast" role="status"></div>
 
 <script>
@@ -852,6 +919,8 @@ function renderToday() {
       <div class="bar"><div class="bar-fill" style="width:${Math.min(100, (have / goal) * 100)}%;background:${c}"></div></div></div>`).join('');
 
   renderMicroBars($('#micro-bars'), tot, microTargets(t));
+  renderFavs();
+  checkBadges();
   $('#micro-note').textContent = tot.missing ? `${tot.missing} item${tot.missing === 1 ? ' has' : 's have'} no nutrient data` : '';
 
   const water = dayDoc(day)?.water || 0;
@@ -999,7 +1068,7 @@ function renderProfile() {
 let currentView = 'today';
 function render() {
   renderToday();
-  if (currentView === 'progress') { renderProgress(); renderTrend(); }
+  if (currentView === 'progress') { renderProgress(); renderTrend(); renderBadges(); }
   if (currentView === 'profile') renderProfile();
   if (currentView === 'coach') renderCoach();
 }
@@ -1474,6 +1543,9 @@ function fuelPlan(pr, t) {
 }
 function renderCoach() {
   renderReport(core().report);
+  renderFridgeThumbs();
+  $('#cal-practice').hidden = !practiceToday() || dayDoc(todayIso())?.type === 'rest';
+  $('#cal-game').hidden = !(core().game && core().game.date >= todayIso());
   renderGame();
   renderGrocery();
   renderSupps();
@@ -1831,6 +1903,330 @@ $('#trend-out').addEventListener('click', (e) => {
   toast(`Calorie target set to ${Number(b.dataset.kcal).toLocaleString()}`);
 });
 
+// ===================== 4. Theme =====================
+const THEME_KEY = 'macrolens-theme';
+function applyTheme(choice) {
+  if (choice === 'light' || choice === 'dark') document.documentElement.setAttribute('data-theme', choice);
+  else document.documentElement.removeAttribute('data-theme');
+  $$('#theme-pick button').forEach((b) => { const on = b.dataset.themeOpt === (choice || 'system'); b.classList.toggle('active', on); b.setAttribute('aria-checked', String(on)); });
+}
+let themeChoice = 'system';
+try { themeChoice = localStorage.getItem(THEME_KEY) || 'system'; } catch {}
+applyTheme(themeChoice);
+$$('#theme-pick button').forEach((b) => b.addEventListener('click', () => {
+  themeChoice = b.dataset.themeOpt;
+  try { localStorage.setItem(THEME_KEY, themeChoice); } catch {}
+  applyTheme(themeChoice);
+}));
+
+// ===================== 3. Favorites bar =====================
+function allDayKeys() {
+  return [...new Set([...Object.keys(cache), ...lsKeys()].filter((k) => k.startsWith('day-')))];
+}
+function topFoods(n = 6) {
+  const count = new Map();
+  for (const k of allDayKeys()) {
+    const d = doc(k); if (!d) continue;
+    for (const [m] of MEALS) for (const e of d[m] || []) {
+      const key = `${e.name}|${e.serving}`;
+      const c = count.get(key) || { n: 0, food: e };
+      c.n++; if ((e.addedAt || 0) >= (c.food.addedAt || 0)) c.food = e;
+      count.set(key, c);
+    }
+  }
+  return [...count.values()].filter((c) => c.n >= 2).sort((a, b) => b.n - a.n).slice(0, n).map((c) => c.food);
+}
+let favFoods = [];
+function renderFavs() {
+  favFoods = topFoods();
+  $('#favs-card').hidden = !favFoods.length;
+  $('#favs').innerHTML = favFoods.map((f, i) => { const n = scale(f, f.servings ?? 1);
+    return `<button class="fav" data-fav="${i}"><b>＋ ${esc(f.name)}</b><span>${n.calories} kcal · P ${Math.round(n.protein)}</span></button>`; }).join('');
+}
+$('#favs').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-fav]'); if (!b) return;
+  const f = favFoods[Number(b.dataset.fav)], meal = day === todayIso() ? defaultMeal() : 'snacks';
+  const { addedAt, servings, ...food } = f;
+  addEntry(food, meal, servings ?? 1);
+  render();
+  toast(`Added ${f.name} to ${mealLabel(meal)}`);
+});
+
+// ===================== 1. Badges =====================
+const MEDAL = (c) => `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M13 3h6l-3 11h-6zM21 3h6l3 11h-6z" fill="var(--muted)"/><circle cx="20" cy="25" r="12" fill="${c}"/><circle cx="20" cy="25" r="8" fill="none" stroke="var(--surface)" stroke-width="2"/></svg>`;
+function badgeStats() {
+  const logged = loggedDates(), today = todayIso();
+  const run = (pred) => { // consecutive days meeting pred, ending today (or yesterday if today not met yet)
+    const d = new Date(today + 'T12:00:00');
+    if (!pred(isoDate(d))) d.setDate(d.getDate() - 1);
+    let n = 0; while (pred(isoDate(d))) { n++; d.setDate(d.getDate() - 1); }
+    return n;
+  };
+  const proteinHit = (iso) => entriesOf(iso).length > 0 && totals(entriesOf(iso)).protein >= targets(iso).protein * 0.95;
+  let scans = 0, waterDays = 0;
+  for (const k of allDayKeys()) {
+    const d = doc(k); if (!d) continue;
+    if ((d.water || 0) >= targets().waterOz) waterDays++;
+    for (const [m] of MEALS) for (const e of d[m] || []) if (e.source === 'AI scan') scans++;
+  }
+  return { days: logged.length, streak: streak(logged, today), protein: run(proteinHit), waterDays, scans,
+    weighins: (core().weights || []).length, report: core().report ? 1 : 0, meals: (core().meals || []).length };
+}
+const BADGES = [
+  { id: 'first', name: 'First bite', color: '#3ccf94', stat: 'days', goal: 1, unit: 'day logged' },
+  { id: 'streak3', name: 'Warming up', color: '#f2bd3d', stat: 'streak', goal: 3, unit: 'day streak' },
+  { id: 'streak7', name: 'Week strong', color: '#fb8a4c', stat: 'streak', goal: 7, unit: 'day streak' },
+  { id: 'streak30', name: 'Locked in', color: '#e0662a', stat: 'streak', goal: 30, unit: 'day streak' },
+  { id: 'protein3', name: 'Protein x3', color: '#6aa7f5', stat: 'protein', goal: 3, unit: 'days in a row hitting protein' },
+  { id: 'protein7', name: 'Protein machine', color: '#3b7dd8', stat: 'protein', goal: 7, unit: 'days in a row hitting protein' },
+  { id: 'water5', name: 'Hydrated', color: '#4cc3ef', stat: 'waterDays', goal: 5, unit: 'days at water goal' },
+  { id: 'scan1', name: 'First scan', color: '#f07ab3', stat: 'scans', goal: 1, unit: 'AI-logged food' },
+  { id: 'scan25', name: 'Scanner', color: '#d2508f', stat: 'scans', goal: 25, unit: 'AI-logged foods' },
+  { id: 'weigh10', name: 'Scale regular', color: '#8e9a93', stat: 'weighins', goal: 10, unit: 'weigh-ins' },
+  { id: 'report', name: 'Film session', color: '#0f8a5f', stat: 'report', goal: 1, unit: 'weekly report' },
+  { id: 'prep3', name: 'Meal prepper', color: '#d99a12', stat: 'meals', goal: 3, unit: 'saved meals' },
+];
+function checkBadges(announce = true) {
+  const st = badgeStats(), c = core();
+  const earned = new Set(c.badges || []);
+  const fresh = BADGES.filter((b) => st[b.stat] >= b.goal && !earned.has(b.id));
+  if (fresh.length) {
+    c.badges = [...earned, ...fresh.map((b) => b.id)];
+    persist('core');
+    if (announce) toast(fresh.length === 1 ? `Badge unlocked: ${fresh[0].name}` : `${fresh.length} badges unlocked: ${fresh.map((b) => b.name).join(', ')}`);
+  }
+  return st;
+}
+function renderBadges() {
+  const st = checkBadges(false), earned = new Set(core().badges || []);
+  $('#badge-count').textContent = `${earned.size} of ${BADGES.length}`;
+  $('#badges').innerHTML = BADGES.map((b) => { const got = earned.has(b.id);
+    return `<div class="badge-tile${got ? '' : ' locked'}">${MEDAL(b.color)}<b>${b.name}</b><small>${got ? b.goal + ' ' + b.unit : `${Math.min(st[b.stat], b.goal)} / ${b.goal} ${b.unit}`}</small></div>`; }).join('');
+}
+
+// ===================== 2. Reminders: in-app banner + calendar file =====================
+let downloads = null;
+const remindedKey = () => 'ml-reminded-' + todayIso();
+function todaysSteps() {
+  const today = todayIso(), out = [];
+  const g = core().game;
+  if (g && g.date === today) out.push(...gamePlan(toMin(g.start)).map((s) => ({ ...s, src: 'game' })));
+  else if (g && Math.round((new Date(g.date + 'T12:00:00') - new Date(today + 'T12:00:00')) / 864e5) === 1) out.push(...nightBeforePlan(toMin(g.start)).map((s) => ({ ...s, src: 'night' })));
+  if (!out.length && practiceToday() && dayDoc(today)?.type !== 'rest') out.push(...fuelPlan(practiceToday(), targets(today)).map((s) => ({ ...s, eat: !s.title.startsWith('Practice') })));
+  return out.filter((s) => s.eat);
+}
+function checkReminders() {
+  let done = [];
+  try { done = JSON.parse(sessionStorage.getItem(remindedKey()) || '[]'); } catch {}
+  const now = nowMin();
+  const due = todaysSteps().find((s) => now >= s.at - 15 && now < s.at + 20 && !done.includes(s.title));
+  if (!due) return;
+  done.push(due.title);
+  try { sessionStorage.setItem(remindedKey(), JSON.stringify(done)); } catch {}
+  $('#reminder-title').textContent = `${due.title} at ${fmtMin(due.at)}`;
+  $('#reminder-body').textContent = due.body;
+  $('#reminder').hidden = false;
+}
+$('#reminder-close').addEventListener('click', () => { $('#reminder').hidden = true; });
+setInterval(checkReminders, 30000);
+setTimeout(checkReminders, 2000);
+
+function icsFor(date, steps, label) {
+  const ymd = date.replace(/-/g, '');
+  const hm = (m) => String(Math.floor(m / 60)).padStart(2, '0') + String(m % 60).padStart(2, '0') + '00';
+  const escI = (t) => String(t).replace(/[\\,;]/g, (c) => '\\' + c).replace(/\n/g, '\\n');
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const ev = steps.map((s, i) => [
+    'BEGIN:VEVENT', `UID:macrolens-${ymd}-${i}-${label}@macrolens`, `DTSTAMP:${stamp}`,
+    `DTSTART:${ymd}T${hm(s.at)}`, `DTEND:${ymd}T${hm(Math.min(s.at + 20, 23 * 60 + 59))}`,
+    `SUMMARY:${escI('MacroLens: ' + s.title)}`, `DESCRIPTION:${escI(s.body)}`,
+    'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${escI(s.title)}`, 'TRIGGER:-PT15M', 'END:VALARM', 'END:VEVENT'].join('\r\n'));
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//MacroLens//Fuel plan//EN', 'CALSCALE:GREGORIAN', ...ev, 'END:VCALENDAR'].join('\r\n') + '\r\n';
+}
+async function saveCalendar(filename, text) {
+  if (downloads) {
+    try { await downloads.save({ filename, data: new Blob([text], { type: 'text/calendar' }) }); toast('Open the file to add the reminders to your calendar'); }
+    catch (e) { if (e?.code !== 'declined' && e?.code !== 'cancelled') toast("Couldn't save the calendar file here"); }
+    return;
+  }
+  if (window.claude?.use) return toast('Saving files is not available in this view');
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([text], { type: 'text/calendar' })), download: filename });
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('Open the downloaded file to add the reminders to your calendar');
+}
+$('#cal-practice').addEventListener('click', () => {
+  const pr = practiceToday(); if (!pr) return;
+  const steps = fuelPlan(pr, targets(todayIso())).filter((s) => !s.title.startsWith('Practice'));
+  saveCalendar(`macrolens-fuel-${todayIso()}.ics`, icsFor(todayIso(), steps, 'practice'));
+});
+$('#cal-game').addEventListener('click', () => {
+  const g = core().game; if (!g) return;
+  const start = toMin(g.start);
+  const night = new Date(g.date + 'T12:00:00'); night.setDate(night.getDate() - 1);
+  const parts = [icsFor(isoDate(night), nightBeforePlan(start).filter((s) => s.eat), 'night'), icsFor(g.date, gamePlan(start).filter((s) => s.eat), 'game')];
+  const merged = parts[0].replace(/END:VCALENDAR\r\n$/, '') + parts[1].replace(/^[\s\S]*?CALSCALE:GREGORIAN\r\n/, '');
+  saveCalendar(`macrolens-game-${g.date}.ics`, merged);
+});
+
+// ===================== shared: option cards (restaurant + fridge) =====================
+function optionCard(o, i, attr, extra = '') {
+  const t2 = totals(o.items);
+  return `<div class="option"><div class="option-head"><b>${esc(o.title)}</b><span class="muted small num">${t2.calories} kcal</span></div>
+    <div class="muted small">${o.when ? esc(o.when) + ' · ' : ''}P ${Math.round(t2.protein)} · C ${Math.round(t2.carbs)} · F ${Math.round(t2.fat)}</div>
+    ${o.why ? `<div class="small">${esc(o.why)}</div>` : ''}
+    <ul>${o.items.map((it) => `<li>${esc(it.name)}${it.portion ? ', ' + esc(it.portion) : ''}</li>`).join('')}</ul>${extra}
+    <button class="btn primary" ${attr}="${i}">Log this</button></div>`;
+}
+function logOption(o, btn) {
+  const meal = defaultMeal(), prev = day; day = todayIso();
+  o.items.forEach((it) => { const { per, ...food } = it; addEntry({ ...food, source: 'AI scan', serving: servingText(it) }, meal, 1); });
+  day = prev;
+  btn.disabled = true; btn.textContent = 'Logged ✓';
+  sheet.open && sheet.close();
+  render();
+  toast(`Logged ${o.title} to ${mealLabel(meal)}`);
+}
+function remainingLine() {
+  const ctx = dayContext(todayIso()), t = ctx.targets, e = ctx.eaten;
+  return `Left today: ${t.calories - e.calories} kcal, ${Math.round(t.protein - e.protein)} g protein, ${Math.round(t.carbs - e.carbs)} g carbs, ${Math.round(t.fat - e.fat)} g fat. Sodium so far ${e.sodium_mg} of ${t.sodium_max_mg} mg max.`;
+}
+
+// ===================== 5. Restaurant mode =====================
+const CHAINS = ['Chipotle', "Chick-fil-A", 'Subway', "McDonald's", 'Panera', 'Taco Bell', "Wendy's", 'Jersey Mike\'s'];
+$('#chain-chips').innerHTML = CHAINS.map((c) => `<button type="button" class="chip-btn" data-chain="${esc(c)}">${esc(c)}</button>`).join('');
+$('#chain-chips').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-chain]'); if (!b) return;
+  $('#chain-input').value = b.dataset.chain;
+  $$('#chain-chips .chip-btn').forEach((x) => x.classList.toggle('active', x === b));
+});
+$('#chain-input').addEventListener('input', () => $$('#chain-chips .chip-btn').forEach((x) => x.classList.toggle('active', x.dataset.chain === $('#chain-input').value)));
+let chainOptions = [];
+$('#chain-btn').addEventListener('click', async () => {
+  const chain = $('#chain-input').value.trim();
+  if (!chain) return toast('Pick or type a restaurant');
+  if (!aiReady()) { $('#chain-status').textContent = 'Turn on AI first (open MacroLens in Claude, or add your API key in Profile).'; return; }
+  const pr = practiceToday();
+  const prompt = `You are a sports dietitian helping a high school athlete order at ${chain.slice(0, 60)}.
+${athleteLine()}
+It is ${fmtMin(nowMin())}. ${pr ? `Practice or game today at ${fmtMin(toMin(pr.start))}.` : ''} ${remainingLine()}
+${$('#chain-craving').value.trim() ? `They say: "${$('#chain-craving').value.trim().slice(0, 200)}"` : ''}
+Build 3 different orders from ${chain.slice(0, 60)}'s real US menu, using the restaurant's published nutrition. Order 1: best for performance and the remaining targets. Order 2: closest to a normal favorite order but adjusted. Order 3: lighter. Name the exact menu items and customizations (for example "double chicken, light rice, no sour cream"). Keep sodium in mind; fast food is salty. Split each order into its menu items.
+Reply with only JSON in exactly this shape:
+{"headline": "One sentence of advice for ordering here", "options": [{"title": "Chicken burrito bowl, double chicken", "when": "Best for recovery", "why": "One sentence", "items": [{"name": "Chicken burrito bowl (double chicken, white rice, black beans, fajita veggies, salsa)", "portion": "1 bowl", "grams": 560, "calories": 790, "protein": 76, "carbs": 77, "fat": 21, "fiber": 13, "added_sugar": 1, "sodium_mg": 2100, "iron_mg": 6, "calcium_mg": 170, "confidence": "high"}]}]}
+Every number is for the whole portion. Calories must be close to 4 x protein + 4 x carbs + 9 x fat.`;
+  const btn = $('#chain-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Building orders… (10-30 s)';
+  $('#chain-status').textContent = ''; $('#chain-out').innerHTML = '';
+  try {
+    const res = await askJson(prompt, COACH_SCHEMA);
+    if (!res || !Array.isArray(res.options) || !res.options.length) throw { code: 'invalid_json' };
+    chainOptions = res.options.slice(0, 3).map((o) => ({ ...o, items: normalizeMeal({ is_food: true, items: o.items }).items }));
+    $('#chain-out').innerHTML = `<p style="margin:0"><b>${esc(res.headline || '')}</b></p>` + chainOptions.map((o, i) => optionCard(o, i, 'data-log-chain')).join('');
+  } catch (e) {
+    $('#chain-status').textContent = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Build my order';
+  }
+});
+$('#chain-out').addEventListener('click', (e) => { const b = e.target.closest('[data-log-chain]'); if (b) logOption(chainOptions[Number(b.dataset.logChain)], b); });
+
+// ===================== 6. Fridge scan =====================
+const FRIDGE_SCHEMA = {
+  type: 'object', additionalProperties: false, required: ['headline', 'meals'],
+  properties: { headline: { type: 'string' }, meals: { type: 'array', items: { type: 'object', additionalProperties: false,
+    required: ['title', 'minutes', 'why', 'ingredients', 'steps', 'items'],
+    properties: { title: { type: 'string' }, minutes: { type: 'number' }, why: { type: 'string' }, ingredients: { type: 'array', items: { type: 'string' } },
+      steps: { type: 'array', items: { type: 'string' } }, items: { type: 'array', items: ITEM_SCHEMA } } } } },
+};
+let fridgePhotos = [], fridgeMeals = [];
+function renderFridgeThumbs() {
+  $$('#fridge-thumbs img').forEach((img) => URL.revokeObjectURL(img.src));
+  $('#fridge-thumbs').innerHTML = fridgePhotos.map((b, i) => `<div class="thumb"><img alt="Fridge photo ${i + 1}" src="${URL.createObjectURL(b)}"><button type="button" data-frm="${i}" aria-label="Remove photo ${i + 1}">✕</button></div>`).join('') +
+    (fridgePhotos.length < maxPhotos ? `<label class="thumb-add">＋ Add photo<input type="file" accept="image/*" multiple hidden id="fridge-input"></label>` : '');
+  $('#fridge-input')?.addEventListener('change', async (e) => {
+    for (const f of [...e.target.files].filter((x) => x.type.startsWith('image/'))) { if (fridgePhotos.length >= maxPhotos) break; try { fridgePhotos.push(await compress(f)); } catch {} }
+    renderFridgeThumbs();
+  });
+  $('#fridge-btn').disabled = !(fridgePhotos.length && photosReady());
+}
+$('#fridge-thumbs').addEventListener('click', (e) => { const b = e.target.closest('[data-frm]'); if (b) { fridgePhotos.splice(Number(b.dataset.frm), 1); renderFridgeThumbs(); } });
+async function askWithImages(prompt, images, schema) {
+  if (aiSample) return aiSample.json(prompt, { images, modelTier: 'complex' });
+  return ownKeyJson(prompt, images, 'high', schema);
+}
+$('#fridge-btn').addEventListener('click', async () => {
+  if (!fridgePhotos.length) return;
+  const pr = practiceToday();
+  const prompt = `You are a sports dietitian and a practical home cook helping a high school athlete. The photos show their fridge, freezer or pantry.
+${athleteLine()}
+It is ${fmtMin(nowMin())}. ${pr ? `Practice or game today at ${fmtMin(toMin(pr.start))}.` : ''} ${remainingLine()}
+${$('#fridge-note').value.trim() ? `They say: "${$('#fridge-note').value.trim().slice(0, 200)}"` : ''}
+First identify the foods you can actually see. Then suggest 3 meals a teenager can make right now using mostly those foods (assume basic staples like salt, oil and spices are available). Fit the timing (light and quick before practice, protein plus carbs after) and what is left today. Keep steps short and simple.
+Reply with only JSON in exactly this shape:
+{"headline": "What you have to work with, in one sentence", "meals": [{"title": "Egg and cheese breakfast burrito", "minutes": 10, "why": "One sentence on why it fits now", "ingredients": ["2 eggs", "1 flour tortilla", "1 slice cheddar"], "steps": ["Scramble the eggs", "Warm the tortilla", "Wrap with cheese"], "items": [{"name": "Egg and cheese burrito", "portion": "1 burrito", "grams": 220, "calories": 420, "protein": 22, "carbs": 26, "fat": 24, "fiber": 1.5, "added_sugar": 1, "sodium_mg": 720, "iron_mg": 3, "calcium_mg": 290, "confidence": "medium"}]}]}
+items is the nutrition for one serving as eaten. Every number is for the whole portion. Calories must be close to 4 x protein + 4 x carbs + 9 x fat.`;
+  const btn = $('#fridge-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Looking in your fridge… (20-60 s)';
+  $('#fridge-status').textContent = ''; $('#fridge-out').innerHTML = '';
+  try {
+    const res = await askWithImages(prompt, fridgePhotos.slice(), FRIDGE_SCHEMA);
+    if (!res || !Array.isArray(res.meals) || !res.meals.length) throw { code: 'invalid_json' };
+    fridgeMeals = res.meals.slice(0, 3).map((m) => ({ title: String(m.title || 'Meal'), when: m.minutes ? `${Math.round(m.minutes)} min` : '', why: String(m.why || ''),
+      ingredients: (m.ingredients || []).map(String), steps: (m.steps || []).map(String), items: normalizeMeal({ is_food: true, items: m.items }).items }));
+    $('#fridge-out').innerHTML = `<p style="margin:0"><b>${esc(res.headline || '')}</b></p>` + fridgeMeals.map((m, i) => optionCard(m, i, 'data-log-fridge',
+      `<details><summary>Ingredients and steps</summary><ul>${m.ingredients.map((x) => `<li>${esc(x)}</li>`).join('')}</ul><ol>${m.steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol></details>`)).join('');
+  } catch (e) {
+    $('#fridge-status').textContent = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
+  } finally {
+    btn.textContent = 'Find meals'; btn.disabled = !(fridgePhotos.length && photosReady());
+  }
+});
+$('#fridge-out').addEventListener('click', (e) => { const b = e.target.closest('[data-log-fridge]'); if (b) logOption(fridgeMeals[Number(b.dataset.logFridge)], b); });
+
+// ===================== 10. Voice logging =====================
+let dictation = null, webSpeech = null, micOn = false, micBase = '';
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function setMic(on) {
+  micOn = on;
+  $('#mic-btn').classList.toggle('listening', on);
+  $('#mic-label').textContent = on ? 'Stop' : 'Speak';
+}
+function micFinished() {
+  setMic(false);
+  if ($('#describe-input').value.trim() && aiReady()) $('#describe-btn').click();
+}
+function enableMic() { $('#mic-btn').hidden = false; }
+$('#mic-btn').addEventListener('click', () => {
+  if (micOn) { if (dictation) dictation.stop().catch(() => {}); else webSpeech?.stop(); return; }
+  micBase = $('#describe-input').value.trim();
+  if (dictation) {
+    // start() must run straight from the click, with nothing awaited first.
+    dictation.start().catch((e) => {
+      setMic(false);
+      if (e?.code === 'not_granted' || e?.code === 'unavailable') { $('#mic-btn').hidden = true; $('#describe-status').textContent = 'Voice is off here. Type your meal instead.'; }
+    });
+    setMic(true);
+    return;
+  }
+  if (SR) {
+    webSpeech = new SR();
+    webSpeech.lang = navigator.language || 'en-US';
+    webSpeech.interimResults = true;
+    webSpeech.continuous = false;
+    webSpeech.onresult = (ev) => { let t = ''; for (const r of ev.results) t += r[0].transcript; $('#describe-input').value = (micBase ? micBase + ' ' : '') + t; };
+    webSpeech.onerror = (ev) => { setMic(false); if (ev.error === 'not-allowed') $('#describe-status').textContent = 'Allow microphone access to use voice.'; };
+    webSpeech.onend = micFinished;
+    try { webSpeech.start(); setMic(true); } catch { setMic(false); }
+  }
+});
+function wireDictation(d) {
+  dictation = d;
+  d.onPartial(({ text }) => { $('#describe-input').value = [micBase, text].filter(Boolean).join(' '); });
+  d.onFinal(({ text }) => { micBase = [micBase, text].filter(Boolean).join(' ').trim(); $('#describe-input').value = micBase; });
+  d.onState(({ state }) => { if (state === 'idle' && micOn) micFinished(); });
+  enableMic();
+}
+
 // ===================== quick add =====================
 $('#quick-form').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -1975,6 +2371,13 @@ render();
   if (lim?.images?.mediaTypes) $('#photo-input').accept = lim.images.mediaTypes.join(',');
   if (lim?.images?.maxCount) maxPhotos = Math.max(1, Math.min(3, lim.images.maxCount));
   $('#analyze-btn').disabled = !(photos.length && aiImages);
+})();
+(async () => {
+  if (window.claude?.use) {
+    const [dl, dict] = await Promise.all([claude.use('downloads'), claude.use('dictation')]);
+    downloads = dl;
+    if (dict) wireDictation(dict);
+  } else if (SR) enableMic();
 })();
 connectStore().then(() => { if (!core().profile && $('#sync').dataset.s !== 'synced') goProfileFirstRun(); });
 </script>
