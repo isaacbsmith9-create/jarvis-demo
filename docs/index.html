@@ -198,12 +198,30 @@ label.check input { width: auto; }
 .drop .hint { padding: 20px; display: grid; gap: 4px; justify-items: center; }
 .drop .hint svg { width: 34px; height: 34px; color: var(--accent); }
 .drop img { width: 100%; max-height: 300px; object-fit: cover; }
+.mode { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 12px; }
+.mode button { border: 0; background: none; border-radius: 9px; padding: 8px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.mode button.active { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.thumbs { display: flex; gap: 8px; flex-wrap: wrap; }
+.thumb { position: relative; width: 84px; height: 84px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb button { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: var(--scrim); color: #fff; cursor: pointer; font-size: 12px; }
+.thumb-add { width: 84px; height: 84px; border-radius: 12px; border: 2px dashed var(--line); background: var(--surface-2); color: var(--muted); display: grid; place-items: center; font-size: 12px; cursor: pointer; text-align: center; }
+.fix-box { display: grid; gap: 6px; background: var(--surface-2); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+.fix-box input { background: var(--surface); }
+.meal-actions { display: flex; gap: 6px; align-items: center; }
+.mini { border: 1px solid var(--line); background: none; border-radius: 99px; padding: 3px 9px; font-size: 12px; color: var(--muted); cursor: pointer; }
+.mini:hover { color: var(--fg); }
+.daytype { display: flex; gap: 6px; justify-content: center; }
+.daytype button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 5px 12px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.daytype button.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .ai-off { background: var(--surface-2); border-radius: 12px; padding: 12px; font-size: 13px; color: var(--muted); }
 
 .food-list { list-style: none; margin: 0; padding: 0; }
 .food-list li button { display: flex; width: 100%; justify-content: space-between; gap: 10px; align-items: center; padding: 11px 4px; border: 0; border-bottom: 1px solid var(--line); background: none; cursor: pointer; text-align: left; }
 .food-list li button:hover { background: var(--surface-2); }
 .food-list li button > div { min-width: 0; }
+.food-list li.saved-meal { display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--line); }
+.food-list li.saved-meal button:first-child { border-bottom: 0; flex: 1; min-width: 0; }
 .add-plus { color: var(--accent); font-size: 22px; font-weight: 700; padding: 0 6px; }
 .ask-ai { color: var(--accent); }
 
@@ -261,6 +279,10 @@ label.check input { width: auto; }
   <!-- DIARY -->
   <section id="view-today" class="view">
     <div class="card summary">
+      <div class="daytype" id="daytype" role="group" aria-label="Day type">
+        <button type="button" data-type="training">Practice / game day</button>
+        <button type="button" data-type="rest">Rest day</button>
+      </div>
       <div class="summary-top">
         <div class="ring-wrap">
           <svg viewBox="0 0 120 120" class="ring" aria-hidden="true">
@@ -375,16 +397,20 @@ label.check input { width: auto; }
   </div>
 
   <div class="pane" data-pane="scan">
+    <div class="mode" role="radiogroup" aria-label="What are you scanning">
+      <button type="button" role="radio" aria-checked="true" data-mode="plate" class="active">Plate of food</button>
+      <button type="button" role="radio" aria-checked="false" data-mode="label">Nutrition label</button>
+    </div>
     <label class="drop" id="photo-drop">
-      <input type="file" accept="image/*" id="photo-input" hidden>
-      <img id="photo-preview" alt="Meal photo preview" hidden>
+      <input type="file" accept="image/*" id="photo-input" multiple hidden>
       <span class="hint" id="photo-hint">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
-        <strong>Take or choose a photo of your meal</strong>
-        <small class="muted">AI picks out each food and estimates the portion</small>
+        <strong id="photo-hint-title">Take or choose a photo of your meal</strong>
+        <small class="muted" id="photo-hint-sub">Tip: add a second photo from the side so AI can see how tall the food is</small>
       </span>
     </label>
-    <input type="text" id="photo-note" placeholder="Optional details: cooked in butter, large size, ate half">
+    <div class="thumbs" id="thumbs" hidden></div>
+    <input type="text" id="photo-note" placeholder="Help the AI: fried in butter, 2 cups of rice, ate half">
     <button class="btn primary" id="analyze-btn" disabled>Analyze photo</button>
     <p class="muted small" id="ai-status" style="margin:0"></p>
   </div>
@@ -434,7 +460,15 @@ label.check input { width: auto; }
   <div class="tiles" id="rv-total"></div>
   <p class="muted small" id="rv-notes"></p>
   <ul id="rv-items" class="rv-list"></ul>
-  <p class="muted small">Edit any number. Change the × portion if you ate more or less than shown.</p>
+  <p class="muted small">Change the grams and everything else updates. You can also type over any number.</p>
+  <div class="fix-box">
+    <label for="rv-fix">Something off? Tell the AI</label>
+    <div class="inline-form">
+      <input type="text" id="rv-fix" placeholder="The rice was 2 cups. No cheese. Chicken was fried.">
+      <button class="btn" id="rv-fix-btn" type="button">Fix</button>
+    </div>
+    <p class="muted small" id="rv-fix-status" style="margin:0"></p>
+  </div>
   <button class="btn primary" id="rv-log" style="width:100%">Log meal</button>
 </dialog>
 
@@ -617,11 +651,17 @@ const todayIso = () => isoDate(new Date());
 let day = todayIso();
 let aiSample = null, aiImages = false;
 
-function targets() {
+function targets(date) {
   const c = core();
   const base = c.targets ?? { calories: 2800, protein: 140, carbs: 390, fat: 84, waterOz: 100 };
   const o = c.overrides || {};
-  return { ...base, ...Object.fromEntries(Object.entries(o).filter(([, v]) => v > 0)) };
+  const t = { ...base, ...Object.fromEntries(Object.entries(o).filter(([, v]) => v > 0)) };
+  // Rest days: same protein and fat, 30% fewer carbs (less glycogen to refill), calories drop to match.
+  if (date && dayDoc(date)?.type === 'rest') {
+    const cut = Math.round(t.carbs * 0.3);
+    return { ...t, carbs: t.carbs - cut, calories: t.calories - cut * 4, rest: true };
+  }
+  return t;
 }
 const entriesOf = (date) => { const d = dayDoc(date); return d ? MEALS.flatMap(([k]) => d[k] || []) : []; };
 function defaultMeal() { const h = new Date().getHours(); return h < 10 ? 'breakfast' : h < 15 ? 'lunch' : h < 21 ? 'dinner' : 'snacks'; }
@@ -637,7 +677,9 @@ function renderToday() {
   $('#day-sub').textContent = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   $('#next-day').disabled = diff <= 0;
 
-  const t = targets();
+  const t = targets(day);
+  const isRest = dayDoc(day)?.type === 'rest';
+  $$('#daytype button').forEach((b) => b.classList.toggle('active', (b.dataset.type === 'rest') === isRest));
   const tot = totals(entriesOf(day));
   const left = t.calories - tot.calories;
   const ring = $('#cal-ring');
@@ -660,7 +702,9 @@ function renderToday() {
   $('#meals').innerHTML = MEALS.map(([key, label]) => {
     const items = log[key] || [];
     return `<div class="card meal">
-      <div class="meal-head"><strong>${label}</strong><span class="meal-kcal">${totals(items).calories} kcal</span></div>
+      <div class="meal-head"><strong>${label}</strong><span class="meal-actions">
+        ${items.length ? `<button class="mini" data-save-meal="${key}">Save meal</button>` : (yesterdayItems(key).length ? `<button class="mini" data-copy="${key}">Copy yesterday</button>` : '')}
+        <span class="meal-kcal">${totals(items).calories} kcal</span></span></div>
       ${items.map((e, i) => {
         const n = scale(e, e.servings);
         const srv = e.servings === 1 ? e.serving : `${e.servings} × ${e.serving}`;
@@ -669,6 +713,23 @@ function renderToday() {
       }).join('')}
       <button class="add-row" data-add="${key}">＋ Add food</button></div>`;
   }).join('');
+}
+
+function yesterdayItems(meal) {
+  const d = new Date(day + 'T12:00:00'); d.setDate(d.getDate() - 1);
+  return dayDoc(isoDate(d))?.[meal] || [];
+}
+function addMealItems(items, meal) {
+  for (const it of items) addEntry(it, meal, it.servings ?? 1);
+}
+function saveMeal(key) {
+  const items = (dayDoc(day)?.[key] || []).map(({ addedAt, ...f }) => f);
+  if (!items.length) return;
+  const name = items.length === 1 ? items[0].name : `${items[0].name} + ${items.length - 1} more`;
+  const c = core();
+  c.meals = [{ id: 'm' + Date.now(), name, items }, ...(c.meals || []).filter((m) => m.name !== name)].slice(0, 30);
+  persist('core');
+  toast(`Saved "${name}". Find it under Search.`);
 }
 
 // ===================== render: progress =====================
@@ -795,6 +856,13 @@ function switchPane(name) {
   $$('.pane').forEach((p) => (p.hidden = p.dataset.pane !== name));
   if (name === 'search') { renderSearch(); setTimeout(() => $('#search-input').focus(), 60); }
 }
+function mealLi(m, i) {
+  const t = totals(m.items);
+  return `<li class="saved-meal"><button data-meal-i="${i}"><div><div class="entry-name">${esc(m.name)}<span class="badge">MEAL</span></div>
+    <div class="entry-sub">${m.items.length} item${m.items.length === 1 ? '' : 's'} · ${t.calories} kcal · P ${Math.round(t.protein)} · C ${Math.round(t.carbs)} · F ${Math.round(t.fat)}</div></div><span class="add-plus" aria-hidden="true">＋</span></button>
+    <button class="mini" data-del-meal="${i}" aria-label="Delete saved meal ${esc(m.name)}">✕</button></li>`;
+}
+let shownMeals = [];
 function foodLi(f, i) {
   return `<li><button data-i="${i}"><div><div class="entry-name">${esc(f.name)}</div>
     <div class="entry-sub">${esc(f.serving)} · ${f.calories} kcal · P ${f.protein} · C ${f.carbs} · F ${f.fat}</div></div><span class="add-plus" aria-hidden="true">＋</span></button></li>`;
@@ -803,18 +871,19 @@ let shownFoods = [];
 function renderSearch() {
   const q = $('#search-input').value.trim().toLowerCase();
   const c = core();
+  const words = q.split(/\s+/).filter(Boolean);
+  const match = (f) => words.every((w) => f.name.toLowerCase().includes(w));
+  shownMeals = (c.meals || []).filter((m) => !words.length || match(m));
   if (!q) {
     shownFoods = [...(c.custom || []), ...(c.recents || [])];
-    $('#search-label').textContent = shownFoods.length ? 'Your foods and recent items' : `Search ${FOODS.length} common foods, or describe anything with AI.`;
-    $('#search-results').innerHTML = shownFoods.map(foodLi).join('');
+    $('#search-label').textContent = shownFoods.length || shownMeals.length ? 'Your saved meals, foods and recent items' : `Search ${FOODS.length} common foods, or describe anything with AI.`;
+    $('#search-results').innerHTML = shownMeals.map(mealLi).join('') + shownFoods.map(foodLi).join('');
     return;
   }
-  const words = q.split(/\s+/);
-  const match = (f) => words.every((w) => f.name.toLowerCase().includes(w));
   const seen = new Set();
   shownFoods = [...(c.custom || []), ...(c.recents || []), ...FOODS].filter(match).filter((f) => { const k = f.name + '|' + f.serving; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 30);
-  $('#search-label').textContent = shownFoods.length ? '' : 'No match in the food list.';
-  $('#search-results').innerHTML = shownFoods.map(foodLi).join('') +
+  $('#search-label').textContent = shownFoods.length || shownMeals.length ? '' : 'No match in the food list.';
+  $('#search-results').innerHTML = shownMeals.map(mealLi).join('') + shownFoods.map(foodLi).join('') +
     (aiReady() ? `<li><button data-ask="1"><div><div class="entry-name ask-ai">Ask AI about “${esc($('#search-input').value.trim())}”</div><div class="entry-sub">Brand-name and restaurant foods work here</div></div><span class="add-plus" aria-hidden="true">→</span></button></li>` : '');
 }
 $('#search-input').addEventListener('input', renderSearch);
@@ -825,6 +894,18 @@ $('#search-results').addEventListener('click', (e) => {
     $('#describe-input').value = '1 serving of ' + $('#search-input').value.trim();
     switchPane('describe');
     return $('#describe-btn').click();
+  }
+  if (b.dataset.delMeal !== undefined) {
+    const m = shownMeals[Number(b.dataset.delMeal)];
+    const c = core(); c.meals = (c.meals || []).filter((x) => x.id !== m.id);
+    persist('core'); renderSearch();
+    return toast(`Deleted "${m.name}"`);
+  }
+  if (b.dataset.mealI !== undefined) {
+    const m = shownMeals[Number(b.dataset.mealI)], meal = $('#add-meal').value;
+    addMealItems(m.items, meal);
+    sheet.close(); render();
+    return toast(`Added ${m.name} to ${mealLabel(meal)}`);
   }
   openFood(shownFoods[Number(b.dataset.i)], { meal: $('#add-meal').value });
 });
@@ -870,46 +951,74 @@ $('#fd-delete').addEventListener('click', () => {
 });
 
 // ===================== AI: photo + describe =====================
-const AI_PROMPT = `You are a dietitian-level food analyst inside a calorie tracking app.
-Identify every distinct food and drink, estimate each portion from visual or written cues (a dinner plate is about 10-11 in, a fork about 7 in), and give nutrition for the portion shown or described.
-Rules:
-- One item per distinct food. Split combos (burger, fries, drink) into separate items.
-- Fold likely cooking oil, butter, dressing and sauce into the item they are on, and say so in notes.
-- Use USDA-style values. Calories should be close to 4*protein + 4*carbs + 9*fat.
-- If a label or brand is visible or named, use that product's real nutrition.
-- Be realistic: restaurant portions are usually bigger than they look.
-Reply with only JSON in exactly this shape:
-{"is_food": true, "meal_name": "Short title", "notes": "One sentence on assumptions, or empty", "items": [{"name": "Grilled chicken breast", "portion": "5 oz", "grams": 140, "calories": 230, "protein": 43, "carbs": 0, "fat": 5, "confidence": "high"}]}
-confidence is "low", "medium" or "high". If there is no food, return {"is_food": false, "meal_name": "", "notes": "", "items": []}.`;
+const JSON_SHAPE = `Reply with only JSON in exactly this shape:
+{"is_food": true, "meal_name": "Short title", "notes": "One or two sentences on the main assumptions (prep method, oil, portion cues)", "items": [{"name": "Grilled chicken breast", "portion": "1 breast, about palm size", "grams": 140, "calories": 230, "protein": 43, "carbs": 0, "fat": 5, "confidence": "high"}]}
+grams, calories, protein, carbs and fat are for the whole portion of that item. confidence is "low", "medium" or "high".
+If there is no food, return {"is_food": false, "meal_name": "", "notes": "", "items": []}.`;
 
+const PLATE_PROMPT = `You are an expert sports dietitian estimating a meal for an athlete's calorie tracker. Accuracy matters more than speed, so work through it carefully before answering.
+1. List every distinct food and drink, including sauces, dressings, cheese, toppings, spreads and drinks. Split combo meals into separate items.
+2. Pin down the preparation of each item (grilled vs fried vs breaded, white vs brown rice, skin on or off, whole vs 2% milk). It changes calories a lot.
+3. Estimate each portion in grams. Use reference objects for scale: dinner plate about 26 cm across, side plate about 19 cm, fork about 19 cm, 12 oz can about 12 cm tall, an adult hand about 18 cm long. Judge height and depth, not just area. Convert volume to weight with realistic densities (cooked rice about 0.8 g per ml, cooked pasta about 0.6, leafy salad about 0.1, meat about 1.0). If there are several photos, they are different angles of the same meal: use them together to judge depth.
+4. Take nutrition from USDA FoodData Central per-100 g values for that exact preparation, then scale to your grams.
+5. Add hidden calories: cooking oil or butter that the preparation implies (home cooking about 1 tsp per item, restaurant food often 1 to 2 tbsp per dish), plus visible sauces and dressings.
+6. People and models both tend to underestimate. When a portion could be one of two sizes, choose the more likely real-world size, not the smaller one.
+7. If a brand, restaurant or package is visible or named, use that product's published nutrition.
+Each item's calories must be close to 4 x protein + 4 x carbs + 9 x fat.
+${JSON_SHAPE}`;
+
+const LABEL_PROMPT = `The photo shows a Nutrition Facts label or food packaging. Read the numbers exactly as printed. Do not estimate or round differently.
+Return exactly one item for one labeled serving: name = the product name if visible (brand plus product), otherwise "Packaged food"; portion = the serving size text as printed (for example "2/3 cup (55g)"); grams = the serving size in grams (use ml if only ml is given, or 0 if not shown); calories, protein, carbs (total carbohydrate) and fat (total fat) = the per-serving values on the label. confidence is "high" when the numbers are legible, "low" if you had to guess any.
+Put the servings-per-container in notes if it is shown.
+${JSON_SHAPE}`;
+
+const DESCRIBE_PROMPT = `You are an expert sports dietitian estimating a meal an athlete described in words for a calorie tracker. Use typical US portion sizes when the amount is not given, and say what you assumed in notes. Split combos into separate items, include likely cooking oil, sauces and drinks, and use USDA FoodData Central values or a named brand's published nutrition. Each item's calories must be close to 4 x protein + 4 x carbs + 9 x fat.
+${JSON_SHAPE}`;
+
+const clampN = (x, lo, hi) => { const n = Number(x); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : lo; };
 function normalizeMeal(raw) {
   if (!raw || !raw.is_food || !Array.isArray(raw.items) || !raw.items.length) throw { code: 'no_food' };
-  const clamp = (x, lo, hi) => { const n = Number(x); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : lo; };
   const items = raw.items.map((it, i) => {
-    const protein = clamp(it.protein, 0, 300), carbs = clamp(it.carbs, 0, 600), fat = clamp(it.fat, 0, 300);
-    let calories = clamp(it.calories, 0, 5000);
+    const protein = clampN(it.protein, 0, 300), carbs = clampN(it.carbs, 0, 600), fat = clampN(it.fat, 0, 300);
+    let calories = clampN(it.calories, 0, 5000);
     const implied = protein * 4 + carbs * 4 + fat * 9;
     if (implied > 0 && Math.abs(calories - implied) / implied > 0.25) calories = implied;
-    return {
+    const grams = Math.round(clampN(it.grams, 0, 5000));
+    const item = {
       id: `ai-${Date.now()}-${i}`, source: 'AI scan', name: String(it.name || 'Food').slice(0, 80),
-      serving: String(it.portion || `${Math.round(clamp(it.grams, 0, 5000))} g`).slice(0, 40), grams: Math.round(clamp(it.grams, 0, 5000)),
+      portion: String(it.portion || '').slice(0, 60), grams,
       calories: Math.round(calories), protein: r1(protein), carbs: r1(carbs), fat: r1(fat),
       confidence: ['low', 'medium', 'high'].includes(it.confidence) ? it.confidence : 'medium', servings: 1,
     };
+    setPer100(item);
+    return item;
   });
-  return { meal_name: String(raw.meal_name || 'Meal').slice(0, 80), notes: String(raw.notes || '').slice(0, 300), items };
+  return { meal_name: String(raw.meal_name || 'Meal').slice(0, 80), notes: String(raw.notes || '').slice(0, 400), items };
 }
+// Nutrition per gram, so changing grams rescales everything.
+function setPer100(it) {
+  it.per = it.grams > 0 ? { k: it.calories / it.grams, p: it.protein / it.grams, c: it.carbs / it.grams, f: it.fat / it.grams } : null;
+}
+function servingText(it) {
+  if (it.grams > 0 && it.portion) return `${it.grams} g · ${it.portion}`;
+  return it.grams > 0 ? `${it.grams} g` : it.portion || '1 serving';
+}
+
 const AI_ERRORS = {
-  no_food: "Couldn't find any food in that. Try a clearer photo, or add a short description.",
+  no_food: "Couldn't find any food in that. Try a clearer photo, or add a short note about what it is.",
   not_granted: 'AI is turned off for this page. You can still search and quick add.',
   sampling_disabled: 'AI is not available on this account. You can still search and quick add.',
   rate_limited: 'AI is busy or you hit a usage limit. Try again in a minute.',
-  image_rejected: 'That image could not be read. Try a different photo.',
+  image_rejected: 'One of the photos could not be read. Remove it and try again.',
   images_unavailable: 'Photos are not supported here. Use Describe instead.',
   refused: 'The AI declined this one. Try describing the meal in words.',
   invalid_json: 'The AI answer came back garbled. Tap the button to try again.',
   session_expired: 'Sign in to Claude again, then retry.',
+  bad_key: 'Your API key was rejected. Check it in Profile.',
+  sdk_load: "Couldn't load the AI library. Check your internet connection and try again.",
+  bad_request: 'The AI could not read that request. Try a different photo or a shorter description.',
 };
+
 // ----- Own-key mode (the GitHub Pages site): calls the Claude API from this browser with the viewer's key -----
 const KEY_STORE = 'macrolens-apikey'; // outside the ml: prefix so it is never synced
 const MODEL = 'claude-opus-5-5';
@@ -926,7 +1035,7 @@ const MEAL_SCHEMA = {
   },
 };
 const blobToBase64 = (blob) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(blob); });
-async function ownKeyJson(prompt, images) {
+async function ownKeyJson(prompt, images, effort) {
   sdkModule ??= await import(SDK_URL).catch(() => { throw { code: 'sdk_load' }; });
   const Anthropic = sdkModule.default;
   const client = new Anthropic({ apiKey: ownKey, dangerouslyAllowBrowser: true });
@@ -936,9 +1045,9 @@ async function ownKeyJson(prompt, images) {
   let res;
   try {
     res = await client.beta.messages.create({
-      model: MODEL, max_tokens: 8000,
+      model: MODEL, max_tokens: 16000,
       betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default',
-      output_config: { effort: 'low', format: { type: 'json_schema', schema: MEAL_SCHEMA } },
+      output_config: { effort, format: { type: 'json_schema', schema: MEAL_SCHEMA } },
       messages: [{ role: 'user', content }],
     });
   } catch (e) {
@@ -953,27 +1062,30 @@ async function ownKeyJson(prompt, images) {
 }
 function aiReady() { return !!(aiSample || ownKey); }
 function photosReady() { return !!((aiSample && aiImages) || ownKey); }
-AI_ERRORS.bad_key = 'Your API key was rejected. Check it in Profile.';
-AI_ERRORS.sdk_load = "Couldn't load the AI library. Check your internet connection and try again.";
-AI_ERRORS.bad_request = 'The AI could not read that request. Try a different photo or a shorter description.';
 
-async function runAI(text, images, statusEl, btn) {
+/** One AI call. careful=true uses the most capable model (photos), which is slower but more accurate. */
+async function askMeal(prompt, images, careful) {
+  if (aiSample) return aiSample.json(prompt, { ...(images?.length ? { images } : {}), modelTier: careful ? 'complex' : 'default' });
+  return ownKeyJson(prompt, images, careful ? 'high' : 'medium');
+}
+let lastRequest = null; // {prompt, images, careful} so "Fix" can re-ask with the same photos
+async function runAI(prompt, images, careful, statusEl, btn, busyText) {
   if (!aiReady()) { statusEl.textContent = 'Add your API key in Profile to use AI here.'; return; }
   const label = btn.textContent;
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Analyzing… (10-30 s)';
+  btn.innerHTML = `<span class="spinner"></span> ${busyText}`;
   statusEl.textContent = '';
   try {
-    const prompt = AI_PROMPT + '\n\n' + text;
-    const raw = aiSample ? await aiSample.json(prompt, images ? { images } : {}) : await ownKeyJson(prompt, images);
-    openReview(normalizeMeal(raw));
+    const meal = normalizeMeal(await askMeal(prompt, images, careful));
+    lastRequest = { prompt, images, careful };
+    openReview(meal);
   } catch (e) {
     if (e?.code === 'not_granted' || e?.code === 'sampling_disabled') hideAI(AI_ERRORS[e.code]);
     statusEl.textContent = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
   } finally {
     btn.disabled = false;
     btn.textContent = label;
-    if (!photo) $('#analyze-btn').disabled = true;
+    $('#analyze-btn').disabled = !(photos.length && photosReady());
   }
 }
 function hideAI(msg) {
@@ -982,56 +1094,86 @@ function hideAI(msg) {
   $('#analyze-btn').disabled = true; $('#describe-btn').disabled = true;
 }
 
-let photo = null;
-async function takePhoto(file) {
-  if (!file || !file.type.startsWith('image/')) return toast('Choose an image file');
-  try {
-    const bmp = await createImageBitmap(file);
-    const k = Math.min(1, 1280 / Math.max(bmp.width, bmp.height));
-    const c = document.createElement('canvas');
-    c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
-    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
-    photo = await new Promise((res) => c.toBlob(res, 'image/jpeg', 0.85));
-    const img = $('#photo-preview');
-    if (img.src.startsWith('blob:')) URL.revokeObjectURL(img.src);
-    img.src = URL.createObjectURL(photo);
-    img.hidden = false; $('#photo-hint').hidden = true;
-    $('#analyze-btn').disabled = !photosReady();
-  } catch { toast("Couldn't read that image"); }
+// ----- photos (several angles) -----
+let photos = []; // JPEG blobs
+let scanMode = 'plate';
+let maxPhotos = 3;
+async function compress(file) {
+  const bmp = await createImageBitmap(file);
+  const k = Math.min(1, 1568 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  return new Promise((res) => c.toBlob(res, 'image/jpeg', 0.88));
 }
-$('#photo-input').addEventListener('change', (e) => takePhoto(e.target.files[0]));
+async function addPhotos(files) {
+  const list = [...(files || [])].filter((f) => f.type.startsWith('image/'));
+  if (!list.length) return toast('Choose an image file');
+  for (const f of list) {
+    if (photos.length >= maxPhotos) { toast(`Up to ${maxPhotos} photos per meal`); break; }
+    try { photos.push(await compress(f)); } catch { toast("Couldn't read one of those images"); }
+  }
+  renderThumbs();
+}
+function renderThumbs() {
+  $$('#thumbs img').forEach((img) => URL.revokeObjectURL(img.src));
+  const box = $('#thumbs');
+  box.hidden = !photos.length;
+  $('#photo-drop').hidden = !!photos.length;
+  box.innerHTML = photos.map((b, i) => `<div class="thumb"><img alt="Photo ${i + 1}" src="${URL.createObjectURL(b)}"><button type="button" data-rm="${i}" aria-label="Remove photo ${i + 1}">✕</button></div>`).join('') +
+    (photos.length < maxPhotos ? `<label class="thumb-add">＋ Add angle<input type="file" accept="image/*" multiple hidden id="photo-more"></label>` : '');
+  $('#photo-more')?.addEventListener('change', (e) => { addPhotos(e.target.files); e.target.value = ''; });
+  $('#analyze-btn').disabled = !(photos.length && photosReady());
+  $('#analyze-btn').textContent = scanMode === 'label' ? 'Read label' : photos.length > 1 ? `Analyze ${photos.length} photos` : 'Analyze photo';
+}
+$('#thumbs').addEventListener('click', (e) => { const b = e.target.closest('[data-rm]'); if (b) { photos.splice(Number(b.dataset.rm), 1); renderThumbs(); } });
+$('#photo-input').addEventListener('change', (e) => { addPhotos(e.target.files); e.target.value = ''; });
 const drop = $('#photo-drop');
 drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('dragging'); });
 drop.addEventListener('dragleave', () => drop.classList.remove('dragging'));
-drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('dragging'); takePhoto(e.dataTransfer.files[0]); });
+drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('dragging'); addPhotos(e.dataTransfer.files); });
+$$('.mode button').forEach((b) => b.addEventListener('click', () => {
+  scanMode = b.dataset.mode;
+  $$('.mode button').forEach((x) => { x.classList.toggle('active', x === b); x.setAttribute('aria-checked', String(x === b)); });
+  $('#photo-hint-title').textContent = scanMode === 'label' ? 'Take a photo of the Nutrition Facts label' : 'Take or choose a photo of your meal';
+  $('#photo-hint-sub').textContent = scanMode === 'label' ? 'Exact numbers straight from the package, most accurate option' : 'Tip: add a second photo from the side so AI can see how tall the food is';
+  $('#photo-note').placeholder = scanMode === 'label' ? 'How much did you have? e.g. 2 servings, half the bag' : 'Help the AI: fried in butter, 2 cups of rice, ate half';
+  renderThumbs();
+}));
 $('#analyze-btn').addEventListener('click', () => {
-  if (!photo) return;
+  if (!photos.length) return;
   const note = $('#photo-note').value.trim();
-  runAI('Analyze this meal photo.' + (note ? ' Extra context from the user: ' + note : ''), [photo], $('#ai-status'), $('#analyze-btn'));
+  const base = scanMode === 'label' ? LABEL_PROMPT : PLATE_PROMPT;
+  const ask = (scanMode === 'label' ? 'Read this label.' : `Analyze this meal (${photos.length} photo${photos.length > 1 ? 's' : ''}).`) + (note ? ' The user adds: ' + note : '');
+  runAI(base + '\n\n' + ask, photos.slice(), scanMode !== 'label', $('#ai-status'), $('#analyze-btn'),
+    scanMode === 'label' ? 'Reading label…' : 'Analyzing carefully… (20-60 s)');
 });
 $('#describe-btn').addEventListener('click', () => {
   const t = $('#describe-input').value.trim();
   if (!t) return toast('Describe what you ate first');
-  runAI('Estimate nutrition for this meal the user described: ' + t.slice(0, 1000), null, $('#describe-status'), $('#describe-btn'));
+  runAI(DESCRIBE_PROMPT + '\n\nThe user ate: ' + t.slice(0, 1000), null, false, $('#describe-status'), $('#describe-btn'), 'Estimating…');
 });
 
 // ===================== AI review =====================
 const rv = $('#review-dialog');
-let rvItems = [];
+let rvItems = [], rvMeal = null;
 function openReview(meal) {
+  rvMeal = meal;
   rvItems = meal.items;
   $('#rv-title').textContent = meal.meal_name;
   $('#rv-notes').textContent = meal.notes;
+  $('#rv-fix').value = ''; $('#rv-fix-status').textContent = '';
+  $('#rv-fix-btn').disabled = !aiReady();
   renderReview();
-  rv.showModal();
+  if (!rv.open) rv.showModal();
 }
 function renderReview() {
   $('#rv-items').innerHTML = rvItems.map((it, i) => `<li data-i="${i}">
     <div class="rv-top"><input type="text" id="rv-name-${i}" data-k="name" value="${esc(it.name)}" aria-label="Food name">
       <span class="conf ${it.confidence}">${it.confidence}</span><button class="icon-btn" data-remove="${i}" aria-label="Remove ${esc(it.name)}">✕</button></div>
-    <div class="muted small">${esc(it.serving)}${it.grams ? ` (about ${it.grams} g)` : ''}</div>
+    ${it.portion ? `<div class="muted small">${esc(it.portion)}</div>` : ''}
     <div class="rv-nums">
-      <label>× portion<input type="number" id="rv-s-${i}" step="0.25" min="0" data-k="servings" value="${it.servings}"></label>
+      <label>grams<input type="number" id="rv-g-${i}" min="0" step="5" data-k="grams" value="${it.grams}"></label>
       <label>kcal<input type="number" id="rv-k-${i}" min="0" data-k="calories" value="${it.calories}"></label>
       <label>P<input type="number" id="rv-p-${i}" step="0.1" min="0" data-k="protein" value="${it.protein}"></label>
       <label>C<input type="number" id="rv-c-${i}" step="0.1" min="0" data-k="carbs" value="${it.carbs}"></label>
@@ -1046,21 +1188,51 @@ function renderReviewTotal() {
 }
 $('#rv-items').addEventListener('input', (e) => {
   const k = e.target.dataset.k; if (!k) return;
-  const i = Number(e.target.closest('li').dataset.i);
-  rvItems[i][k] = k === 'name' ? e.target.value : Number(e.target.value) || 0;
+  const li = e.target.closest('li'), i = Number(li.dataset.i), it = rvItems[i];
+  if (k === 'name') { it.name = e.target.value; return; }
+  const v = Math.max(0, Number(e.target.value) || 0);
+  if (k === 'grams') {
+    it.grams = Math.round(v);
+    if (it.per) {
+      it.calories = Math.round(it.per.k * it.grams); it.protein = r1(it.per.p * it.grams); it.carbs = r1(it.per.c * it.grams); it.fat = r1(it.per.f * it.grams);
+      for (const [key, sel] of [['calories', 'k'], ['protein', 'p'], ['carbs', 'c'], ['fat', 'f']]) $(`#rv-${sel}-${i}`).value = it[key];
+    } else setPer100(it);
+  } else {
+    it[k] = k === 'calories' ? Math.round(v) : r1(v);
+    setPer100(it);
+  }
   renderReviewTotal();
 });
 $('#rv-items').addEventListener('click', (e) => {
   const b = e.target.closest('[data-remove]'); if (!b) return;
   rvItems.splice(Number(b.dataset.remove), 1); renderReview();
 });
+$('#rv-fix-btn').addEventListener('click', async () => {
+  const fix = $('#rv-fix').value.trim();
+  if (!fix) return toast('Type what to change first');
+  const current = { meal_name: $('#rv-title').textContent, notes: rvMeal?.notes || '',
+    items: rvItems.map(({ name, portion, grams, calories, protein, carbs, fat, confidence }) => ({ name, portion, grams, calories, protein, carbs, fat, confidence })) };
+  const req = lastRequest || { prompt: DESCRIBE_PROMPT, images: null, careful: false };
+  const prompt = `${req.prompt}\n\nYou already estimated this meal as:\n${JSON.stringify(current)}\n\nThe user corrected it: "${fix.slice(0, 500)}"\nApply the correction, re-check the other items with that new information, and return the full corrected meal in the same JSON shape.`;
+  const btn = $('#rv-fix-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  $('#rv-fix-status').textContent = 'Updating…';
+  try {
+    openReview(normalizeMeal(await askMeal(prompt, req.images, false)));
+    toast('Updated');
+  } catch (e) {
+    $('#rv-fix-status').textContent = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Fix';
+  }
+});
 $('#rv-log').addEventListener('click', () => {
   const meal = $('#add-meal').value;
-  const kept = rvItems.filter((it) => it.servings > 0);
-  kept.forEach((it) => addEntry(it, meal, it.servings));
+  const kept = rvItems.filter((it) => it.calories > 0 || it.grams > 0);
+  kept.forEach((it) => { const { per, ...food } = it; addEntry({ ...food, serving: servingText(it) }, meal, 1); });
   rv.close(); sheet.close();
-  photo = null; $('#photo-input').value = ''; $('#photo-preview').hidden = true; $('#photo-hint').hidden = false;
-  $('#photo-note').value = ''; $('#describe-input').value = ''; $('#analyze-btn').disabled = true;
+  photos = []; renderThumbs();
+  $('#photo-note').value = ''; $('#describe-input').value = '';
   render();
   toast(`Logged ${kept.length} item${kept.length === 1 ? '' : 's'} to ${mealLabel(meal)}`);
 });
@@ -1085,11 +1257,26 @@ $$('[data-close]').forEach((b) => b.addEventListener('click', () => b.closest('d
 $$('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
 $('#fab').addEventListener('click', () => openAdd(day === todayIso() ? defaultMeal() : 'snacks', aiReady() ? 'scan' : 'search'));
 $('#meals').addEventListener('click', (e) => {
+  const save = e.target.closest('[data-save-meal]');
+  if (save) return saveMeal(save.dataset.saveMeal);
+  const copy = e.target.closest('[data-copy]');
+  if (copy) {
+    const items = yesterdayItems(copy.dataset.copy);
+    addMealItems(items.map(({ addedAt, ...f }) => f), copy.dataset.copy);
+    render();
+    return toast(`Copied ${items.length} item${items.length === 1 ? '' : 's'} from yesterday`);
+  }
   const add = e.target.closest('[data-add]');
   if (add) return openAdd(add.dataset.add, 'search');
   const row = e.target.closest('.entry');
   if (row) { const entry = dayDoc(day)[row.dataset.meal][Number(row.dataset.idx)]; openFood(entry, { meal: row.dataset.meal, idx: Number(row.dataset.idx), servings: entry.servings }); }
 });
+$$('#daytype button').forEach((b) => b.addEventListener('click', () => {
+  const d = dayDoc(day, true);
+  d.type = b.dataset.type === 'rest' ? 'rest' : 'training';
+  persist('day-' + day); renderToday();
+  toast(d.type === 'rest' ? 'Rest day: 30% fewer carbs today' : 'Practice / game day: full targets');
+}));
 $$('[data-water]').forEach((b) => b.addEventListener('click', () => {
   const d = dayDoc(day, true);
   d.water = Math.max(0, (d.water || 0) + Number(b.dataset.water));
@@ -1160,7 +1347,7 @@ function applyKeyState() {
   $('#ai-status').textContent = ownKey ? '' : msg;
   $('#describe-status').textContent = ownKey ? '' : msg;
   $('#describe-btn').disabled = !ownKey;
-  $('#analyze-btn').disabled = !(photo && ownKey);
+  $('#analyze-btn').disabled = !(photos.length && ownKey);
 }
 $('#key-card').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -1191,7 +1378,8 @@ render();
   aiImages = !!lim?.images;
   if (!aiImages) $('#ai-status').textContent = 'Photo scanning is not available in this view. Use Describe instead.';
   if (lim?.images?.mediaTypes) $('#photo-input').accept = lim.images.mediaTypes.join(',');
-  $('#analyze-btn').disabled = !(photo && aiImages);
+  if (lim?.images?.maxCount) maxPhotos = Math.max(1, Math.min(3, lim.images.maxCount));
+  $('#analyze-btn').disabled = !(photos.length && aiImages);
 })();
 connectStore().then(() => { if (!core().profile && $('#sync').dataset.s !== 'synced') goProfileFirstRun(); });
 </script>
