@@ -23,14 +23,15 @@
   --scrim: rgba(10, 14, 12, .5);
   --f-display: "Space Grotesk", "Inter", system-ui, sans-serif;
   --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --radius: 16px;
+  --radius: 18px;
+  --shadow: rgba(20, 30, 24, .05);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0e1210; --surface: #171c19; --surface-2: #212823; --line: #2c342f;
     --fg: #ecf1ed; --muted: #8e9a93; --accent: #3ccf94; --accent-ink: #052618; --accent-soft: #173a2b;
     --protein: #6aa7f5; --carbs: #f2bd3d; --fat: #f07ab3; --water: #4cc3ef; --over: #fb8a4c; --danger: #f07a7a;
-    --scrim: rgba(0, 0, 0, .6);
+    --scrim: rgba(0, 0, 0, .6); --shadow: rgba(0, 0, 0, .25);
     color-scheme: dark;
   }
 }
@@ -38,7 +39,7 @@
   --bg: #0e1210; --surface: #171c19; --surface-2: #212823; --line: #2c342f;
   --fg: #ecf1ed; --muted: #8e9a93; --accent: #3ccf94; --accent-ink: #052618; --accent-soft: #173a2b;
   --protein: #6aa7f5; --carbs: #f2bd3d; --fat: #f07ab3; --water: #4cc3ef; --over: #fb8a4c; --danger: #f07a7a;
-  --scrim: rgba(0, 0, 0, .6);
+  --scrim: rgba(0, 0, 0, .6); --shadow: rgba(0, 0, 0, .25);
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -53,7 +54,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 button, input, select, textarea { font: inherit; color: inherit; }
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .drop:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
 h2, h3 { font-family: var(--f-display); margin: 0; text-wrap: balance; }
-h3 { font-size: 16px; font-weight: 600; }
+h3 { font-size: 17px; font-weight: 600; letter-spacing: -.2px; }
 .muted { color: var(--muted); }
 .small { font-size: 13px; }
 .num { font-variant-numeric: tabular-nums; }
@@ -82,9 +83,9 @@ h3 { font-size: 16px; font-weight: 600; }
 .sync[data-s="synced"]::before { background: var(--accent); }
 .sync[data-s="error"]::before { background: var(--over); }
 
-.view { display: grid; gap: 12px; }
+.view { display: grid; gap: 14px; }
 .view[hidden] { display: none !important; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: 0 1px 2px var(--shadow); min-width: 0; }
 
 /* summary */
 .summary { display: grid; gap: 16px; }
@@ -376,6 +377,20 @@ label.check input { width: auto; }
 .fix-list b { display: block; font-size: 14px; }
 .fix-list .btn { padding: 6px 12px; font-size: 13px; }
 .caf-row { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 4px 0; }
+.hydro-fold { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+.section-label { font-family: var(--f-body); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 12px 4px -4px; }
+details.fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary h3 { flex: none; }
+details.fold > summary span { flex: 1; min-width: 0; text-align: right; }
+details.fold > summary::after { content: ""; flex: none; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-2px) rotate(45deg); transition: transform .2s; }
+details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg); }
+.subnav { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 60px); z-index: 4; display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 10px; margin-bottom: -6px; background: var(--bg); scrollbar-width: none; }
+.subnav::-webkit-scrollbar { display: none; }
+.subnav button { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.subnav button.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.meal-head strong { letter-spacing: -.2px; }
+.summary { padding: 18px; }
 @media (prefers-reduced-motion: reduce) { *, *::before { transition: none !important; animation-duration: 0s !important; } }
 </style>
 
@@ -417,21 +432,13 @@ label.check input { width: auto; }
     </div>
 
     <div class="card" id="timing-card" hidden></div>
-    <div class="card" id="ontrack-card" hidden></div>
-    <div class="card" id="fix-card" hidden></div>
-    <div class="card" id="caffeine-card" hidden></div>
 
     <div class="card favs-card" id="favs-card" hidden>
       <div class="row-between"><h3>Quick add</h3><span class="muted small">Your most-logged foods</span></div>
       <div class="chips" id="favs"></div>
     </div>
 
-    <div class="card" id="spread-card" hidden></div>
-
-    <div class="card">
-      <div class="row-between" style="margin-bottom:10px"><h3>Nutrients</h3><span class="muted small" id="micro-note"></span></div>
-      <div class="micros" id="micro-bars"></div>
-    </div>
+    <div id="meals" class="view"></div>
 
     <div class="card">
       <div class="row-between">
@@ -446,20 +453,29 @@ label.check input { width: auto; }
       <div id="hydro-plan"></div>
     </div>
 
-    <div id="meals" class="view"></div>
+    <h2 class="section-label">How today is going</h2>
+
+    <div class="card" id="ontrack-card" hidden></div>
+
+    <div class="card" id="fix-card" hidden></div>
+
+    <div class="card" id="spread-card" hidden></div>
+
+    <div class="card" id="caffeine-card" hidden></div>
+
+    <details class="card fold" id="nutr-fold">
+      <summary><h3>Nutrients</h3><span class="muted small" id="micro-note"></span></summary>
+      <div class="micros" id="micro-bars" style="margin-top:12px"></div>
+    </details>
   </section>
 
   <!-- COACH -->
   <section id="view-coach" class="view" hidden>
-    <div class="card form" id="chat-card">
-      <div class="row-between"><h3>Ask Coach</h3><button type="button" class="chip" id="chat-clear" hidden>Clear chat</button></div>
-      <div class="chat" id="chat-log" aria-live="polite"></div>
-      <div class="chips" id="chat-sugg"></div>
-      <form class="inline-form" id="chat-form"><input type="text" id="chat-input" placeholder="Ask anything about food and training" autocomplete="off" aria-label="Question for Coach"><button class="btn primary">Ask</button></form>
-      <p class="muted small" id="chat-status" style="margin:0"></p>
-    </div>
+    <nav class="subnav" id="coach-nav" aria-label="Coach sections">
+      <button type="button" data-tabgroup="today">Today</button><button type="button" data-tabgroup="ask">Ask Coach</button><button type="button" data-tabgroup="game">Game day</button><button type="button" data-tabgroup="ideas">Meal ideas</button><button type="button" data-tabgroup="plans">Plans</button><button type="button" data-tabgroup="review">Review</button>
+    </nav>
 
-    <div class="card">
+    <div data-group="today" class="card">
       <div class="row-between"><h3>Today's fuel plan</h3><span class="muted small num" id="coach-left"></span></div>
       <form id="practice-form" class="practice-row">
         <label>Practice or game starts<input type="time" id="pr-start" required></label>
@@ -470,7 +486,24 @@ label.check input { width: auto; }
       <button class="btn" id="cal-practice" type="button" hidden style="width:100%;margin-top:8px">Add reminders to my calendar</button>
     </div>
 
-    <div class="card">
+    <div data-group="today" class="card form">
+      <div><h3>What should I eat next?</h3>
+      <p class="muted small" style="margin:4px 0 0">Coach looks at what you've eaten today, what's left, and when you practice, then gives you options you can log in one tap.</p></div>
+      <input type="text" id="coach-q" placeholder="Optional: I'm at school, only have the cafeteria">
+      <button class="btn primary" id="coach-btn">Get suggestions</button>
+      <p class="muted small" id="coach-status" style="margin:0"></p>
+      <div id="coach-out" class="coach-out"></div>
+    </div>
+
+    <div data-group="ask" class="card form" id="chat-card">
+      <div class="row-between"><h3>Ask Coach</h3><button type="button" class="chip" id="chat-clear" hidden>Clear chat</button></div>
+      <div class="chat" id="chat-log" aria-live="polite"></div>
+      <div class="chips" id="chat-sugg"></div>
+      <form class="inline-form" id="chat-form"><input type="text" id="chat-input" placeholder="Ask anything about food and training" autocomplete="off" aria-label="Question for Coach"><button class="btn primary">Ask</button></form>
+      <p class="muted small" id="chat-status" style="margin:0"></p>
+    </div>
+
+    <div data-group="game" class="card">
       <div class="row-between"><h3>Game day</h3><span class="muted small" id="game-when"></span></div>
       <form id="game-form" class="practice-row">
         <label>Game date<input type="date" id="g-date" required></label>
@@ -483,7 +516,7 @@ label.check input { width: auto; }
       <button class="btn" id="cal-game" type="button" hidden style="width:100%;margin-top:8px">Add game plan to my calendar</button>
     </div>
 
-    <form id="sweat-form" class="card form">
+    <form data-group="game" id="sweat-form" class="card form">
       <div class="row-between"><h3>Sweat test</h3><span class="muted small" id="sweat-result"></span></div>
       <p class="muted small" style="margin:0">Weigh yourself right before and right after a practice (same clothes, towel off). It shows how much you really sweat, and your water goal on practice days adjusts to match.</p>
       <div class="grid2">
@@ -496,25 +529,7 @@ label.check input { width: auto; }
       <div id="sweat-out"></div>
     </form>
 
-    <div class="card form">
-      <div><h3>What should I eat next?</h3>
-      <p class="muted small" style="margin:4px 0 0">Coach looks at what you've eaten today, what's left, and when you practice, then gives you options you can log in one tap.</p></div>
-      <input type="text" id="coach-q" placeholder="Optional: I'm at school, only have the cafeteria">
-      <button class="btn primary" id="coach-btn">Get suggestions</button>
-      <p class="muted small" id="coach-status" style="margin:0"></p>
-      <div id="coach-out" class="coach-out"></div>
-    </div>
-
-    <div class="card form">
-      <div class="row-between"><h3>Weekly meal plan</h3><span class="muted small" id="plan-date"></span></div>
-      <p class="muted small" style="margin:0">7 days of meals that hit your targets, built from foods you already eat, with extra carbs on practice days. Comes with a shopping list.</p>
-      <input type="text" id="plan-note" placeholder="Optional: cheap, school lunch on weekdays, no cooking on Tuesdays">
-      <button class="btn" id="plan-btn" type="button">Make my meal plan</button>
-      <p class="muted small" id="plan-status" style="margin:0"></p>
-      <div id="plan-out"></div>
-    </div>
-
-    <div class="card form">
+    <div data-group="ideas" class="card form">
       <div><h3>School lunch</h3>
       <p class="muted small" style="margin:4px 0 0">Snap the cafeteria menu or the line, or type today's options. Coach picks the best tray for your day.</p></div>
       <div class="thumbs" id="lunch-thumbs"></div>
@@ -524,7 +539,7 @@ label.check input { width: auto; }
       <div id="lunch-out" class="coach-out"></div>
     </div>
 
-    <div class="card form">
+    <div data-group="ideas" class="card form">
       <div><h3>What can I make?</h3>
       <p class="muted small" style="margin:4px 0 0">Snap your fridge and pantry (up to 3 photos). Coach suggests meals you can make right now that fit what you have left today.</p></div>
       <div class="thumbs" id="fridge-thumbs"></div>
@@ -534,7 +549,7 @@ label.check input { width: auto; }
       <div id="fridge-out" class="coach-out"></div>
     </div>
 
-    <div class="card form">
+    <div data-group="ideas" class="card form">
       <div><h3>Craving swap</h3>
       <p class="muted small" style="margin:4px 0 0">Want something? Coach finds a version that still fits your day.</p></div>
       <div class="inline-form"><input type="text" id="crave-input" placeholder="Pizza, a milkshake, hot Cheetos…"><button class="btn primary" id="crave-btn" type="button">Swap</button></div>
@@ -542,7 +557,16 @@ label.check input { width: auto; }
       <div id="crave-out" class="coach-out"></div>
     </div>
 
-    <div class="card form">
+    <div data-group="plans" class="card form">
+      <div class="row-between"><h3>Weekly meal plan</h3><span class="muted small" id="plan-date"></span></div>
+      <p class="muted small" style="margin:0">7 days of meals that hit your targets, built from foods you already eat, with extra carbs on practice days. Comes with a shopping list.</p>
+      <input type="text" id="plan-note" placeholder="Optional: cheap, school lunch on weekdays, no cooking on Tuesdays">
+      <button class="btn" id="plan-btn" type="button">Make my meal plan</button>
+      <p class="muted small" id="plan-status" style="margin:0"></p>
+      <div id="plan-out"></div>
+    </div>
+
+    <div data-group="plans" class="card form">
       <div class="row-between"><h3>Meal prep plan</h3><span class="muted small" id="prep-date"></span></div>
       <p class="muted small" style="margin:0">One cooking session (about 90 minutes) that covers lunches and post-practice meals for the week. Each recipe becomes a saved meal you can log in one tap.</p>
       <input type="text" id="prep-note" placeholder="Optional: only a microwave at school, 5 lunches, $40 budget">
@@ -551,7 +575,15 @@ label.check input { width: auto; }
       <div id="prep-out"></div>
     </div>
 
-    <div class="card form">
+    <div data-group="plans" class="card form">
+      <div class="row-between"><h3>Grocery list</h3><span class="muted small" id="grocery-date"></span></div>
+      <p class="muted small" style="margin:0">Built from your last 7 days: what you ran short on, plus the foods you already eat. Copy it and send it to whoever does the shopping.</p>
+      <div class="row-gap"><button class="btn" id="grocery-btn">Make my grocery list</button><button class="btn" id="grocery-copy" hidden>Copy list</button></div>
+      <p class="muted small" id="grocery-status" style="margin:0"></p>
+      <div id="grocery-out"></div>
+    </div>
+
+    <div data-group="review" class="card form">
       <div class="row-between"><h3>Weekly report</h3><span class="muted small" id="report-date"></span></div>
       <p class="muted small" style="margin:0">Coach grades your last 7 days and gives you the 3 changes that matter most.</p>
       <button class="btn" id="report-btn">Make my weekly report</button>
@@ -560,15 +592,7 @@ label.check input { width: auto; }
       <button class="btn" id="share-btn" type="button">Copy a summary for a parent</button>
     </div>
 
-    <div class="card form">
-      <div class="row-between"><h3>Grocery list</h3><span class="muted small" id="grocery-date"></span></div>
-      <p class="muted small" style="margin:0">Built from your last 7 days: what you ran short on, plus the foods you already eat. Copy it and send it to whoever does the shopping.</p>
-      <div class="row-gap"><button class="btn" id="grocery-btn">Make my grocery list</button><button class="btn" id="grocery-copy" hidden>Copy list</button></div>
-      <p class="muted small" id="grocery-status" style="margin:0"></p>
-      <div id="grocery-out"></div>
-    </div>
-
-    <div class="card">
+    <div data-group="review" class="card">
       <h3>Supplement check</h3>
       <p class="muted small" style="margin:4px 0 10px">For athletes under 18. Food comes first, and talk to your doctor before starting anything.</p>
       <div id="supps"></div>
@@ -578,13 +602,11 @@ label.check input { width: auto; }
   <!-- PROGRESS -->
   <section id="view-progress" class="view" hidden>
     <div class="stats" id="stats"></div>
-    <div class="card">
-      <div class="row-between"><h3>Badges</h3><span class="muted small" id="badge-count"></span></div>
-      <div class="badges" id="badges"></div>
-    </div>
+
     <div class="card"><h3>Calories, last 7 days</h3><div id="week-chart" class="chart"></div></div>
-    <div class="card"><h3 style="margin-bottom:10px">Macro averages, last 7 logged days</h3><div id="macro-avg"></div></div>
-    <div class="card"><h3 style="margin-bottom:10px">Nutrient averages, last 7 logged days</h3><div class="micros" id="micro-avg"></div><p class="muted small" id="micro-avg-note" style="margin:10px 0 0"></p></div>
+
+    <h2 class="section-label">Body</h2>
+
     <div class="card">
       <div class="row-between" style="margin-bottom:8px">
         <h3>Weight</h3>
@@ -596,6 +618,7 @@ label.check input { width: auto; }
       <div id="weight-chart" class="chart"></div>
       <ul id="weight-list" class="plain-list"></ul>
     </div>
+
     <form id="goalw-form" class="card form">
       <div class="row-between"><h3>Goal weight</h3><span class="muted small" id="goalw-sub"></span></div>
       <div class="grid2">
@@ -605,8 +628,15 @@ label.check input { width: auto; }
       <button class="btn">Set goal</button>
       <div id="goalw-out"></div>
     </form>
-    <form id="measure-form" class="card form">
-      <div class="row-between"><h3>Body measurements</h3><span class="muted small">inches, once every 2-4 weeks</span></div>
+
+    <div class="card">
+      <h3>Bulk / cut check</h3>
+      <div id="trend-out" style="margin-top:8px"></div>
+    </div>
+
+    <details class="card fold">
+      <summary><h3>Body measurements</h3><span class="muted small">inches, every 2-4 weeks</span></summary>
+    <form id="measure-form" class="form" style="margin-top:12px">
       <div class="grid2">
         <label>Waist (at belly button)<input id="ms-waist" type="number" step="0.1" min="15" max="70"></label>
         <label>Chest<input id="ms-chest" type="number" step="0.1" min="20" max="70"></label>
@@ -616,15 +646,26 @@ label.check input { width: auto; }
       <button class="btn">Log measurements</button>
       <div id="measure-out"></div>
     </form>
+    </details>
 
-    <div class="card">
-      <h3>Bulk / cut check</h3>
-      <div id="trend-out" style="margin-top:8px"></div>
-    </div>
+    <h2 class="section-label">Averages, last 7 logged days</h2>
+
+    <div class="card"><h3 style="margin-bottom:10px">Macro averages</h3><div id="macro-avg"></div></div>
+
+    <div class="card"><h3 style="margin-bottom:10px">Nutrient averages</h3><div class="micros" id="micro-avg"></div><p class="muted small" id="micro-avg-note" style="margin:10px 0 0"></p></div>
+
+    <details class="card fold">
+      <summary><h3>Badges</h3><span class="muted small" id="badge-count"></span></summary>
+      <div class="badges" id="badges"></div>
+    </details>
   </section>
 
   <!-- PROFILE -->
   <section id="view-profile" class="view" hidden>
+    <h2 class="section-label">Your targets</h2>
+
+    <div class="card" id="targets-card"></div>
+
     <form id="profile-form" class="card form">
       <h3>Your profile</h3>
       <div class="grid2">
@@ -638,7 +679,7 @@ label.check input { width: auto; }
       <label>Activity<select name="activity" id="activity-select"></select></label>
       <button class="btn primary">Calculate my targets</button>
     </form>
-    <div class="card" id="targets-card"></div>
+
     <form id="custom-targets" class="card form">
       <h3>Override targets</h3>
       <p class="muted small" style="margin:0">If a coach or dietitian gave you numbers, enter them here. Blank fields keep the calculated value.</p>
@@ -650,6 +691,9 @@ label.check input { width: auto; }
       </div>
       <button class="btn">Save overrides</button>
     </form>
+
+    <h2 class="section-label">AI and accuracy</h2>
+
     <form id="key-card" class="card form" hidden>
       <h3>AI photo scanning</h3>
       <p class="muted small" style="margin:0">To scan photos on this website, paste a Claude API key from console.anthropic.com. It is saved in this browser only and sent only to Anthropic. Each scan costs a few cents on that key.</p>
@@ -659,6 +703,7 @@ label.check input { width: auto; }
       </div>
       <div class="row-between"><span class="muted small" id="key-status"></span><button type="button" class="chip" id="key-remove" hidden>Remove key</button></div>
     </form>
+
     <form id="prefs-form" class="card form">
       <div><h3>Sport and food rules</h3>
       <p class="muted small" style="margin:4px 0 0">Every AI suggestion (Coach, Eat out, fridge, grocery list, meal prep) follows these.</p></div>
@@ -682,6 +727,8 @@ label.check input { width: auto; }
       <ul class="learned" id="learned"></ul>
     </form>
 
+    <h2 class="section-label">App</h2>
+
     <div class="card form">
       <h3>Appearance</h3>
       <div class="mode" role="radiogroup" aria-label="Theme" id="theme-pick">
@@ -690,6 +737,7 @@ label.check input { width: auto; }
         <button type="button" role="radio" data-theme-opt="dark">Dark</button>
       </div>
     </div>
+
     <div class="card"><p class="note" id="storage-note" style="margin:0"></p></div>
   </section>
 </div>
@@ -2932,13 +2980,17 @@ function hydroPlan(pr) {
     { at: end, end: end + 120, text: `${after} oz over the next 2 hours to replace sweat` },
   ];
 }
+let hydroOpen = false;
+$('#hydro-plan').addEventListener('toggle', (e) => { if (e.target.classList?.contains('hydro-fold')) hydroOpen = e.target.open; }, true);
 function renderHydro(isToday) {
   const el = $('#hydro-plan'), g = core().game;
   const pr = !isToday || dayDoc(day)?.type === 'rest' ? null : g && g.date === todayIso() ? { start: g.start, mins: 105 } : practiceToday();
   if (!pr) { el.innerHTML = ''; return; }
-  const now = nowMin();
-  el.innerHTML = `<ul class="hydro">${hydroPlan(pr).map((h) => `<li class="${now >= h.at && now < h.end ? 'now' : now >= h.end ? 'past' : ''}"><span>${h.label || fmtMin(Math.max(0, h.at))}</span><span>${h.text}</span></li>`).join('')}</ul>` +
-    (core().sweat ? '' : '<p class="muted small" style="margin:6px 0 0">Based on an average sweat rate. Do the sweat test in Coach to use yours.</p>');
+  const now = nowMin(), plan = hydroPlan(pr), cur = plan.find((h) => now >= h.at && now < h.end), nxt = plan.find((h) => h.at > now);
+  const lead = cur ? `Now: ${cur.text.split(/[,(]/)[0]}` : nxt ? `${nxt.label || fmtMin(Math.max(0, nxt.at))}: ${nxt.text.split(/[,(]/)[0]}` : 'Done for today';
+  el.innerHTML = `<details class="fold hydro-fold"${hydroOpen ? ' open' : ''}><summary><b class="small">Practice water plan</b><span class="muted small">${esc(lead)}</span></summary>
+    <ul class="hydro">${plan.map((h) => `<li class="${now >= h.at && now < h.end ? 'now' : now >= h.end ? 'past' : ''}"><span>${h.label || fmtMin(Math.max(0, h.at))}</span><span>${h.text}</span></li>`).join('')}</ul>` +
+    (core().sweat ? '' : '<p class="muted small" style="margin:6px 0 0">Based on an average sweat rate. Do the sweat test in Coach to use yours.</p>') + '</details>';
 }
 function renderOnTrack(isToday, t, tot) {
   const el = $('#ontrack-card'), now = nowMin();
@@ -2955,7 +3007,7 @@ function renderOnTrack(isToday, t, tot) {
       : `To finish today: dinner of about ${round50(leftK * 0.7).toLocaleString()} kcal with ${Math.round(leftP * 0.65)} g protein, then a snack of about ${round50(leftK * 0.3).toLocaleString()} kcal with ${leftP - Math.round(leftP * 0.65)} g protein.`;
   el.innerHTML = `<div class="row-between"><h3>Am I on track?</h3><span class="pill ${status[1]}">${status[0]}</span></div>
     <div class="pace"><div><b class="num">${tot.calories.toLocaleString()}</b> <span class="muted small">/ ${expK.toLocaleString()}</span><small>kcal so far vs. pace</small></div><div><b class="num">${Math.round(tot.protein)} g</b> <span class="muted small">/ ${expP} g</span><small>protein so far vs. pace</small></div></div>
-    <p class="small" style="margin:0 0 10px">${finish}</p>${leftK > 100 && aiReady() && !dayDoc(day)?.fix ? '<button class="btn" id="ontrack-plan" type="button">Fix my day</button>' : ''}`;
+    <p class="small" style="margin:0">${finish}</p>`;
 }
 $('#ontrack-card').addEventListener('click', (e) => {
   if (!e.target.closest('#ontrack-plan')) return;
@@ -2975,7 +3027,7 @@ function feedings(iso) {
     if (group && (e.addedAt || 0) - group.last < 3600000) { group.items.push(e); group.last = e.addedAt || 0; }
     else { group = { items: [e], last: e.addedAt || 0 }; out.push(group); }
   }
-  return out.map((f) => (f.items ? { label: 'Snack', protein: totals(f.items).protein } : f));
+  return out.map((f) => (f.items ? { label: 'Snack', protein: totals(f.items).protein } : f)).filter((f) => f.protein >= 5);
 }
 function spreadScore(iso) {
   const f = feedings(iso), hit = proteinHitG(), hits = f.filter((x) => x.protein >= hit).length;
@@ -3638,6 +3690,17 @@ $('#fix-card').addEventListener('click', (e) => {
   m.logged = true; persist('day-' + todayIso());
   logOption({ title: m.title, items: m.items.map((it) => ({ ...it })) }, b, m.slot);
 });
+
+// ===================== Coach tabs =====================
+const COACH_TAB_KEY = 'macrolens-coach-tab';
+function setCoachGroup(g) {
+  if (!$(`#coach-nav [data-tabgroup="${g}"]`)) g = 'today';
+  $$('#coach-nav button').forEach((b) => { const on = b.dataset.tabgroup === g; b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); });
+  $$('#view-coach .card[data-group]').forEach((c) => { c.hidden = c.dataset.group !== g; });
+  try { localStorage.setItem(COACH_TAB_KEY, g); } catch {}
+}
+$('#coach-nav').addEventListener('click', (e) => { const b = e.target.closest('[data-tabgroup]'); if (b) { setCoachGroup(b.dataset.tabgroup); window.scrollTo(0, 0); } });
+{ let g = 'today'; try { g = localStorage.getItem(COACH_TAB_KEY) || 'today'; } catch {} setCoachGroup(g); }
 
 // ===================== boot =====================
 setSync('local');
