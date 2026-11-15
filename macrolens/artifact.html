@@ -327,6 +327,42 @@ label.check input { width: auto; }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+#toast.has-undo { pointer-events: auto; display: flex; align-items: center; gap: 12px; }
+#toast button { border: 0; background: var(--accent); color: var(--accent-ink); border-radius: 99px; padding: 5px 12px; font-weight: 700; font-size: 13px; cursor: pointer; }
+#add-sheet .mode { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.daytype { flex-wrap: wrap; }
+.adjust-note { margin: 10px 0 0; padding: 8px 10px; border-radius: 10px; background: var(--accent-soft); font-size: 13px; }
+.next-up { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; }
+.next-up .when { font-family: var(--f-display); font-weight: 700; font-size: 22px; line-height: 1; text-align: center; min-width: 64px; }
+.next-up .when small { display: block; font-family: var(--f-body); font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 3px; }
+.next-up .what b { display: block; font-size: 15px; }
+.next-up .what p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.hydro { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 4px; }
+.hydro li { display: grid; grid-template-columns: 64px 1fr; gap: 8px; font-size: 13px; padding: 4px 0; }
+.hydro li span:first-child { color: var(--muted); font-variant-numeric: tabular-nums; }
+.hydro li.now { font-weight: 700; color: var(--water); }
+.hydro li.past { opacity: .55; }
+.feeds { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.feed { border-radius: 10px; padding: 6px 10px; font-size: 12px; background: var(--surface-2); color: var(--muted); }
+.feed b { display: block; font-size: 15px; color: var(--fg); font-variant-numeric: tabular-nums; }
+.feed.hit { background: color-mix(in srgb, var(--protein) 18%, transparent); }
+.feed.hit b { color: var(--protein); }
+.score-pill { font-family: var(--f-display); font-weight: 700; font-size: 20px; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--surface-2); flex: none; }
+.score-pill.good { background: var(--accent); color: var(--accent-ink); }
+.score-pill.mid { background: color-mix(in srgb, var(--carbs) 35%, transparent); }
+.score-pill.low { background: color-mix(in srgb, var(--over) 30%, transparent); }
+.pace { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+.pace div { background: var(--surface-2); border-radius: 12px; padding: 8px 10px; }
+.pace b { font-family: var(--f-display); font-size: 20px; }
+.pace small { display: block; color: var(--muted); font-size: 12px; }
+.plan-day { margin-top: 10px; display: grid; gap: 8px; }
+.plan-meal { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 4px; }
+.plan-meal .row-between b { font-size: 14px; }
+.plan-meal ul { margin: 0; padding-left: 18px; font-size: 13px; }
+.learned { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.learned li { display: flex; align-items: center; gap: 8px; font-size: 13px; background: var(--surface-2); border-radius: 10px; padding: 6px 10px; }
+.learned li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.badge.learn { background: color-mix(in srgb, var(--protein) 22%, transparent); }
 @media (prefers-reduced-motion: reduce) { *, *::before { transition: none !important; animation-duration: 0s !important; } }
 </style>
 
@@ -345,7 +381,8 @@ label.check input { width: auto; }
   <section id="view-today" class="view">
     <div class="card summary">
       <div class="daytype" id="daytype" role="group" aria-label="Day type">
-        <button type="button" data-type="training">Practice / game day</button>
+        <button type="button" data-type="training">Practice</button>
+        <button type="button" data-type="heavy">Heavy day</button>
         <button type="button" data-type="rest">Rest day</button>
       </div>
       <div class="summary-top">
@@ -363,12 +400,18 @@ label.check input { width: auto; }
         </div>
       </div>
       <div class="macros" id="macro-bars"></div>
+      <p class="adjust-note" id="adjust-note" hidden></p>
     </div>
+
+    <div class="card" id="timing-card" hidden></div>
+    <div class="card" id="ontrack-card" hidden></div>
 
     <div class="card favs-card" id="favs-card" hidden>
       <div class="row-between"><h3>Quick add</h3><span class="muted small">Your most-logged foods</span></div>
       <div class="chips" id="favs"></div>
     </div>
+
+    <div class="card" id="spread-card" hidden></div>
 
     <div class="card">
       <div class="row-between" style="margin-bottom:10px"><h3>Nutrients</h3><span class="muted small" id="micro-note"></span></div>
@@ -385,6 +428,7 @@ label.check input { width: auto; }
         </div>
       </div>
       <div class="bar"><div class="bar-fill" id="water-bar" style="background:var(--water)"></div></div>
+      <div id="hydro-plan"></div>
     </div>
 
     <div id="meals" class="view"></div>
@@ -436,6 +480,25 @@ label.check input { width: auto; }
       <button class="btn primary" id="coach-btn">Get suggestions</button>
       <p class="muted small" id="coach-status" style="margin:0"></p>
       <div id="coach-out" class="coach-out"></div>
+    </div>
+
+    <div class="card form">
+      <div class="row-between"><h3>Weekly meal plan</h3><span class="muted small" id="plan-date"></span></div>
+      <p class="muted small" style="margin:0">7 days of meals that hit your targets, built from foods you already eat, with extra carbs on practice days. Comes with a shopping list.</p>
+      <input type="text" id="plan-note" placeholder="Optional: cheap, school lunch on weekdays, no cooking on Tuesdays">
+      <button class="btn" id="plan-btn" type="button">Make my meal plan</button>
+      <p class="muted small" id="plan-status" style="margin:0"></p>
+      <div id="plan-out"></div>
+    </div>
+
+    <div class="card form">
+      <div><h3>School lunch</h3>
+      <p class="muted small" style="margin:4px 0 0">Snap the cafeteria menu or the line, or type today's options. Coach picks the best tray for your day.</p></div>
+      <div class="thumbs" id="lunch-thumbs"></div>
+      <input type="text" id="lunch-note" placeholder="Or type it: chicken sandwich, pizza, salad bar, fries, milk">
+      <button class="btn primary" id="lunch-btn" type="button">Pick my tray</button>
+      <p class="muted small" id="lunch-status" style="margin:0"></p>
+      <div id="lunch-out" class="coach-out"></div>
     </div>
 
     <div class="card form">
@@ -510,6 +573,15 @@ label.check input { width: auto; }
       <div id="weight-chart" class="chart"></div>
       <ul id="weight-list" class="plain-list"></ul>
     </div>
+    <form id="goalw-form" class="card form">
+      <div class="row-between"><h3>Goal weight</h3><span class="muted small" id="goalw-sub"></span></div>
+      <div class="grid2">
+        <label>Goal weight (lb)<input id="gw-lb" type="number" step="0.1" min="60" max="400" required></label>
+        <label>By date<input id="gw-date" type="date" required></label>
+      </div>
+      <button class="btn">Set goal</button>
+      <div id="goalw-out"></div>
+    </form>
     <form id="measure-form" class="card form">
       <div class="row-between"><h3>Body measurements</h3><span class="muted small">inches, once every 2-4 weeks</span></div>
       <div class="grid2">
@@ -574,6 +646,19 @@ label.check input { width: auto; }
       <button class="btn">Save</button>
     </form>
 
+    <form id="acc-form" class="card form">
+      <div><h3>Accuracy and smart targets</h3>
+      <p class="muted small" style="margin:4px 0 0">Measure once. When you put your hand or phone in a food photo, AI uses these to judge portion size.</p></div>
+      <div class="grid2">
+        <label>Hand length, wrist to fingertip (in)<input id="acc-hand" type="number" step="0.1" min="5" max="10" placeholder="7.5"></label>
+        <label>Phone height (in)<input id="acc-phone" type="number" step="0.1" min="4" max="8" placeholder="5.8"></label>
+      </div>
+      <label class="check"><input type="checkbox" id="acc-ready" checked> Adjust today's targets from ReadyUp and long practices</label>
+      <button class="btn">Save</button>
+      <div class="row-between" style="margin-top:6px"><b class="small">What MacroLens learned from your fixes</b><button type="button" class="chip" id="learn-clear" hidden>Clear all</button></div>
+      <ul class="learned" id="learned"></ul>
+    </form>
+
     <div class="card form">
       <h3>Appearance</h3>
       <div class="mode" role="radiogroup" aria-label="Theme" id="theme-pick">
@@ -615,6 +700,7 @@ label.check input { width: auto; }
     <div class="mode" role="radiogroup" aria-label="What are you scanning">
       <button type="button" role="radio" aria-checked="true" data-mode="plate" class="active">Plate of food</button>
       <button type="button" role="radio" aria-checked="false" data-mode="label">Nutrition label</button>
+      <button type="button" role="radio" aria-checked="false" data-mode="barcode">Barcode</button>
     </div>
     <label class="drop" id="photo-drop">
       <input type="file" accept="image/*" id="photo-input" multiple hidden>
@@ -625,6 +711,10 @@ label.check input { width: auto; }
       </span>
     </label>
     <div class="thumbs" id="thumbs" hidden></div>
+    <label class="small" id="ref-row">Something in the photo for size?<select id="ref-obj">
+      <option value="">Nothing extra</option><option value="hand">My hand</option><option value="phone">My phone</option><option value="basketball">A basketball</option>
+      <option value="fork">A fork</option><option value="can">A 12 oz can</option><option value="card">A credit or ID card</option></select></label>
+    <div class="inline-form" id="barcode-row" hidden><input type="text" id="barcode-input" inputmode="numeric" placeholder="Or type the numbers under the barcode" autocomplete="off"><button class="btn" id="barcode-btn" type="button">Look up</button></div>
     <input type="text" id="photo-note" placeholder="Help the AI: fried in butter, 2 cups of rice, ate half">
     <button class="btn primary" id="analyze-btn" disabled>Analyze photo</button>
     <p class="muted small" id="ai-status" style="margin:0"></p>
@@ -690,6 +780,8 @@ label.check input { width: auto; }
 <dialog id="review-dialog" class="sheet">
   <div class="sheet-head"><strong id="rv-title">Review</strong><button class="icon-btn" data-close aria-label="Close">✕</button></div>
   <div class="tiles" id="rv-total"></div>
+  <div style="margin-top:10px"><span class="muted small">How much did you eat?</span><div class="chips" id="rv-mult" style="margin-top:6px"></div></div>
+  <p class="small" id="rv-learned" style="margin:8px 0 0" hidden></p>
   <p class="micro-line" id="rv-micros" style="margin:8px 0 0"></p>
   <p class="muted small" id="rv-notes"></p>
   <ul id="rv-items" class="rv-list"></ul>
@@ -931,10 +1023,12 @@ function targets(date) {
   if (sw?.rate && date && dd?.type !== 'rest') {
     const g = c.game;
     // Games: about 75 minutes of real activity each (warmups and minutes on the floor), not the whole clock.
-    const mins = g && g.date === date ? 75 * gameStarts(g).length : dd?.practice ? Number(dd.practice.mins) : 0;
+    const prx = dd?.practice || (date === todayIso() ? weekboardPractice(date) : null);
+    const mins = g && g.date === date ? 75 * gameStarts(g).length : prx ? Number(prx.mins) : 0;
     const base = (c.profile?.weightLb ?? 150) * 0.5;
     if (mins) t.waterOz = Math.max(t.waterOz, Math.round(Math.min(base + (sw.rate * mins) / 60, base + 140)));
   }
+  if (date) smartAdjust(date, t);
   // Rest days: same protein and fat, 30% fewer carbs (less glycogen to refill), calories drop to match.
   if (date && dayDoc(date)?.type === 'rest') {
     const cut = Math.round(t.carbs * 0.3);
@@ -946,7 +1040,20 @@ const entriesOf = (date) => { const d = dayDoc(date); return d ? MEALS.flatMap((
 function defaultMeal() { const h = new Date().getHours(); return h < 10 ? 'breakfast' : h < 15 ? 'lunch' : h < 21 ? 'dinner' : 'snacks'; }
 const mealLabel = (k) => MEALS.find(([m]) => m === k)[1];
 let toastTimer;
-function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2400); }
+// Undo: the day as it was right before the last change. One snapshot per user action (several adds in one tap count once).
+let undoSnap = null, undoArm = false;
+function markUndo(date) {
+  if (undoArm) return;
+  undoArm = true; setTimeout(() => { undoArm = false; }, 0);
+  const k = 'day-' + date;
+  undoSnap = { k, json: JSON.stringify(doc(k) ?? null), at: Date.now() };
+}
+function toast(msg) {
+  const t = $('#toast'), undo = !!(undoSnap && Date.now() - undoSnap.at < 1500);
+  t.innerHTML = esc(msg) + (undo ? ' <button type="button" id="undo-btn">Undo</button>' : '');
+  t.classList.toggle('has-undo', undo); t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show', 'has-undo'), undo ? 5000 : 2400);
+}
 
 // ===================== render: diary =====================
 function renderToday() {
@@ -958,7 +1065,8 @@ function renderToday() {
 
   const t = targets(day);
   const isRest = dayDoc(day)?.type === 'rest';
-  $$('#daytype button').forEach((b) => b.classList.toggle('active', (b.dataset.type === 'rest') === isRest));
+  const dtype = dayDoc(day)?.type || 'training';
+  $$('#daytype button').forEach((b) => b.classList.toggle('active', b.dataset.type === dtype));
   const tot = totals(entriesOf(day));
   const left = t.calories - tot.calories;
   const ring = $('#cal-ring');
@@ -975,6 +1083,7 @@ function renderToday() {
 
   renderMicroBars($('#micro-bars'), tot, microTargets(t));
   renderFavs();
+  renderExtras(t, tot);
   checkBadges();
   $('#micro-note').textContent = tot.missing ? `${tot.missing} item${tot.missing === 1 ? ' has' : 's have'} no nutrient data` : '';
 
@@ -1084,7 +1193,8 @@ function renderProgress() {
   const ws = [...(core().weights || [])].sort((a, b) => a.date.localeCompare(b.date));
   if (ws.length >= 2) {
     const pts = ws.slice(-30);
-    const lo = Math.floor(Math.min(...pts.map((p) => p.lb)) - 1), hi = Math.ceil(Math.max(...pts.map((p) => p.lb)) + 1);
+    const gw = core().goalW, vals = [...pts.map((p) => p.lb), ...(gw ? [gw.lb] : [])];
+    const lo = Math.floor(Math.min(...vals) - 1), hi = Math.ceil(Math.max(...vals) + 1);
     const L = 40, R = 10, T = 12, B = 14;
     const px = (i) => L + (i / (pts.length - 1)) * (W - L - R);
     const py = (v) => H - B - ((v - lo) / (hi - lo)) * (H - T - B);
@@ -1092,6 +1202,7 @@ function renderProgress() {
     $('#weight-chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Weight trend">
       <line x1="${L}" x2="${W - R}" y1="${py(hi)}" y2="${py(hi)}" stroke="var(--line)"/><line x1="${L}" x2="${W - R}" y1="${py(lo)}" y2="${py(lo)}" stroke="var(--line)"/>
       <text x="${L - 6}" y="${py(hi) + 3}" text-anchor="end">${hi}</text><text x="${L - 6}" y="${py(lo) + 3}" text-anchor="end">${lo}</text>
+      ${gw ? `<line x1="${L}" x2="${W - R}" y1="${py(gw.lb).toFixed(1)}" y2="${py(gw.lb).toFixed(1)}" stroke="var(--carbs)" stroke-width="1.5" stroke-dasharray="5 4"/><text x="${W - R}" y="${(py(gw.lb) - 4).toFixed(1)}" text-anchor="end">goal ${gw.lb}</text>` : ''}
       <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
       ${pts.map((p, i) => `<circle cx="${px(i).toFixed(1)}" cy="${py(p.lb).toFixed(1)}" r="${i === pts.length - 1 ? 4.5 : 3}" fill="var(--accent)"/>`).join('')}</svg>`;
   } else {
@@ -1124,8 +1235,8 @@ function renderProfile() {
 let currentView = 'today';
 function render() {
   renderToday();
-  if (currentView === 'progress') { renderProgress(); renderTrend(); renderBadges(); renderMeasures(); }
-  if (currentView === 'profile') renderProfile();
+  if (currentView === 'progress') { renderProgress(); renderTrend(); renderBadges(); renderMeasures(); renderGoalW(); }
+  if (currentView === 'profile') { renderProfile(); renderAcc(); }
   if (currentView === 'coach') renderCoach();
 }
 function showView(v) {
@@ -1139,6 +1250,7 @@ function showView(v) {
 
 // ===================== logging =====================
 function addEntry(food, meal, servings = 1) {
+  markUndo(day);
   const { servings: _s, addedAt: _a, ...base } = food;
   dayDoc(day, true)[meal].push({ ...base, servings: Number(servings) || 1, addedAt: Date.now() });
   persist('day-' + day);
@@ -1241,6 +1353,7 @@ $('#fd-save').addEventListener('click', () => {
     toast(`Added ${fdCtx.food.name}`);
     sheet.close();
   } else {
+    markUndo(day);
     dayDoc(day)[fdCtx.meal][fdCtx.idx].servings = s;
     persist('day-' + day);
   }
@@ -1248,6 +1361,7 @@ $('#fd-save').addEventListener('click', () => {
   render();
 });
 $('#fd-delete').addEventListener('click', () => {
+  markUndo(day);
   dayDoc(day)[fdCtx.meal].splice(fdCtx.idx, 1);
   persist('day-' + day);
   fd.close();
@@ -1432,8 +1546,8 @@ function renderThumbs() {
   box.innerHTML = photos.map((b, i) => `<div class="thumb"><img alt="Photo ${i + 1}" src="${URL.createObjectURL(b)}"><button type="button" data-rm="${i}" aria-label="Remove photo ${i + 1}">✕</button></div>`).join('') +
     (photos.length < maxPhotos ? `<label class="thumb-add">＋ Add angle<input type="file" accept="image/*" multiple hidden id="photo-more"></label>` : '');
   $('#photo-more')?.addEventListener('change', (e) => { addPhotos(e.target.files); e.target.value = ''; });
-  $('#analyze-btn').disabled = !(photos.length && photosReady());
-  $('#analyze-btn').textContent = scanMode === 'label' ? 'Read label' : photos.length > 1 ? `Analyze ${photos.length} photos` : 'Analyze photo';
+  $('#analyze-btn').disabled = !(photos.length && (scanMode === 'barcode' || photosReady()));
+  $('#analyze-btn').textContent = scanMode === 'barcode' ? 'Look up barcode' : scanMode === 'label' ? 'Read label' : photos.length > 1 ? `Analyze ${photos.length} photos` : 'Analyze photo';
 }
 $('#thumbs').addEventListener('click', (e) => { const b = e.target.closest('[data-rm]'); if (b) { photos.splice(Number(b.dataset.rm), 1); renderThumbs(); } });
 $('#photo-input').addEventListener('change', (e) => { addPhotos(e.target.files); e.target.value = ''; });
@@ -1441,18 +1555,25 @@ const drop = $('#photo-drop');
 drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('dragging'); });
 drop.addEventListener('dragleave', () => drop.classList.remove('dragging'));
 drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('dragging'); addPhotos(e.dataTransfer.files); });
-$$('.mode button').forEach((b) => b.addEventListener('click', () => {
-  scanMode = b.dataset.mode;
-  $$('.mode button').forEach((x) => { x.classList.toggle('active', x === b); x.setAttribute('aria-checked', String(x === b)); });
-  $('#photo-hint-title').textContent = scanMode === 'label' ? 'Take a photo of the Nutrition Facts label' : 'Take or choose a photo of your meal';
-  $('#photo-hint-sub').textContent = scanMode === 'label' ? 'Exact numbers straight from the package, most accurate option' : 'Tip: add a second photo from the side so AI can see how tall the food is';
-  $('#photo-note').placeholder = scanMode === 'label' ? 'How much did you have? e.g. 2 servings, half the bag' : 'Help the AI: fried in butter, 2 cups of rice, ate half';
+function setScanMode(mode) {
+  scanMode = mode;
+  $$('#add-sheet .mode button').forEach((x) => { const on = x.dataset.mode === mode; x.classList.toggle('active', on); x.setAttribute('aria-checked', String(on)); });
+  const copy = {
+    plate: ['Take or choose a photo of your meal', 'Tip: put your hand or phone next to the plate, and add a side photo so AI can see height', 'Help the AI: fried in butter, 2 cups of rice, ate half'],
+    label: ['Take a photo of the Nutrition Facts label', 'Exact numbers straight from the package, the most accurate option', 'Optional note about the product'],
+    barcode: ['Take a photo of the barcode', 'Fill the frame with the stripes and numbers, in good light', ''],
+  }[mode];
+  $('#photo-hint-title').textContent = copy[0]; $('#photo-hint-sub').textContent = copy[1]; $('#photo-note').placeholder = copy[2];
+  $('#ref-row').hidden = mode !== 'plate'; $('#barcode-row').hidden = mode !== 'barcode'; $('#photo-note').hidden = mode === 'barcode';
   renderThumbs();
-}));
+}
+$$('#add-sheet .mode button').forEach((b) => b.addEventListener('click', () => setScanMode(b.dataset.mode)));
 $('#analyze-btn').addEventListener('click', () => {
   if (!photos.length) return;
+  if (scanMode === 'barcode') return scanBarcodePhoto();
+  rvSource = scanMode;
   const note = $('#photo-note').value.trim();
-  const base = scanMode === 'label' ? LABEL_PROMPT : PLATE_PROMPT;
+  const base = scanMode === 'label' ? LABEL_PROMPT : PLATE_PROMPT + refLine() + learnLine();
   const ask = (scanMode === 'label' ? 'Read this label.' : `Analyze this meal (${photos.length} photo${photos.length > 1 ? 's' : ''}).`) + (note ? ' The user adds: ' + note : '');
   runAI(base + '\n\n' + ask, photos.slice(), scanMode !== 'label', $('#ai-status'), $('#analyze-btn'),
     scanMode === 'label' ? 'Reading label…' : 'Analyzing carefully… (20-60 s)');
@@ -1460,7 +1581,8 @@ $('#analyze-btn').addEventListener('click', () => {
 $('#describe-btn').addEventListener('click', () => {
   const t = $('#describe-input').value.trim();
   if (!t) return toast('Describe what you ate first');
-  runAI(DESCRIBE_PROMPT + '\n\nThe user ate: ' + t.slice(0, 1000), null, false, $('#describe-status'), $('#describe-btn'), 'Estimating…');
+  rvSource = 'describe';
+  runAI(DESCRIBE_PROMPT + learnLine() + '\n\nThe user ate: ' + t.slice(0, 1000), null, false, $('#describe-status'), $('#describe-btn'), 'Estimating…');
 });
 
 // ===================== AI review =====================
@@ -1469,6 +1591,9 @@ let rvItems = [], rvMeal = null;
 function openReview(meal) {
   rvMeal = meal;
   rvItems = meal.items;
+  rvItems.forEach((it) => { it.ai ??= { grams: it.grams, calories: it.calories }; });
+  rvBase = rvItems.map((it) => ({ ...it })); rvMult = 1;
+  renderMult(); renderLearnedNote();
   $('#rv-title').textContent = meal.meal_name;
   $('#rv-notes').textContent = meal.notes;
   $('#rv-fix').value = ''; $('#rv-fix-status').textContent = '';
@@ -1500,7 +1625,7 @@ function renderReviewTotal() {
 $('#rv-items').addEventListener('input', (e) => {
   const k = e.target.dataset.k; if (!k) return;
   const li = e.target.closest('li'), i = Number(li.dataset.i), it = rvItems[i];
-  if (k === 'name') { it.name = e.target.value; return; }
+  if (k === 'name') { it.name = e.target.value; if (rvBase[i]) rvBase[i].name = it.name; return; }
   const v = Math.max(0, Number(e.target.value) || 0);
   if (k === 'grams') {
     it.grams = Math.round(v);
@@ -1518,11 +1643,12 @@ $('#rv-items').addEventListener('input', (e) => {
 });
 $('#rv-items').addEventListener('click', (e) => {
   const b = e.target.closest('[data-remove]'); if (!b) return;
-  rvItems.splice(Number(b.dataset.remove), 1); renderReview();
+  rvItems.splice(Number(b.dataset.remove), 1); rvBase.splice(Number(b.dataset.remove), 1); renderReview();
 });
 $('#rv-fix-btn').addEventListener('click', async () => {
   const fix = $('#rv-fix').value.trim();
   if (!fix) return toast('Type what to change first');
+  { const c0 = core(); c0.fixNotes = [fix.slice(0, 160), ...(c0.fixNotes || []).filter((x) => x !== fix)].slice(0, 12); persist('core'); }
   const current = { meal_name: $('#rv-title').textContent, notes: rvMeal?.notes || '',
     items: rvItems.map(({ name, portion, grams, calories, protein, carbs, fat, fiber, sugar, sodium, iron, calcium, confidence }) =>
       ({ name, portion, grams, calories, protein, carbs, fat, fiber, added_sugar: sugar, sodium_mg: sodium, iron_mg: iron, calcium_mg: calcium, confidence })) };
@@ -1543,12 +1669,14 @@ $('#rv-fix-btn').addEventListener('click', async () => {
 $('#rv-log').addEventListener('click', () => {
   const meal = $('#add-meal').value;
   const kept = rvItems.filter((it) => it.calories > 0 || it.grams > 0);
-  kept.forEach((it) => { const { per, ...food } = it; addEntry({ ...food, serving: servingText(it) }, meal, 1); });
+  const learnedN = learnFrom(kept);
+  kept.forEach((it) => { const { per, ai, ...food } = it; addEntry({ ...food, serving: servingText(it), ...(rvSource === 'label' ? { label: true } : {}) }, meal, 1); });
+  const savedLabel = rvSource === 'label' ? saveLabelFood() : '';
   rv.close(); sheet.close();
   photos = []; renderThumbs();
   $('#photo-note').value = ''; $('#describe-input').value = '';
   render();
-  toast(`Logged ${kept.length} item${kept.length === 1 ? '' : 's'} to ${mealLabel(meal)}`);
+  toast(`Logged ${kept.length} item${kept.length === 1 ? '' : 's'} to ${mealLabel(meal)}${savedLabel}${learnedN ? '. Learned from your fixes' : ''}`);
 });
 
 // ===================== Coach: fuel plan, next meal, weekly report =====================
@@ -1580,7 +1708,7 @@ const fmtMin = (mins) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setMi
 const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
 function practiceToday() {
   const d = dayDoc(todayIso());
-  return d?.practice || null;
+  return d?.practice || (d?.type === 'rest' ? null : weekboardPractice(todayIso()));
 }
 
 /** Sports-nutrition timing around one session (ACSM / AND / DC position stand ranges, kept practical). */
@@ -1601,7 +1729,7 @@ function renderCoach() {
   renderReport(core().report);
   renderSweat();
   renderPrep();
-  renderFridgeThumbs();
+  renderFridgeThumbs(); renderPlan(); renderLunchThumbs();
   $('#cal-practice').hidden = !practiceToday() || dayDoc(todayIso())?.type === 'rest';
   $('#cal-game').hidden = !(core().game && core().game.date >= todayIso());
   renderGame();
@@ -1647,7 +1775,7 @@ $('#practice-form').addEventListener('submit', (e) => {
 
 function dayContext(date) {
   const t = targets(date), tot = totals(entriesOf(date)), mt = microTargets(t);
-  return { date, day_type: dayDoc(date)?.type === 'rest' ? 'rest' : 'practice/game',
+  return { date, day_type: { rest: 'rest', heavy: 'heavy training or two sessions' }[dayDoc(date)?.type] || 'practice/game',
     eaten: { calories: tot.calories, protein: tot.protein, carbs: tot.carbs, fat: tot.fat, fiber: tot.fiber, added_sugar: tot.sugar, sodium_mg: tot.sodium, iron_mg: tot.iron, calcium_mg: tot.calcium, items_without_nutrient_data: tot.missing },
     targets: { calories: t.calories, protein: t.protein, carbs: t.carbs, fat: t.fat, fiber: mt.fiber, added_sugar_max: mt.sugar, sodium_max_mg: mt.sodium, iron_mg: mt.iron, calcium_mg: mt.calcium } };
 }
@@ -2030,13 +2158,14 @@ function badgeStats() {
     return n;
   };
   const proteinHit = (iso) => entriesOf(iso).length > 0 && totals(entriesOf(iso)).protein >= targets(iso).protein * 0.95;
-  let scans = 0, waterDays = 0;
+  let scans = 0, waterDays = 0, labels = 0, barcodes = 0, spreadDays = 0;
   for (const k of allDayKeys()) {
     const d = doc(k); if (!d) continue;
     if ((d.water || 0) >= targets().waterOz) waterDays++;
-    for (const [m] of MEALS) for (const e of d[m] || []) if (e.source === 'AI scan') scans++;
+    for (const [m] of MEALS) for (const e of d[m] || []) { if (e.source === 'AI scan') scans++; if (e.label) labels++; if (e.source === 'barcode') barcodes++; }
+    if (spreadScore(k.slice(4)).hits >= 4) spreadDays++;
   }
-  return { days: logged.length, streak: streak(logged, today), protein: run(proteinHit), waterDays, scans,
+  return { days: logged.length, streak: streak(logged, today), protein: run(proteinHit), waterDays, scans, labels, barcodes, spreadDays, plan: core().plan ? 1 : 0,
     weighins: (core().weights || []).length, report: core().report ? 1 : 0, meals: (core().meals || []).length };
 }
 const BADGES = [
@@ -2052,6 +2181,12 @@ const BADGES = [
   { id: 'weigh10', name: 'Scale regular', color: '#8e9a93', stat: 'weighins', goal: 10, unit: 'weigh-ins' },
   { id: 'report', name: 'Film session', color: '#0f8a5f', stat: 'report', goal: 1, unit: 'weekly report' },
   { id: 'prep3', name: 'Meal prepper', color: '#d99a12', stat: 'meals', goal: 3, unit: 'saved meals' },
+  { id: 'protein14', name: 'Two weeks strong', color: '#2f5fb3', stat: 'protein', goal: 14, unit: 'days in a row hitting protein' },
+  { id: 'protein30', name: 'Protein king', color: '#1d3f86', stat: 'protein', goal: 30, unit: 'days in a row hitting protein' },
+  { id: 'spread5', name: 'Spread it out', color: '#5b8def', stat: 'spreadDays', goal: 5, unit: 'days with 4 protein meals' },
+  { id: 'label5', name: 'Label reader', color: '#b07cd8', stat: 'labels', goal: 5, unit: 'labels scanned' },
+  { id: 'barcode1', name: 'Barcode pro', color: '#7a5bd1', stat: 'barcodes', goal: 1, unit: 'barcode logged' },
+  { id: 'plan1', name: 'Game planner', color: '#16a37a', stat: 'plan', goal: 1, unit: 'weekly meal plan' },
 ];
 function checkBadges(announce = true) {
   const st = badgeStats(), c = core();
@@ -2085,6 +2220,17 @@ function todaysSteps() {
 function checkReminders() {
   let done = [];
   try { done = JSON.parse(sessionStorage.getItem(remindedKey()) || '[]'); } catch {}
+  const nm = nowMin(), td = todayIso();
+  if (nm >= 15 * 60 && nm < 18 * 60 && !done.includes('ontrack') && entriesOf(td).length) {
+    const t = targets(td), tot = totals(entriesOf(td)), f = (nm - 420) / 840;
+    const bk = Math.round(t.calories * f - tot.calories), bp = Math.round(t.protein * f - tot.protein);
+    if (bp >= 15 || bk >= 300) {
+      done.push('ontrack'); try { sessionStorage.setItem(remindedKey(), JSON.stringify(done)); } catch {}
+      $('#reminder-title').textContent = '3 PM check: you are behind';
+      $('#reminder-body').textContent = `About ${Math.max(0, bk).toLocaleString()} kcal and ${Math.max(0, bp)} g protein behind pace. Open the Diary for your dinner numbers.`;
+      $('#reminder').hidden = false; return;
+    }
+  }
   const now = nowMin();
   const due = todaysSteps().find((s) => now >= s.at - 15 && now < s.at + 20 && !done.includes(s.title));
   if (!due) return;
@@ -2144,8 +2290,8 @@ function optionCard(o, i, attr, extra = '') {
     <ul>${o.items.map((it) => `<li>${esc(it.name)}${it.portion ? ', ' + esc(it.portion) : ''}</li>`).join('')}</ul>${extra}
     <button class="btn primary" ${attr}="${i}">Log this</button></div>`;
 }
-function logOption(o, btn) {
-  const meal = defaultMeal(), prev = day; day = todayIso();
+function logOption(o, btn, meal = defaultMeal()) {
+  const prev = day; day = todayIso();
   o.items.forEach((it) => { const { per, ...food } = it; addEntry({ ...food, source: 'AI scan', serving: servingText(it) }, meal, 1); });
   day = prev;
   btn.disabled = true; btn.textContent = 'Logged ✓';
@@ -2349,7 +2495,7 @@ function renderPrefs() {
 }
 $('#prefs-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  core().prefs = { sport: $('#pf-sport').value.trim().slice(0, 80), allergies: $('#pf-allergies').value.trim().slice(0, 200), dislikes: $('#pf-dislikes').value.trim().slice(0, 200), rules: $('#pf-rules').value.trim().slice(0, 200) };
+  core().prefs = { ...(core().prefs || {}), sport: $('#pf-sport').value.trim().slice(0, 80), allergies: $('#pf-allergies').value.trim().slice(0, 200), dislikes: $('#pf-dislikes').value.trim().slice(0, 200), rules: $('#pf-rules').value.trim().slice(0, 200) };
   persist('core'); toast('Saved. Coach will follow these.');
 });
 
@@ -2549,9 +2695,9 @@ $('#meals').addEventListener('click', (e) => {
 });
 $$('#daytype button').forEach((b) => b.addEventListener('click', () => {
   const d = dayDoc(day, true);
-  d.type = b.dataset.type === 'rest' ? 'rest' : 'training';
+  d.type = b.dataset.type;
   persist('day-' + day); renderToday();
-  toast(d.type === 'rest' ? 'Rest day: 30% fewer carbs today' : 'Practice / game day: full targets');
+  toast(d.type === 'rest' ? 'Rest day: 30% fewer carbs today' : d.type === 'heavy' ? 'Heavy day: 25% more carbs today' : 'Practice / game day: full targets');
 }));
 $$('[data-water]').forEach((b) => b.addEventListener('click', () => {
   const d = dayDoc(day, true);
@@ -2642,6 +2788,544 @@ $('#key-remove').addEventListener('click', () => {
   toast('Key removed');
 });
 
+// ===================== shared helpers for the new features =====================
+const shiftIso = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoDate(d); };
+const fmtDur = (m) => { m = Math.max(0, Math.round(m)); const h = Math.floor(m / 60), r = m % 60; return h ? (r ? `${h}h ${r}m` : `${h}h`) : `${r}m`; };
+const addedMin = (e) => { const d = new Date(e.addedAt || 0); return d.getHours() * 60 + d.getMinutes(); };
+const round50 = (x) => Math.max(0, Math.round(x / 50) * 50);
+const readLS = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
+
+// ===================== Undo =====================
+function doUndo() {
+  if (!undoSnap) return;
+  const { k, json } = undoSnap; undoSnap = null;
+  cache[k] = JSON.parse(json) ?? blankDay();
+  persist(k); $('#toast').classList.remove('show', 'has-undo');
+  render(); toast('Undone');
+}
+$('#toast').addEventListener('click', (e) => { if (e.target.id === 'undo-btn') doUndo(); });
+
+// ===================== Weekboard + ReadyUp (same website only) =====================
+// On github.io every app shares one origin, so MacroLens can read your Weekboard practices and ReadyUp check-in.
+function weekboardPractice(iso) {
+  const wc = readLS('wb:core'); if (!wc) return null;
+  try {
+    const wd = (new Date(iso + 'T12:00:00').getDay() + 6) % 7, w = readLS('wb:w-' + shiftIso(iso, -wd)) || {};
+    const list = [...(wc.rules || []).filter((r) => (r.days || []).includes(wd) && !w.skip?.[`${r.id}|${iso}`]), ...(w.items || []).filter((i) => i.date === iso)]
+      .filter((x) => (x.type === 'practice' || x.type === 'game') && x.start).sort((a, b) => toMin(a.start) - toMin(b.start));
+    return list[0] ? { start: list[0].start, mins: Number(list[0].mins) || 120, title: list[0].title, from: 'weekboard' } : null;
+  } catch { return null; }
+}
+function readyUpToday() {
+  const d = readLS('ru:day-' + todayIso()), c = d?.checkin; if (!c) return null;
+  const goal = Number(readLS('ru:core')?.settings?.goal) || 9, cl = (x) => Math.min(1, Math.max(0, x));
+  const score = Math.round(cl((c.sleepH - (goal - 3.5)) / 3.5) * 30 + ((c.quality - 1) / 4) * 15 + ((5 - c.soreness) / 4) * 20 + ((c.energy - 1) / 4) * 15 + ((5 - c.stress) / 4) * 10 + 8);
+  return Number.isFinite(score) ? { score: Math.max(0, Math.min(100, score)), sleepH: c.sleepH } : null;
+}
+
+// ===================== Smart targets (heavy days, long practices, ReadyUp) =====================
+function smartAdjust(date, t) {
+  const dd = dayDoc(date), notes = [], on = core().prefs?.smart !== false;
+  if (dd?.type === 'rest') return;
+  if (dd?.type === 'heavy') { const add = Math.round(t.carbs * 0.25); t.carbs += add; t.calories += add * 4; notes.push(`Heavy day: +${add} g carbs`); }
+  else if (on) {
+    const pr = date === todayIso() ? practiceToday() : dd?.practice;
+    if (pr && Number(pr.mins) >= 150) { const add = Math.round(t.carbs * 0.15); t.carbs += add; t.calories += add * 4; notes.push(`${fmtDur(pr.mins)} practice: +${add} g carbs`); }
+  }
+  if (on && date === todayIso()) {
+    const r = readyUpToday();
+    if (r && r.score < 55) { const add = Math.round(t.carbs * 0.1); t.protein += 15; t.carbs += add; t.calories += 60 + add * 4; t.waterOz += 16; notes.push(`ReadyUp ${r.score}/100: +15 g protein, +${add} g carbs and +16 oz water to recover`); }
+  }
+  if (notes.length) t.adj = notes;
+}
+
+// ===================== Diary cards =====================
+function renderExtras(t, tot) {
+  const isToday = day === todayIso();
+  const an = $('#adjust-note'); an.hidden = !t.adj; if (t.adj) an.textContent = 'Targets raised today. ' + t.adj.join(' · ') + '.';
+  renderTiming(isToday); renderOnTrack(isToday, t, tot); renderSpread(); renderHydro(isToday);
+  if (isToday) writeWidget(t, tot);
+}
+function stepState(steps) {
+  const now = nowMin(), logged = entriesOf(todayIso()).map(addedMin);
+  const done = (st) => logged.some((m) => m >= st.at - 75 && m <= st.at + 75);
+  const cur = steps.find((st) => now >= st.at - 15 && now < st.at + 45 && !done(st));
+  const next = steps.find((st) => st.at > now && st !== cur && !done(st));
+  return { cur, next };
+}
+function timingSource() {
+  const g = core().game, pr = practiceToday();
+  if (g && g.date === todayIso()) return `Game at ${fmtMin(toMin(g.start))}`;
+  return pr ? `${esc(pr.title || 'Practice')} at ${fmtMin(toMin(pr.start))}${pr.from === 'weekboard' ? ' · from Weekboard' : ''}` : '';
+}
+function renderTiming(isToday) {
+  const el = $('#timing-card');
+  if (!isToday || dayDoc(day)?.type === 'rest') { el.hidden = true; return; }
+  el.hidden = false;
+  const steps = todaysSteps();
+  const head = `<div class="row-between"><h3>Meal timing</h3><span class="muted small">${timingSource()}</span></div>`;
+  if (!steps.length) { el.innerHTML = head + `<p class="muted small" style="margin:6px 0 0">Set today's practice time in Coach${readLS('wb:core') ? '' : ', or add practice in Weekboard,'} and this tells you exactly when to eat.</p>`; return; }
+  const { cur, next } = stepState(steps), st = cur || next;
+  if (!st) { el.innerHTML = head + '<p class="small" style="margin:6px 0 0">Fueling is done for today. If you are hungry before bed, go with 30 g of slow protein like Greek yogurt or cottage cheese.</p>'; return; }
+  const mins = st.at - nowMin(), when = cur ? 'NOW' : mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins}m`;
+  const body = st.body.split(/(?<=\.)\s/).slice(0, 2).join(' ');
+  el.innerHTML = head + `<div class="next-up" style="margin-top:8px"><div class="when num">${when}<small>${cur ? 'eat now' : 'to go'}</small></div><div class="what"><b>${esc(st.title)} · ${fmtMin(st.at)}</b><p>${esc(body)}</p></div></div>`;
+}
+function hydroPlan(pr) {
+  const rate = core().sweat?.rate || 24, start = toMin(pr.start), mins = Number(pr.mins) || 120, end = start + mins;
+  const per15 = Math.max(4, Math.round((rate * 0.8) / 4)), after = Math.max(16, Math.round((rate * 0.2 * (mins / 60) * 1.5) / 4) * 4 + 8);
+  return [
+    { at: start - 120, end: start - 60, text: '16-20 oz of water with your pre-practice meal' },
+    { at: start - 20, end: start, text: `8 oz of water${mins >= 90 ? ' or half a sports drink' : ''}` },
+    { at: start, end, label: 'During', text: `${per15} oz every 15 minutes (${per15 * 4} oz an hour)${mins > 60 || rate > 32 ? ', at least half sports drink' : ''}` },
+    { at: end, end: end + 120, text: `${after} oz over the next 2 hours to replace sweat` },
+  ];
+}
+function renderHydro(isToday) {
+  const el = $('#hydro-plan'), g = core().game;
+  const pr = !isToday || dayDoc(day)?.type === 'rest' ? null : g && g.date === todayIso() ? { start: g.start, mins: 105 } : practiceToday();
+  if (!pr) { el.innerHTML = ''; return; }
+  const now = nowMin();
+  el.innerHTML = `<ul class="hydro">${hydroPlan(pr).map((h) => `<li class="${now >= h.at && now < h.end ? 'now' : now >= h.end ? 'past' : ''}"><span>${h.label || fmtMin(Math.max(0, h.at))}</span><span>${h.text}</span></li>`).join('')}</ul>` +
+    (core().sweat ? '' : '<p class="muted small" style="margin:6px 0 0">Based on an average sweat rate. Do the sweat test in Coach to use yours.</p>');
+}
+function renderOnTrack(isToday, t, tot) {
+  const el = $('#ontrack-card'), now = nowMin();
+  if (!isToday || now < 12 * 60 || now >= 22 * 60) { el.hidden = true; return; }
+  el.hidden = false;
+  const f = Math.min(1, (now - 7 * 60) / (14 * 60));
+  const expK = round50(t.calories * f), expP = Math.round(t.protein * f);
+  const kr = tot.calories / (t.calories * f), pr = tot.protein / (t.protein * f);
+  const status = kr > 1.25 ? ['Ahead on calories', 'ask'] : kr >= 0.85 && pr >= 0.85 ? ['On track', 'ok'] : ['Behind', 'skip'];
+  const leftK = t.calories - tot.calories, leftP = Math.max(0, Math.round(t.protein - tot.protein));
+  const dinnerDone = (dayDoc(day)?.dinner || []).length > 0;
+  const finish = leftK <= 100 ? 'You have hit your calories. If you are still hungry, go with lean protein and fruit.'
+    : dinnerDone ? `To finish today: an evening snack of about ${round50(leftK).toLocaleString()} kcal with ${leftP} g protein.`
+      : `To finish today: dinner of about ${round50(leftK * 0.7).toLocaleString()} kcal with ${Math.round(leftP * 0.65)} g protein, then a snack of about ${round50(leftK * 0.3).toLocaleString()} kcal with ${leftP - Math.round(leftP * 0.65)} g protein.`;
+  el.innerHTML = `<div class="row-between"><h3>Am I on track?</h3><span class="pill ${status[1]}">${status[0]}</span></div>
+    <div class="pace"><div><b class="num">${tot.calories.toLocaleString()}</b> <span class="muted small">/ ${expK.toLocaleString()}</span><small>kcal so far vs. pace</small></div><div><b class="num">${Math.round(tot.protein)} g</b> <span class="muted small">/ ${expP} g</span><small>protein so far vs. pace</small></div></div>
+    <p class="small" style="margin:0 0 10px">${finish}</p>${leftK > 100 && aiReady() ? '<button class="btn" id="ontrack-plan" type="button">Plan my dinner with Coach</button>' : ''}`;
+}
+$('#ontrack-card').addEventListener('click', (e) => {
+  if (!e.target.closest('#ontrack-plan')) return;
+  showView('coach');
+  $('#coach-q').value = "Plan my dinner and an evening snack that finish today's targets";
+  $('#coach-btn').click();
+  $('#coach-out').scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+
+// ===================== Protein spread + streak =====================
+const proteinHitG = () => { const kg = (core().profile?.weightLb ?? 150) * 0.4536; return Math.min(40, Math.max(20, Math.round(kg * 0.35))); };
+function feedings(iso) {
+  const d = dayDoc(iso); if (!d) return [];
+  const out = [];
+  for (const [k, label] of MEALS.slice(0, 3)) { const items = d[k] || []; if (items.length) out.push({ label, protein: totals(items).protein }); }
+  const snacks = [...(d.snacks || [])].sort((a, b) => (a.addedAt || 0) - (b.addedAt || 0));
+  let group = null;
+  for (const e of snacks) {
+    if (group && (e.addedAt || 0) - group.last < 3600000) { group.items.push(e); group.last = e.addedAt || 0; }
+    else { group = { items: [e], last: e.addedAt || 0 }; out.push(group); }
+  }
+  return out.map((f) => (f.items ? { label: 'Snack', protein: totals(f.items).protein } : f));
+}
+function spreadScore(iso) {
+  const f = feedings(iso), hit = proteinHitG(), hits = f.filter((x) => x.protein >= hit).length;
+  return { f, hit, hits, grade: !f.length ? null : hits >= 4 ? 'A' : hits === 3 ? 'B' : hits === 2 ? 'C' : hits === 1 ? 'D' : 'F' };
+}
+function proteinStreak() {
+  const hit = (iso) => entriesOf(iso).length > 0 && totals(entriesOf(iso)).protein >= targets(iso).protein * 0.95;
+  let d = todayIso(); if (!hit(d)) d = shiftIso(d, -1);
+  let n = 0; while (hit(d) && n < 999) { n++; d = shiftIso(d, -1); }
+  return n;
+}
+function renderSpread() {
+  const el = $('#spread-card'), sc = spreadScore(day);
+  if (!sc.grade) { el.hidden = true; return; }
+  el.hidden = false;
+  const week = lastNDays(7).map(spreadScore).filter((x) => x.grade), avg = week.length ? r1(week.reduce((a, x) => a + x.hits, 0) / week.length) : 0;
+  const low = sc.f.filter((x) => x.protein < sc.hit).sort((a, b) => a.protein - b.protein)[0];
+  const tip = sc.hits >= 4 ? 'Perfect spread. Your muscles get a steady supply all day.'
+    : sc.f.length < 4 ? `Add another protein feeding: Greek yogurt, a shake or cottage cheese gets you ${sc.hit}+ g in one go, and before bed works great.`
+      : `${low.label} had ${Math.round(low.protein)} g. Add eggs, milk, Greek yogurt or meat to push it past ${sc.hit} g.`;
+  const cls = sc.hits >= 4 ? 'good' : sc.hits >= 2 ? 'mid' : 'low', st = proteinStreak();
+  el.innerHTML = `<div class="row-between"><div><h3>Protein spread</h3><div class="muted small">Meals with ${sc.hit}+ g protein. Aim for 4 a day.</div></div><span class="score-pill ${cls}" aria-label="Grade ${sc.grade}">${sc.grade}</span></div>
+    <div class="feeds">${sc.f.map((x) => `<div class="feed${x.protein >= sc.hit ? ' hit' : ''}"><b>${Math.round(x.protein)} g</b>${x.label}</div>`).join('')}</div>
+    <p class="small" style="margin:8px 0 0">${tip}</p>
+    <p class="muted small" style="margin:4px 0 0">Protein streak: <b>${st} day${st === 1 ? '' : 's'}</b> · 7-day average: ${avg} of 4 meals</p>`;
+}
+
+// ===================== Locker widget data =====================
+function writeWidget(t, tot) {
+  try {
+    const steps = todaysSteps(), st = steps.length ? stepState(steps) : {}, s = st.cur || st.next;
+    localStorage.setItem('mlw:today', JSON.stringify({ date: todayIso(), kcalLeft: t.calories - tot.calories, protein: Math.round(tot.protein), pTarget: t.protein,
+      next: s ? { title: s.title, at: s.at, now: !!st.cur } : null }));
+  } catch {}
+}
+
+// ===================== Correct-and-learn =====================
+const PREP_WORDS = new Set(['grilled', 'baked', 'fried', 'roasted', 'cooked', 'steamed', 'boiled', 'scrambled', 'fresh', 'plain', 'homemade', 'large', 'small', 'medium', 'whole', 'sliced', 'chopped', 'of', 'with', 'and', 'the', 'a']);
+const nameTokens = (n) => String(n).toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter((w) => w && !PREP_WORDS.has(w)).map((w) => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w));
+const normName = (n) => nameTokens(n).join(' ');
+function learnedFactors() {
+  const m = new Map();
+  for (const l of core().learn || []) { const x = m.get(l.key) || { name: l.name, sum: 0, n: 0 }; x.sum += l.ratio; x.n++; m.set(l.key, x); }
+  for (const x of m.values()) x.ratio = Math.round((x.sum / x.n) * 100) / 100;
+  return m;
+}
+function learnedMatch(name) {
+  const toks = new Set(nameTokens(name));
+  for (const [k, x] of learnedFactors()) if (k && k.split(' ').every((w) => toks.has(w))) return x;
+  return null;
+}
+function learnLine() {
+  const f = [...learnedFactors().values()].sort((a, b) => b.n - a.n).slice(0, 10), notes = (core().fixNotes || []).slice(0, 6);
+  if (!f.length && !notes.length) return '';
+  return '\n\nThis user has corrected your past estimates. Apply the same tendencies to similar items:' +
+    (f.length ? '\n' + f.map((x) => `- ${x.name}: real portions were about ${x.ratio}x your estimate (${x.n} time${x.n > 1 ? 's' : ''})`).join('\n') : '') +
+    (notes.length ? '\nThings they told you before: ' + notes.map((n) => `"${n}"`).join('; ') : '');
+}
+function learnFrom(kept) {
+  if (rvSource === 'label' || rvSource === 'barcode') return 0;
+  const fresh = [];
+  for (const it of kept) {
+    if (!it.ai) continue;
+    const ratio = it.ai.grams > 0 && it.grams > 0 && it.grams !== Math.round(it.ai.grams * rvMult) ? it.grams / (it.ai.grams * rvMult)
+      : it.ai.calories > 0 ? it.calories / (it.ai.calories * rvMult) : 1;
+    if (Math.abs(ratio - 1) >= 0.12 && ratio >= 0.25 && ratio <= 4) fresh.push({ key: normName(it.name), name: it.name.slice(0, 60), ratio: Math.round(ratio * 100) / 100, at: Date.now() });
+  }
+  if (!fresh.length) return 0;
+  const c = core(); c.learn = [...fresh, ...(c.learn || [])].slice(0, 60); persist('core');
+  return fresh.length;
+}
+function renderLearnedNote() {
+  const el = $('#rv-learned');
+  const hits = rvSource === 'label' || rvSource === 'barcode' ? [] : rvItems.filter((it) => learnedMatch(it.name));
+  el.hidden = !hits.length;
+  if (hits.length) el.innerHTML = `<span class="badge learn">LEARNED</span> Using your past fixes for ${hits.slice(0, 3).map((it) => esc(it.name)).join(', ')}. Still off? Change the grams and MacroLens keeps learning.`;
+}
+
+// ===================== Review: how much did you eat =====================
+let rvBase = [], rvMult = 1, rvSource = 'plate';
+function packageServings() {
+  const m = String(rvMeal?.notes || '').match(/(\d+(?:\.\d+)?)\s*servings?\s*per\s*(?:container|package|bag|box)|servings?\s*per\s*(?:container|package|bag|box)\D{0,12}(\d+(?:\.\d+)?)/i);
+  const n = m ? Number(m[1] || m[2]) : 0;
+  return n > 1 && n <= 40 ? n : 0;
+}
+function renderMult() {
+  const opts = [[0.5, '½'], [1, '1×'], [1.5, '1½'], [2, '2×'], [3, '3×']];
+  const pk = rvSource === 'label' ? packageServings() : 0;
+  if (pk && !opts.some(([v]) => v === pk)) opts.push([pk, `Whole package (${pk}×)`]);
+  $('#rv-mult').innerHTML = opts.map(([v, l]) => `<button type="button" class="chip-btn${v === rvMult ? ' active' : ''}" data-mult="${v}">${l}</button>`).join('');
+}
+function scaleItem(it, m) {
+  const o = { ...it, grams: Math.round(it.grams * m), calories: Math.round(it.calories * m), protein: r1(it.protein * m), carbs: r1(it.carbs * m), fat: r1(it.fat * m) };
+  for (const k of MICRO_KEYS) if (it[k] != null) o[k] = roundMicro(k, it[k] * m);
+  setPer100(o); return o;
+}
+$('#rv-mult').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-mult]'); if (!b) return;
+  rvMult = Number(b.dataset.mult);
+  rvItems = rvBase.map((it) => scaleItem(it, rvMult));
+  renderReview(); renderMult();
+});
+function saveLabelFood() {
+  const base = rvBase[0]; if (!base) return '';
+  const { per, ai, id, confidence, servings, portion, grams, ...nums } = base;
+  const food = { ...nums, id: 'lb' + Date.now(), source: 'label', name: base.name, serving: portion || servingText(base) };
+  const c = core();
+  c.custom = [food, ...(c.custom || []).filter((x) => x.name !== food.name)].slice(0, 80);
+  let msg = '. Saved to your foods';
+  if (pendingBarcode) { c.barcodes = { ...(c.barcodes || {}), [pendingBarcode]: food }; pendingBarcode = null; msg = '. Barcode saved for next time'; }
+  persist('core');
+  return msg;
+}
+
+// ===================== Size reference in photos =====================
+function refLine() {
+  const v = $('#ref-obj').value; if (!v) return '';
+  const pf = core().prefs || {};
+  const hand = Number(pf.handIn) || r1((core().profile?.heightIn ?? 70) * 0.108), phone = Number(pf.phoneIn) || 5.8;
+  const desc = {
+    hand: `the user's hand, ${hand} in (${Math.round(hand * 2.54)} cm) from wrist to fingertip`, phone: `the user's phone, ${phone} in (${Math.round(phone * 2.54)} cm) tall`,
+    basketball: 'a size 7 basketball, 9.4 in (24 cm) across', fork: 'a dinner fork, about 7.5 in (19 cm) long',
+    can: 'a 12 oz can, 4.8 in (12.2 cm) tall and 2.6 in (6.6 cm) across', card: 'a credit or ID card, 3.37 x 2.13 in (8.6 x 5.4 cm)',
+  }[v];
+  return `\n\nSIZE REFERENCE: The photo includes ${desc}. Find it first and use it as your main ruler for every portion, ahead of plate size or other cues.`;
+}
+$('#ref-obj').addEventListener('change', (e) => { try { localStorage.setItem('macrolens-ref', e.target.value); } catch {} });
+
+// ===================== Barcode =====================
+let pendingBarcode = null, zxingP = null;
+function loadZxing() {
+  zxingP ??= new Promise((res, rej) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
+    sc.onload = () => (window.ZXing ? res(window.ZXing) : rej(new Error('no ZXing')));
+    sc.onerror = () => { zxingP = null; rej(new Error('load')); };
+    document.head.append(sc);
+  });
+  return zxingP;
+}
+async function decodeBarcode(blob) {
+  if ('BarcodeDetector' in window) {
+    try { const det = new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] }); const r = await det.detect(await createImageBitmap(blob)); if (r[0]?.rawValue) return r[0].rawValue; } catch {}
+  }
+  try {
+    const Z = await loadZxing(), url = URL.createObjectURL(blob);
+    try { const hints = new Map([[Z.DecodeHintType.TRY_HARDER, true]]); const res = await new Z.BrowserMultiFormatReader(hints).decodeFromImageUrl(url); return res.getText(); }
+    finally { URL.revokeObjectURL(url); }
+  } catch { return null; }
+}
+async function fetchOFF(code) {
+  const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=product_name,brands,serving_size,serving_quantity,nutriments`);
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error('http ' + r.status);
+  const j = await r.json(), pr = j.product;
+  if (!pr || j.status === 0) return null;
+  const n = pr.nutriments || {}, q = Number(pr.serving_quantity) || 0;
+  const per = (k) => { const sv = n[k + '_serving']; if (sv != null && sv !== '') return Number(sv); const h = n[k + '_100g']; if (h == null || h === '') return null; return q ? (Number(h) * q) / 100 : Number(h); };
+  const kcal = per('energy-kcal');
+  if (kcal == null || !Number.isFinite(kcal)) return null;
+  const brand = String(pr.brands || '').split(',')[0].trim(), pn = String(pr.product_name || '').trim();
+  const name = (brand && !pn.toLowerCase().startsWith(brand.toLowerCase()) ? `${brand} ${pn}` : pn || brand).slice(0, 80) || 'Packaged food';
+  const food = { id: 'bc' + code, source: 'barcode', barcode: code, name, serving: pr.serving_size || (q ? `${q} g` : '100 g'),
+    calories: Math.round(kcal), protein: r1(per('proteins') || 0), carbs: r1(per('carbohydrates') || 0), fat: r1(per('fat') || 0) };
+  const mg = (v) => (v == null ? null : v * 1000);
+  const micro = { fiber: per('fiber'), sugar: per('added-sugars'), sodium: mg(per('sodium')), iron: mg(per('iron')), calcium: mg(per('calcium')) };
+  for (const [k, v] of Object.entries(micro)) if (v != null && Number.isFinite(v)) food[k] = roundMicro(k, v);
+  return food;
+}
+async function lookupAndOpen(raw) {
+  const code = String(raw || '').replace(/\D/g, '');
+  if (code.length < 8 || code.length > 14) { $('#ai-status').textContent = 'Barcodes are 8 to 14 digits. Check the numbers and try again.'; return; }
+  const c = core(), saved = c.barcodes?.[code];
+  if (saved) return openBarcodeFood(saved);
+  $('#ai-status').textContent = 'Looking it up…';
+  let food = null, reachable = true;
+  try { food = await fetchOFF(code); } catch { reachable = false; }
+  if (food) { c.barcodes = { ...(c.barcodes || {}), [code]: food }; persist('core'); return openBarcodeFood(food); }
+  pendingBarcode = code;
+  photos = []; setScanMode('label');
+  $('#ai-status').textContent = reachable
+    ? `Barcode ${code} is not in the food database yet. Snap the Nutrition Facts label instead, and MacroLens will remember this barcode next time.`
+    : `Got barcode ${code}, but product lookup only works on the MacroLens website. Snap the Nutrition Facts label instead, and MacroLens will remember this barcode.`;
+}
+function openBarcodeFood(food) {
+  photos = []; renderThumbs(); $('#ai-status').textContent = ''; $('#barcode-input').value = '';
+  openFood(food, { meal: $('#add-meal').value });
+}
+async function scanBarcodePhoto() {
+  const btn = $('#analyze-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Reading barcode…'; $('#ai-status').textContent = '';
+  try {
+    const code = await decodeBarcode(photos[0]);
+    if (!code) { $('#ai-status').textContent = "Couldn't read that barcode. Get closer in good light, or type the numbers below it."; return; }
+    $('#barcode-input').value = code;
+    await lookupAndOpen(code);
+  } finally { if (scanMode === 'barcode') { btn.textContent = 'Look up barcode'; btn.disabled = !photos.length; } }
+}
+$('#barcode-btn').addEventListener('click', () => lookupAndOpen($('#barcode-input').value));
+$('#barcode-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); lookupAndOpen(e.target.value); } });
+
+// ===================== Goal weight =====================
+function weightRate() {
+  const today = new Date(todayIso() + 'T12:00:00'), cutoff = shiftIso(todayIso(), -28);
+  const ws = (core().weights || []).filter((w) => w.date >= cutoff).sort((a, b) => a.date.localeCompare(b.date));
+  if (ws.length < 3) return null;
+  const t0 = new Date(ws[0].date + 'T12:00:00'), xs = ws.map((w) => (new Date(w.date + 'T12:00:00') - t0) / 864e5), ys = ws.map((w) => w.lb);
+  if (xs[xs.length - 1] < 7) return null;
+  const mx = xs.reduce((a, b) => a + b) / xs.length, my = ys.reduce((a, b) => a + b) / ys.length;
+  const rate = r1((xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / xs.reduce((a, x) => a + (x - mx) ** 2, 0)) * 7);
+  const intake = [];
+  for (let d = isoDate(t0); d <= isoDate(today); d = shiftIso(d, 1)) if (entriesOf(d).length) intake.push(totals(entriesOf(d)).calories);
+  const burn = intake.length >= 7 ? Math.round(intake.reduce((a, b) => a + b) / intake.length - rate * 500) : null;
+  return { rate, burn };
+}
+const signed = (v) => (v > 0 ? `+${v}` : `${v}`);
+const niceDate = (iso) => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+function renderGoalW() {
+  const gw = core().goalW, out = $('#goalw-out');
+  if (gw && !$('#gw-lb').value) { $('#gw-lb').value = gw.lb; $('#gw-date').value = gw.date; }
+  if (!gw) { $('#goalw-sub').textContent = ''; out.innerHTML = '<p class="muted small" style="margin:0">Example: 175 lb by tryouts. MacroLens works out the weekly pace, checks that it is safe for a growing athlete, and tells you if you are ahead or behind.</p>'; return; }
+  const ws = [...(core().weights || [])].sort((a, b) => a.date.localeCompare(b.date)), cur = ws[ws.length - 1]?.lb ?? core().profile?.weightLb;
+  const clear = '<button type="button" class="chip" id="clear-goalw" style="margin-top:8px">Clear goal</button>';
+  if (!cur) { out.innerHTML = '<p class="muted small" style="margin:0">Log your weight first.</p>' + clear; return; }
+  const days = Math.round((new Date(gw.date + 'T12:00:00') - new Date(todayIso() + 'T12:00:00')) / 864e5), diff = r1(gw.lb - cur), gain = diff > 0;
+  $('#goalw-sub').textContent = `${Math.abs(diff)} lb to ${gain ? 'gain' : 'lose'} · ${niceDate(gw.date)}`;
+  if (Math.abs(diff) < 0.5) { out.innerHTML = '<p class="status-line good">You made it. Switch your goal to Maintain in Profile.</p>' + clear; return; }
+  if (days <= 0) { out.innerHTML = '<p class="status-line warn">Your goal date has passed. Set a new date.</p>' + clear; return; }
+  const weeks = days / 7, need = r1(diff / weeks), safe = gain ? 0.5 : 1, plan = gain ? Math.min(need, safe) : Math.max(need, -safe), tooFast = Math.abs(need) > safe;
+  const tr = weightRate();
+  let html = `<div class="pace"><div><b class="num">${signed(need)}</b><small>lb a week needed</small></div><div><b class="num">${tr ? signed(tr.rate) : '–'}</b><small>your pace, last 4 weeks</small></div></div>`;
+  if (tooFast) {
+    const reach = shiftIso(todayIso(), Math.ceil((Math.abs(diff) / safe) * 7));
+    html += `<p class="status-line warn">Too fast to be ${gain ? 'mostly muscle' : 'safe while you train'}.</p><p class="small" style="margin:0 0 8px">At a safe ${safe} lb a week you would be about ${r1(cur + plan * weeks)} lb by ${niceDate(gw.date)}, and reach ${gw.lb} lb around ${niceDate(reach)}.</p>`;
+  } else if (tr) {
+    const onPace = gain ? tr.rate >= need * 0.8 : tr.rate <= need * 0.8;
+    const eta = (gain ? tr.rate > 0 : tr.rate < 0) ? shiftIso(todayIso(), Math.ceil((diff / tr.rate) * 7)) : null;
+    html += `<p class="status-line ${onPace ? 'good' : 'warn'}">${onPace ? 'On pace.' : 'Behind pace.'}${eta ? ` At this rate you hit ${gw.lb} lb around ${niceDate(eta)}.` : ''}</p>`;
+  } else html += '<p class="muted small" style="margin:0 0 8px">Weigh in 3 or more times over at least a week to see your pace.</p>';
+  const burn = tr?.burn ?? core().targets?.tdee;
+  if (burn) {
+    const sug = Math.max(MIN_CALORIES, round50(burn + plan * 500)), now = targets().calories;
+    html += `<p class="small" style="margin:0 0 8px">To ${gain ? 'gain' : 'lose'} ${Math.abs(plan)} lb a week, eat about <b>${sug.toLocaleString()} kcal</b> a day${tr?.burn ? ' (based on your real burn from logged food and weigh-ins)' : ' (estimate from your profile)'}. Now: ${now.toLocaleString()}.</p>`;
+    if (Math.abs(sug - now) >= 100) html += `<button class="btn primary" type="button" id="apply-goalw" data-kcal="${sug}">Use ${sug.toLocaleString()} kcal as my target</button>`;
+  }
+  out.innerHTML = html + clear;
+}
+$('#goalw-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const lb = Number($('#gw-lb').value), date = $('#gw-date').value;
+  if (!(lb > 0) || !date) return toast('Enter a goal weight and a date');
+  if (date <= todayIso()) return toast('Pick a date in the future');
+  core().goalW = { lb: r1(lb), date }; persist('core');
+  renderProgress(); renderGoalW(); toast('Goal set');
+});
+$('#goalw-out').addEventListener('click', (e) => {
+  const a = e.target.closest('#apply-goalw');
+  if (a) { const c = core(); c.overrides = { ...(c.overrides || {}), calories: Number(a.dataset.kcal) }; persist('core'); renderGoalW(); renderToday(); return toast(`Calorie target set to ${Number(a.dataset.kcal).toLocaleString()}`); }
+  if (e.target.closest('#clear-goalw')) { delete core().goalW; persist('core'); $('#gw-lb').value = ''; $('#gw-date').value = ''; renderProgress(); renderGoalW(); }
+});
+
+// ===================== Profile: accuracy and smart targets =====================
+function renderAcc() {
+  const pf = core().prefs || {};
+  $('#acc-hand').value = pf.handIn || ''; $('#acc-phone').value = pf.phoneIn || ''; $('#acc-ready').checked = pf.smart !== false;
+  const f = [...learnedFactors().entries()];
+  $('#learn-clear').hidden = !f.length && !(core().fixNotes || []).length;
+  $('#learned').innerHTML = f.length ? f.map(([k, x]) => `<li><span>${esc(x.name)}: real portions about <b>${x.ratio}×</b> the AI's guess (${x.n} fix${x.n > 1 ? 'es' : ''})</span><button type="button" class="mini" data-unlearn="${esc(k)}" aria-label="Forget ${esc(x.name)}">✕</button></li>`).join('')
+    : '<li><span class="muted">Nothing yet. When you change the grams on an AI scan before logging it, MacroLens remembers and adjusts future scans of that food.</span></li>';
+}
+$('#acc-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const c = core(), hand = Number($('#acc-hand').value), phone = Number($('#acc-phone').value);
+  c.prefs = { ...(c.prefs || {}), handIn: hand > 0 ? r1(hand) : null, phoneIn: phone > 0 ? r1(phone) : null, smart: $('#acc-ready').checked };
+  persist('core'); renderToday(); toast('Saved');
+});
+$('#acc-form').addEventListener('click', (e) => {
+  const u = e.target.closest('[data-unlearn]');
+  if (u) { const c = core(); c.learn = (c.learn || []).filter((l) => l.key !== u.dataset.unlearn); persist('core'); return renderAcc(); }
+  const b = e.target.closest('#learn-clear'); if (!b) return;
+  if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Tap again to clear'; setTimeout(() => { b.dataset.confirm = ''; b.textContent = 'Clear all'; }, 3000); return; }
+  const c = core(); c.learn = []; c.fixNotes = []; persist('core'); renderAcc(); toast('Cleared');
+});
+
+// ===================== Weekly meal plan =====================
+const PLAN_SCHEMA = {
+  type: 'object', additionalProperties: false, required: ['overview', 'days', 'shopping'],
+  properties: {
+    overview: { type: 'string' }, shopping: { type: 'array', items: { type: 'string' } },
+    days: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['day', 'training', 'meals'],
+      properties: { day: { type: 'string' }, training: { type: 'boolean' },
+        meals: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['slot', 'title', 'items'],
+          properties: { slot: { type: 'string', enum: ['breakfast', 'lunch', 'dinner', 'snacks'] }, title: { type: 'string' }, items: { type: 'array', items: ITEM_SCHEMA } } } } } } },
+  },
+};
+let planSel = 0;
+function planDates() { return Array.from({ length: 7 }, (_, i) => shiftIso(todayIso(), i)); }
+function renderPlan() {
+  const pl = core().plan, out = $('#plan-out');
+  if (!pl) { out.innerHTML = ''; $('#plan-date').textContent = ''; return; }
+  $('#plan-date').textContent = 'Made ' + niceDate(pl.at);
+  const idx = pl.days.findIndex((d) => d.date === todayIso());
+  if (planSel >= pl.days.length) planSel = 0;
+  const d = pl.days[planSel];
+  const all = d.meals.flatMap((m) => m.items), tt = totals(all);
+  const t = targets(); const tc = d.training ? t.calories : t.calories - Math.round(t.carbs * 0.3) * 4;
+  out.innerHTML = `<p class="small" style="margin:0 0 8px">${esc(pl.overview)}</p>
+    <div class="chips">${pl.days.map((x, i) => `<button type="button" class="chip-btn${i === planSel ? ' active' : ''}" data-plan-day="${i}">${new Date(x.date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short' })}${i === idx ? ' (today)' : ''}</button>`).join('')}</div>
+    <div class="plan-day"><div class="muted small num">${d.training ? 'Practice day' : 'Rest day'} · ${tt.calories.toLocaleString()} of ${tc.toLocaleString()} kcal · P ${Math.round(tt.protein)} of ${t.protein} g · C ${Math.round(tt.carbs)} · F ${Math.round(tt.fat)}</div>
+    ${d.meals.map((m, j) => { const mt = totals(m.items); return `<div class="plan-meal"><div class="row-between"><b>${mealLabel(m.slot)}: ${esc(m.title)}</b><span class="muted small num">${mt.calories} kcal · P ${Math.round(mt.protein)}</span></div>
+      <ul>${m.items.map((it) => `<li>${esc(it.name)}${it.portion ? ', ' + esc(it.portion) : ''}</li>`).join('')}</ul>
+      <button class="btn" type="button" data-plan-log="${j}" style="justify-self:start;padding:6px 12px;font-size:13px">Log to today's ${mealLabel(m.slot).toLowerCase()}</button></div>`; }).join('')}</div>
+    <details class="small" style="margin-top:10px"><summary style="cursor:pointer;color:var(--accent);font-weight:600">Shopping list (${pl.shopping.length} items)</summary><ul style="margin:6px 0 8px;padding-left:18px">${pl.shopping.map((x) => `<li>${esc(x)}</li>`).join('')}</ul><button class="btn" type="button" id="plan-copy">Copy shopping list</button></details>`;
+}
+$('#plan-out').addEventListener('click', (e) => {
+  const dsel = e.target.closest('[data-plan-day]');
+  if (dsel) { planSel = Number(dsel.dataset.planDay); return renderPlan(); }
+  const lg = e.target.closest('[data-plan-log]');
+  if (lg) { const m = core().plan.days[planSel].meals[Number(lg.dataset.planLog)]; return logOption({ title: m.title, items: m.items.map((it) => ({ ...it })) }, lg, m.slot); }
+  if (e.target.closest('#plan-copy')) {
+    const text = 'Shopping list\n' + core().plan.shopping.map((x) => '- ' + x).join('\n');
+    navigator.clipboard.writeText(text).then(() => toast('Copied. Paste it in a text.'), () => toast('Copy did not work here. Select the list and copy it.'));
+  }
+});
+$('#plan-btn').addEventListener('click', async () => {
+  if (!aiReady()) { $('#plan-status').textContent = 'Turn on AI first (open MacroLens in Claude, or add your API key in Profile).'; return; }
+  const dates = planDates(), t = targets();
+  const usual = core().practice;
+  const daysInfo = dates.map((d) => { const wb = weekboardPractice(d); const wd = new Date(d + 'T12:00:00').getDay();
+    const training = wb ? true : dayDoc(d)?.type === 'rest' ? false : readLS('wb:core') ? false : wd >= 1 && wd <= 5;
+    return `${new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long' })} ${d}: ${training ? `practice${wb ? ' at ' + fmtMin(toMin(wb.start)) : usual ? ' around ' + fmtMin(toMin(usual.start)) : ''}` : 'rest day'}`; });
+  const favorites = [...new Set([...(core().meals || []).map((m) => m.name), ...(core().recents || []).slice(0, 20).map((r) => r.name)])];
+  const prompt = `You are a sports dietitian writing a 7-day meal plan for a high school athlete. Real food a teenager will actually eat, simple to make or buy, budget-friendly. Reuse ingredients across days so the shopping list stays short, and use leftovers on purpose.
+${athleteLine()}
+Practice-day targets: ${t.calories} kcal, ${t.protein} g protein, ${t.carbs} g carbs, ${t.fat} g fat. Rest days: same protein and fat, 30% fewer carbs.
+The 7 days, in order: ${daysInfo.join('; ')}.
+Foods they already eat and like (use these often): ${favorites.join('; ') || 'unknown'}.
+${$('#plan-note').value.trim() ? `They say: "${$('#plan-note').value.trim().slice(0, 200)}"` : ''}
+For each day give 4 meals: breakfast, lunch, dinner, and one snack (slot "snacks"; on practice days make it the pre-practice or recovery snack). Each meal has 1 to 3 items with nutrition for the whole portion. Each day's total should land within 5% of that day's calorie and protein targets, with at least 25 g protein at breakfast, lunch and dinner. Then a combined shopping list for the week with amounts.
+Reply with only JSON in exactly this shape:
+{"overview": "Two sentences on the plan", "days": [{"day": "Monday", "training": true, "meals": [{"slot": "breakfast", "title": "Egg and cheese bagel + milk", "items": [{"name": "Egg and cheese bagel", "portion": "1 bagel, 2 eggs", "grams": 230, "calories": 520, "protein": 28, "carbs": 56, "fat": 19, "fiber": 2.5, "added_sugar": 4, "sodium_mg": 820, "iron_mg": 4.5, "calcium_mg": 260, "confidence": "medium"}]}]}], "shopping": ["1 dozen eggs"]}
+Calories must be close to 4 x protein + 4 x carbs + 9 x fat.`;
+  const btn = $('#plan-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Planning your week… (30-90 s)';
+  $('#plan-status').textContent = '';
+  try {
+    const r = await askJson(prompt, PLAN_SCHEMA);
+    if (!r || !Array.isArray(r.days) || !r.days.length) throw { code: 'invalid_json' };
+    const slots = new Set(['breakfast', 'lunch', 'dinner', 'snacks']);
+    const days = r.days.slice(0, 7).map((d, i) => ({ date: dates[i], training: !!d.training,
+      meals: (d.meals || []).filter((m) => slots.has(m.slot) && Array.isArray(m.items) && m.items.length).map((m) => ({ slot: m.slot, title: String(m.title || 'Meal').slice(0, 80),
+        items: normalizeMeal({ is_food: true, items: m.items }).items.map(({ per, ...f }) => ({ ...f, serving: servingText(f) })) })) }));
+    core().plan = { at: todayIso(), overview: String(r.overview || ''), days, shopping: (r.shopping || []).map(String).slice(0, 60) };
+    persist('core'); planSel = 0; renderPlan(); checkBadges();
+  } catch (e) {
+    $('#plan-status').textContent = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
+  } finally { btn.disabled = false; btn.textContent = 'Make my meal plan'; }
+});
+
+// ===================== School lunch =====================
+let lunchPhotos = [], lunchOptions = [];
+function renderLunchThumbs() {
+  $$('#lunch-thumbs img').forEach((img) => URL.revokeObjectURL(img.src));
+  $('#lunch-thumbs').innerHTML = lunchPhotos.map((b, i) => `<div class="thumb"><img alt="Menu photo ${i + 1}" src="${URL.createObjectURL(b)}"><button type="button" data-lrm="${i}" aria-label="Remove photo ${i + 1}">✕</button></div>`).join('') +
+    (lunchPhotos.length < Math.min(2, maxPhotos) ? '<label class="thumb-add">＋ Menu photo<input type="file" accept="image/*" multiple hidden id="lunch-input"></label>' : '');
+  $('#lunch-input')?.addEventListener('change', async (e) => {
+    for (const f of [...e.target.files].filter((x) => x.type.startsWith('image/'))) { if (lunchPhotos.length >= 2) break; try { lunchPhotos.push(await compress(f)); } catch {} }
+    renderLunchThumbs();
+  });
+}
+$('#lunch-thumbs').addEventListener('click', (e) => { const b = e.target.closest('[data-lrm]'); if (b) { lunchPhotos.splice(Number(b.dataset.lrm), 1); renderLunchThumbs(); } });
+$('#lunch-btn').addEventListener('click', async () => {
+  const note = $('#lunch-note').value.trim();
+  if (!lunchPhotos.length && !note) return toast('Snap the menu or type the options');
+  if (!aiReady()) { $('#lunch-status').textContent = 'Turn on AI first (open MacroLens in Claude, or add your API key in Profile).'; return; }
+  if (lunchPhotos.length && !photosReady()) { $('#lunch-status').textContent = 'Photos are not supported here. Type the options instead.'; return; }
+  const pr = practiceToday();
+  const prompt = `You are a sports dietitian helping a high school athlete pick lunch from the school cafeteria.
+${athleteLine()}
+It is ${fmtMin(nowMin())}. ${pr ? `Practice or game today at ${fmtMin(toMin(pr.start))}.` : ''} ${remainingLine()}
+${lunchPhotos.length ? "The photos show today's menu or serving line. First read exactly what is offered." : ''} ${note ? `Today's options: "${note.slice(0, 300)}"` : ''}
+Build 3 trays using ONLY what is offered, with typical US school lunch portions (sides about 1/2 to 3/4 cup; seconds or a double entree only if the school allows it). Tray 1: best for performance and the rest of today. Tray 2: closest to what a teenager wants, adjusted. Tray 3: lighter and easy to digest, for practice within 2 hours. Include milk and fruit when offered. Split each tray into its items.
+Reply with only JSON in exactly this shape:
+{"headline": "One sentence of advice for today's lunch", "options": [{"title": "Chicken sandwich tray", "when": "Best for practice today", "why": "One sentence", "items": [{"name": "Grilled chicken sandwich", "portion": "1 sandwich", "grams": 180, "calories": 380, "protein": 28, "carbs": 40, "fat": 11, "fiber": 3, "added_sugar": 4, "sodium_mg": 850, "iron_mg": 2.5, "calcium_mg": 80, "confidence": "medium"}]}]}
+Every number is for the whole portion. Calories must be close to 4 x protein + 4 x carbs + 9 x fat.`;
+  const btn = $('#lunch-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Reading the menu… (15-45 s)';
+  $('#lunch-status').textContent = ''; $('#lunch-out').innerHTML = '';
+  try {
+    const res = lunchPhotos.length ? await askWithImages(prompt, lunchPhotos.slice(), COACH_SCHEMA) : await askJson(prompt, COACH_SCHEMA);
+    if (!res || !Array.isArray(res.options) || !res.options.length) throw { code: 'invalid_json' };
+    lunchOptions = res.options.slice(0, 3).map((o) => ({ ...o, items: normalizeMeal({ is_food: true, items: o.items }).items }));
+    $('#lunch-out').innerHTML = `<p style="margin:0"><b>${esc(res.headline || '')}</b></p>` + lunchOptions.map((o, i) => optionCard(o, i, 'data-log-lunch')).join('');
+  } catch (e) {
+    $('#lunch-status').textContent = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
+  } finally { btn.disabled = false; btn.textContent = 'Pick my tray'; }
+});
+$('#lunch-out').addEventListener('click', (e) => { const b = e.target.closest('[data-log-lunch]'); if (b) logOption(lunchOptions[Number(b.dataset.logLunch)], b, 'lunch'); });
+
 // ===================== boot =====================
 setSync('local');
 render();
@@ -2657,6 +3341,8 @@ render();
   if (lim?.images?.maxCount) maxPhotos = Math.max(1, Math.min(3, lim.images.maxCount));
   $('#analyze-btn').disabled = !(photos.length && aiImages);
 })();
+try { const r = localStorage.getItem('macrolens-ref'); if (r) $('#ref-obj').value = r; } catch {}
+setScanMode('plate');
 (async () => {
   if (window.claude?.use) {
     const [dl, dict] = await Promise.all([claude.use('downloads'), claude.use('dictation')]);

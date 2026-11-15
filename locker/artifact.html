@@ -264,7 +264,13 @@ function renderToday() {
   if (inClaude) { el.hidden = true; return; }
   const ws = [];
   const m = macroToday();
-  if (m) ws.push(`<a class="widget${m.logged ? '' : ' todo'}" href="${appHref(BUILT_IN[0])}"><div class="w-head">${iconSvg('macrolens')}MacroLens</div><b>${m.left >= 0 ? m.left.toLocaleString() : Math.abs(m.left).toLocaleString()}</b><small>${m.left >= 0 ? 'kcal left' : 'kcal over'} · protein ${m.protein}/${m.pTarget}g</small><div class="bar"><div style="width:${m.pct * 100}%;background:#34d399"></div></div></a>`);
+  // MacroLens writes mlw:today (protein, targets after smart adjustments, next meal) every time its diary renders.
+  const mw = readLS('mlw:today'), mwOk = mw && mw.date === todayIso();
+  if (m) {
+    const pLeft = mwOk ? Math.max(0, mw.pTarget - mw.protein) : Math.max(0, m.pTarget - m.protein), kLeft = mwOk ? mw.kcalLeft : m.left;
+    const nx = mwOk && mw.next ? (mw.next.now ? `Now: ${esc(mw.next.title)}` : `Next: ${esc(mw.next.title)} ${esc(fmtMin(mw.next.at))}`) : `${kLeft >= 0 ? kLeft.toLocaleString() + ' kcal left' : Math.abs(kLeft).toLocaleString() + ' kcal over'}`;
+    ws.push(`<a class="widget${m.logged ? '' : ' todo'}" href="${appHref(BUILT_IN[0])}"><div class="w-head">${iconSvg('macrolens')}MacroLens</div><b>${pLeft ? pLeft + ' g' : 'Protein done'}</b><small>${pLeft ? 'protein left · ' : ''}${nx}</small><div class="bar"><div style="width:${Math.min(100, ((mwOk ? mw.protein : m.protein) / (mwOk ? mw.pTarget : m.pTarget)) * 100)}%;background:#3b7dd8"></div></div></a>`);
+  }
   const r = readyToday();
   if (r) ws.push(`<a class="widget${r.done ? '' : ' todo'}" href="${appHref(BUILT_IN[1])}"><div class="w-head">${iconSvg('readyup')}ReadyUp</div><b>${r.done ? `${r.sleep} h` : 'Check in'}</b><small>${r.done ? `sleep · ${r.pain ? 'pain flagged, see trainer' : 'soreness ' + r.soreness + '/5'}` : 'Takes 30 seconds'}</small></a>`);
   const w = weekNext();
