@@ -1,0 +1,514 @@
+<title>HookLab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: one phone column. A brief form, then the script laid out as timed beats like an edit timeline. Teleprompter is a full-screen overlay. */
+:root {
+  --bg: #f6f4f1;
+  --surface: #ffffff;
+  --surface-2: #efebe6;
+  --line: #e1dbd3;
+  --fg: #17141a;
+  --muted: #6b6470;
+  --accent: #e0245e;
+  --accent-ink: #ffffff;
+  --accent-soft: #fbdde7;
+  --good: #1a8a5a;
+  --warn: #c27a00;
+  --scrim: rgba(20, 16, 24, .5);
+  --f-display: "Bricolage Grotesque", "Inter", system-ui, sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #141117; --surface: #1d1921; --surface-2: #28232d; --line: #353039; --fg: #f3eff5; --muted: #a39aa8; --accent: #ff4f86; --accent-ink: #1a0610; --accent-soft: #3d1626; --good: #3fcf8e; --warn: #f2b43a; --scrim: rgba(0,0,0,.6); color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #141117; --surface: #1d1921; --surface-2: #28232d; --line: #353039; --fg: #f3eff5; --muted: #a39aa8; --accent: #ff4f86; --accent-ink: #1a0610; --accent-soft: #3d1626; --good: #3fcf8e; --warn: #f2b43a; --scrim: rgba(0,0,0,.6); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.45 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 calc(88px + env(safe-area-inset-bottom, 0px)); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 560px; margin: 0 auto; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h3 { font-family: var(--f-display); font-size: 18px; font-weight: 800; margin: 0; letter-spacing: -.2px; }
+.muted { color: var(--muted); } .small { font-size: 13px; }
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-block: 12px; background: var(--bg); }
+.brand { font-family: var(--f-display); font-weight: 800; font-size: 22px; letter-spacing: -.5px; }
+.brand span { color: var(--accent); }
+.sync { font-size: 11px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.sync::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.sync[data-s="synced"]::before { background: var(--good); }
+.view { display: grid; gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: grid; gap: 12px; }
+.card > * { min-width: 0; }
+label { display: grid; gap: 5px; font-size: 13px; color: var(--muted); min-width: 0; }
+input, select, textarea { width: 100%; min-width: 0; border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 11px 12px; outline: none; }
+textarea { resize: vertical; line-height: 1.45; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+.field-label { font-size: 13px; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 7px 13px; font-size: 13px; font-weight: 500; cursor: pointer; }
+.chip.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.btn { display: inline-flex; justify-content: center; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 12px 16px; font-weight: 600; cursor: pointer; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.btn.block { width: 100%; }
+.btn:disabled { opacity: .45; cursor: default; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.row-between { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
+/* hooks */
+.hook { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: start; border: 2px solid var(--line); border-radius: 14px; padding: 12px; cursor: pointer; text-align: left; background: var(--surface); }
+.hook.on { border-color: var(--accent); background: var(--accent-soft); }
+.hook .radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--muted); margin-top: 2px; }
+.hook.on .radio { border: 5px solid var(--accent); }
+.hook b { font-family: var(--f-display); font-size: 16px; font-weight: 600; line-height: 1.3; display: block; }
+.hook small { color: var(--muted); font-size: 12px; display: block; margin-top: 4px; }
+.score { font: 600 12px var(--f-mono); padding: 3px 8px; border-radius: 99px; background: var(--surface-2); white-space: nowrap; }
+
+/* timeline beats */
+.meter { display: grid; gap: 6px; }
+.meter-bar { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.meter-bar div { height: 100%; border-radius: 99px; background: var(--good); }
+.meter-bar div.over { background: var(--warn); }
+.beats { display: grid; gap: 0; }
+.beat { display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 12px 0; border-top: 1px dashed var(--line); }
+.beat:first-child { border-top: 0; padding-top: 0; }
+.beat .tc { font: 600 12px var(--f-mono); color: var(--accent); padding-top: 3px; }
+.beat .tc small { display: block; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .4px; margin-top: 2px; font-family: var(--f-body); font-size: 10px; }
+.beat textarea { background: transparent; border: 1px solid transparent; padding: 4px 6px; margin: -4px -6px; font-size: 15px; font-weight: 500; color: var(--fg); }
+.beat textarea:hover, .beat textarea:focus { border-color: var(--line); background: var(--surface-2); }
+.beat .meta { display: grid; gap: 3px; margin-top: 6px; font-size: 12px; color: var(--muted); }
+.beat .meta span b { color: var(--fg); font-weight: 600; }
+.caption-box { background: var(--surface-2); border-radius: 12px; padding: 12px; font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.tags { color: var(--accent); font-weight: 500; }
+
+/* library */
+.lib-item { display: grid; gap: 6px; padding: 12px 0; border-top: 1px solid var(--line); }
+.lib-item:first-child { border-top: 0; padding-top: 0; }
+.lib-item b { font-family: var(--f-display); font-weight: 600; font-size: 16px; line-height: 1.3; }
+.status { display: flex; gap: 4px; flex-wrap: wrap; }
+.status button { border: 1px solid var(--line); background: none; border-radius: 99px; padding: 3px 10px; font-size: 12px; cursor: pointer; color: var(--muted); }
+.status button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.empty { text-align: center; padding: 24px 8px; color: var(--muted); }
+
+/* teleprompter: always dark, it's for filming */
+.prompter { position: fixed; inset: 0; z-index: 40; background: #050506; color: #f5f5f5; display: grid; grid-template-rows: auto 1fr auto;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.prompter .pbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.prompter .pbtn { border: 1px solid #333; background: #1a1a1d; color: #f5f5f5; border-radius: 10px; padding: 8px 12px; font-weight: 600; cursor: pointer; }
+.prompter .pbtn.go { background: #ff4f86; color: #1a0610; border-color: transparent; }
+.prompter .scroller { overflow-y: auto; scrollbar-width: none; position: relative; mask-image: linear-gradient(transparent 0, #000 12%, #000 70%, transparent 100%); }
+.prompter .ptext { font-family: var(--f-display); font-weight: 600; line-height: 1.35; padding: 40vh 4px 70vh; max-width: 760px; margin: 0 auto; }
+.prompter .ptext p { margin: 0 0 1em; }
+.prompter.mirror .ptext { transform: scaleX(-1); }
+.prompter .guide { position: absolute; left: 0; right: 0; top: 30%; height: 2px; background: rgba(255, 79, 134, .5); pointer-events: none; }
+.prompter input[type=range] { width: 120px; padding: 0; background: none; border: 0; accent-color: #ff4f86; }
+
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--surface); border-top: 1px solid var(--line);
+  padding: 8px max(8px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+.tabbar-inner { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); }
+.tab { background: none; border: 0; color: var(--muted); font-size: 11px; font-weight: 600; display: grid; justify-items: center; gap: 3px; cursor: pointer; padding: 4px; }
+.tab svg { width: 22px; height: 22px; } .tab.active { color: var(--accent); }
+#toast { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 99px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; transition: .25s; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2s; } }
+</style>
+
+<div class="wrap">
+  <header class="topbar"><div class="brand">Hook<span>Lab</span></div><div class="sync" id="sync" data-s="local">This device</div></header>
+
+  <!-- WRITE -->
+  <section id="view-write" class="view">
+    <form id="brief" class="card">
+      <h3>What's the video about?</h3>
+      <textarea id="topic" rows="3" placeholder="e.g. 3 ball-handling drills that made me faster with my left hand" required></textarea>
+      <div><div class="field-label">Platform</div><div class="chips" data-pick="platform"></div></div>
+      <div><div class="field-label">Length</div><div class="chips" data-pick="length"></div></div>
+      <div><div class="field-label">Style</div><div class="chips" data-pick="style"></div></div>
+      <div class="grid2">
+        <label>Ending asks viewers to<select id="cta"><option>Follow for more</option><option>Comment their answer</option><option>Save this for later</option><option>Check the link in bio</option><option>Share with a teammate</option><option>Nothing, just end strong</option></select></label>
+        <label>Must include (optional)<input id="points" placeholder="e.g. mention my handle"></label>
+      </div>
+      <button class="btn primary block" id="write-btn">Write my script</button>
+      <p class="muted small" id="write-status" style="margin:0"></p>
+    </form>
+
+    <div id="result" class="view" hidden>
+      <div class="card">
+        <div class="row-between"><h3>Pick your hook</h3><span class="muted small">first 2 seconds</span></div>
+        <div id="hooks" class="view" style="gap:8px"></div>
+      </div>
+      <div class="card">
+        <div class="row-between"><h3 id="script-title">Script</h3><span class="muted small" id="words"></span></div>
+        <div class="meter"><div class="meter-bar"><div id="meter"></div></div><span class="muted small" id="meter-note"></span></div>
+        <div class="beats" id="beats"></div>
+      </div>
+      <div class="card">
+        <h3>Caption</h3>
+        <div class="caption-box" id="caption"></div>
+        <button class="btn" id="copy-caption" type="button">Copy caption</button>
+      </div>
+      <div class="card">
+        <h3>Remix it</h3>
+        <div class="chips" id="remix">
+          <button type="button" class="chip" data-remix="Make it about 25% shorter and punchier. Cut filler words.">Shorter</button>
+          <button type="button" class="chip" data-remix="Make it funnier with one light joke or self-aware line, still useful.">Funnier</button>
+          <button type="button" class="chip" data-remix="Make it more hype and high-energy, like a locker-room speech, with shorter sentences.">More hype</button>
+          <button type="button" class="chip" data-remix="Use simpler words a 13-year-old would use. No jargon.">Simpler</button>
+          <button type="button" class="chip" data-remix="Keep the script but write 3 completely new, stronger hooks.">New hooks</button>
+          <button type="button" class="chip" data-remix="Turn it into a story told in first person, with a small struggle and a payoff.">As a story</button>
+        </div>
+        <p class="muted small" id="remix-status" style="margin:0"></p>
+      </div>
+      <div class="grid2">
+        <button class="btn primary" id="prompter-btn" type="button">Teleprompter</button>
+        <button class="btn" id="save-btn" type="button">Save to library</button>
+      </div>
+      <button class="btn block" id="copy-script" type="button">Copy full script</button>
+    </div>
+  </section>
+
+  <!-- LIBRARY -->
+  <section id="view-library" class="view" hidden>
+    <div class="card">
+      <div class="row-between"><h3>Your scripts</h3><span class="muted small" id="lib-count"></span></div>
+      <div class="chips" id="lib-filter">
+        <button type="button" class="chip on" data-f="all">All</button><button type="button" class="chip" data-f="idea">Ideas</button><button type="button" class="chip" data-f="filmed">Filmed</button><button type="button" class="chip" data-f="posted">Posted</button>
+      </div>
+      <div id="library"></div>
+    </div>
+  </section>
+
+  <!-- YOU -->
+  <section id="view-me" class="view" hidden>
+    <form id="profile" class="card">
+      <h3>Your channel</h3>
+      <p class="muted small" style="margin:0">Every script is written for your niche and in your voice.</p>
+      <label>What your account is about<input id="pf-niche" placeholder="Basketball training for guards, from a high school player"></label>
+      <label>How you talk on camera<input id="pf-voice" placeholder="Chill and direct, a little funny, says bro sometimes"></label>
+      <label>Handle (optional)<input id="pf-handle" placeholder="@yourname"></label>
+      <button class="btn">Save</button>
+    </form>
+    <form id="key-card" class="card" hidden>
+      <h3>AI on this website</h3>
+      <p class="muted small" style="margin:0">Paste a Claude API key from console.anthropic.com. It stays in this browser and is shared with your other apps on this site.</p>
+      <div class="row"><input type="password" id="api-key" placeholder="sk-ant-…" autocomplete="off" style="flex:1"><button class="btn primary">Save</button></div>
+      <div class="row-between"><span class="muted small" id="key-status"></span><button type="button" class="chip" id="key-remove" hidden>Remove key</button></div>
+    </form>
+    <div class="card">
+      <h3>Hook rules this app follows</h3>
+      <ul class="small" style="margin:0;padding-left:18px;display:grid;gap:4px">
+        <li>The hook lands in the first 2 seconds, before people swipe.</li>
+        <li>About 2.5 spoken words per second, so a 30-second video is about 75 words.</li>
+        <li>One idea per video, short sentences, and on-screen text for people watching muted.</li>
+        <li>Open a loop early ("the third one changed everything") and pay it off at the end.</li>
+      </ul>
+      <p class="muted small" id="storage-note" style="margin:0"></p>
+    </div>
+  </section>
+</div>
+
+<nav class="tabbar"><div class="tabbar-inner">
+  <button class="tab active" data-view="write"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg>Write</button>
+  <button class="tab" data-view="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg>Library</button>
+  <button class="tab" data-view="me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>You</button>
+</div></nav>
+
+<div class="prompter" id="prompter" hidden role="dialog" aria-modal="true" aria-label="Teleprompter">
+  <div class="pbar">
+    <button class="pbtn" id="p-close" type="button">✕ Close</button>
+    <div class="row">
+      <button class="pbtn" id="p-smaller" type="button" aria-label="Smaller text">A−</button>
+      <button class="pbtn" id="p-bigger" type="button" aria-label="Bigger text">A+</button>
+      <button class="pbtn" id="p-mirror" type="button">Mirror</button>
+    </div>
+  </div>
+  <div class="scroller" id="p-scroller"><div class="guide"></div><div class="ptext" id="p-text"></div></div>
+  <div class="pbar">
+    <label style="color:#bbb;display:flex;align-items:center;gap:8px;font-size:13px">Speed<input type="range" id="p-speed" min="1" max="10" value="4"></label>
+    <button class="pbtn go" id="p-play" type="button">▶ Start</button>
+  </div>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+let toastT; function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2400); }
+const WPS = 2.5; // spoken words per second on short-form video
+
+// ===================== storage (this device first, synced through the artifact store) =====================
+const PREFIX = 'hl:';
+const cache = {}; let remote = null; const pending = new Set(); let flushing = false, flushT;
+const lsGet = (k) => { try { return JSON.parse(localStorage.getItem(PREFIX + k)); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(PREFIX + k, JSON.stringify(v)); } catch {} };
+const lsKeys = () => { try { return Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).map((k) => k.slice(PREFIX.length)); } catch { return []; } };
+function doc(k) { if (!(k in cache)) cache[k] = lsGet(k) ?? (k === 'core' ? { profile: {}, brief: {}, draft: null } : null); return cache[k]; }
+const core = () => doc('core');
+function persist(k) { lsSet(k, cache[k]); if (!remote) return; pending.add(k); clearTimeout(flushT); flushT = setTimeout(flush, 700); }
+async function flush() { if (flushing || !remote) return; flushing = true; try { while (pending.size) { const k = pending.values().next().value; pending.delete(k); if (cache[k] === null) await remote.doc(k).delete(); else await remote.doc(k).set(JSON.parse(JSON.stringify(cache[k]))); } setSync('synced'); } catch { setSync('error'); } finally { flushing = false; } }
+function setSync(s) { const el = $('#sync'); el.dataset.s = s; el.textContent = s === 'synced' ? 'Synced' : s === 'error' ? 'Not synced' : s === 'loading' ? 'Syncing…' : 'This device';
+  $('#storage-note').textContent = s === 'synced' ? 'Your scripts are saved to your Claude account and sync across devices. Only you can see them.' : 'Your scripts are saved in this browser.'; }
+async function connectStore() {
+  if (!window.claude?.use) return setSync('local');
+  setSync('loading');
+  const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+  const id = user ? await user.id() : null;
+  if (!db || !id) return setSync('local');
+  const coll = db.collection('data/users/' + id);
+  const t = setTimeout(() => setSync('local'), 10000);
+  try {
+    const snap = await coll.get(); clearTimeout(t); remote = coll;
+    const have = new Set();
+    for (const d of snap.docs) { if (!d.exists) continue; have.add(d.id); cache[d.id] = JSON.parse(JSON.stringify(d.data())); lsSet(d.id, cache[d.id]); }
+    for (const k of lsKeys()) if (!have.has(k)) { doc(k); if (cache[k]) pending.add(k); }
+    setSync('synced'); if (pending.size) flush(); render();
+  } catch { clearTimeout(t); setSync('local'); }
+}
+const scriptKeys = () => [...new Set([...Object.keys(cache), ...lsKeys()])].filter((k) => k.startsWith('s-') && doc(k));
+
+// ===================== brief =====================
+const PICKS = {
+  platform: ['TikTok', 'Reels', 'Shorts', 'YouTube intro'],
+  length: ['15s', '30s', '45s', '60s'],
+  style: ['Tutorial', 'Educational', 'Story', 'Hype', 'Funny', 'Hot take', 'Day in my life'],
+};
+const DEFAULT_BRIEF = { platform: 'TikTok', length: '30s', style: 'Tutorial' };
+function brief() { return { ...DEFAULT_BRIEF, ...(core().brief || {}) }; }
+function renderPicks() {
+  const b = brief();
+  for (const el of $$('[data-pick]')) {
+    const k = el.dataset.pick;
+    el.innerHTML = PICKS[k].map((v) => `<button type="button" class="chip${b[k] === v ? ' on' : ''}" data-v="${v}">${v}</button>`).join('');
+  }
+}
+$('#brief').addEventListener('click', (e) => {
+  const c = e.target.closest('[data-pick] .chip'); if (!c) return;
+  core().brief = { ...brief(), [c.closest('[data-pick]').dataset.pick]: c.dataset.v }; persist('core'); renderPicks();
+});
+
+// ===================== AI =====================
+const SCRIPT_SCHEMA = {
+  type: 'object', additionalProperties: false, required: ['title', 'hooks', 'beats', 'caption', 'hashtags'],
+  properties: {
+    title: { type: 'string' }, caption: { type: 'string' }, hashtags: { type: 'array', items: { type: 'string' } },
+    hooks: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['text', 'why', 'score'], properties: { text: { type: 'string' }, why: { type: 'string' }, score: { type: 'number' } } } },
+    beats: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['label', 'say', 'show', 'shot'], properties: { label: { type: 'string' }, say: { type: 'string' }, show: { type: 'string' }, shot: { type: 'string' } } } },
+  },
+};
+const KEY_STORE = 'macrolens-apikey', MODEL = 'claude-opus-5-5', SDK_URL = 'https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.8.0/+esm';
+let aiSample = null, ownKey = null, sdk = null;
+const aiReady = () => !!(aiSample || ownKey);
+async function askJson(prompt, schema) {
+  if (aiSample) return aiSample.json(prompt, { modelTier: 'default' });
+  sdk ??= await import(SDK_URL).catch(() => { throw { code: 'sdk_load' }; });
+  const Anthropic = sdk.default, client = new Anthropic({ apiKey: ownKey, dangerouslyAllowBrowser: true });
+  let res;
+  try {
+    res = await client.beta.messages.create({ model: MODEL, max_tokens: 8000, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default',
+      output_config: { effort: 'medium', format: { type: 'json_schema', schema } }, messages: [{ role: 'user', content: prompt }] });
+  } catch (e) {
+    if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) throw { code: 'bad_key' };
+    if (e instanceof Anthropic.RateLimitError) throw { code: 'rate_limited' };
+    throw { code: 'upstream_error' };
+  }
+  if (res.stop_reason === 'refusal') throw { code: 'refused' };
+  try { return JSON.parse(res.content.find((b) => b.type === 'text').text); } catch { throw { code: 'invalid_json' }; }
+}
+const AI_ERRORS = { not_granted: 'AI is turned off for this page.', rate_limited: 'AI is busy or you hit a usage limit. Try again in a minute.', bad_key: 'Your API key was rejected. Check it on the You tab.',
+  sdk_load: "Couldn't load the AI library. Check your connection.", invalid_json: 'The answer came back garbled. Try again.', refused: 'The AI declined this topic. Try a different angle.', session_expired: 'Sign in to Claude again.' };
+const errText = (e) => AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
+function channelLine() {
+  const p = core().profile || {};
+  return `Creator: ${p.niche?.trim() || 'a high school basketball player who posts training and hooping content'}. Voice on camera: ${p.voice?.trim() || 'casual, direct, confident, like a teenager talking to friends'}.${p.handle?.trim() ? ` Handle: ${p.handle.trim()}.` : ''}`;
+}
+const SHAPE = `Reply with only JSON in exactly this shape:
+{"title": "Short working title", "hooks": [{"text": "The exact first line spoken", "why": "Why it stops the scroll", "score": 9}], "beats": [{"label": "Setup", "say": "Exact words to say", "show": "On-screen text, 2-6 words", "shot": "What the camera shows"}], "caption": "Post caption, 1-2 lines, may end with a question", "hashtags": ["#basketball", "#hoops"]}`;
+function scriptPrompt(b, topic, cta, points) {
+  const secs = parseInt(b.length, 10), words = Math.round(secs * WPS);
+  return `You are a short-form video strategist who writes scripts that hold attention. Write a ${b.length} ${b.style.toLowerCase()} script for ${b.platform}.
+${channelLine()}
+Topic: ${topic}
+${points ? `Must include: ${points}` : ''}
+Ending: ${cta === 'Nothing, just end strong' ? 'no call to action, end on the strongest line' : `ask viewers to ${cta.toLowerCase()}`}.
+Rules:
+- 3 hooks, each a single spoken line under 12 words that lands in the first 2 seconds. Use different angles (bold claim, question, result first, mistake callout). Score each 1-10 for scroll-stopping power, best first.
+- The beats come AFTER the hook (do not repeat the hook). Total spoken words across all beats: about ${words - 6} (the whole video is ${secs} seconds at about 2.5 words per second, including the hook).
+- 3 to 6 beats. Short sentences, how a teenager actually talks, no corporate words, no emojis in spoken lines. Open a loop early and pay it off. Last beat is the ending.
+- "show" is bold on-screen text for people watching muted. "shot" is a simple filming direction they can do with a phone.
+- 3-6 relevant hashtags, mixing broad and niche.
+${SHAPE}`;
+}
+
+// ===================== current script =====================
+let cur = null; // {id, title, topic, brief, cta, hooks, hookIndex, beats, caption, hashtags, status, created}
+function normalize(r, base) {
+  if (!r || !Array.isArray(r.beats) || !r.beats.length) throw { code: 'invalid_json' };
+  const hooks = (r.hooks || []).slice(0, 3).map((h) => ({ text: String(h.text || '').trim(), why: String(h.why || ''), score: Math.max(1, Math.min(10, Math.round(Number(h.score) || 7))) })).filter((h) => h.text);
+  return { ...base, title: String(r.title || base.topic).slice(0, 80), hooks: hooks.length ? hooks : base.hooks || [], hookIndex: 0,
+    beats: r.beats.slice(0, 8).map((x) => ({ label: String(x.label || 'Beat'), say: String(x.say || '').trim(), show: String(x.show || ''), shot: String(x.shot || '') })),
+    caption: String(r.caption || ''), hashtags: (r.hashtags || []).map((t) => '#' + String(t).replace(/^#+/, '').replace(/\s+/g, '')).slice(0, 8) };
+}
+const wordCount = (t) => (String(t).trim().match(/\S+/g) || []).length;
+function spoken() { return [cur.hooks[cur.hookIndex]?.text || '', ...cur.beats.map((b) => b.say)].filter(Boolean); }
+function renderScript() {
+  if (!cur) { $('#result').hidden = true; return; }
+  $('#result').hidden = false;
+  $('#script-title').textContent = cur.title;
+  $('#hooks').innerHTML = cur.hooks.map((h, i) => `<button type="button" class="hook${i === cur.hookIndex ? ' on' : ''}" data-hook="${i}"><span class="radio" aria-hidden="true"></span><span><b>“${esc(h.text)}”</b><small>${esc(h.why)}</small></span><span class="score">${h.score}/10</span></button>`).join('');
+  renderBeats(); renderMeter();
+  $('#caption').innerHTML = `${esc(cur.caption)}\n\n<span class="tags">${esc(cur.hashtags.join(' '))}</span>`;
+}
+function beatTimes() {
+  // Time codes follow the words: hook first, then each beat at 2.5 words a second.
+  let t = 0; const out = [];
+  const hookSecs = wordCount(cur.hooks[cur.hookIndex]?.text || '') / WPS;
+  out.push([0, hookSecs]); t = hookSecs;
+  for (const b of cur.beats) { const d = wordCount(b.say) / WPS; out.push([t, t + d]); t += d; }
+  return out;
+}
+const tc = (s) => `0:${String(Math.round(s)).padStart(2, '0')}`;
+function renderBeats() {
+  const times = beatTimes(), hook = cur.hooks[cur.hookIndex];
+  $('#beats').innerHTML = `<div class="beat"><div class="tc">${tc(times[0][0])}<small>Hook</small></div><div><div style="font-weight:700;font-size:15px">“${esc(hook?.text || '')}”</div><div class="meta"><span>Tap a different hook above to swap it.</span></div></div></div>` +
+    cur.beats.map((b, i) => `<div class="beat"><div class="tc">${tc(times[i + 1][0])}<small>${esc(b.label)}</small></div><div>
+      <textarea rows="${Math.max(2, Math.ceil(b.say.length / 38))}" data-beat="${i}" aria-label="${esc(b.label)} line">${esc(b.say)}</textarea>
+      <div class="meta">${b.show ? `<span><b>Text:</b> ${esc(b.show)}</span>` : ''}${b.shot ? `<span><b>Shot:</b> ${esc(b.shot)}</span>` : ''}</div></div></div>`).join('');
+}
+function renderMeter() {
+  const total = spoken().reduce((a, t) => a + wordCount(t), 0), secs = Math.round(total / WPS), target = parseInt(cur.brief.length, 10);
+  $('#words').textContent = `${total} words · about ${secs}s`;
+  const m = $('#meter'); m.style.width = Math.min(100, (secs / target) * 100) + '%'; m.classList.toggle('over', secs > target + 3);
+  $('#meter-note').textContent = secs > target + 3 ? `About ${secs - target}s over your ${target}s target. Trim a line or tap Shorter.` : secs < target - 6 ? `About ${target - secs}s under ${target}s. Room for one more line.` : `Right on time for ${target}s.`;
+}
+$('#hooks').addEventListener('click', (e) => { const h = e.target.closest('[data-hook]'); if (!h) return; cur.hookIndex = Number(h.dataset.hook); saveDraft(); renderScript(); });
+$('#beats').addEventListener('input', (e) => { const i = e.target.dataset.beat; if (i == null) return; cur.beats[Number(i)].say = e.target.value; renderMeter(); saveDraft(); });
+$('#beats').addEventListener('change', () => renderBeats());
+function saveDraft() { core().draft = cur; persist('core'); if (cur?.id && doc('s-' + cur.id)) { cache['s-' + cur.id] = { ...cur }; persist('s-' + cur.id); } }
+
+$('#brief').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const topic = $('#topic').value.trim(); if (!topic) return toast('Write what the video is about');
+  if (!aiReady()) { $('#write-status').textContent = window.claude?.use ? 'AI is not available in this view.' : 'Add your Claude API key on the You tab to write scripts.'; return; }
+  const b = brief(), cta = $('#cta').value, points = $('#points').value.trim();
+  const btn = $('#write-btn'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Writing… (10-30 s)'; $('#write-status').textContent = '';
+  try {
+    cur = normalize(await askJson(scriptPrompt(b, topic.slice(0, 600), cta, points.slice(0, 200)), SCRIPT_SCHEMA), { id: null, topic, brief: b, cta, status: 'idea', created: Date.now() });
+    saveDraft(); renderScript();
+    $('#result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (err) { $('#write-status').textContent = errText(err); }
+  finally { btn.disabled = false; btn.textContent = 'Write my script'; }
+});
+$('#remix').addEventListener('click', async (e) => {
+  const c = e.target.closest('[data-remix]'); if (!c || !cur) return;
+  if (!aiReady()) return;
+  const label = c.dataset.label || c.textContent; c.dataset.label = label;
+  const current = { title: cur.title, hooks: cur.hooks, beats: cur.beats, caption: cur.caption, hashtags: cur.hashtags };
+  const prompt = `You are a short-form video strategist. Here is a ${cur.brief.length} ${cur.brief.platform} script as JSON:\n${JSON.stringify(current)}\n${channelLine()}\nChange requested: ${c.dataset.remix}\nKeep what works, keep about 2.5 spoken words per second${label === 'Shorter' ? '' : ` and stay near ${cur.brief.length}`}, and return the full script.${label === 'New hooks' ? '' : ' Keep the hooks in the same order.'}\n${SHAPE}`;
+  $$('#remix .chip').forEach((x) => (x.disabled = true)); c.innerHTML = '<span class="spinner"></span>';
+  $('#remix-status').textContent = 'Remixing…';
+  const keepHook = label === 'New hooks' ? 0 : cur.hookIndex;
+  try {
+    cur = normalize(await askJson(prompt, SCRIPT_SCHEMA), { ...cur });
+    cur.hookIndex = Math.min(keepHook, Math.max(0, cur.hooks.length - 1));
+    saveDraft(); renderScript(); $('#remix-status').textContent = `Remixed: ${label.toLowerCase()}.`;
+  } catch (err) { $('#remix-status').textContent = errText(err); }
+  finally { $$('#remix .chip').forEach((x) => (x.disabled = false)); c.textContent = label; }
+});
+function fullText() { return [`HOOK: ${cur.hooks[cur.hookIndex]?.text || ''}`, ...cur.beats.map((b) => `${b.label.toUpperCase()}: ${b.say}${b.show ? `\n  [Text: ${b.show}]` : ''}${b.shot ? `\n  [Shot: ${b.shot}]` : ''}`), '', 'CAPTION:', cur.caption, cur.hashtags.join(' ')].join('\n'); }
+function copy(text, ok) { navigator.clipboard.writeText(text).then(() => toast(ok), () => toast('Copy is blocked here. Long-press the text to copy.')); }
+$('#copy-script').addEventListener('click', () => cur && copy(fullText(), 'Script copied'));
+$('#copy-caption').addEventListener('click', () => cur && copy(`${cur.caption}\n\n${cur.hashtags.join(' ')}`, 'Caption copied'));
+$('#save-btn').addEventListener('click', () => {
+  if (!cur) return;
+  cur.id ||= Date.now().toString(36);
+  cache['s-' + cur.id] = { ...cur, saved: Date.now() }; persist('s-' + cur.id); saveDraft();
+  toast('Saved to your library');
+});
+
+// ===================== library =====================
+let libFilter = 'all';
+function renderLibrary() {
+  const items = scriptKeys().map((k) => doc(k)).sort((a, b) => (b.saved || 0) - (a.saved || 0));
+  $('#lib-count').textContent = `${items.length} saved`;
+  const shown = items.filter((s) => libFilter === 'all' || s.status === libFilter);
+  $('#library').innerHTML = shown.length ? shown.map((s) => `<div class="lib-item"><b>${esc(s.title)}</b>
+    <span class="muted small">${esc(s.brief.platform)} · ${esc(s.brief.length)} · ${esc(s.brief.style)} · ${new Date(s.saved || s.created).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+    <span class="small">“${esc(s.hooks[s.hookIndex]?.text || '')}”</span>
+    <div class="row-between"><div class="status" data-id="${s.id}">${['idea', 'filmed', 'posted'].map((st) => `<button type="button" class="${s.status === st ? 'on' : ''}" data-st="${st}">${st[0].toUpperCase() + st.slice(1)}</button>`).join('')}</div>
+    <div class="row"><button type="button" class="chip" data-open="${s.id}">Open</button><button type="button" class="chip" data-del="${s.id}" aria-label="Delete ${esc(s.title)}">Delete</button></div></div></div>`).join('')
+    : `<div class="empty">${items.length ? 'Nothing here yet.' : 'Scripts you save show up here. Write one on the Write tab, then tap Save to library.'}</div>`;
+}
+$('#lib-filter').addEventListener('click', (e) => { const c = e.target.closest('[data-f]'); if (!c) return; libFilter = c.dataset.f; $$('#lib-filter .chip').forEach((x) => x.classList.toggle('on', x === c)); renderLibrary(); });
+let pendingDelete = null;
+$('#library').addEventListener('click', (e) => {
+  const st = e.target.closest('[data-st]');
+  if (st) { const id = st.closest('[data-id]').dataset.id, s = doc('s-' + id); s.status = st.dataset.st; persist('s-' + id); if (cur?.id === id) cur.status = s.status; renderLibrary(); return; }
+  const op = e.target.closest('[data-open]');
+  if (op) { cur = { ...doc('s-' + op.dataset.open) }; $('#topic').value = cur.topic; saveDraft(); showView('write'); renderScript(); return; }
+  const del = e.target.closest('[data-del]');
+  if (del) {
+    if (pendingDelete !== del.dataset.del) { pendingDelete = del.dataset.del; del.textContent = 'Tap again to delete'; setTimeout(() => { if (pendingDelete === del.dataset.del) { pendingDelete = null; renderLibrary(); } }, 3000); return; }
+    cache['s-' + pendingDelete] = null; try { localStorage.removeItem(PREFIX + 's-' + pendingDelete); } catch {}
+    if (remote) { pending.add('s-' + pendingDelete); flush(); }
+    pendingDelete = null; renderLibrary(); toast('Deleted');
+  }
+});
+
+// ===================== teleprompter =====================
+let pState = { playing: false, size: 34, raf: 0, last: 0, lock: null };
+function openPrompter() {
+  if (!cur) return;
+  $('#p-text').innerHTML = spoken().map((t) => `<p>${esc(t)}</p>`).join('');
+  $('#p-text').style.fontSize = pState.size + 'px';
+  $('#prompter').hidden = false; document.body.style.overflow = 'hidden';
+  $('#p-scroller').scrollTop = 0; setPlay(false);
+  try { navigator.wakeLock?.request('screen').then((l) => (pState.lock = l)).catch(() => {}); } catch {}
+}
+function closePrompter() { setPlay(false); $('#prompter').hidden = true; document.body.style.overflow = ''; try { pState.lock?.release(); } catch {} }
+function setPlay(on) {
+  pState.playing = on; $('#p-play').textContent = on ? '❚❚ Pause' : '▶ Start';
+  cancelAnimationFrame(pState.raf);
+  if (on) { pState.last = performance.now(); pState.raf = requestAnimationFrame(step); }
+}
+function step(now) {
+  const dt = (now - pState.last) / 1000; pState.last = now;
+  const sc = $('#p-scroller'); sc.scrollTop += dt * Number($('#p-speed').value) * 12 * (pState.size / 34);
+  if (sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2) return setPlay(false);
+  pState.raf = requestAnimationFrame(step);
+}
+$('#prompter-btn').addEventListener('click', openPrompter);
+$('#p-close').addEventListener('click', closePrompter);
+$('#p-play').addEventListener('click', () => setPlay(!pState.playing));
+$('#p-scroller').addEventListener('click', () => setPlay(!pState.playing));
+$('#p-bigger').addEventListener('click', () => { pState.size = Math.min(64, pState.size + 4); $('#p-text').style.fontSize = pState.size + 'px'; });
+$('#p-smaller').addEventListener('click', () => { pState.size = Math.max(22, pState.size - 4); $('#p-text').style.fontSize = pState.size + 'px'; });
+$('#p-mirror').addEventListener('click', () => $('#prompter').classList.toggle('mirror'));
+document.addEventListener('keydown', (e) => { if ($('#prompter').hidden) return; if (e.key === 'Escape') closePrompter(); if (e.key === ' ') { e.preventDefault(); setPlay(!pState.playing); } });
+
+// ===================== You =====================
+function renderMe() { const p = core().profile || {}; $('#pf-niche').value = p.niche || ''; $('#pf-voice').value = p.voice || ''; $('#pf-handle').value = p.handle || ''; }
+$('#profile').addEventListener('submit', (e) => { e.preventDefault(); core().profile = { niche: $('#pf-niche').value.trim().slice(0, 160), voice: $('#pf-voice').value.trim().slice(0, 160), handle: $('#pf-handle').value.trim().slice(0, 40) }; persist('core'); toast('Saved'); });
+function applyKey() { $('#key-status').textContent = ownKey ? `Key saved (ends in ${ownKey.slice(-4)}).` : 'No key saved.'; $('#key-remove').hidden = !ownKey; }
+$('#key-card').addEventListener('submit', (e) => { e.preventDefault(); const k = $('#api-key').value.trim(); if (!/^sk-ant-[\w-]{20,}$/.test(k)) return toast('That does not look like a Claude API key'); ownKey = k; try { localStorage.setItem(KEY_STORE, k); } catch {} $('#api-key').value = ''; applyKey(); toast('Key saved'); });
+$('#key-remove').addEventListener('click', () => { ownKey = null; try { localStorage.removeItem(KEY_STORE); } catch {} applyKey(); });
+
+// ===================== navigation + boot =====================
+let view = 'write';
+function render() { renderPicks(); if (view === 'write') { if (!cur && core().draft) cur = core().draft; if (cur && !$('#topic').value) $('#topic').value = cur.topic; renderScript(); } if (view === 'library') renderLibrary(); if (view === 'me') renderMe(); }
+function showView(v) { view = v; $$('.tab').forEach((t) => t.classList.toggle('active', t.dataset.view === v)); for (const id of ['write', 'library', 'me']) $('#view-' + id).hidden = id !== v; render(); window.scrollTo(0, 0); }
+$$('.tab').forEach((t) => t.addEventListener('click', () => showView(t.dataset.view)));
+setSync('local'); render();
+(async () => {
+  if (window.claude?.use) aiSample = await claude.use('sample');
+  else { $('#key-card').hidden = false; try { ownKey = localStorage.getItem(KEY_STORE) || null; } catch {} applyKey(); }
+  if (!aiReady()) $('#write-status').textContent = window.claude?.use ? 'AI is not available in this view.' : 'Add your Claude API key on the You tab to write scripts.';
+})();
+connectStore();
+</script>

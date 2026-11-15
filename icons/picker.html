@@ -1,0 +1,198 @@
+<title>App Icon Picker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Sora:wght@700;800&display=swap">
+<style>
+/* Layout: phone home-screen mockup on top (live preview of the picks), then one option grid per app. Dark-first like an iPhone home screen. */
+:root {
+  --bg: #0f1012; --surface: #1b1d21; --surface-2: #26292f; --line: #33373e;
+  --fg: #f2f3f5; --muted: #9aa0aa; --accent: #4f7cff; --pick: #3fcf8e;
+  --f-display: "Sora", "Inter", system-ui, sans-serif; --f-body: "Inter", system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { --bg: #eef0f3; --surface: #ffffff; --surface-2: #f1f3f6; --line: #d8dce3; --fg: #14161a; --muted: #5d6470; --accent: #2f5fe0; --pick: #178a57; color-scheme: light; }
+}
+:root[data-theme="light"] { --bg: #eef0f3; --surface: #ffffff; --surface-2: #f1f3f6; --line: #d8dce3; --fg: #14161a; --muted: #5d6470; --accent: #2f5fe0; --pick: #178a57; color-scheme: light; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.45 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 40px; }
+.wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 28px; }
+h1 { font-family: var(--f-display); font-size: 26px; margin: 0; letter-spacing: -.3px; }
+h2 { font-family: var(--f-display); font-size: 19px; margin: 0; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.lead { display: grid; gap: 6px; }
+
+/* phone preview: always dark, like the real home screen */
+.phone { justify-self: center; width: min(360px, 100%); border-radius: 36px; background: #121212; border: 8px solid #2a2a2e; padding: 28px 18px 22px; display: grid; gap: 18px; }
+.phone .clock { color: #fff; font-weight: 700; font-size: 17px; padding-left: 10px; }
+.home { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 8px; }
+.app { display: grid; justify-items: center; gap: 6px; min-width: 0; }
+.app .ic { width: 100%; max-width: 64px; aspect-ratio: 1; border-radius: 22.5%; overflow: hidden; box-shadow: 0 0 0 .5px rgba(255,255,255,.08); }
+.app .ic svg { width: 100%; height: 100%; display: block; }
+.app span { color: #fff; font-size: 11px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.app.ghost .ic { background: #2a2b30; }
+.app.picked .ic { box-shadow: 0 0 0 2px var(--pick); }
+
+/* option grids */
+.group { display: grid; gap: 12px; }
+.options { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.opt { background: var(--surface); border: 2px solid var(--line); border-radius: 18px; padding: 14px; display: grid; gap: 10px; justify-items: center; text-align: center; cursor: pointer; color: inherit; font: inherit; }
+.opt:hover { border-color: var(--muted); }
+.opt[aria-pressed="true"] { border-color: var(--pick); background: var(--surface-2); }
+.opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.opt .big { width: 96px; height: 96px; border-radius: 22.5%; overflow: hidden; }
+.opt .big svg { width: 100%; height: 100%; display: block; }
+.opt b { font-size: 15px; }
+.opt small { color: var(--muted); font-size: 12px; line-height: 1.35; }
+.opt .tag { font-size: 11px; font-weight: 700; letter-spacing: .5px; color: var(--muted); }
+.opt[aria-pressed="true"] .tag { color: var(--pick); }
+
+.answer { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: grid; gap: 10px; }
+.answer code { font: 600 16px/1.4 var(--f-body); background: var(--surface-2); padding: 10px 12px; border-radius: 10px; display: block; overflow-wrap: anywhere; }
+.btn { justify-self: start; border: 0; background: var(--accent); color: #fff; border-radius: 12px; padding: 11px 16px; font: 600 15px var(--f-body); cursor: pointer; }
+.note { font-size: 13px; color: var(--muted); border-left: 3px solid var(--accent); padding-left: 10px; }
+</style>
+
+<div class="wrap">
+  <div class="lead">
+    <h1>Pick your app icons</h1>
+    <p class="muted">Tap one icon for MacroLens and one for ReadyUp. The phone shows how they'll look next to your other apps.</p>
+  </div>
+
+  <div class="phone" aria-label="Home screen preview">
+    <div class="clock">7:42</div>
+    <div class="home" id="home"></div>
+  </div>
+
+  <section class="group">
+    <h2>MacroLens</h2>
+    <div class="options" id="opt-macro"></div>
+  </section>
+
+  <section class="group">
+    <h2>ReadyUp (recovery)</h2>
+    <div class="options" id="opt-ready"></div>
+  </section>
+
+  <div class="answer">
+    <b>Your picks</b>
+    <code id="answer"></code>
+    <button class="btn" id="copy" type="button">Copy</button>
+    <p class="note">Send me your picks in the chat. I'll make them the real icons on the github.io versions. Claude links always show Claude's own icon.</p>
+  </div>
+</div>
+
+<script>
+// Each icon is drawn full-bleed on a 64x64 square; the rounded mask comes from CSS, like iOS does.
+const MACRO = [
+  { id: 'A', name: 'Macro Ring', note: 'The calorie ring from the app, split into protein, carbs and fat.', svg: `
+    <rect width="64" height="64" fill="#10231b"/>
+    <circle cx="32" cy="32" r="17" fill="none" stroke="#1d3a2e" stroke-width="7"/>
+    <path d="M32 15 A17 17 0 0 1 48.2 37.3" fill="none" stroke="#6aa7f5" stroke-width="7" stroke-linecap="round"/>
+    <path d="M45.4 42.5 A17 17 0 0 1 20.6 44.6" fill="none" stroke="#f2bd3d" stroke-width="7" stroke-linecap="round"/>
+    <path d="M17.4 40.7 A17 17 0 0 1 26.3 16" fill="none" stroke="#f07ab3" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="32" cy="32" r="5" fill="#3ccf94"/>` },
+  { id: 'B', name: 'Scan Plate', note: 'A plate inside camera corners: snap food, get macros.', svg: `
+    <defs><linearGradient id="mb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#19b37a"/><stop offset="1" stop-color="#0b6e4b"/></linearGradient></defs>
+    <rect width="64" height="64" fill="url(#mb)"/>
+    <path d="M12 21v-6a3 3 0 0 1 3-3h6M43 12h6a3 3 0 0 1 3 3v6M52 43v6a3 3 0 0 1-3 3h-6M21 52h-6a3 3 0 0 1-3-3v-6" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="32" cy="32" r="13" fill="#fff"/>
+    <circle cx="32" cy="32" r="8.5" fill="none" stroke="#c9eedd" stroke-width="2"/>
+    <circle cx="29" cy="30" r="3" fill="#f2bd3d"/><circle cx="35.5" cy="34" r="3.4" fill="#e0662a"/><circle cx="34" cy="28.5" r="2" fill="#3ccf94"/>` },
+  { id: 'C', name: 'Lens', note: 'A camera lens whose blades are the macro colors.', svg: `
+    <rect width="64" height="64" fill="#0d1110"/>
+    <circle cx="32" cy="32" r="21" fill="#1a201e"/>
+    <g transform="translate(32 32)">
+      <path d="M0-18 L15.6-9 L4-2.3 Z" fill="#3ccf94"/><path d="M15.6-9 L15.6 9 L4 2.3 Z" fill="#6aa7f5"/>
+      <path d="M15.6 9 L0 18 L0 4.6 Z" fill="#f2bd3d"/><path d="M0 18 L-15.6 9 L-4 2.3 Z" fill="#f07ab3"/>
+      <path d="M-15.6 9 L-15.6-9 L-4-2.3 Z" fill="#3ccf94"/><path d="M-15.6-9 L0-18 L0-4.6 Z" fill="#6aa7f5"/>
+    </g>
+    <circle cx="32" cy="32" r="21" fill="none" stroke="#3a4440" stroke-width="2.5"/>
+    <circle cx="38" cy="25" r="2.2" fill="#fff" opacity=".8"/>` },
+  { id: 'D', name: 'ML Badge', note: 'Bold letters, matches your A and D style apps.', svg: `
+    <rect width="64" height="64" fill="#0f8a5f"/>
+    <circle cx="32" cy="32" r="22" fill="#0b6b49"/>
+    <text x="32" y="40.5" text-anchor="middle" font-family="Sora, Inter, system-ui, sans-serif" font-weight="800" font-size="23" fill="#fff" letter-spacing="-1">ML</text>` },
+  { id: 'E', name: 'Fuel Bolt', note: 'An apple with a lightning bolt: food is fuel.', svg: `
+    <defs><linearGradient id="me" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f2a24"/><stop offset="1" stop-color="#0b120e"/></linearGradient></defs>
+    <rect width="64" height="64" fill="url(#me)"/>
+    <path d="M32 21c-3-3.5-12-4-14.5 4.5-2.4 8.2 3 21 9 21.5 2.6.2 3.5-1.5 5.5-1.5s2.9 1.7 5.5 1.5c6-.5 11.4-13.3 9-21.5C44 17 35 17.5 32 21z" fill="#3ccf94"/>
+    <path d="M32 21c0-4 1.5-7 5-9" fill="none" stroke="#6b4a2b" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M34 25l-7 11h5l-2 9 8-12h-5l1-8z" fill="#0d1110"/>` },
+];
+const READY = [
+  { id: '1', name: 'Gauge', note: 'The readiness dial from the app, needle in the green.', svg: `
+    <rect width="64" height="64" fill="#3552c9"/>
+    <path d="M14 41a18 18 0 0 1 36 0" fill="none" stroke="#2b43a6" stroke-width="7" stroke-linecap="round"/>
+    <path d="M14 41a18 18 0 0 1 5.3-12.7" fill="none" stroke="#ff7a6e" stroke-width="7" stroke-linecap="round"/>
+    <path d="M22.6 25.6a18 18 0 0 1 14.9-3.4" fill="none" stroke="#f2b43a" stroke-width="7" stroke-linecap="round"/>
+    <path d="M41.6 24a18 18 0 0 1 8.4 17" fill="none" stroke="#3fcf8e" stroke-width="7" stroke-linecap="round"/>
+    <path d="M32 41 L42 29" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="32" cy="41" r="4.5" fill="#fff"/>` },
+  { id: '2', name: 'Battery', note: 'Your body battery, charging back up.', svg: `
+    <rect width="64" height="64" fill="#0f1726"/>
+    <rect x="13" y="21" width="34" height="22" rx="5" fill="none" stroke="#e9eef7" stroke-width="3.2"/>
+    <rect x="48.5" y="28" width="3.5" height="8" rx="1.5" fill="#e9eef7"/>
+    <rect x="17.5" y="25.5" width="7" height="13" rx="2" fill="#3fcf8e"/><rect x="26.5" y="25.5" width="7" height="13" rx="2" fill="#3fcf8e"/><rect x="35.5" y="25.5" width="7" height="13" rx="2" fill="#3fcf8e" opacity=".35"/>
+    <path d="M32.5 7l-4.5 6.5h4l-2.5 5" fill="none" stroke="#f2b43a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` },
+  { id: '3', name: 'Pulse', note: 'A heartbeat line, for resting heart rate and recovery.', svg: `
+    <defs><linearGradient id="r3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b5e"/><stop offset="1" stop-color="#c2263a"/></linearGradient></defs>
+    <rect width="64" height="64" fill="url(#r3)"/>
+    <path d="M32 47S13 36 13 24.5C13 18 17.8 14 23 14c4 0 7 2.4 9 5.5C34 16.4 37 14 41 14c5.2 0 10 4 10 10.5C51 36 32 47 32 47z" fill="#fff" opacity=".95"/>
+    <path d="M17 30h8l3-6 4 11 3-7 2 2h10" fill="none" stroke="#c2263a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>` },
+  { id: '4', name: 'Night Charge', note: 'A moon and a bolt: sleep is where you recharge.', svg: `
+    <defs><linearGradient id="r4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#26306b"/><stop offset="1" stop-color="#0c1130"/></linearGradient></defs>
+    <rect width="64" height="64" fill="url(#r4)"/>
+    <circle cx="14" cy="15" r="1.2" fill="#fff" opacity=".7"/><circle cx="50" cy="12" r="1" fill="#fff" opacity=".6"/><circle cx="53" cy="44" r="1.2" fill="#fff" opacity=".5"/>
+    <path d="M38 13a20 20 0 1 0 13 30A16 16 0 0 1 38 13z" fill="#dfe6fb"/>
+    <path d="M34 22l-8 12h6l-3 10 10-14h-6l3-8z" fill="#3fcf8e"/>` },
+  { id: '5', name: 'RU Badge', note: 'Bold letters on the app blue, with a green check.', svg: `
+    <rect width="64" height="64" fill="#3552c9"/>
+    <text x="30" y="41" text-anchor="middle" font-family="Sora, Inter, system-ui, sans-serif" font-weight="800" font-size="24" fill="#fff" letter-spacing="-1">RU</text>
+    <circle cx="48" cy="18" r="8" fill="#3fcf8e"/>
+    <path d="M44.3 18l2.6 2.6 4.8-5" fill="none" stroke="#0b2a1c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>` },
+];
+
+const icon = (o) => `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${o.svg}</svg>`;
+let pick = { macro: 'A', ready: '1' };
+try { const saved = JSON.parse(localStorage.getItem('icon-picks') || 'null'); if (saved?.macro && saved?.ready) pick = saved; } catch {}
+
+// Stand-ins for the apps already on the home screen, so the picks are judged in context.
+const OTHERS = [
+  { name: 'Betting Plays', svg: '<rect width="64" height="64" fill="#e8622d"/><rect x="16" y="30" width="7" height="18" rx="1.5" fill="#fff" opacity=".85"/><rect x="28.5" y="20" width="7" height="28" rx="1.5" fill="#fff" opacity=".85"/><rect x="41" y="26" width="7" height="22" rx="1.5" fill="#fff" opacity=".85"/>' },
+  { name: 'GAME DAY', svg: '<rect width="64" height="64" fill="#111"/><circle cx="32" cy="32" r="18" fill="#ee6a2c"/><path d="M14 32h36M32 14v36M20 19c6 6 6 20 0 26M44 19c-6 6-6 20 0 26" fill="none" stroke="#111" stroke-width="2.4"/>' },
+  { name: 'Basketball…', svg: '<rect width="64" height="64" fill="#111"/><circle cx="32" cy="32" r="20" fill="#ee7d2c"/><text x="32" y="41" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="26" fill="#111">A</text>' },
+  { name: 'Daily Vitamins', svg: '<rect width="64" height="64" fill="#4a4a4e"/><text x="32" y="43" text-anchor="middle" font-family="Inter, sans-serif" font-weight="800" font-size="30" fill="#eee">D</text>' },
+  { name: 'Home app', svg: '<rect width="64" height="64" fill="#1c1d2a"/><rect x="15" y="15" width="15" height="15" rx="4" fill="#8b7cf6"/><rect x="34" y="15" width="15" height="15" rx="4" fill="#ef8a6c"/><rect x="15" y="34" width="15" height="15" rx="4" fill="#f4b740"/><rect x="34" y="34" width="15" height="15" rx="4" fill="#5fd4b8"/><circle cx="32" cy="32" r="5" fill="#ff5f8f"/>' },
+];
+function renderHome() {
+  const m = MACRO.find((o) => o.id === pick.macro), r = READY.find((o) => o.id === pick.ready);
+  const apps = [...OTHERS.slice(0, 5).map((a) => ({ ...a, cls: '' })), { name: 'MacroLens', svg: m.svg, cls: 'picked' }, { name: 'ReadyUp', svg: r.svg, cls: 'picked' }];
+  $('#home').innerHTML = apps.map((a) => `<div class="app ${a.cls}"><div class="ic">${icon(a)}</div><span>${a.name}</span></div>`).join('');
+}
+function renderOptions(el, list, key, label) {
+  el.innerHTML = list.map((o) => `<button type="button" class="opt" aria-pressed="${pick[key] === o.id}" data-key="${key}" data-id="${o.id}">
+    <span class="tag">${label} ${o.id}${pick[key] === o.id ? ' · PICKED' : ''}</span><div class="big">${icon(o)}</div><b>${o.name}</b><small>${o.note}</small></button>`).join('');
+}
+function renderAnswer() {
+  const m = MACRO.find((o) => o.id === pick.macro), r = READY.find((o) => o.id === pick.ready);
+  $('#answer').textContent = `MacroLens ${m.id} (${m.name}) + ReadyUp ${r.id} (${r.name})`;
+}
+function renderAll() { renderHome(); renderOptions($('#opt-macro'), MACRO, 'macro', 'OPTION'); renderOptions($('#opt-ready'), READY, 'ready', 'OPTION'); renderAnswer(); }
+const $ = (s) => document.querySelector(s);
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('.opt'); if (!b) return;
+  pick[b.dataset.key] = b.dataset.id;
+  try { localStorage.setItem('icon-picks', JSON.stringify(pick)); } catch {}
+  renderAll();
+});
+$('#copy').addEventListener('click', () => {
+  const t = $('#answer').textContent;
+  navigator.clipboard.writeText(t).then(() => { $('#copy').textContent = 'Copied'; setTimeout(() => ($('#copy').textContent = 'Copy'), 1500); }, () => {
+    const r = document.createRange(); r.selectNodeContents($('#answer')); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  });
+});
+renderAll();
+</script>
