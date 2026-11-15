@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3552c9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ReadyUp">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<title>ReadyUp</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap">
+<style>
+/* Layout: one phone column; a readiness gauge leads, the plan follows; 4-tab bar fixed at the bottom. */
+:root {
+  --bg: #f2f4f8;
+  --surface: #ffffff;
+  --surface-2: #e9edf4;
+  --line: #d9dfea;
+  --fg: #111827;
+  --muted: #5f6b80;
+  --accent: #3552c9;
+  --accent-ink: #ffffff;
+  --accent-soft: #dfe6fb;
+  --go: #178a57;
+  --caution: #c98207;
+  --rest: #cc3d33;
+  --go-soft: #d8f0e4;
+  --caution-soft: #f8ebcf;
+  --rest-soft: #f7dcd9;
+  --scrim: rgba(12, 18, 32, .5);
+  --f-display: "Sora", "Inter", system-ui, sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radius: 16px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c111b; --surface: #151c29; --surface-2: #1f2836; --line: #2b3546;
+    --fg: #e9eef7; --muted: #8f9bb0; --accent: #7d95ff; --accent-ink: #0b1230; --accent-soft: #1f2a4d;
+    --go: #3fcf8e; --caution: #f2b43a; --rest: #ff7a6e; --go-soft: #143627; --caution-soft: #3a2e12; --rest-soft: #3d1d1a;
+    --scrim: rgba(0, 0, 0, .6); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c111b; --surface: #151c29; --surface-2: #1f2836; --line: #2b3546;
+  --fg: #e9eef7; --muted: #8f9bb0; --accent: #7d95ff; --accent-ink: #0b1230; --accent-soft: #1f2a4d;
+  --go: #3fcf8e; --caution: #f2b43a; --rest: #ff7a6e; --go-soft: #143627; --caution-soft: #3a2e12; --rest-soft: #3d1d1a;
+  --scrim: rgba(0, 0, 0, .6); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font: 15px/1.45 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 calc(92px + env(safe-area-inset-bottom, 0px));
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 540px; margin: 0 auto; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h2, h3 { font-family: var(--f-display); margin: 0; text-wrap: balance; }
+h3 { font-size: 16px; font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.num { font-variant-numeric: tabular-nums; }
+
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-block: 12px; background: var(--bg); }
+.topbar > * { min-width: 0; }
+.brand { font-family: var(--f-display); font-weight: 700; font-size: 19px; letter-spacing: -.3px; }
+.brand span { color: var(--accent); }
+.date-label { font-size: 13px; color: var(--muted); text-align: right; }
+.sync { font-size: 11px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.sync::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.sync[data-s="synced"]::before { background: var(--go); }
+.sync[data-s="error"]::before { background: var(--caution); }
+
+.view { display: grid; gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 12px; }
+.card > * { min-width: 0; }
+.row-between { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.row-gap { display: flex; gap: 8px; flex-wrap: wrap; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); min-width: 0; }
+input, select, textarea { width: 100%; min-width: 0; border: 1px solid var(--line); background: var(--surface-2); border-radius: 10px; padding: 10px 12px; outline: none; }
+input:focus, select:focus { border-color: var(--accent); }
+.btn { display: inline-flex; justify-content: center; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 12px 16px; font-weight: 600; cursor: pointer; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.block { width: 100%; }
+.mini { border: 1px solid var(--line); background: none; border-radius: 99px; padding: 4px 10px; font-size: 12px; color: var(--muted); cursor: pointer; }
+
+/* 1-5 scales */
+.q { display: grid; gap: 6px; }
+.q-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.q-head b { font-size: 14px; }
+.q-head span { font-size: 12px; color: var(--muted); }
+.scale { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.scale button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 10px; padding: 10px 0; font-weight: 600; cursor: pointer; font-variant-numeric: tabular-nums; }
+.scale button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.scale.rpe { grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; }
+.scale.rpe button { padding: 8px 0; font-size: 13px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+.chip.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.sleep-calc { font-size: 13px; color: var(--muted); }
+.sleep-calc b { color: var(--fg); }
+.session { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+.toggle { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--fg); }
+.toggle input { width: 20px; height: 20px; accent-color: var(--rest); }
+
+/* score */
+.score-card { text-align: center; justify-items: center; }
+.gauge { width: min(260px, 100%); }
+.gauge svg { width: 100%; height: auto; display: block; }
+.gauge text { font-family: var(--f-display); }
+.zone-pill { display: inline-block; font-weight: 700; font-size: 13px; padding: 5px 14px; border-radius: 99px; letter-spacing: .3px; }
+.zone-go { background: var(--go-soft); color: var(--go); }
+.zone-caution { background: var(--caution-soft); color: var(--caution); }
+.zone-rest { background: var(--rest-soft); color: var(--rest); }
+.headline { font-family: var(--f-display); font-size: 18px; font-weight: 600; max-width: 34ch; }
+.parts { display: grid; gap: 8px; width: 100%; text-align: left; }
+.part .row-between { font-size: 13px; flex-wrap: nowrap; }
+.bar { height: 7px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin-top: 4px; }
+.bar > div { height: 100%; border-radius: 99px; }
+.plan { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.plan li { display: grid; grid-template-columns: 10px 1fr; gap: 10px; }
+.plan .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; background: var(--accent); }
+.plan li.warn .dot { background: var(--caution); }
+.plan li.alert .dot { background: var(--rest); }
+.plan li.good .dot { background: var(--go); }
+.plan b { display: block; }
+.plan p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.alert-box { background: var(--rest-soft); border-radius: 12px; padding: 12px; font-size: 14px; }
+.alert-box b { color: var(--rest); }
+.stat-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.stat { background: var(--surface-2); border-radius: 12px; padding: 10px; text-align: center; }
+.stat b { display: block; font-family: var(--f-display); font-size: 20px; font-variant-numeric: tabular-nums; }
+.stat small { color: var(--muted); font-size: 11px; }
+
+.chart svg { width: 100%; height: auto; display: block; }
+.chart text { fill: var(--muted); font-size: 10px; font-family: var(--f-body); }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.list li > div { min-width: 0; }
+
+/* toolkit */
+.routine { display: grid; gap: 6px; padding: 12px 0; border-top: 1px solid var(--line); }
+.routine:first-of-type { border-top: 0; padding-top: 0; }
+.routine p { margin: 0; font-size: 13px; color: var(--muted); }
+.player { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: grid; place-items: center; text-align: center;
+  padding: calc(24px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px)); }
+.player-inner { display: grid; gap: 14px; justify-items: center; width: min(420px, 100%); }
+.player .step-count { font-size: 13px; color: var(--muted); }
+.player h2 { font-size: 24px; }
+.player .cue { color: var(--muted); max-width: 32ch; }
+.player .clock { font-family: var(--f-display); font-size: 64px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+.breath { width: 160px; height: 160px; border-radius: 50%; background: var(--accent-soft); display: grid; place-items: center; transition: transform 4s linear; font-family: var(--f-display); font-weight: 600; }
+.breath.big { transform: scale(1.35); }
+@media (prefers-reduced-motion: reduce) { .breath { transition: none; } }
+
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--surface); border-top: 1px solid var(--line);
+  padding: 8px max(8px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+.tabbar-inner { max-width: 540px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+.tab { background: none; border: 0; color: var(--muted); font-size: 11px; font-weight: 500; display: grid; justify-items: center; gap: 3px; cursor: pointer; padding: 4px; }
+.tab svg { width: 22px; height: 22px; }
+.tab.active { color: var(--accent); }
+#toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 99px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; transition: .25s; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.note { font-size: 13px; color: var(--muted); border-left: 3px solid var(--accent); padding-left: 10px; margin: 0; }
+.insight h4 { margin: 10px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+.insight ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
+</style>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">Ready<span>Up</span></div>
+    <div class="date-label"><div id="today-label"></div><div class="sync" id="sync" data-s="local">This device</div></div>
+  </header>
+
+  <!-- TODAY -->
+  <section id="view-today" class="view">
+    <form id="checkin" class="card" hidden>
+      <div><h3>Morning check-in</h3><p class="muted small" style="margin:4px 0 0">30 seconds. Be honest; the score only helps if it's real.</p></div>
+
+      <div class="grid2">
+        <label>Went to sleep<input type="time" id="ci-bed" required></label>
+        <label>Woke up<input type="time" id="ci-wake" required></label>
+      </div>
+      <div class="sleep-calc" id="sleep-calc"></div>
+
+      <div class="q" data-q="quality"><div class="q-head"><b>Sleep quality</b><span id="lbl-quality"></span></div><div class="scale"></div></div>
+      <div class="q" data-q="soreness"><div class="q-head"><b>Muscle soreness</b><span id="lbl-soreness"></span></div><div class="scale"></div></div>
+      <div class="chips" id="areas"></div>
+      <div class="q" data-q="energy"><div class="q-head"><b>Energy</b><span id="lbl-energy"></span></div><div class="scale"></div></div>
+      <div class="q" data-q="stress"><div class="q-head"><b>Stress</b><span id="lbl-stress"></span></div><div class="scale"></div></div>
+
+      <label class="toggle"><input type="checkbox" id="ci-pain"> Something hurts (sharp pain or a joint), not just sore</label>
+      <input type="text" id="ci-pain-where" placeholder="Where? e.g. right knee, left ankle" hidden>
+
+      <label>Resting heart rate (optional, bpm)<input type="number" id="ci-rhr" min="30" max="130" placeholder="Count your pulse for 60 seconds before getting up"></label>
+
+      <div class="grid" style="display:grid;gap:8px">
+        <div class="row-between"><b class="small" style="color:var(--fg)">Yesterday's training</b><button type="button" class="mini" id="add-session">＋ Session</button></div>
+        <div id="sessions"></div>
+        <p class="muted small" style="margin:0">Effort is 1 (easy) to 10 (hardest ever). Used to spot training spikes that raise injury risk.</p>
+      </div>
+
+      <button class="btn primary block">Get my score</button>
+    </form>
+
+    <div id="result" class="view" hidden>
+      <div class="card score-card">
+        <div class="gauge" id="gauge"></div>
+        <span class="zone-pill" id="zone-pill"></span>
+        <div class="headline" id="headline"></div>
+        <div class="parts" id="parts"></div>
+      </div>
+      <div class="alert-box" id="pain-box" hidden></div>
+      <div class="card">
+        <h3>Today's plan</h3>
+        <ul class="plan" id="plan"></ul>
+      </div>
+      <div class="card">
+        <div class="row-between"><h3>Tonight</h3><span class="muted small" id="bed-sub"></span></div>
+        <p style="margin:0" id="bedtime"></p>
+      </div>
+      <div class="card">
+        <div class="row-between"><h3>Today's training</h3><button type="button" class="mini" id="add-today">＋ Log a session</button></div>
+        <div id="today-sessions"></div>
+        <p class="muted small" style="margin:0">Log practice and lifts tonight so tomorrow's score counts them.</p>
+      </div>
+      <button class="btn block" id="edit-checkin" type="button">Edit this morning's check-in</button>
+    </div>
+  </section>
+
+  <!-- TRENDS -->
+  <section id="view-trends" class="view" hidden>
+    <div class="stat-row" id="trend-stats"></div>
+    <div class="card"><h3>Readiness, last 14 days</h3><div class="chart" id="score-chart"></div></div>
+    <div class="card"><div class="row-between"><h3>Sleep</h3><span class="muted small" id="sleep-goal-label"></span></div><div class="chart" id="sleep-chart"></div></div>
+    <div class="card">
+      <div class="row-between"><h3>Training load</h3><span class="muted small" id="acwr-label"></span></div>
+      <div class="chart" id="load-chart"></div>
+      <p class="muted small" style="margin:0">Load = minutes × effort. The ratio compares this week to your 4-week normal: 0.8-1.3 is the sweet spot, above 1.5 means a spike.</p>
+    </div>
+    <div class="card">
+      <div class="row-between"><h3>Coach's read</h3><span class="muted small" id="insight-date"></span></div>
+      <p class="muted small" style="margin:0">AI looks at your last 2 weeks of check-ins and training for patterns.</p>
+      <button class="btn" id="insight-btn" type="button">Find my patterns</button>
+      <p class="muted small" id="insight-status" style="margin:0"></p>
+      <div id="insight-out" class="insight"></div>
+    </div>
+  </section>
+
+  <!-- TOOLKIT -->
+  <section id="view-tools" class="view" hidden>
+    <div class="card"><h3>Recovery routines</h3><div id="routines"></div></div>
+    <div class="card">
+      <h3>Bedtime calculator</h3>
+      <div class="grid2">
+        <label>Wake up at<input type="time" id="calc-wake"></label>
+        <label>Sleep goal<select id="calc-goal"><option value="8">8 hours</option><option value="8.5">8.5 hours</option><option value="9" selected>9 hours</option><option value="9.5">9.5 hours</option><option value="10">10 hours</option></select></label>
+      </div>
+      <p style="margin:0" id="calc-out"></p>
+      <p class="muted small" style="margin:0">Teens need 8-10 hours (American Academy of Sleep Medicine). It takes about 15 minutes to fall asleep, so that's built in.</p>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="view-me" class="view" hidden>
+    <form id="settings" class="card">
+      <h3>Your routine</h3>
+      <div class="grid2">
+        <label>School-day wake time<input type="time" id="st-wake"></label>
+        <label>Sleep goal<select id="st-goal"><option value="8">8 hours</option><option value="8.5">8.5 hours</option><option value="9">9 hours</option><option value="9.5">9.5 hours</option><option value="10">10 hours</option></select></label>
+      </div>
+      <label>Sport and position<input id="st-sport" placeholder="Basketball, guard"></label>
+      <button class="btn">Save</button>
+    </form>
+    <form id="key-card" class="card" hidden>
+      <h3>AI patterns</h3>
+      <p class="muted small" style="margin:0">To use "Find my patterns" on this website, paste a Claude API key from console.anthropic.com. It is saved in this browser only, and shared with MacroLens on this site.</p>
+      <div class="row-gap"><input type="password" id="api-key" placeholder="sk-ant-…" autocomplete="off" style="flex:1"><button class="btn primary">Save</button></div>
+      <div class="row-between"><span class="muted small" id="key-status"></span><button type="button" class="mini" id="key-remove" hidden>Remove key</button></div>
+    </form>
+    <div class="card">
+      <h3>Appearance</h3>
+      <div class="chips" id="theme-pick">
+        <button type="button" class="chip" data-theme-opt="system">Auto</button>
+        <button type="button" class="chip" data-theme-opt="light">Light</button>
+        <button type="button" class="chip" data-theme-opt="dark">Dark</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>How the score works</h3>
+      <ul class="list small">
+        <li><span>Sleep amount vs your goal</span><b>30</b></li>
+        <li><span>Muscle soreness</span><b>20</b></li>
+        <li><span>Sleep quality</span><b>15</b></li>
+        <li><span>Energy</span><b>15</b></li>
+        <li><span>Stress</span><b>10</b></li>
+        <li><span>Training load balance</span><b>10</b></li>
+      </ul>
+      <p class="muted small" style="margin:0">A resting heart rate 4+ bpm above your normal takes points off. 75+ is green, 55-74 yellow, under 55 red. This is a training guide, not medical advice; pain and illness go to your athletic trainer or doctor.</p>
+      <p class="note" id="storage-note"></p>
+      <a class="small" id="macrolens-link" href="#" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">Open MacroLens for food and hydration →</a>
+    </div>
+  </section>
+</div>
+
+<nav class="tabbar"><div class="tabbar-inner">
+  <button class="tab active" data-view="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="M12 16l4-5"/><circle cx="12" cy="16" r="1.3" fill="currentColor"/></svg>Today</button>
+  <button class="tab" data-view="trends"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M6 15l4-4 3 3 5-6"/></svg>Trends</button>
+  <button class="tab" data-view="tools"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Toolkit</button>
+  <button class="tab" data-view="me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>You</button>
+</div></nav>
+
+<div class="player" id="player" hidden role="dialog" aria-modal="true" aria-labelledby="pl-name">
+  <div class="player-inner">
+    <div class="step-count" id="pl-count"></div>
+    <h2 id="pl-name"></h2>
+    <div id="pl-visual"></div>
+    <div class="cue" id="pl-cue"></div>
+    <div class="row-gap" style="justify-content:center">
+      <button class="btn" id="pl-pause" type="button">Pause</button>
+      <button class="btn primary" id="pl-next" type="button">Next</button>
+    </div>
+    <button class="mini" id="pl-close" type="button">End routine</button>
+  </div>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+// ===================== helpers =====================
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const r1 = (x) => Math.round(x * 10) / 10;
+const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+function isoDate(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+const todayIso = () => isoDate(new Date());
+function shiftIso(iso, n) { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoDate(d); }
+const toMin = (hhmm) => { const [h, m] = String(hhmm).split(':').map(Number); return h * 60 + m; };
+const fmtMin = (mins) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setMinutes(((mins % 1440) + 1440) % 1440); return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); };
+let toastTimer;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600); }
+
+// ===================== storage: this device first, synced through the artifact store =====================
+// Docs: "core" {settings, insight} and "day-YYYY-MM-DD" {checkin, sessions}. Prefix ru: keeps it apart from MacroLens on the same website.
+const cache = {};
+let remote = null;
+const pending = new Set();
+let flushing = false, flushTimer;
+const lsGet = (k) => { try { return JSON.parse(localStorage.getItem('ru:' + k)); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem('ru:' + k, JSON.stringify(v)); } catch {} };
+const lsKeys = () => { try { return Object.keys(localStorage).filter((k) => k.startsWith('ru:')).map((k) => k.slice(3)); } catch { return []; } };
+function doc(key) {
+  if (!(key in cache)) cache[key] = lsGet(key) ?? (key === 'core' ? { settings: { wake: '06:45', goal: 9, sport: '' } } : null);
+  return cache[key];
+}
+const core = () => doc('core');
+const day = (iso, create = false) => { const k = 'day-' + iso; if (!doc(k) && create) cache[k] = { checkin: null, sessions: [] }; return cache[k]; };
+function persist(key) {
+  lsSet(key, cache[key]);
+  if (!remote) return;
+  pending.add(key); clearTimeout(flushTimer); flushTimer = setTimeout(flush, 700);
+}
+async function flush() {
+  if (flushing || !remote) return;
+  flushing = true;
+  try {
+    while (pending.size) { const k = pending.values().next().value; pending.delete(k); await remote.doc(k).set(JSON.parse(JSON.stringify(cache[k]))); }
+    setSync('synced');
+  } catch { setSync('error'); } finally { flushing = false; }
+}
+function setSync(s) {
+  const el = $('#sync'); el.dataset.s = s;
+  el.textContent = s === 'synced' ? 'Synced' : s === 'error' ? 'Not synced' : s === 'loading' ? 'Syncing…' : 'This device';
+  $('#storage-note').textContent = s === 'synced' || s === 'loading'
+    ? 'Your check-ins are saved to your Claude account and sync across your devices. Only you can see them.'
+    : 'Your check-ins are saved in this browser only.';
+}
+async function connectStore() {
+  if (!window.claude?.use) return setSync('local');
+  setSync('loading');
+  const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+  const id = user ? await user.id() : null;
+  if (!db || !id) return setSync('local');
+  const coll = db.collection('data/users/' + id);
+  const timer = setTimeout(() => setSync('local'), 10000);
+  try {
+    const snap = await coll.get();
+    clearTimeout(timer);
+    remote = coll;
+    const have = new Set();
+    for (const d of snap.docs) { if (!d.exists) continue; have.add(d.id); cache[d.id] = JSON.parse(JSON.stringify(d.data())); lsSet(d.id, cache[d.id]); }
+    for (const k of lsKeys()) if (!have.has(k)) { doc(k); pending.add(k); }
+    setSync('synced'); if (pending.size) flush();
+    render();
+  } catch { clearTimeout(timer); setSync('local'); }
+}
+
+// ===================== the score =====================
+const LABELS = {
+  quality: ['Awful', 'Poor', 'OK', 'Good', 'Great'],
+  soreness: ['None', 'A little', 'Some', 'Very sore', 'Can barely move'],
+  energy: ['Drained', 'Low', 'OK', 'Good', 'Charged'],
+  stress: ['Calm', 'A little', 'Some', 'High', 'Very high'],
+};
+const AREAS = ['Legs', 'Hips', 'Back', 'Shoulders', 'Arms', 'Knees', 'Ankles/feet'];
+const TYPES = ['Practice', 'Game', 'Lifting', 'Conditioning', 'Skill work', 'Pickup', 'Other'];
+
+function sleepHours(bed, wake) {
+  if (!bed || !wake) return null;
+  let m = toMin(wake) - toMin(bed); if (m <= 0) m += 1440;
+  return r1(m / 60);
+}
+const dayLoad = (iso) => (day(iso)?.sessions || []).reduce((a, s) => a + (Number(s.mins) || 0) * (Number(s.rpe) || 0), 0);
+function hasData(iso) { const d = day(iso); return !!(d && (d.checkin || (d.sessions || []).length)); }
+/** Acute:chronic workload ratio from session-RPE load, ending the day before `iso`. */
+function loadRatio(iso) {
+  const days28 = Array.from({ length: 28 }, (_, i) => shiftIso(iso, -(i + 1)));
+  if (days28.filter(hasData).length < 14) return null;
+  const acute = days28.slice(0, 7).reduce((a, d) => a + dayLoad(d), 0) / 7;
+  const chronic = days28.reduce((a, d) => a + dayLoad(d), 0) / 28;
+  if (chronic < 1) return null;
+  return { ratio: r1(acute / chronic) || 0, acute: Math.round(acute), chronic: Math.round(chronic) };
+}
+function rhrBaseline(iso) {
+  const vals = Array.from({ length: 14 }, (_, i) => day(shiftIso(iso, -(i + 1)))?.checkin?.rhr).filter((v) => v > 0);
+  return vals.length >= 5 ? Math.round(vals.reduce((a, b) => a + b) / vals.length) : null;
+}
+function scoreFor(iso) {
+  const c = day(iso)?.checkin; if (!c) return null;
+  const goal = Number(core().settings.goal) || 9;
+  const parts = {
+    sleep: Math.round(clamp((c.sleepH - (goal - 3.5)) / 3.5, 0, 1) * 30),
+    quality: Math.round(((c.quality - 1) / 4) * 15),
+    soreness: Math.round(((5 - c.soreness) / 4) * 20),
+    energy: Math.round(((c.energy - 1) / 4) * 15),
+    stress: Math.round(((5 - c.stress) / 4) * 10),
+  };
+  const lr = loadRatio(iso);
+  parts.load = lr == null ? 8 : lr.ratio > 1.5 ? 0 : lr.ratio > 1.3 ? 5 : lr.ratio < 0.8 ? 8 : 10;
+  let total = Object.values(parts).reduce((a, b) => a + b, 0);
+  const base = rhrBaseline(iso); let rhrDiff = null;
+  if (base && c.rhr) { rhrDiff = c.rhr - base; if (rhrDiff >= 7) total -= 8; else if (rhrDiff >= 4) total -= 4; }
+  total = clamp(Math.round(total), 0, 100);
+  const zone = total >= 75 ? 'go' : total >= 55 ? 'caution' : 'rest';
+  return { total, zone, parts, lr, rhrDiff, base, c, goal };
+}
+function planFor(s) {
+  const c = s.c, out = [];
+  if (s.zone === 'go') out.push({ cls: 'good', t: 'Green light: go hard', p: 'Good day for max-effort lifts, sprints, jump work and extra conditioning after practice.' });
+  else if (s.zone === 'caution') out.push({ cls: 'warn', t: 'Train normally, skip the extras', p: 'Do practice at full effort, but keep any lift moderate and put extra time into skill work and shooting instead of conditioning.' });
+  else out.push({ cls: 'alert', t: 'Recovery day', p: `Practice as planned if your coach expects you, but skip extra workouts. Do form shooting or light skill work, 15 minutes of mobility, and get to bed early. If practice feels off, tell your coach how you feel.` });
+  if (c.sleepH < s.goal - 1.5) out.push({ cls: 'warn', t: `Short on sleep (${c.sleepH} h)`, p: 'A 20-minute nap before 3 PM helps. Don\'t try to "catch up" by sleeping in all weekend; go to bed earlier tonight instead.' });
+  if (c.quality <= 2) out.push({ cls: 'warn', t: 'Rough sleep', p: 'Tonight: phone away 30 minutes before bed, room cool (65-68°F) and dark. Try the wind-down routine in Toolkit.' });
+  if (c.soreness >= 4) out.push({ cls: 'warn', t: `Very sore${c.areas?.length ? ': ' + c.areas.join(', ').toLowerCase() : ''}`, p: 'Do the 10-minute mobility routine and light movement (walk, easy bike). No heavy lifting for those muscles today. Eat protein at every meal.' });
+  else if (c.soreness === 3 && c.areas?.length) out.push({ cls: '', t: `Some soreness: ${c.areas.join(', ').toLowerCase()}`, p: 'Warm up longer today. Foam roll those areas for a minute each after practice.' });
+  if (c.stress >= 4) out.push({ cls: 'warn', t: 'High stress', p: 'Stress hurts recovery as much as bad sleep. Do 2 minutes of box breathing (Toolkit) and write down the one thing you need to get done today.' });
+  if (c.energy <= 2 && c.sleepH >= s.goal - 1) out.push({ cls: 'warn', t: 'Low energy despite decent sleep', p: 'Check that you ate enough yesterday, especially carbs on a practice day, and drink water now. If it lasts several days, tell a parent or your doctor.' });
+  if (s.rhrDiff != null && s.rhrDiff >= 4) out.push({ cls: s.rhrDiff >= 7 ? 'alert' : 'warn', t: `Resting heart rate is ${s.rhrDiff} bpm above your normal`, p: 'That can mean fatigue, dehydration or getting sick. Take it easier and drink more. If you feel sick, rest.' });
+  if (s.lr && s.lr.ratio > 1.5) out.push({ cls: 'alert', t: `Training spike: ${s.lr.ratio}x your normal`, p: 'This week\'s load is much higher than your 4-week average. Injury risk climbs with sudden jumps, so keep extra workouts light for a few days.' });
+  else if (s.lr && s.lr.ratio > 1.3) out.push({ cls: 'warn', t: `Load creeping up (${s.lr.ratio}x)`, p: 'You\'re training more than usual. Fine for now; don\'t add more on top.' });
+  out.push({ cls: '', t: 'Fuel and hydrate', p: s.zone === 'rest' ? 'Recovery days still need full meals: protein at every meal, fruit and vegetables, and water all day.' : 'Eat a real meal 3 hours before practice and a snack 45 minutes before. Check MacroLens for your plan.' });
+  return out;
+}
+
+// ===================== rendering: Today =====================
+const ZONE = { go: { label: 'GO', color: 'var(--go)', head: 'Ready to push' }, caution: { label: 'STEADY', color: 'var(--caution)', head: 'Good to train, keep it smart' }, rest: { label: 'RECOVER', color: 'var(--rest)', head: 'Your body needs a lighter day' } };
+function gaugeSvg(score, zone) {
+  // Half-circle gauge, 180° sweep from left to right.
+  const R = 80, cx = 100, cy = 96, len = Math.PI * R;
+  const arc = `M ${cx - R} ${cy} A ${R} ${R} 0 0 1 ${cx + R} ${cy}`;
+  return `<svg viewBox="0 0 200 116" role="img" aria-label="Readiness ${score} out of 100">
+    <path d="${arc}" fill="none" stroke="var(--surface-2)" stroke-width="16" stroke-linecap="round"/>
+    <path d="${arc}" fill="none" stroke="${ZONE[zone].color}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${(len * score) / 100} ${len}"/>
+    <text x="${cx}" y="${cy - 8}" text-anchor="middle" font-size="44" font-weight="700" fill="var(--fg)">${score}</text>
+    <text x="${cx - R}" y="${cy + 18}" text-anchor="middle" font-size="10" fill="var(--muted)">0</text>
+    <text x="${cx + R}" y="${cy + 18}" text-anchor="middle" font-size="10" fill="var(--muted)">100</text></svg>`;
+}
+function sessionsHtml(list, scope) {
+  if (!list.length) return `<p class="muted small" style="margin:0">${scope === 'today' ? 'Nothing logged yet.' : 'No sessions. Leave empty for a rest day.'}</p>`;
+  return list.map((s, i) => `<div class="session" data-scope="${scope}" data-i="${i}">
+    <label>Type<select data-f="type">${TYPES.map((t) => `<option${t === s.type ? ' selected' : ''}>${t}</option>`).join('')}</select></label>
+    <label>Minutes<input type="number" data-f="mins" min="5" max="400" value="${s.mins}"></label>
+    <button type="button" class="mini" data-rm="${i}" aria-label="Remove session">✕</button>
+    <div style="grid-column:1/-1"><div class="q-head"><span>Effort</span><span>${s.rpe}/10</span></div><div class="scale rpe">${Array.from({ length: 10 }, (_, k) => `<button type="button" data-rpe="${k + 1}" class="${s.rpe === k + 1 ? 'on' : ''}">${k + 1}</button>`).join('')}</div></div>
+  </div>`).join('');
+}
+let draft = null; // check-in being edited
+let yesterdayDraft = [];
+function startCheckin() {
+  const t = todayIso(), c = day(t)?.checkin, st = core().settings;
+  draft = c ? { ...c, areas: [...(c.areas || [])] } : { bed: '22:30', wake: st.wake || '06:45', quality: 0, soreness: 0, energy: 0, stress: 0, areas: [], pain: false, painWhere: '', rhr: '' };
+  yesterdayDraft = JSON.parse(JSON.stringify(day(shiftIso(t, -1))?.sessions || []));
+  $('#ci-bed').value = draft.bed; $('#ci-wake').value = draft.wake;
+  $('#ci-pain').checked = !!draft.pain; $('#ci-pain-where').hidden = !draft.pain; $('#ci-pain-where').value = draft.painWhere || '';
+  $('#ci-rhr').value = draft.rhr || '';
+  renderScales(); renderAreas(); renderSleepCalc(); renderSessions();
+  $('#checkin').hidden = false; $('#result').hidden = true;
+}
+function renderScales() {
+  for (const q of $$('#checkin .q')) {
+    const k = q.dataset.q;
+    q.querySelector('.scale').innerHTML = [1, 2, 3, 4, 5].map((v) => `<button type="button" data-v="${v}" class="${draft[k] === v ? 'on' : ''}" aria-label="${k} ${v}: ${LABELS[k][v - 1]}">${v}</button>`).join('');
+    $('#lbl-' + k).textContent = draft[k] ? LABELS[k][draft[k] - 1] : `1 ${LABELS[k][0].toLowerCase()} · 5 ${LABELS[k][4].toLowerCase()}`;
+  }
+}
+function renderAreas() {
+  $('#areas').hidden = !(draft.soreness >= 2);
+  $('#areas').innerHTML = AREAS.map((a) => `<button type="button" class="chip${draft.areas.includes(a) ? ' on' : ''}" data-area="${a}">${a}</button>`).join('');
+}
+function renderSleepCalc() {
+  const h = sleepHours($('#ci-bed').value, $('#ci-wake').value), goal = Number(core().settings.goal) || 9;
+  $('#sleep-calc').innerHTML = h == null ? '' : `That's <b>${h} hours</b> (goal ${goal}).${h < goal - 1 ? ' Short night.' : h >= goal ? ' Nice.' : ''}`;
+}
+function renderSessions() { $('#sessions').innerHTML = sessionsHtml(yesterdayDraft, 'yesterday'); }
+function renderTodaySessions() { $('#today-sessions').innerHTML = sessionsHtml(day(todayIso())?.sessions || [], 'today'); }
+
+$('#checkin').addEventListener('click', (e) => {
+  const sv = e.target.closest('.q .scale button');
+  if (sv) { const k = sv.closest('.q').dataset.q; draft[k] = Number(sv.dataset.v); if (k === 'soreness' && draft.soreness < 2) draft.areas = []; renderScales(); if (k === 'soreness') renderAreas(); return; }
+  const ar = e.target.closest('[data-area]');
+  if (ar) { const a = ar.dataset.area; draft.areas = draft.areas.includes(a) ? draft.areas.filter((x) => x !== a) : [...draft.areas, a]; renderAreas(); }
+});
+$('#ci-bed').addEventListener('input', renderSleepCalc);
+$('#ci-wake').addEventListener('input', renderSleepCalc);
+$('#ci-pain').addEventListener('change', (e) => { $('#ci-pain-where').hidden = !e.target.checked; });
+$('#add-session').addEventListener('click', () => { yesterdayDraft.push({ type: 'Practice', mins: 120, rpe: 6 }); renderSessions(); });
+// sessions editing (both the check-in list and today's list)
+function sessionList(scope) { return scope === 'today' ? day(todayIso(), true).sessions : yesterdayDraft; }
+function onSessionEdit(e) {
+  const row = e.target.closest('.session'); if (!row) return;
+  const list = sessionList(row.dataset.scope), s = list[Number(row.dataset.i)];
+  const rm = e.target.closest('[data-rm]');
+  if (rm) { list.splice(Number(rm.dataset.rm), 1); }
+  else if (e.target.dataset.rpe) { s.rpe = Number(e.target.dataset.rpe); }
+  else if (e.target.dataset.f) { s[e.target.dataset.f] = e.target.dataset.f === 'mins' ? Number(e.target.value) || 0 : e.target.value; if (e.type === 'input') { if (row.dataset.scope === 'today') persist('day-' + todayIso()); return; } }
+  else return;
+  if (row.dataset.scope === 'today') { persist('day-' + todayIso()); renderTodaySessions(); } else renderSessions();
+}
+for (const id of ['#sessions', '#today-sessions']) { $(id).addEventListener('click', onSessionEdit); $(id).addEventListener('input', onSessionEdit); $(id).addEventListener('change', onSessionEdit); }
+$('#add-today').addEventListener('click', () => { day(todayIso(), true).sessions.push({ type: 'Practice', mins: 120, rpe: 6 }); persist('day-' + todayIso()); renderTodaySessions(); });
+
+$('#checkin').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const missing = ['quality', 'soreness', 'energy', 'stress'].filter((k) => !draft[k]);
+  if (missing.length) return toast(`Tap a number for ${missing.join(', ')}`);
+  const bed = $('#ci-bed').value, wake = $('#ci-wake').value, h = sleepHours(bed, wake);
+  if (h == null) return toast('Enter when you slept and woke up');
+  if (h > 16) return toast('That is more than 16 hours of sleep. Check the times.');
+  const rhr = Number($('#ci-rhr').value) || null;
+  const t = todayIso();
+  day(t, true).checkin = { bed, wake, sleepH: h, quality: draft.quality, soreness: draft.soreness, energy: draft.energy, stress: draft.stress,
+    areas: draft.areas, pain: $('#ci-pain').checked, painWhere: $('#ci-pain-where').value.trim().slice(0, 80), rhr, at: Date.now() };
+  persist('day-' + t);
+  const y = shiftIso(t, -1);
+  day(y, true).sessions = yesterdayDraft.filter((s) => s.mins > 0);
+  persist('day-' + y);
+  showResult();
+  window.scrollTo(0, 0);
+});
+$('#edit-checkin').addEventListener('click', () => { startCheckin(); window.scrollTo(0, 0); });
+
+function showResult() {
+  const s = scoreFor(todayIso());
+  if (!s) return startCheckin();
+  $('#checkin').hidden = true; $('#result').hidden = false;
+  $('#gauge').innerHTML = gaugeSvg(s.total, s.zone);
+  const pill = $('#zone-pill'); pill.className = 'zone-pill zone-' + s.zone; pill.textContent = ZONE[s.zone].label;
+  $('#headline').textContent = ZONE[s.zone].head;
+  const rows = [['Sleep', s.parts.sleep, 30, `${s.c.sleepH} h`], ['Soreness', s.parts.soreness, 20, LABELS.soreness[s.c.soreness - 1]], ['Sleep quality', s.parts.quality, 15, LABELS.quality[s.c.quality - 1]],
+    ['Energy', s.parts.energy, 15, LABELS.energy[s.c.energy - 1]], ['Stress', s.parts.stress, 10, LABELS.stress[s.c.stress - 1]], ['Training load', s.parts.load, 10, s.lr ? `${s.lr.ratio}x normal` : 'building baseline']];
+  $('#parts').innerHTML = rows.map(([n, v, max, note]) => { const pct = (v / max) * 100, col = pct >= 70 ? 'var(--go)' : pct >= 45 ? 'var(--caution)' : 'var(--rest)';
+    return `<div class="part"><div class="row-between"><span>${n} <span class="muted">· ${esc(note)}</span></span><span class="muted num">${v}/${max}</span></div><div class="bar"><div style="width:${pct}%;background:${col}"></div></div></div>`; }).join('') +
+    (s.rhrDiff != null ? `<p class="muted small" style="margin:4px 0 0">Resting heart rate ${s.c.rhr} bpm (your normal: ${s.base}).</p>` : '');
+  const pb = $('#pain-box');
+  pb.hidden = !s.c.pain;
+  pb.innerHTML = s.c.pain ? `<b>Pain is not soreness.</b> You said something hurts${s.c.painWhere ? ` (${esc(s.c.painWhere)})` : ''}. Tell your athletic trainer or coach before practice and don't play through sharp or joint pain. If it's swollen, getting worse, or you can't put weight on it, see a doctor.` : '';
+  $('#plan').innerHTML = planFor(s).map((x) => `<li class="${x.cls}"><span class="dot" aria-hidden="true"></span><div><b>${esc(x.t)}</b><p>${esc(x.p)}</p></div></li>`).join('');
+  const st = core().settings, goal = Number(st.goal) || 9;
+  const bedMin = toMin(st.wake || '06:45') - goal * 60 - 15 - (s.zone === 'rest' ? 30 : 0);
+  $('#bedtime').innerHTML = `Lights out by <b>${fmtMin(bedMin)}</b> to get ${goal}${s.zone === 'rest' ? '+' : ''} hours before your ${fmtMin(toMin(st.wake || '06:45'))} alarm.${s.zone === 'rest' ? ' 30 minutes earlier than usual because today is a recovery day.' : ''}`;
+  $('#bed-sub').textContent = `goal ${goal} h`;
+  renderTodaySessions();
+}
+
+// ===================== Trends =====================
+function lastN(n) { return Array.from({ length: n }, (_, i) => shiftIso(todayIso(), -(n - 1 - i))); }
+function streakDays() { let n = 0, d = todayIso(); if (!day(d)?.checkin) d = shiftIso(d, -1); while (day(d)?.checkin) { n++; d = shiftIso(d, -1); } return n; }
+function renderTrends() {
+  const days = lastN(14), scores = days.map((d) => scoreFor(d));
+  const have = scores.filter(Boolean);
+  const avg = have.length ? Math.round(have.reduce((a, s) => a + s.total, 0) / have.length) : null;
+  const sleepAvg = have.length ? r1(have.reduce((a, s) => a + s.c.sleepH, 0) / have.length) : null;
+  $('#trend-stats').innerHTML = `<div class="stat"><b>${streakDays()}</b><small>Check-in streak</small></div><div class="stat"><b>${avg ?? '–'}</b><small>Avg score, 14 days</small></div><div class="stat"><b>${sleepAvg ?? '–'}</b><small>Avg sleep (h)</small></div>`;
+  const W = 320, H = 150, L = 24, R = 8, T = 14, B = 20, slot = (W - L - R) / days.length, bw = slot * 0.62;
+  const y = (v, max) => H - B - (v / max) * (H - B - T);
+  const dayLbl = (d, i) => (i % 2 === (days.length - 1) % 2 ? new Date(d + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'narrow' }) : '');
+  const grid = (max, ticks, unit = '') => ticks.map((v) => `<line x1="${L}" x2="${W - R}" y1="${y(v, max)}" y2="${y(v, max)}" stroke="var(--line)" stroke-dasharray="${v ? '3 3' : '0'}"/><text x="${L - 4}" y="${y(v, max) + 3}" text-anchor="end">${v}${unit}</text>`).join('');
+  // readiness bars
+  $('#score-chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Readiness scores">${grid(100, [0, 55, 75, 100])}
+    ${scores.map((s, i) => { const x = L + i * slot + (slot - bw) / 2; const v = s ? s.total : 0;
+      return `${s ? `<rect x="${x.toFixed(1)}" y="${y(v, 100).toFixed(1)}" width="${bw.toFixed(1)}" height="${(H - B - y(v, 100)).toFixed(1)}" rx="3" fill="${ZONE[s.zone].color}"/>` : `<rect x="${x.toFixed(1)}" y="${H - B - 2}" width="${bw.toFixed(1)}" height="2" fill="var(--line)"/>`}
+      <text x="${(x + bw / 2).toFixed(1)}" y="${H - 5}" text-anchor="middle">${dayLbl(days[i], i)}</text>`; }).join('')}</svg>`;
+  // sleep line
+  const goal = Number(core().settings.goal) || 9, smax = 12;
+  const pts = days.map((d, i) => [L + i * slot + slot / 2, day(d)?.checkin?.sleepH]).filter((p) => p[1] != null);
+  $('#sleep-goal-label').textContent = `goal ${goal} h`;
+  $('#sleep-chart').innerHTML = pts.length ? `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sleep hours">${grid(smax, [0, 6, goal, 12], 'h')}
+    <path d="${pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${y(p[1], smax).toFixed(1)}`).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+    ${pts.map((p, i) => `<circle cx="${p[0].toFixed(1)}" cy="${y(p[1], smax).toFixed(1)}" r="${i === pts.length - 1 ? 4.5 : 3}" fill="${p[1] >= goal - 0.5 ? 'var(--go)' : p[1] >= goal - 1.5 ? 'var(--caution)' : 'var(--rest)'}"/>`).join('')}
+    ${days.map((d, i) => `<text x="${(L + i * slot + slot / 2).toFixed(1)}" y="${H - 5}" text-anchor="middle">${dayLbl(d, i)}</text>`).join('')}</svg>` : '<p class="muted small" style="margin:0">Do a few check-ins to see your sleep pattern.</p>';
+  // load bars
+  const loads = days.map(dayLoad), lmax = Math.max(600, ...loads) * 1.1;
+  const lr = loadRatio(todayIso());
+  $('#acwr-label').textContent = lr ? `ratio ${lr.ratio}${lr.ratio > 1.5 ? ' (spike)' : lr.ratio < 0.8 ? ' (light)' : ' (on track)'}` : 'ratio after 14 days of data';
+  $('#load-chart').innerHTML = loads.some(Boolean) ? `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Training load per day">${grid(lmax, [0, Math.round(lmax / 2 / 100) * 100])}
+    ${loads.map((v, i) => { const x = L + i * slot + (slot - bw) / 2; return `<rect x="${x.toFixed(1)}" y="${y(v, lmax).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0, H - B - y(v, lmax)).toFixed(1)}" rx="3" fill="var(--accent)"/><text x="${(x + bw / 2).toFixed(1)}" y="${H - 5}" text-anchor="middle">${dayLbl(days[i], i)}</text>`; }).join('')}</svg>`
+    : '<p class="muted small" style="margin:0">Log training in your check-ins (yesterday) or on Today (tonight) to see your load.</p>';
+  renderInsight();
+}
+
+// ===================== AI patterns =====================
+const INSIGHT_SCHEMA = { type: 'object', additionalProperties: false, required: ['summary', 'patterns', 'actions'],
+  properties: { summary: { type: 'string' }, patterns: { type: 'array', items: { type: 'string' } }, actions: { type: 'array', items: { type: 'string' } } } };
+const KEY_STORE = 'macrolens-apikey', MODEL = 'claude-opus-5-5', SDK_URL = 'https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.8.0/+esm';
+let aiSample = null, ownKey = null, sdkModule = null;
+async function askInsight(prompt) {
+  if (aiSample) return aiSample.json(prompt, { modelTier: 'default' });
+  sdkModule ??= await import(SDK_URL).catch(() => { throw { code: 'sdk_load' }; });
+  const Anthropic = sdkModule.default;
+  const client = new Anthropic({ apiKey: ownKey, dangerouslyAllowBrowser: true });
+  let res;
+  try {
+    res = await client.beta.messages.create({ model: MODEL, max_tokens: 8000, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default',
+      output_config: { effort: 'medium', format: { type: 'json_schema', schema: INSIGHT_SCHEMA } }, messages: [{ role: 'user', content: prompt }] });
+  } catch (e) {
+    if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) throw { code: 'bad_key' };
+    if (e instanceof Anthropic.RateLimitError) throw { code: 'rate_limited' };
+    throw { code: 'upstream_error' };
+  }
+  if (res.stop_reason === 'refusal') throw { code: 'refused' };
+  try { return JSON.parse(res.content.find((b) => b.type === 'text').text); } catch { throw { code: 'invalid_json' }; }
+}
+const AI_ERRORS = { not_granted: 'AI is turned off for this page.', rate_limited: 'AI is busy or you hit a usage limit. Try again in a minute.', bad_key: 'Your API key was rejected. Check it on the You tab.',
+  sdk_load: "Couldn't load the AI library. Check your connection.", invalid_json: 'The answer came back garbled. Try again.', refused: 'The AI declined this one.', session_expired: 'Sign in to Claude again.' };
+function renderInsight() {
+  const ins = core().insight;
+  $('#insight-btn').disabled = !(aiSample || ownKey);
+  if (!(aiSample || ownKey)) $('#insight-status').textContent = window.claude?.use ? 'AI is not available in this view.' : 'Add your Claude API key on the You tab to use this.';
+  if (!ins) { $('#insight-out').innerHTML = ''; $('#insight-date').textContent = ''; return; }
+  $('#insight-date').textContent = 'Made ' + new Date(ins.at + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  $('#insight-out').innerHTML = `<p style="margin:0">${esc(ins.summary)}</p><h4>Patterns</h4><ul>${ins.patterns.map((x) => `<li>${esc(x)}</li>`).join('')}</ul><h4>Try this week</h4><ul>${ins.actions.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`;
+}
+$('#insight-btn').addEventListener('click', async () => {
+  const rows = lastN(14).map((d) => { const dd = day(d); return dd && (dd.checkin || dd.sessions?.length) ? { date: d, weekday: new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' }), checkin: dd.checkin ? (({ at, ...c }) => c)(dd.checkin) : null, score: scoreFor(d)?.total ?? null, training: dd.sessions || [] } : null; }).filter(Boolean);
+  if (rows.filter((r) => r.checkin).length < 5) { $('#insight-status').textContent = 'Do at least 5 check-ins first.'; return; }
+  const st = core().settings;
+  const prompt = `You are a strength and conditioning coach who understands sleep and recovery, reviewing 2 weeks of a high school athlete's daily readiness check-ins. Sport: ${st.sport?.trim() || 'basketball, guard'}. Sleep goal ${st.goal} h, school-day wake time ${st.wake}.
+Scales: quality, energy 1 (bad) to 5 (great); soreness, stress 1 (none) to 5 (severe). Training sessions have minutes and effort (RPE 1-10). Score is 0-100 readiness.
+Data: ${JSON.stringify(rows)}
+Find 2-4 real patterns in this data (for example: which weekdays sleep is short, whether hard sessions are followed by low scores, whether stress tracks with energy, weekend sleep shifts). Only claim what the data shows; say when there is too little data. Then give 3 specific, doable actions for next week. Plain language for a teenager. If pain shows up repeatedly, say to see the athletic trainer.
+Reply with only JSON: {"summary": "Two sentences.", "patterns": ["..."], "actions": ["..."]}`;
+  const btn = $('#insight-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Reading your 2 weeks… (10-30 s)';
+  $('#insight-status').textContent = '';
+  try {
+    const r = await askInsight(prompt);
+    if (!r || !r.summary) throw { code: 'invalid_json' };
+    core().insight = { at: todayIso(), summary: String(r.summary), patterns: (r.patterns || []).slice(0, 5).map(String), actions: (r.actions || []).slice(0, 4).map(String) };
+    persist('core'); renderInsight();
+  } catch (e) {
+    $('#insight-status').textContent = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
+  } finally { btn.disabled = !(aiSample || ownKey); btn.textContent = 'Find my patterns'; }
+});
+
+// ===================== Toolkit =====================
+const ROUTINES = [
+  { name: 'Leg mobility', mins: 10, when: 'Sore legs, before bed, or on recovery days', steps: [
+    ['Couch stretch, left', 45, 'Back knee on the floor against a wall or couch, squeeze that glute.'], ['Couch stretch, right', 45, 'Same on the other side.'],
+    ["World's greatest stretch", 60, 'Lunge, hand down inside the front foot, rotate the chest open. Alternate sides, 5 each.'],
+    ['90/90 hip switches', 45, 'Sit with both knees bent at 90°, rotate side to side slowly.'],
+    ['Calf stretch, left', 30, 'Hands on a wall, back leg straight, heel down.'], ['Calf stretch, right', 30, 'Other side.'],
+    ['Hamstring floss', 45, 'On your back, hold behind one knee and straighten the leg 10 times. Switch.'],
+    ['Glute bridges', 45, '2 sets of 10, squeeze and hold 2 seconds at the top.'],
+    ['Deep squat hold', 45, 'Sit into a deep squat, heels down, elbows pushing knees out. Hold a door frame if needed.'],
+    ['Ankle rocks', 40, 'Half kneeling, drive the front knee over the toes 10 times each side.'] ] },
+  { name: 'Foam roll', mins: 8, when: 'After practice or games', steps: [
+    ['Quads', 60, 'Face down, roll from hip to just above the knee. Pause on tight spots.'], ['Hamstrings', 60, 'Sit on the roller, roll from glute to knee.'],
+    ['Calves', 60, 'Cross one leg over the other for more pressure. Switch halfway.'], ['Glutes', 60, 'Sit on the roller, ankle over the opposite knee, lean into that side.'],
+    ['Upper back', 60, 'Hands behind your head, roll the area between the shoulder blades. Not the low back.'], ['Lats', 60, 'Lie on your side with the arm overhead, roll the side of your back.'],
+    ['Hip flexors', 60, 'Face down, roller just below the hip bone. Small movements.'], ['Easy breathing', 60, 'Lie flat, slow breaths, let your heart rate come down.'] ] },
+  { name: 'Box breathing', mins: 2, when: 'Stressed, before a game, or can\'t fall asleep', breath: true, steps: [['Box breathing', 120, 'Breathe in 4, hold 4, out 4, hold 4. Follow the circle.']] },
+  { name: 'Wind-down for sleep', mins: 30, when: 'Starts 30 minutes before lights out', check: true, steps: [
+    ['Phone away', 0, 'Charge it outside your room or across the room. Blue light and scrolling delay sleep.'], ['Set the room', 0, 'Cool (65-68°F), dark, quiet. Fan on if you like noise.'],
+    ['Pack for tomorrow', 0, 'Bag, shoes and water bottle by the door so your brain stops planning.'], ['Shower', 0, 'A warm shower helps your body cool down after, which makes you sleepy.'],
+    ['Read or stretch', 0, 'Paper book or light stretching. No screens.'], ['Lights out on time', 0, 'Same time every night, including weekends (within an hour).'] ] },
+  { name: 'Post-game reset', mins: 15, when: 'Right after a game or hard practice', check: true, steps: [
+    ['Cool down', 0, '5 minutes of easy walking or shooting free throws.'], ['Drink', 0, '16-24 oz of fluid in the first hour; more if you lost a lot of sweat.'],
+    ['Recovery meal', 0, '25-40 g protein and carbs within an hour. Chocolate milk works in a pinch.'], ['Legs up the wall', 0, '3-5 minutes lying with your legs up a wall.'],
+    ['Log the session', 0, 'Add it on the Today tab so tomorrow\'s score knows.'], ['Screens off early', 0, 'Games leave you wired. Start the wind-down 30 minutes early.'] ] },
+];
+function renderTools() {
+  $('#routines').innerHTML = ROUTINES.map((r, i) => `<div class="routine"><div class="row-between"><b>${r.name}</b><span class="muted small">${r.mins} min</span></div><p>${r.when}</p>
+    <button type="button" class="btn" data-routine="${i}">${r.check ? 'Open checklist' : 'Start'}</button></div>`).join('');
+  const st = core().settings;
+  if (!$('#calc-wake').value) $('#calc-wake').value = st.wake || '06:45';
+  $('#calc-goal').value = String(st.goal || 9);
+  calcBed();
+}
+function calcBed() {
+  const w = $('#calc-wake').value; if (!w) return;
+  const g = Number($('#calc-goal').value);
+  $('#calc-out').innerHTML = `In bed with lights out by <b>${fmtMin(toMin(w) - g * 60 - 15)}</b>. Start winding down at ${fmtMin(toMin(w) - g * 60 - 45)}.`;
+}
+$('#calc-wake').addEventListener('input', calcBed);
+$('#calc-goal').addEventListener('change', calcBed);
+
+// Routine player: timed steps count down; checklist steps advance on tap.
+let play = null;
+function openRoutine(i) {
+  play = { r: ROUTINES[i], i: 0, left: 0, paused: false, timer: null, done: [] };
+  $('#player').hidden = false; document.body.style.overflow = 'hidden';
+  showStep();
+  try { navigator.wakeLock?.request('screen').then((l) => { play && (play.lock = l); }).catch(() => {}); } catch {}
+}
+function showStep() {
+  clearInterval(play.timer);
+  const [name, secs, cue] = play.r.steps[play.i];
+  $('#pl-count').textContent = `${play.r.name} · ${play.i + 1} of ${play.r.steps.length}`;
+  $('#pl-name').textContent = name; $('#pl-cue').textContent = cue;
+  $('#pl-next').textContent = play.i === play.r.steps.length - 1 ? 'Finish' : secs ? 'Skip' : 'Done';
+  $('#pl-pause').hidden = !secs;
+  if (!secs) { $('#pl-visual').innerHTML = ''; return; }
+  play.left = secs; play.paused = false; $('#pl-pause').textContent = 'Pause';
+  $('#pl-visual').innerHTML = play.r.breath ? '<div class="breath" id="breath">In</div><div class="clock" id="pl-clock"></div>' : '<div class="clock" id="pl-clock"></div>';
+  tick();
+  play.timer = setInterval(() => { if (play.paused) return; play.left--; tick(); if (play.left <= 0) nextStep(); }, 1000);
+}
+function tick() {
+  $('#pl-clock').textContent = `${Math.floor(play.left / 60)}:${String(play.left % 60).padStart(2, '0')}`;
+  if (play.r.breath) { const el = $('#breath'); const phase = Math.floor((play.r.steps[0][1] - play.left) / 4) % 4; el.textContent = ['In', 'Hold', 'Out', 'Hold'][phase]; el.classList.toggle('big', phase === 0 || phase === 1); }
+}
+function nextStep() {
+  if (play.i < play.r.steps.length - 1) { play.i++; showStep(); return; }
+  closeRoutine(); toast(`${play?.r?.name || 'Routine'} done. Nice work.`);
+}
+function closeRoutine() {
+  if (!play) return; clearInterval(play.timer); try { play.lock?.release(); } catch {}
+  const name = play.r.name; play = null; $('#player').hidden = true; document.body.style.overflow = '';
+  return name;
+}
+$('#routines').addEventListener('click', (e) => { const b = e.target.closest('[data-routine]'); if (b) openRoutine(Number(b.dataset.routine)); });
+$('#pl-next').addEventListener('click', () => { if (!play) return; if (play.i === play.r.steps.length - 1) { const n = closeRoutine(); toast(`${n} done. Nice work.`); } else nextStep(); });
+$('#pl-pause').addEventListener('click', () => { if (!play) return; play.paused = !play.paused; $('#pl-pause').textContent = play.paused ? 'Resume' : 'Pause'; });
+$('#pl-close').addEventListener('click', closeRoutine);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && play) closeRoutine(); });
+
+// ===================== You =====================
+function renderMe() {
+  const st = core().settings;
+  $('#st-wake').value = st.wake || '06:45'; $('#st-goal').value = String(st.goal || 9); $('#st-sport').value = st.sport || '';
+}
+$('#settings').addEventListener('submit', (e) => {
+  e.preventDefault();
+  core().settings = { wake: $('#st-wake').value || '06:45', goal: Number($('#st-goal').value) || 9, sport: $('#st-sport').value.trim().slice(0, 80) };
+  persist('core'); toast('Saved');
+});
+function applyKeyState() {
+  $('#key-status').textContent = ownKey ? `Key saved (ends in ${ownKey.slice(-4)}).` : 'No key saved.';
+  $('#key-remove').hidden = !ownKey;
+}
+$('#key-card').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const k = $('#api-key').value.trim();
+  if (!/^sk-ant-[\w-]{20,}$/.test(k)) return toast('That does not look like a Claude API key (it starts with sk-ant-)');
+  ownKey = k; try { localStorage.setItem(KEY_STORE, k); } catch {}
+  $('#api-key').value = ''; applyKeyState(); toast('Key saved');
+});
+$('#key-remove').addEventListener('click', () => { ownKey = null; try { localStorage.removeItem(KEY_STORE); } catch {} applyKeyState(); });
+const THEME_KEY = 'readyup-theme';
+function applyTheme(c) {
+  if (c === 'light' || c === 'dark') document.documentElement.setAttribute('data-theme', c); else document.documentElement.removeAttribute('data-theme');
+  $$('#theme-pick .chip').forEach((b) => b.classList.toggle('on', b.dataset.themeOpt === (c || 'system')));
+}
+let themeChoice = 'system'; try { themeChoice = localStorage.getItem(THEME_KEY) || 'system'; } catch {}
+applyTheme(themeChoice);
+$$('#theme-pick .chip').forEach((b) => b.addEventListener('click', () => { themeChoice = b.dataset.themeOpt; try { localStorage.setItem(THEME_KEY, themeChoice); } catch {} applyTheme(themeChoice); }));
+
+// ===================== navigation =====================
+let currentView = 'today';
+function render() {
+  $('#today-label').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+  if (currentView === 'today') { if (day(todayIso())?.checkin) showResult(); else if ($('#checkin').hidden) startCheckin(); }
+  if (currentView === 'trends') renderTrends();
+  if (currentView === 'tools') renderTools();
+  if (currentView === 'me') renderMe();
+}
+function showView(v) {
+  currentView = v;
+  $$('.tab').forEach((t) => t.classList.toggle('active', t.dataset.view === v));
+  for (const id of ['today', 'trends', 'tools', 'me']) $('#view-' + id).hidden = id !== v;
+  render(); window.scrollTo(0, 0);
+}
+$$('.tab').forEach((t) => t.addEventListener('click', () => showView(t.dataset.view)));
+
+// ===================== boot =====================
+setSync('local');
+$('#macrolens-link').href = window.claude?.use ? 'https://claude.ai/artifact/8zA7Vcnoi8ez5qeAHFJyjQ' : '../';
+render();
+(async () => {
+  if (window.claude?.use) {
+    aiSample = await claude.use('sample');
+  } else {
+    $('#key-card').hidden = false;
+    try { ownKey = localStorage.getItem(KEY_STORE) || null; } catch {}
+    applyKeyState();
+  }
+  if (currentView === 'trends') renderInsight();
+})();
+connectStore();
+</script>
+
+</body>
+</html>
