@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f3b73">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Weekboard">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<title>Weekboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a to-schedule tray on top, then the 7 days stacked like a coach's week board. Items are draggable chips with a colored type dot. */
+:root {
+  --bg: #eef1f5;
+  --surface: #ffffff;
+  --surface-2: #e6eaf0;
+  --line: #d6dce5;
+  --fg: #151a22;
+  --muted: #5f6878;
+  --accent: #1f3b73;
+  --accent-ink: #ffffff;
+  --today: #ffd23f;
+  --today-soft: #fff6d1;
+  --warn: #c2410c;
+  --ok: #15803d;
+  --t-practice: #2f6fdd; --t-game: #e2533a; --t-lift: #8a4fd8; --t-homework: #d99a0b; --t-study: #0e9aa7; --t-work: #2e9a55; --t-personal: #d4498f; --t-other: #7b8494;
+  --f-display: "Archivo", "Inter", system-ui, sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0e131b; --surface: #161d28; --surface-2: #1f2836; --line: #2c3646; --fg: #e8edf5; --muted: #8f9aad; --accent: #8fb0ff; --accent-ink: #0b1430; --today: #ffd23f; --today-soft: #3a3214; --warn: #fb8b5a; --ok: #4ade80;
+    --t-practice: #6c9ef5; --t-game: #ff7a62; --t-lift: #b48cf0; --t-homework: #f4bf3a; --t-study: #3cc8d4; --t-work: #5fcf86; --t-personal: #f07ab8; --t-other: #9aa3b2; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #0e131b; --surface: #161d28; --surface-2: #1f2836; --line: #2c3646; --fg: #e8edf5; --muted: #8f9aad; --accent: #8fb0ff; --accent-ink: #0b1430; --today: #ffd23f; --today-soft: #3a3214; --warn: #fb8b5a; --ok: #4ade80;
+  --t-practice: #6c9ef5; --t-game: #ff7a62; --t-lift: #b48cf0; --t-homework: #f4bf3a; --t-study: #3cc8d4; --t-work: #5fcf86; --t-personal: #f07ab8; --t-other: #9aa3b2; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.4 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 calc(92px + env(safe-area-inset-bottom, 0px)); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+body.dragging { user-select: none; -webkit-user-select: none; }
+.wrap { max-width: 620px; margin: 0 auto; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h3 { font-family: var(--f-display); font-size: 17px; font-weight: 800; margin: 0; letter-spacing: -.1px; }
+.muted { color: var(--muted); } .small { font-size: 13px; }
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 10px; display: grid; gap: 8px; }
+.brandrow { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.brand { font-family: var(--f-display); font-weight: 800; font-size: 22px; letter-spacing: -.4px; text-transform: uppercase; }
+.brand span { background: var(--today); color: #151a22; padding: 0 5px; border-radius: 4px; margin-left: 2px; }
+.sync { font-size: 11px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.sync::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.sync[data-s="synced"]::before { background: var(--ok); }
+.weeknav { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
+.weeknav b { font-family: var(--f-display); font-size: 16px; text-align: center; }
+.icon-btn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: 18px; display: grid; place-items: center; }
+.view { display: grid; gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 10px; }
+.card > * { min-width: 0; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.row-between { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.btn { display: inline-flex; justify-content: center; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 10px 14px; font-weight: 600; cursor: pointer; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.btn.block { width: 100%; }
+.mini { border: 1px solid var(--line); background: none; border-radius: 99px; padding: 3px 9px; font-size: 12px; color: var(--muted); cursor: pointer; }
+
+/* stats */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 4px; text-align: center; }
+.stat b { display: block; font-family: var(--f-display); font-size: 18px; font-variant-numeric: tabular-nums; }
+.stat small { color: var(--muted); font-size: 10.5px; }
+
+/* items */
+.item { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 9px 10px; cursor: grab; touch-action: pan-y; -webkit-touch-callout: none; }
+.item.done .title { text-decoration: line-through; color: var(--muted); }
+.item .check { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--line); background: none; cursor: pointer; display: grid; place-items: center; padding: 0; }
+.item.done .check { background: var(--ok); border-color: var(--ok); color: #fff; }
+.item .body { min-width: 0; }
+.item .title { font-weight: 600; overflow-wrap: anywhere; }
+.item .meta { font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+.due { color: var(--warn); font-weight: 600; }
+.item .time { font-family: var(--f-display); font-weight: 700; font-size: 13px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.item.conflict { border-color: var(--warn); }
+.rep { font-size: 10px; border: 1px solid var(--line); border-radius: 99px; padding: 0 6px; }
+.daychips { display: flex; gap: 4px; flex-wrap: wrap; grid-column: 1 / -1; }
+.daychips button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 4px 0; width: 36px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.tray .list { display: grid; gap: 8px; }
+.tray-note { font-size: 13px; }
+
+/* days */
+.day { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 12px; display: grid; gap: 8px; transition: background .15s, border-color .15s; }
+.day.today { border: 2px solid var(--today); }
+.day.past { opacity: .72; }
+.day.drop { background: var(--today-soft); border-color: var(--today); }
+.day-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.day-head b { font-family: var(--f-display); font-size: 16px; text-transform: uppercase; letter-spacing: .3px; }
+.day-head .today-tag { background: var(--today); color: #151a22; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 99px; margin-left: 6px; text-transform: none; letter-spacing: 0; }
+.day-head small { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.day .list { display: grid; gap: 6px; min-height: 8px; }
+.day .empty { font-size: 13px; color: var(--muted); padding: 2px 2px 0; }
+.load { height: 4px; border-radius: 99px; background: var(--surface-2); overflow: hidden; display: flex; }
+.load span { display: block; height: 100%; }
+
+/* drag ghost */
+.ghost { position: fixed; z-index: 60; pointer-events: none; width: min(320px, 80vw); transform: rotate(-2deg); box-shadow: 0 12px 28px rgba(0,0,0,.25); opacity: .95; }
+.item.lifted { opacity: .35; }
+
+/* sheet */
+dialog.sheet { width: min(560px, 100vw); max-width: 100vw; max-height: 92vh; margin: auto auto 0; border: 1px solid var(--line); border-bottom: 0; border-radius: 20px 20px 0 0; background: var(--surface); color: var(--fg); overflow-y: auto;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+dialog.sheet::backdrop { background: rgba(10, 14, 22, .5); }
+.form { display: grid; gap: 12px; }
+label { display: grid; gap: 5px; font-size: 13px; color: var(--muted); min-width: 0; }
+input, select { width: 100%; min-width: 0; border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 10px 12px; outline: none; }
+input:focus, select:focus { border-color: var(--accent); }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.types { display: flex; flex-wrap: wrap; gap: 6px; }
+.types button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 6px 11px; font-size: 13px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.types button.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.weekdays button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 8px 0; font-size: 13px; font-weight: 600; cursor: pointer; }
+.weekdays button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; background: var(--surface-2); border-radius: 12px; padding: 4px; }
+.seg button { border: 0; background: none; border-radius: 9px; padding: 8px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.seg button.on { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+.danger { color: var(--warn); }
+
+.unused-fab { position: fixed; right: max(18px, env(safe-area-inset-right, 0px)); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); z-index: 7; width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); font-size: 30px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,.25); }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--surface); border-top: 1px solid var(--line);
+  padding: 8px max(8px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+.tabbar-inner { max-width: 620px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+.add-tab span { width: 44px; height: 30px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: 22px; line-height: 1; }
+.tab { background: none; border: 0; color: var(--muted); font-size: 11px; font-weight: 600; display: grid; justify-items: center; gap: 3px; cursor: pointer; padding: 4px; }
+.tab svg { width: 22px; height: 22px; } .tab.active { color: var(--accent); }
+.rule { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); }
+.rule:first-child { border-top: 0; }
+#toast { position: fixed; left: 50%; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 99px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; transition: .25s; z-index: 70; max-width: calc(100vw - 32px); text-align: center; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+@media (prefers-reduced-motion: reduce) { .day { transition: none; } .ghost { transform: none; } }
+</style>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="brandrow"><div class="brand">Week<span>board</span></div><div class="sync" id="sync" data-s="local">This device</div></div>
+    <div class="weeknav" id="weeknav">
+      <button class="icon-btn" id="prev-week" aria-label="Previous week">‹</button>
+      <div style="text-align:center"><b id="week-label"></b><div><button class="mini" id="this-week" type="button" hidden>Back to this week</button></div></div>
+      <button class="icon-btn" id="next-week" aria-label="Next week">›</button>
+    </div>
+  </header>
+
+  <!-- WEEK -->
+  <section id="view-week" class="view">
+    <div class="stats" id="stats"></div>
+    <div class="card tray" id="tray">
+      <div class="row-between"><h3>To schedule</h3><button class="btn primary" id="autofit" type="button">Auto-fit</button></div>
+      <p class="muted tray-note" id="tray-note" style="margin:0"></p>
+      <div class="list" id="tray-list"></div>
+    </div>
+    <div id="days" class="view" style="gap:10px"></div>
+  </section>
+
+  <!-- ROUTINE -->
+  <section id="view-routine" class="view" hidden>
+    <div class="card">
+      <div class="row-between"><h3>Every week</h3><button class="btn primary" id="add-rule" type="button">＋ Add</button></div>
+      <p class="muted small" style="margin:0">Practice, school, lifts and work that repeat. They show up on every week automatically, and Auto-fit plans homework around them.</p>
+      <div id="rules"></div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="view-me" class="view" hidden>
+    <form id="settings" class="card form">
+      <h3>Your day</h3>
+      <div class="grid2">
+        <label>School gets out<input type="time" id="st-school"></label>
+        <label>Bedtime<input type="time" id="st-bed"></label>
+        <label>Weekend start<input type="time" id="st-wkstart"></label>
+        <label>Max homework a day<select id="st-max"><option value="60">1 hour</option><option value="90">1.5 hours</option><option value="120">2 hours</option><option value="180">3 hours</option></select></label>
+      </div>
+      <p class="muted small" style="margin:0">Auto-fit only uses time between school and 30 minutes before bed on weekdays, and from your weekend start time on Saturday and Sunday. It leaves a 15-minute break after practice and games.</p>
+      <button class="btn">Save</button>
+    </form>
+    <div class="card">
+      <h3>How to use it</h3>
+      <ul class="small" style="margin:0;padding-left:18px;display:grid;gap:4px">
+        <li>Tap ＋ to add homework, practice, games, work or anything else.</li>
+        <li>Homework with a due date goes in <b>To schedule</b>. Tap <b>Auto-fit</b> and it finds time before it's due.</li>
+        <li>Press and hold anything for a moment, then drag it to another day. Or use the day buttons.</li>
+        <li>Tap the box to check it off. Tap the item to edit it.</li>
+      </ul>
+      <p class="muted small" id="storage-note" style="margin:0"></p>
+    </div>
+  </section>
+</div>
+
+<nav class="tabbar"><div class="tabbar-inner">
+  <button class="tab active" data-view="week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Week</button>
+  <button class="tab add-tab" id="fab" aria-label="Add to your week"><span>＋</span>Add</button>
+  <button class="tab" data-view="routine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg>Every week</button>
+  <button class="tab" data-view="me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Settings</button>
+</div></nav>
+
+<dialog id="sheet" class="sheet" aria-labelledby="sheet-title">
+  <form id="item-form" class="form">
+    <div class="row-between"><h3 id="sheet-title">Add</h3><button type="button" class="icon-btn" data-close aria-label="Close">✕</button></div>
+    <label>What<input id="f-title" required placeholder="Chemistry worksheet, Practice, Shift at the store…" maxlength="80"></label>
+    <div><div class="muted small" style="margin-bottom:6px">Type</div><div class="types" id="f-types"></div></div>
+    <div class="seg" id="f-when">
+      <button type="button" data-when="slot">Set a time</button>
+      <button type="button" data-when="day">Any time that day</button>
+      <button type="button" data-when="tray">Schedule later</button>
+    </div>
+    <div id="f-day-wrap"><div class="muted small" style="margin-bottom:6px">Day</div><div class="weekdays" id="f-days"></div></div>
+    <div class="grid2" id="f-time-wrap">
+      <label>Start<input type="time" id="f-start"></label>
+      <label>How long<select id="f-mins"><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 hr</option><option value="90">1.5 hr</option><option value="120">2 hr</option><option value="150">2.5 hr</option><option value="180">3 hr</option><option value="240">4 hr</option><option value="300">5 hr</option></select></label>
+    </div>
+    <label id="f-due-wrap">Due (optional)<input type="date" id="f-due"></label>
+    <div class="row-between">
+      <button type="button" class="btn danger" id="f-delete" hidden>Delete</button>
+      <button class="btn primary" id="f-save" style="flex:1">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="rule-sheet" class="sheet" aria-labelledby="rule-title">
+  <form id="rule-form" class="form">
+    <div class="row-between"><h3 id="rule-title">Every week</h3><button type="button" class="icon-btn" data-close aria-label="Close">✕</button></div>
+    <label>What<input id="r-title" required placeholder="Practice" maxlength="60"></label>
+    <div><div class="muted small" style="margin-bottom:6px">Type</div><div class="types" id="r-types"></div></div>
+    <div><div class="muted small" style="margin-bottom:6px">Days</div><div class="weekdays" id="r-days"></div></div>
+    <div class="grid2">
+      <label>Start<input type="time" id="r-start" required></label>
+      <label>How long<select id="r-mins"><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 hr</option><option value="90">1.5 hr</option><option value="120">2 hr</option><option value="150">2.5 hr</option><option value="180">3 hr</option><option value="240">4 hr</option><option value="420">7 hr</option></select></label>
+    </div>
+    <div class="row-between">
+      <button type="button" class="btn danger" id="r-delete" hidden>Delete</button>
+      <button class="btn primary" style="flex:1">Save</button>
+    </div>
+  </form>
+</dialog>
+<div id="toast" role="status"></div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+let toastT; function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 4200); }
+function isoDate(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+const todayIso = () => isoDate(new Date());
+const shiftIso = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoDate(d); };
+const mondayOf = (iso) => { const d = new Date(iso + 'T12:00:00'); const wd = (d.getDay() + 6) % 7; d.setDate(d.getDate() - wd); return isoDate(d); };
+const weekdayNum = (iso) => (new Date(iso + 'T12:00:00').getDay() + 6) % 7; // Mon=0
+const toMin = (hhmm) => { const [h, m] = String(hhmm).split(':').map(Number); return h * 60 + m; };
+const toHHMM = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+const fmtMin = (m) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setMinutes(m); return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); };
+const fmtDur = (m) => (m >= 60 ? `${Math.floor(m / 60)}h${m % 60 ? ' ' + (m % 60) + 'm' : ''}` : `${m}m`);
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+const TYPES = {
+  homework: { label: 'Homework', color: 'var(--t-homework)' }, study: { label: 'Study', color: 'var(--t-study)' },
+  practice: { label: 'Practice', color: 'var(--t-practice)' }, game: { label: 'Game', color: 'var(--t-game)' },
+  lift: { label: 'Lift', color: 'var(--t-lift)' }, work: { label: 'Work', color: 'var(--t-work)' },
+  personal: { label: 'Personal', color: 'var(--t-personal)' }, other: { label: 'Other', color: 'var(--t-other)' },
+};
+const dot = (type) => `<span class="dot" style="background:${TYPES[type]?.color || TYPES.other.color}"></span>`;
+
+// ===================== storage =====================
+const PREFIX = 'wb:';
+const cache = {}; let remote = null; const pending = new Set(); let flushing = false, flushT;
+const lsGet = (k) => { try { return JSON.parse(localStorage.getItem(PREFIX + k)); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(PREFIX + k, JSON.stringify(v)); } catch {} };
+const lsKeys = () => { try { return Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).map((k) => k.slice(PREFIX.length)); } catch { return []; } };
+const DEFAULT_CORE = () => ({ settings: { school: '15:15', bed: '22:30', wkstart: '09:00', max: 120 }, rules: [], tray: [] });
+function doc(k) { if (!(k in cache)) cache[k] = lsGet(k) ?? (k === 'core' ? DEFAULT_CORE() : null); return cache[k]; }
+const core = () => doc('core');
+// A week doc holds one-off items plus check-offs and skips for repeating ones.
+const week = (mon, create = true) => { const k = 'w-' + mon; if (!doc(k) && create) cache[k] = { items: [], done: {}, skip: {} }; return cache[k]; };
+function persist(k) { lsSet(k, cache[k]); if (!remote) return; pending.add(k); clearTimeout(flushT); flushT = setTimeout(flush, 700); }
+async function flush() { if (flushing || !remote) return; flushing = true; try { while (pending.size) { const k = pending.values().next().value; pending.delete(k); await remote.doc(k).set(JSON.parse(JSON.stringify(cache[k]))); } setSync('synced'); } catch { setSync('error'); } finally { flushing = false; } }
+function setSync(s) { const el = $('#sync'); el.dataset.s = s; el.textContent = s === 'synced' ? 'Synced' : s === 'error' ? 'Not synced' : s === 'loading' ? 'Syncing…' : 'This device';
+  $('#storage-note').textContent = s === 'synced' ? 'Your plans are saved to your Claude account and sync across your devices.' : 'Your plans are saved in this browser.'; }
+async function connectStore() {
+  if (!window.claude?.use) return setSync('local');
+  setSync('loading');
+  const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+  const id = user ? await user.id() : null;
+  if (!db || !id) return setSync('local');
+  const coll = db.collection('data/users/' + id);
+  const t = setTimeout(() => setSync('local'), 10000);
+  try {
+    const snap = await coll.get(); clearTimeout(t); remote = coll;
+    const have = new Set();
+    for (const d of snap.docs) { if (!d.exists) continue; have.add(d.id); cache[d.id] = JSON.parse(JSON.stringify(d.data())); lsSet(d.id, cache[d.id]); }
+    for (const k of lsKeys()) if (!have.has(k)) { doc(k); if (cache[k]) pending.add(k); }
+    setSync('synced'); if (pending.size) flush(); render();
+  } catch { clearTimeout(t); setSync('local'); }
+}
+
+// ===================== model =====================
+let mon = mondayOf(todayIso());
+const weekDates = () => Array.from({ length: 7 }, (_, i) => shiftIso(mon, i));
+/** Everything on one date: repeating rules (unless skipped) plus one-off items. */
+function itemsOn(date) {
+  const w = week(mondayOf(date), false) || { items: [], done: {}, skip: {} };
+  const wd = weekdayNum(date);
+  const reps = core().rules.filter((r) => r.days.includes(wd) && !w.skip?.[`${r.id}|${date}`])
+    .map((r) => ({ id: `${r.id}|${date}`, rule: r.id, title: r.title, type: r.type, date, start: r.start, mins: r.mins, done: !!w.done?.[`${r.id}|${date}`] }));
+  const own = (w.items || []).filter((i) => i.date === date);
+  return [...reps, ...own].sort((a, b) => (a.start == null) - (b.start == null) || (a.start ? toMin(a.start) - toMin(b.start) : 0) || a.title.localeCompare(b.title));
+}
+function conflicts(list) {
+  const timed = list.filter((i) => i.start), bad = new Set();
+  for (let a = 0; a < timed.length; a++) for (let b = a + 1; b < timed.length; b++) {
+    const A = timed[a], B = timed[b], as = toMin(A.start), bs = toMin(B.start);
+    if (as < bs + B.mins && bs < as + A.mins) { bad.add(A.id); bad.add(B.id); }
+  }
+  return bad;
+}
+function findItem(id) {
+  if (id.includes('|')) { const [rid, date] = id.split('|'); const r = core().rules.find((x) => x.id === rid); return r ? { kind: 'rep', rule: r, date } : null; }
+  const t = core().tray.find((x) => x.id === id); if (t) return { kind: 'tray', item: t };
+  for (const k of [...new Set([...Object.keys(cache), ...lsKeys()])].filter((k) => k.startsWith('w-'))) {
+    const w = doc(k); const it = w?.items?.find((x) => x.id === id); if (it) return { kind: 'item', item: it, key: k };
+  }
+  return null;
+}
+function removeItem(found) {
+  if (found.kind === 'tray') { core().tray = core().tray.filter((x) => x !== found.item); persist('core'); }
+  if (found.kind === 'item') { const w = doc(found.key); w.items = w.items.filter((x) => x !== found.item); persist(found.key); }
+}
+function placeItem(it) { const k = 'w-' + mondayOf(it.date); week(mondayOf(it.date)).items.push(it); persist(k); }
+
+// ===================== Auto-fit homework =====================
+/** Greedy: earliest-due first, each task goes in the earliest free gap long enough, on days before it is due, within daily windows and a daily homework cap. */
+function autoFit() {
+  const st = core().settings, tray = core().tray.filter((t) => t.mins > 0);
+  if (!tray.length) return toast('Nothing to schedule');
+  const startDay = todayIso() > mon ? todayIso() : mon;
+  const horizon = Array.from({ length: 14 }, (_, i) => shiftIso(startDay, i));
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+  const busy = {}, hwMins = {};
+  const blocksFor = (d) => busy[d] ??= itemsOn(d).filter((i) => i.start).map((i) => [toMin(i.start), toMin(i.start) + i.mins + (['practice', 'game', 'lift'].includes(i.type) ? 15 : 5)]);
+  const hwFor = (d) => hwMins[d] ??= itemsOn(d).filter((i) => ['homework', 'study'].includes(i.type)).reduce((a, i) => a + i.mins, 0);
+  const sorted = tray.slice().sort((a, b) => (a.due || '9999') .localeCompare(b.due || '9999') || b.mins - a.mins);
+  const placed = [], stuck = [];
+  for (const t of sorted) {
+    let done = false;
+    for (const d of horizon) {
+      if (t.due && d >= t.due) break; // finish the day before it's due
+      const weekend = weekdayNum(d) >= 5;
+      let open = weekend ? toMin(st.wkstart) : toMin(st.school) + 15;
+      const close = toMin(st.bed) - 30;
+      if (d === todayIso()) open = Math.max(open, Math.ceil((nowMin + 10) / 15) * 15);
+      if (hwFor(d) + t.mins > Number(st.max)) continue;
+      const blocks = blocksFor(d).slice().sort((a, b) => a[0] - b[0]);
+      let cursor = open;
+      for (const [s, e] of [...blocks, [close, close]]) {
+        if (s - cursor >= t.mins && cursor + t.mins <= close) {
+          const start = Math.ceil(cursor / 15) * 15;
+          if (start + t.mins <= Math.min(s, close)) {
+            placeItem({ id: t.id, title: t.title, type: t.type, date: d, start: toHHMM(start), mins: t.mins, due: t.due || null, done: false });
+            blocksFor(d).push([start, start + t.mins + 5]); hwMins[d] = hwFor(d) + t.mins;
+            placed.push(t); done = true; break;
+          }
+        }
+        cursor = Math.max(cursor, e);
+      }
+      if (done) break;
+    }
+    if (!done) stuck.push(t);
+  }
+  core().tray = core().tray.filter((t) => !placed.includes(t)); persist('core');
+  render();
+  const why = stuck.length ? ` ${stuck.length} didn't fit before ${stuck.length === 1 ? 'its' : 'their'} due date. Raise the daily homework limit in Settings, or drag ${stuck.length === 1 ? 'it' : 'them'} onto a day.` : '';
+  toast(placed.length ? `Scheduled ${placed.length}.${why}` : `Couldn't fit anything.${why || ' No free time before the due dates.'}`);
+}
+
+// ===================== render =====================
+function itemHtml(it, opts = {}) {
+  const t = TYPES[it.type] || TYPES.other;
+  const late = it.due && !it.done && it.due <= todayIso();
+  const timeTxt = it.start ? `${fmtMin(toMin(it.start))}` : '';
+  return `<div class="item${it.done ? ' done' : ''}${opts.conflict ? ' conflict' : ''}" data-id="${esc(it.id)}">
+    <button type="button" class="check" data-check aria-label="${it.done ? 'Mark not done' : 'Mark done'}">${it.done ? '✓' : ''}</button>
+    <div class="body"><div class="title">${esc(it.title)}</div>
+      <div class="meta">${dot(it.type)}<span>${t.label}</span><span>· ${fmtDur(it.mins)}</span>${it.rule ? '<span class="rep">weekly</span>' : ''}${it.due ? `<span class="${late ? 'due' : ''}">· due ${new Date(it.due + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short' })}</span>` : ''}${opts.conflict ? '<span class="due">· overlaps</span>' : ''}</div></div>
+    <div class="time">${timeTxt}</div>
+    ${opts.chips ? `<div class="daychips" aria-label="Move to a day">${weekDates().map((d, i) => `<button type="button" data-move="${d}" ${it.due && d >= it.due ? 'disabled style="opacity:.35"' : ''}>${DAYS[i].slice(0, 2)}</button>`).join('')}</div>` : ''}
+  </div>`;
+}
+function render() {
+  const dates = weekDates(), today = todayIso(), isThis = mon === mondayOf(today);
+  const end = new Date(dates[6] + 'T12:00:00'), start = new Date(dates[0] + 'T12:00:00');
+  $('#week-label').textContent = `${start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString(undefined, { month: start.getMonth() === end.getMonth() ? undefined : 'short', day: 'numeric' })}${isThis ? ' · this week' : ''}`;
+  $('#this-week').hidden = isThis;
+  // stats
+  const all = dates.flatMap(itemsOn);
+  const mins = (types) => all.filter((i) => types.includes(i.type)).reduce((a, i) => a + i.mins, 0);
+  const hw = all.filter((i) => ['homework', 'study'].includes(i.type));
+  const freeNights = dates.slice(0, 5).filter((d) => !itemsOn(d).some((i) => i.start && toMin(i.start) >= 17 * 60)).length;
+  $('#stats').innerHTML = `<div class="stat"><b>${fmtDur(mins(['practice', 'game', 'lift']))}</b><small>Training</small></div>
+    <div class="stat"><b>${hw.filter((i) => i.done).length}/${hw.length}</b><small>Homework done</small></div>
+    <div class="stat"><b>${fmtDur(mins(['work']))}</b><small>Work</small></div>
+    <div class="stat"><b>${freeNights}</b><small>Free weeknights</small></div>`;
+  // tray
+  const tray = core().tray;
+  $('#tray').hidden = !tray.length;
+  $('#tray-note').textContent = tray.length ? 'Tap Auto-fit to slot these in before they\'re due, or drag one onto a day.' : '';
+  $('#tray-list').innerHTML = tray.slice().sort((a, b) => (a.due || '9999').localeCompare(b.due || '9999')).map((t) => itemHtml(t, { chips: true })).join('');
+  // days
+  $('#days').innerHTML = dates.map((d, i) => {
+    const list = itemsOn(d), bad = conflicts(list), dt = new Date(d + 'T12:00:00');
+    const total = list.reduce((a, x) => a + x.mins, 0);
+    const byType = Object.keys(TYPES).map((k) => [k, list.filter((x) => x.type === k).reduce((a, x) => a + x.mins, 0)]).filter(([, m]) => m);
+    return `<div class="day${d === today ? ' today' : d < today ? ' past' : ''}" data-date="${d}">
+      <div class="day-head"><b>${DAYS[i]} ${dt.getDate()}${d === today ? '<span class="today-tag">Today</span>' : ''}</b><small>${list.length ? `${list.filter((x) => x.done).length}/${list.length} done · ${fmtDur(total)}` : ''}</small></div>
+      ${total ? `<div class="load" aria-hidden="true">${byType.map(([k, m]) => `<span style="width:${(m / Math.max(total, 600)) * 100}%;background:${TYPES[k].color}"></span>`).join('')}</div>` : ''}
+      <div class="list">${list.length ? list.map((it) => itemHtml(it, { conflict: bad.has(it.id) })).join('') : '<div class="empty">Free. Drop something here.</div>'}</div>
+    </div>`;
+  }).join('');
+}
+function renderRules() {
+  const rules = core().rules;
+  $('#rules').innerHTML = rules.length ? rules.map((r) => `<div class="rule" data-rule="${r.id}">${dot(r.type)}<div><b>${esc(r.title)}</b><div class="muted small">${r.days.slice().sort().map((d) => DAYS[d]).join(', ')} · ${fmtMin(toMin(r.start))} · ${fmtDur(r.mins)}</div></div><button type="button" class="mini" data-edit-rule="${r.id}">Edit</button></div>`).join('')
+    : '<p class="muted small" style="margin:0">Nothing yet. Add school, practice, lifts or work shifts that happen every week.</p>';
+}
+function renderSettings() { const s = core().settings; $('#st-school').value = s.school; $('#st-bed').value = s.bed; $('#st-wkstart').value = s.wkstart; $('#st-max').value = String(s.max); }
+
+// ===================== interactions =====================
+function toggleDone(id) {
+  const f = findItem(id); if (!f) return;
+  if (f.kind === 'rep') { const k = 'w-' + mondayOf(f.date), w = week(mondayOf(f.date)); w.done ||= {}; w.done[id] = !w.done[id]; persist(k); }
+  else if (f.kind === 'item') { f.item.done = !f.item.done; persist(f.key); }
+  render();
+}
+function moveTo(id, date) {
+  const f = findItem(id); if (!f) return;
+  if (f.kind === 'rep') {
+    // Moving one week's copy of a repeating item: skip it here, add a one-off on the new day.
+    const k = 'w-' + mondayOf(f.date), w = week(mondayOf(f.date)); w.skip ||= {}; w.skip[id] = true; persist(k);
+    placeItem({ id: uid(), title: f.rule.title, type: f.rule.type, date, start: f.rule.start, mins: f.rule.mins, done: false });
+  } else {
+    const it = f.item; removeItem(f);
+    placeItem({ ...it, date, start: it.start || null, done: !!it.done });
+  }
+  render();
+  toast(`Moved to ${new Date(date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long' })}`);
+}
+$('#view-week').addEventListener('click', (e) => {
+  if (dragJustEnded) return;
+  const card = e.target.closest('.item'); if (!card) return;
+  const id = card.dataset.id;
+  if (e.target.closest('[data-check]')) return toggleDone(id);
+  const mv = e.target.closest('[data-move]'); if (mv) return mv.disabled ? null : moveTo(id, mv.dataset.move);
+  openItem(id);
+});
+$('#autofit').addEventListener('click', autoFit);
+$('#prev-week').addEventListener('click', () => { mon = shiftIso(mon, -7); render(); });
+$('#next-week').addEventListener('click', () => { mon = shiftIso(mon, 7); render(); });
+$('#this-week').addEventListener('click', () => { mon = mondayOf(todayIso()); render(); });
+
+// ===================== drag and drop (press, hold, drag) =====================
+let drag = null, dragJustEnded = false, holdT = null, autoScrollT = null;
+document.addEventListener('pointerdown', (e) => {
+  const card = e.target.closest('#view-week .item');
+  if (!card || e.target.closest('button') || e.button > 0) return;
+  const start = { x: e.clientX, y: e.clientY, id: e.pointerId };
+  const cancelHold = (ev) => { if (Math.hypot(ev.clientX - start.x, ev.clientY - start.y) > 8) clear(); };
+  const clear = () => { clearTimeout(holdT); document.removeEventListener('pointermove', cancelHold); document.removeEventListener('pointerup', clear); document.removeEventListener('pointercancel', clear); };
+  document.addEventListener('pointermove', cancelHold); document.addEventListener('pointerup', clear); document.addEventListener('pointercancel', clear);
+  holdT = setTimeout(() => { clear(); beginDrag(card, start.x, start.y); }, e.pointerType === 'mouse' ? 120 : 320);
+});
+function beginDrag(card, x, y) {
+  const ghost = card.cloneNode(true); ghost.classList.add('ghost'); ghost.querySelector('.daychips')?.remove();
+  document.body.append(ghost); card.classList.add('lifted'); document.body.classList.add('dragging');
+  drag = { id: card.dataset.id, card, ghost, over: null };
+  try { navigator.vibrate?.(15); } catch {}
+  moveGhost(x, y);
+  document.addEventListener('pointermove', onDragMove, { passive: false });
+  document.addEventListener('pointerup', endDrag); document.addEventListener('pointercancel', endDrag);
+  document.addEventListener('touchmove', blockScroll, { passive: false });
+}
+const blockScroll = (e) => { if (drag) e.preventDefault(); };
+function moveGhost(x, y) {
+  drag.ghost.style.left = Math.min(window.innerWidth - drag.ghost.offsetWidth - 8, Math.max(8, x - 40)) + 'px';
+  drag.ghost.style.top = (y - 24) + 'px';
+  const el = document.elementFromPoint(x, y)?.closest('.day');
+  if (el !== drag.over) { drag.over?.classList.remove('drop'); drag.over = el; el?.classList.add('drop'); }
+  clearInterval(autoScrollT);
+  const edge = 70, h = window.innerHeight;
+  if (y < edge + 90) autoScrollT = setInterval(() => window.scrollBy(0, -12), 16);
+  else if (y > h - edge - 70) autoScrollT = setInterval(() => window.scrollBy(0, 12), 16);
+}
+function onDragMove(e) { if (!drag) return; e.preventDefault(); moveGhost(e.clientX, e.clientY); }
+function endDrag() {
+  clearInterval(autoScrollT);
+  document.removeEventListener('pointermove', onDragMove); document.removeEventListener('pointerup', endDrag); document.removeEventListener('pointercancel', endDrag); document.removeEventListener('touchmove', blockScroll);
+  if (!drag) return;
+  const { id, card, ghost, over } = drag; drag = null;
+  ghost.remove(); card.classList.remove('lifted'); over?.classList.remove('drop'); document.body.classList.remove('dragging');
+  dragJustEnded = true; setTimeout(() => (dragJustEnded = false), 50);
+  if (!over) return;
+  const date = over.dataset.date, f = findItem(id);
+  if (f?.kind === 'item' && f.item.date === date) return;
+  if (f?.kind === 'rep' && f.date === date) return;
+  if (f?.item?.due && date >= f.item.due) toast('Heads up: that day is on or after the due date');
+  moveTo(id, date);
+}
+
+// ===================== add / edit sheet =====================
+const sheet = $('#sheet');
+let editing = null, fType = 'homework', fWhen = 'tray', fDate = todayIso();
+function typeButtons(el, cur) { el.innerHTML = Object.entries(TYPES).map(([k, t]) => `<button type="button" data-type="${k}" class="${k === cur ? 'on' : ''}">${dot(k)}${t.label}</button>`).join(''); }
+function dayButtons(el, cur) { el.innerHTML = weekDates().map((d, i) => `<button type="button" data-date="${d}" class="${d === cur ? 'on' : ''}">${DAYS[i].slice(0, 2)}<br><small>${new Date(d + 'T12:00:00').getDate()}</small></button>`).join(''); }
+function syncSheet() {
+  typeButtons($('#f-types'), fType);
+  $$('#f-when button').forEach((b) => b.classList.toggle('on', b.dataset.when === fWhen));
+  $('#f-day-wrap').hidden = fWhen === 'tray'; $('#f-start').closest('label').hidden = fWhen !== 'slot';
+  $('#f-due-wrap').hidden = !['homework', 'study', 'other', 'personal'].includes(fType);
+  dayButtons($('#f-days'), fDate);
+}
+function openSheet(prefill = {}) {
+  editing = prefill.editing || null;
+  $('#sheet-title').textContent = editing ? 'Edit' : 'Add to your week';
+  $('#f-title').value = prefill.title || ''; fType = prefill.type || 'homework';
+  fWhen = prefill.when || (['homework', 'study'].includes(fType) ? 'tray' : 'slot');
+  fDate = prefill.date || (todayIso() >= mon && todayIso() <= shiftIso(mon, 6) ? todayIso() : mon);
+  $('#f-start').value = prefill.start || '16:00'; $('#f-mins').value = String(prefill.mins || 45); $('#f-due').value = prefill.due || '';
+  $('#f-delete').hidden = !editing;
+  syncSheet(); sheet.showModal(); setTimeout(() => !editing && $('#f-title').focus(), 50);
+}
+function openItem(id) {
+  const f = findItem(id); if (!f) return;
+  if (f.kind === 'rep') { showView('routine'); return openRule(f.rule.id); }
+  const it = f.item;
+  openSheet({ editing: id, title: it.title, type: it.type, when: f.kind === 'tray' ? 'tray' : it.start ? 'slot' : 'day', date: it.date, start: it.start, mins: it.mins, due: it.due });
+}
+$('#f-types').addEventListener('click', (e) => { const b = e.target.closest('[data-type]'); if (!b) return; const was = fType; fType = b.dataset.type;
+  if (!editing && ['practice', 'game', 'lift', 'work'].includes(fType) && ['homework', 'study'].includes(was)) { fWhen = 'slot'; if ($('#f-mins').value === '45') $('#f-mins').value = '120'; }
+  if (!editing && !$('#f-title').value) $('#f-title').placeholder = { practice: 'Practice', game: 'Game vs. ', lift: 'Lift: legs', work: 'Shift at…', homework: 'Math worksheet', study: 'Study for bio test' }[fType] || 'What is it?';
+  syncSheet(); });
+$('#f-when').addEventListener('click', (e) => { const b = e.target.closest('[data-when]'); if (b) { fWhen = b.dataset.when; syncSheet(); } });
+$('#f-days').addEventListener('click', (e) => { const b = e.target.closest('[data-date]'); if (b) { fDate = b.dataset.date; syncSheet(); } });
+$('#item-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const title = $('#f-title').value.trim(); if (!title) return;
+  const it = { id: editing || uid(), title, type: fType, mins: Number($('#f-mins').value), due: $('#f-due').value || null, done: false };
+  if (editing) { const f = findItem(editing); if (f) { it.done = !!f.item.done; removeItem(f); } }
+  if (fWhen === 'tray') { core().tray.push(it); persist('core'); }
+  else placeItem({ ...it, date: fDate, start: fWhen === 'slot' ? $('#f-start').value || null : null });
+  sheet.close(); render();
+  toast(editing ? 'Saved' : fWhen === 'tray' ? 'Added to To schedule' : 'Added');
+});
+$('#f-delete').addEventListener('click', () => {
+  if ($('#f-delete').dataset.confirm !== '1') { $('#f-delete').dataset.confirm = '1'; $('#f-delete').textContent = 'Tap again to delete'; return; }
+  const f = findItem(editing); if (f) removeItem(f);
+  $('#f-delete').dataset.confirm = ''; $('#f-delete').textContent = 'Delete'; sheet.close(); render(); toast('Deleted');
+});
+sheet.addEventListener('close', () => { $('#f-delete').dataset.confirm = ''; $('#f-delete').textContent = 'Delete'; });
+$('#fab').addEventListener('click', () => { if (view === 'routine') return openRule(); openSheet(); });
+
+// ===================== repeating rules =====================
+const ruleSheet = $('#rule-sheet');
+let ruleEditing = null, rType = 'practice', rDays = [0, 1, 2, 3, 4];
+function syncRuleSheet() {
+  typeButtons($('#r-types'), rType);
+  $('#r-days').innerHTML = DAYS.map((d, i) => `<button type="button" data-wd="${i}" class="${rDays.includes(i) ? 'on' : ''}">${d.slice(0, 2)}</button>`).join('');
+}
+function openRule(id) {
+  const r = id ? core().rules.find((x) => x.id === id) : null; ruleEditing = r?.id || null;
+  $('#r-title').value = r?.title || ''; rType = r?.type || 'practice'; rDays = r ? [...r.days] : [0, 1, 2, 3, 4];
+  $('#r-start').value = r?.start || '15:30'; $('#r-mins').value = String(r?.mins || 120);
+  $('#r-delete').hidden = !r; syncRuleSheet(); ruleSheet.showModal();
+}
+$('#r-types').addEventListener('click', (e) => { const b = e.target.closest('[data-type]'); if (b) { rType = b.dataset.type; syncRuleSheet(); } });
+$('#r-days').addEventListener('click', (e) => { const b = e.target.closest('[data-wd]'); if (!b) return; const n = Number(b.dataset.wd); rDays = rDays.includes(n) ? rDays.filter((x) => x !== n) : [...rDays, n]; syncRuleSheet(); });
+$('#rule-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (!rDays.length) return toast('Pick at least one day');
+  const r = { id: ruleEditing || 'r' + uid(), title: $('#r-title').value.trim(), type: rType, days: rDays.slice().sort(), start: $('#r-start').value, mins: Number($('#r-mins').value) };
+  const c = core(); c.rules = [...c.rules.filter((x) => x.id !== r.id), r]; persist('core');
+  ruleSheet.close(); renderRules(); render(); toast('Saved. It shows up every week.');
+});
+$('#r-delete').addEventListener('click', () => {
+  if ($('#r-delete').dataset.confirm !== '1') { $('#r-delete').dataset.confirm = '1'; $('#r-delete').textContent = 'Tap again to delete'; return; }
+  const c = core(); c.rules = c.rules.filter((x) => x.id !== ruleEditing); persist('core');
+  $('#r-delete').dataset.confirm = ''; $('#r-delete').textContent = 'Delete'; ruleSheet.close(); renderRules(); render();
+});
+ruleSheet.addEventListener('close', () => { $('#r-delete').dataset.confirm = ''; $('#r-delete').textContent = 'Delete'; });
+$('#add-rule').addEventListener('click', () => openRule());
+$('#rules').addEventListener('click', (e) => { const b = e.target.closest('[data-edit-rule]'); if (b) openRule(b.dataset.editRule); });
+$$('[data-close]').forEach((b) => b.addEventListener('click', () => b.closest('dialog').close()));
+$$('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+
+$('#settings').addEventListener('submit', (e) => { e.preventDefault(); core().settings = { school: $('#st-school').value || '15:15', bed: $('#st-bed').value || '22:30', wkstart: $('#st-wkstart').value || '09:00', max: Number($('#st-max').value) }; persist('core'); toast('Saved'); });
+
+// ===================== navigation + boot =====================
+let view = 'week';
+function showView(v) {
+  view = v; $$('.tab[data-view]').forEach((t) => t.classList.toggle('active', t.dataset.view === v));
+  for (const id of ['week', 'routine', 'me']) $('#view-' + id).hidden = id !== v;
+  $('#weeknav').hidden = v !== 'week';
+  if (v === 'week') render(); if (v === 'routine') renderRules(); if (v === 'me') renderSettings();
+  window.scrollTo(0, 0);
+}
+$$('.tab[data-view]').forEach((t) => t.addEventListener('click', () => showView(t.dataset.view)));
+setSync('local'); render();
+setTimeout(() => document.querySelector('.day.today')?.scrollIntoView({ block: 'start' }), 60);
+connectStore();
+</script>
+
+</body>
+</html>
