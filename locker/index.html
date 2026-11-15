@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d0f13">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Locker">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<title>Locker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a phone home screen of your own apps. A today strip of live numbers on top, then folders of icon tiles in a 4-column grid. Dark-first, like a phone at night. */
+:root {
+  --bg: #0d0f13;
+  --surface: #171a21;
+  --surface-2: #20242d;
+  --line: #2b303a;
+  --fg: #f2f4f8;
+  --muted: #8d95a5;
+  --accent: #ffb020;
+  --accent-ink: #1a1200;
+  --good: #3fcf8e;
+  --f-display: "Archivo", "Inter", system-ui, sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) { --bg: #eef0f4; --surface: #ffffff; --surface-2: #e8ebf1; --line: #d7dce5; --fg: #11141a; --muted: #5d6676; --accent: #c77700; --accent-ink: #ffffff; --good: #15803d; color-scheme: light; }
+}
+:root[data-theme="light"] { --bg: #eef0f4; --surface: #ffffff; --surface-2: #e8ebf1; --line: #d7dce5; --fg: #11141a; --muted: #5d6676; --accent: #c77700; --accent-ink: #ffffff; --good: #15803d; color-scheme: light; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.4 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px 40px; }
+.wrap { max-width: 560px; margin: 0 auto; display: grid; gap: 18px; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.muted { color: var(--muted); } .small { font-size: 13px; }
+.top { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.top > div { min-width: 0; }
+.brand { font-family: var(--f-display); font-weight: 900; font-size: 30px; letter-spacing: -.8px; line-height: 1; text-transform: uppercase; }
+.brand span { color: var(--accent); }
+.greet { color: var(--muted); font-size: 14px; margin-top: 6px; }
+.top-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 7px 12px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.pill-btn.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+/* today strip */
+.today { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.widget { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 12px; display: grid; gap: 4px; text-decoration: none; color: inherit; min-width: 0; }
+.widget .w-head { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); font-weight: 600; }
+.widget .w-head svg { width: 16px; height: 16px; border-radius: 4px; flex: none; }
+.widget b { font-family: var(--f-display); font-size: 22px; font-weight: 800; line-height: 1.1; overflow-wrap: anywhere; }
+.widget small { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.widget.todo b { color: var(--accent); }
+.bar { height: 5px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-top: 2px; }
+.bar div { height: 100%; border-radius: 99px; }
+
+/* search */
+.search { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 0 12px; }
+.search svg { width: 18px; height: 18px; color: var(--muted); flex: none; }
+.search input, .search input[type=text] { border: 0; background: none; outline: none; padding: 11px 0; width: 100%; min-width: 0; border-radius: 0; }
+
+/* folders */
+.folder { display: grid; gap: 10px; }
+.folder-head { display: flex; justify-content: space-between; align-items: baseline; }
+.folder-head h2 { font-family: var(--f-display); font-size: 13px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin: 0; }
+.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 10px; }
+.tile { display: grid; justify-items: center; gap: 6px; text-decoration: none; color: inherit; position: relative; min-width: 0; cursor: pointer; background: none; border: 0; padding: 0; }
+.tile .ic { width: 100%; max-width: 66px; aspect-ratio: 1; border-radius: 22.5%; overflow: hidden; display: grid; place-items: center; box-shadow: 0 0 0 .5px rgba(127,127,127,.25); transition: transform .12s; }
+.tile:active .ic { transform: scale(.94); }
+.tile .ic svg { width: 100%; height: 100%; display: block; }
+.tile .letter { font-family: var(--f-display); font-weight: 900; font-size: 26px; color: #fff; }
+.tile span.name { font-size: 12px; font-weight: 500; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile .badge { position: absolute; top: -4px; right: calc(50% - 38px); background: #ff3b30; color: #fff; font-size: 11px; font-weight: 700; min-width: 20px; height: 20px; border-radius: 99px; display: grid; place-items: center; padding: 0 5px; }
+.tile .x { position: absolute; top: -6px; left: calc(50% - 40px); width: 22px; height: 22px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--line); display: grid; place-items: center; font-size: 12px; }
+.editing .tile .ic { animation: wiggle .3s ease-in-out infinite alternate; }
+@keyframes wiggle { from { transform: rotate(-2deg); } to { transform: rotate(2deg); } }
+@media (prefers-reduced-motion: reduce) { .editing .tile .ic { animation: none; } .tile .ic { transition: none; } }
+.add-tile .ic { border: 2px dashed var(--line); box-shadow: none; color: var(--muted); font-size: 28px; }
+.empty { color: var(--muted); font-size: 14px; text-align: center; padding: 20px; }
+.note { font-size: 13px; color: var(--muted); border-left: 3px solid var(--accent); padding-left: 10px; margin: 0; }
+
+/* sheets */
+dialog.sheet { width: min(560px, 100vw); max-width: 100vw; max-height: 92vh; margin: auto auto 0; border: 1px solid var(--line); border-bottom: 0; border-radius: 22px 22px 0 0; background: var(--surface); color: var(--fg); overflow-y: auto;
+  padding: 18px max(16px, env(safe-area-inset-right, 0px)) calc(22px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+dialog.sheet::backdrop { background: rgba(0, 0, 0, .55); }
+.form { display: grid; gap: 12px; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.sheet-head h3 { font-family: var(--f-display); font-size: 20px; margin: 0; }
+.close { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface-2); cursor: pointer; }
+label { display: grid; gap: 5px; font-size: 13px; color: var(--muted); }
+input[type=text], input[type=url], select { width: 100%; min-width: 0; border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 11px 12px; outline: none; }
+input:focus, select:focus { border-color: var(--accent); }
+.swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+.swatches button { width: 34px; height: 34px; border-radius: 10px; border: 2px solid transparent; cursor: pointer; }
+.swatches button.on { border-color: var(--fg); }
+.preview { display: flex; align-items: center; gap: 12px; }
+.preview .ic { width: 58px; height: 58px; border-radius: 22.5%; display: grid; place-items: center; overflow: hidden; }
+.btn { display: inline-flex; justify-content: center; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 12px 16px; font-weight: 600; cursor: pointer; text-decoration: none; color: inherit; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.btn.danger { color: #ff6b5e; }
+.links { display: grid; gap: 8px; }
+.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; background: var(--surface-2); border-radius: 12px; padding: 4px; }
+.seg button { border: 0; background: none; border-radius: 9px; padding: 8px 4px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.seg button.on { background: var(--surface); color: var(--fg); }
+.detail-icon { width: 64px; height: 64px; border-radius: 22.5%; overflow: hidden; flex: none; display: grid; place-items: center; }
+.detail-icon svg { width: 100%; height: 100%; }
+#toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 99px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; transition: .25s; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+
+<div class="wrap" id="wrap">
+  <div class="top">
+    <div><div class="brand">Lock<span>er</span></div><div class="greet" id="greet"></div></div>
+    <div class="top-actions">
+      <button class="pill-btn" id="add-btn" type="button">＋ Add</button>
+      <button class="pill-btn" id="edit-btn" type="button">Edit</button>
+      <button class="pill-btn" id="settings-btn" type="button" aria-label="Settings">⚙︎</button>
+    </div>
+  </div>
+
+  <div class="today" id="today" hidden></div>
+
+  <label class="search" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg><input id="q" type="text" placeholder="Search your apps" autocomplete="off"></label>
+
+  <div id="folders" style="display:grid;gap:22px"></div>
+
+  <p class="note" id="foot-note"></p>
+</div>
+
+<dialog id="add-sheet" class="sheet" aria-labelledby="add-title">
+  <form id="add-form" class="form">
+    <div class="sheet-head"><h3 id="add-title">Add an app</h3><button type="button" class="close" data-close aria-label="Close">✕</button></div>
+    <div class="preview"><div class="ic" id="a-preview"></div><span class="muted small">Paste the link you open the app from (the github.io or claude.ai link).</span></div>
+    <label>Name<input type="text" id="a-name" maxlength="24" required placeholder="Betting Plays"></label>
+    <label>Link<input type="url" id="a-url" required placeholder="https://yourname.github.io/gameday/"></label>
+    <label>Folder<select id="a-folder"></select></label>
+    <div><div class="muted small" style="margin-bottom:6px">Color</div><div class="swatches" id="a-colors"></div></div>
+    <label>Icon letter or emoji<input type="text" id="a-glyph" maxlength="2" placeholder="B"></label>
+    <div style="display:flex;gap:8px"><button type="button" class="btn danger" id="a-delete" hidden>Remove</button><button class="btn primary" style="flex:1">Save</button></div>
+  </form>
+</dialog>
+
+<dialog id="detail-sheet" class="sheet" aria-labelledby="d-name">
+  <div class="form">
+    <div class="sheet-head"><div style="display:flex;gap:12px;align-items:center;min-width:0"><div class="detail-icon" id="d-icon"></div><div style="min-width:0"><h3 id="d-name" style="font-family:var(--f-display);font-size:20px;margin:0"></h3><div class="muted small" id="d-tag"></div></div></div><button type="button" class="close" data-close aria-label="Close">✕</button></div>
+    <p style="margin:0" id="d-desc"></p>
+    <div class="links" id="d-links"></div>
+  </div>
+</dialog>
+
+<dialog id="settings-sheet" class="sheet" aria-labelledby="s-title">
+  <div class="form">
+    <div class="sheet-head"><h3 id="s-title">Settings</h3><button type="button" class="close" data-close aria-label="Close">✕</button></div>
+    <div><div class="muted small" style="margin-bottom:6px">Open my apps in</div>
+      <div class="seg" id="open-in"><button type="button" data-v="auto">Best for here</button><button type="button" data-v="claude">Claude</button><button type="button" data-v="web">Website</button></div>
+      <p class="muted small" style="margin:8px 0 0">Claude links use your Claude account for AI and sync your data. Website links work in any browser; AI there needs your API key.</p></div>
+    <div><div class="muted small" style="margin-bottom:6px">Hidden apps</div><div id="hidden-list" class="muted small">None</div></div>
+    <p class="muted small" id="sync-note" style="margin:0"></p>
+  </div>
+</dialog>
+<div id="toast" role="status"></div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+let toastT; function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2400); }
+function isoDate(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+const todayIso = () => isoDate(new Date());
+const shiftIso = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoDate(d); };
+const toMin = (hhmm) => { const [h, m] = String(hhmm).split(':').map(Number); return h * 60 + m; };
+const fmtMin = (m) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setMinutes(m); return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); };
+const inClaude = !!window.claude?.use;
+const SITE = 'https://isaacbsmith9-create.github.io/jarvis-demo/';
+
+// ===================== your apps =====================
+const ICONS = {
+  macrolens: '<rect width="64" height="64" fill="#0f1115"/><circle cx="32" cy="32" r="18" fill="none" stroke="#2b303b" stroke-width="6"/><circle cx="32" cy="32" r="18" fill="none" stroke="#34d399" stroke-width="6" stroke-dasharray="85 200" stroke-linecap="round" transform="rotate(-90 32 32)"/><circle cx="32" cy="32" r="7" fill="#34d399"/>',
+  readyup: '<rect width="64" height="64" fill="#3552c9"/><path d="M14 42a18 18 0 0 1 36 0" fill="none" stroke="#dfe6fb" stroke-width="6" stroke-linecap="round"/><path d="M14 42a18 18 0 0 1 28-15" fill="none" stroke="#3fcf8e" stroke-width="6" stroke-linecap="round"/><circle cx="32" cy="42" r="4" fill="#fff"/>',
+  charla: '<rect width="64" height="64" fill="#0f7c86"/><path d="M12 18a6 6 0 0 1 6-6h22a6 6 0 0 1 6 6v12a6 6 0 0 1-6 6H24l-8 6v-6.5A6 6 0 0 1 12 30z" fill="#fff"/><path d="M28 30h18a6 6 0 0 1 6 6v8a6 6 0 0 1-4 5.6V56l-7-6H34a6 6 0 0 1-6-6z" fill="#e9a300"/><text x="29" y="28" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="13" fill="#0f7c86">¡Hola!</text>',
+  weekboard: '<rect width="64" height="64" fill="#1f3b73"/><rect x="11" y="14" width="42" height="38" rx="5" fill="#fff"/><rect x="11" y="14" width="42" height="9" rx="4" fill="#ffd23f"/><rect x="16" y="28" width="14" height="5" rx="2.5" fill="#2f6fdd"/><rect x="33" y="28" width="15" height="5" rx="2.5" fill="#d99a0b"/><rect x="16" y="37" width="20" height="5" rx="2.5" fill="#e2533a"/><rect x="39" y="37" width="9" height="5" rx="2.5" fill="#2e9a55"/><rect x="16" y="46" width="11" height="3" rx="1.5" fill="#8a4fd8"/>',
+};
+const BUILT_IN = [
+  { id: 'macrolens', name: 'MacroLens', folder: 'Training', tag: 'Food, macros and AI coach', desc: 'Food diary with AI photo scanning, macro and nutrient targets, a Coach tab with fuel plans, game day, groceries, meal prep and weekly reports.', claude: 'https://claude.ai/artifact/8zA7Vcnoi8ez5qeAHFJyjQ', web: SITE },
+  { id: 'readyup', name: 'ReadyUp', folder: 'Training', tag: 'Recovery and readiness', desc: 'Morning check-in for a 0-100 readiness score, a daily training plan, sleep and load trends, and guided recovery routines.', claude: 'https://claude.ai/artifact/S9xPngi3ZUsD6okgc7jqwG', web: SITE + 'recovery/' },
+  { id: 'weekboard', name: 'Weekboard', folder: 'School', tag: 'Weekly planner', desc: 'Your week of school, practice and work. Homework auto-fits before it is due, and you can drag anything to another day.', claude: 'https://claude.ai/artifact/CT9KqYWe3FPY9a9n5EeLDN', web: SITE + 'weekboard/' },
+  { id: 'charla', name: 'Charla', folder: 'School', tag: 'Spanish practice', desc: 'Daily Spanish conversation at your class level with corrections, spoken replies, a streak and a flashcard deck.', claude: 'https://claude.ai/artifact/Ya3DWBwNJ7gtNNvZ1Ndgvz', web: SITE + 'charla/' },
+];
+const FOLDERS = ['Training', 'School', 'Life', 'Business', 'Fun', 'Other'];
+const COLORS = ['#ee6a2c', '#e2533a', '#d4498f', '#8a4fd8', '#3552c9', '#0e9aa7', '#2e9a55', '#4a4a4e', '#111111'];
+
+// ===================== storage =====================
+const PREFIX = 'lk:';
+let state = { customs: [], hidden: [], openIn: 'auto' };
+let remoteDoc = null;
+try { state = { ...state, ...(JSON.parse(localStorage.getItem(PREFIX + 'core')) || {}) }; } catch {}
+let saveT;
+function save() {
+  try { localStorage.setItem(PREFIX + 'core', JSON.stringify(state)); } catch {}
+  if (!remoteDoc) return;
+  clearTimeout(saveT); saveT = setTimeout(() => remoteDoc.set(JSON.parse(JSON.stringify(state))).catch(() => {}), 500);
+}
+async function connectStore() {
+  if (!inClaude) { $('#sync-note').textContent = 'Your added apps are saved in this browser.'; return; }
+  const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+  const id = user ? await user.id() : null;
+  if (!db || !id) { $('#sync-note').textContent = 'Your added apps are saved in this browser.'; return; }
+  remoteDoc = db.doc(`data/users/${id}/core`);
+  try {
+    const snap = await remoteDoc.get();
+    if (snap.exists) { state = { ...state, ...JSON.parse(JSON.stringify(snap.data())) }; try { localStorage.setItem(PREFIX + 'core', JSON.stringify(state)); } catch {} render(); }
+    else if (state.customs.length || state.hidden.length) save();
+    $('#sync-note').textContent = 'Your added apps sync to your Claude account.';
+  } catch { $('#sync-note').textContent = 'Your added apps are saved in this browser.'; }
+}
+
+// ===================== today strip (website only: apps share this site's storage) =====================
+const readLS = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
+function macroToday() {
+  const core = readLS('ml:core'), d = readLS('ml:day-' + todayIso());
+  if (!core && !d) return null;
+  const t = { calories: 2800, protein: 140, ...(core?.targets || {}) };
+  for (const [k, v] of Object.entries(core?.overrides || {})) if (v > 0) t[k] = v;
+  if (d?.type === 'rest') { const cut = Math.round(t.carbs * 0.3 || 0); t.calories -= cut * 4; }
+  let cal = 0, pro = 0;
+  for (const m of ['breakfast', 'lunch', 'dinner', 'snacks']) for (const e of d?.[m] || []) { const s = e.servings ?? 1; cal += (e.calories || 0) * s; pro += (e.protein || 0) * s; }
+  return { left: Math.round(t.calories - cal), pct: Math.min(1, cal / t.calories), protein: Math.round(pro), pTarget: t.protein, logged: cal > 0 };
+}
+function readyToday() {
+  const d = readLS('ru:day-' + todayIso()), core = readLS('ru:core');
+  if (!d?.checkin && !core) return null;
+  return d?.checkin ? { done: true, sleep: d.checkin.sleepH, soreness: d.checkin.soreness, pain: d.checkin.pain } : { done: false };
+}
+function charlaToday() {
+  const core = readLS('ch:core'); if (!core) return null;
+  const goal = (core.settings?.goal || 5) * 60, secs = (readLS('ch:day-' + todayIso())?.secs) || 0;
+  let n = 0, d = todayIso(); if (secs < goal) d = shiftIso(d, -1);
+  while ((readLS('ch:day-' + d)?.secs || 0) >= goal) { n++; d = shiftIso(d, -1); }
+  return { mins: Math.floor(secs / 60), goal: goal / 60, streak: n, done: secs >= goal };
+}
+function weekNext() {
+  const core = readLS('wb:core'); if (!core) return null;
+  const t = todayIso(), dt = new Date(t + 'T12:00:00'), wd = (dt.getDay() + 6) % 7;
+  const mon = shiftIso(t, -wd), w = readLS('wb:w-' + mon) || { items: [], done: {}, skip: {} };
+  const reps = (core.rules || []).filter((r) => r.days.includes(wd) && !w.skip?.[`${r.id}|${t}`]).map((r) => ({ title: r.title, start: r.start, done: !!w.done?.[`${r.id}|${t}`] }));
+  const items = [...reps, ...(w.items || []).filter((i) => i.date === t)];
+  const now = new Date().getHours() * 60 + new Date().getMinutes();
+  const next = items.filter((i) => i.start && !i.done && toMin(i.start) + 0 >= now - 15).sort((a, b) => toMin(a.start) - toMin(b.start))[0];
+  const left = items.filter((i) => !i.done).length;
+  return { next, left, total: items.length };
+}
+function iconSvg(id) { return `<svg viewBox="0 0 64 64" aria-hidden="true">${ICONS[id]}</svg>`; }
+function renderToday() {
+  const el = $('#today');
+  if (inClaude) { el.hidden = true; return; }
+  const ws = [];
+  const m = macroToday();
+  if (m) ws.push(`<a class="widget${m.logged ? '' : ' todo'}" href="${appHref(BUILT_IN[0])}"><div class="w-head">${iconSvg('macrolens')}MacroLens</div><b>${m.left >= 0 ? m.left.toLocaleString() : Math.abs(m.left).toLocaleString()}</b><small>${m.left >= 0 ? 'kcal left' : 'kcal over'} · protein ${m.protein}/${m.pTarget}g</small><div class="bar"><div style="width:${m.pct * 100}%;background:#34d399"></div></div></a>`);
+  const r = readyToday();
+  if (r) ws.push(`<a class="widget${r.done ? '' : ' todo'}" href="${appHref(BUILT_IN[1])}"><div class="w-head">${iconSvg('readyup')}ReadyUp</div><b>${r.done ? `${r.sleep} h` : 'Check in'}</b><small>${r.done ? `sleep · ${r.pain ? 'pain flagged, see trainer' : 'soreness ' + r.soreness + '/5'}` : 'Takes 30 seconds'}</small></a>`);
+  const w = weekNext();
+  if (w) ws.push(`<a class="widget" href="${appHref(BUILT_IN[2])}"><div class="w-head">${iconSvg('weekboard')}Weekboard</div><b>${w.next ? esc(fmtMin(toMin(w.next.start))) : w.left ? `${w.left} to do` : 'All done'}</b><small>${w.next ? esc(w.next.title) : w.total ? 'Nothing else timed today' : 'Nothing planned today'}</small></a>`);
+  const c = charlaToday();
+  if (c) ws.push(`<a class="widget${c.done ? '' : ' todo'}" href="${appHref(BUILT_IN[3])}"><div class="w-head">${iconSvg('charla')}Charla</div><b>${c.streak} day${c.streak === 1 ? '' : 's'}</b><small>${c.done ? 'streak · goal done today' : `streak · ${c.goal - c.mins} min to go`}</small><div class="bar"><div style="width:${Math.min(100, (c.mins / c.goal) * 100)}%;background:#e9a300"></div></div></a>`);
+  el.hidden = !ws.length;
+  el.innerHTML = ws.join('');
+}
+
+// ===================== grid =====================
+let editing = false;
+function appHref(a) {
+  if (a.url) return a.url;
+  const mode = state.openIn === 'auto' ? (inClaude ? 'claude' : 'web') : state.openIn;
+  return mode === 'claude' ? a.claude : a.web;
+}
+function allApps() {
+  return [...BUILT_IN.map((a) => ({ ...a, builtIn: true })), ...state.customs];
+}
+function tileIcon(a) {
+  if (a.builtIn) return iconSvg(a.id);
+  return `<span class="letter">${esc(a.glyph || a.name.slice(0, 1).toUpperCase())}</span>`;
+}
+function render() {
+  const h = new Date().getHours();
+  $('#greet').textContent = `${h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'} · ${new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}`;
+  $('#wrap').classList.toggle('editing', editing);
+  $('#edit-btn').textContent = editing ? 'Done' : 'Edit'; $('#edit-btn').classList.toggle('on', editing);
+  renderToday();
+  const q = $('#q').value.trim().toLowerCase();
+  const apps = allApps().filter((a) => !state.hidden.includes(a.id) && (!q || `${a.name} ${a.tag || ''} ${a.folder}`.toLowerCase().includes(q)));
+  const folders = FOLDERS.map((f) => [f, apps.filter((a) => a.folder === f)]).filter(([f, list]) => list.length || (editing && !q && f !== 'Other'));
+  $('#folders').innerHTML = folders.map(([f, list]) => `<section class="folder"><div class="folder-head"><h2>${f}</h2><span class="muted small">${list.length}</span></div><div class="grid">
+    ${list.map((a) => {
+      const style = a.builtIn ? '' : `style="background:${esc(a.color || COLORS[0])}"`;
+      const inner = `<div class="ic" ${style}>${tileIcon(a)}</div><span class="name">${esc(a.name)}</span>${editing ? `<span class="x" aria-hidden="true">${a.builtIn ? '–' : '✕'}</span>` : ''}`;
+      return editing ? `<button type="button" class="tile" data-edit="${esc(a.id)}" aria-label="${a.builtIn ? 'Hide' : 'Edit'} ${esc(a.name)}">${inner}</button>`
+        : `<a class="tile" href="${esc(appHref(a))}" target="_blank" rel="noopener" data-id="${esc(a.id)}">${inner}</a>`;
+    }).join('')}
+    ${!q ? `<button type="button" class="tile add-tile" data-add="${f}" aria-label="Add an app to ${f}"><div class="ic">＋</div><span class="name muted">Add</span></button>` : ''}
+  </div></section>`).join('') || `<div class="empty">No apps match "${esc(q)}".</div>`;
+  $('#foot-note').textContent = inClaude
+    ? 'Tip: hold any app for details and both links. Today\'s numbers show on the website version of Locker, where your apps share storage.'
+    : 'Tip: hold any app for details and both links. Today\'s numbers come from your apps on this website and this device.';
+}
+// long-press (or right-click) opens details; tap opens the app
+let pressT = null, longPressed = false;
+$('#folders').addEventListener('pointerdown', (e) => {
+  const t = e.target.closest('a.tile'); if (!t) return;
+  longPressed = false;
+  pressT = setTimeout(() => { longPressed = true; openDetail(t.dataset.id); }, 450);
+});
+['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => $('#folders').addEventListener(ev, () => clearTimeout(pressT)));
+$('#folders').addEventListener('contextmenu', (e) => { const t = e.target.closest('a.tile'); if (t) { e.preventDefault(); openDetail(t.dataset.id); } });
+$('#folders').addEventListener('click', (e) => {
+  if (e.target.closest('a.tile') && longPressed) { e.preventDefault(); longPressed = false; return; }
+  const add = e.target.closest('[data-add]'); if (add) return openAdd(null, add.dataset.add);
+  const ed = e.target.closest('[data-edit]'); if (!ed) return;
+  const a = allApps().find((x) => x.id === ed.dataset.edit);
+  if (a.builtIn) { state.hidden.push(a.id); save(); render(); toast(`${a.name} hidden. Bring it back in Settings.`); }
+  else openAdd(a);
+});
+$('#edit-btn').addEventListener('click', () => { editing = !editing; render(); });
+$('#add-btn').addEventListener('click', () => openAdd(null, 'Other'));
+$('#q').addEventListener('input', render);
+
+// ===================== detail sheet =====================
+function openDetail(id) {
+  const a = allApps().find((x) => x.id === id); if (!a) return;
+  $('#d-icon').innerHTML = a.builtIn ? iconSvg(a.id) : `<span class="letter" style="font-family:var(--f-display);font-weight:900;font-size:28px;color:#fff">${esc(a.glyph || a.name[0])}</span>`;
+  $('#d-icon').style.background = a.builtIn ? '' : (a.color || COLORS[0]);
+  $('#d-name').textContent = a.name; $('#d-tag').textContent = a.tag || a.folder;
+  $('#d-desc').textContent = a.desc || a.url || '';
+  $('#d-links').innerHTML = a.builtIn
+    ? `<a class="btn primary" href="${a.claude}" target="_blank" rel="noopener">Open in Claude (free AI, synced)</a><a class="btn" href="${a.web}" target="_blank" rel="noopener">Open website version</a>
+       <button type="button" class="btn" data-copy="${a.web}">Copy website link</button>`
+    : `<a class="btn primary" href="${esc(a.url)}" target="_blank" rel="noopener">Open ${esc(a.name)}</a><button type="button" class="btn" data-edit-custom="${esc(a.id)}">Edit</button>`;
+  $('#detail-sheet').showModal();
+}
+$('#d-links').addEventListener('click', (e) => {
+  const c = e.target.closest('[data-copy]');
+  if (c) navigator.clipboard.writeText(c.dataset.copy).then(() => toast('Link copied'), () => toast(c.dataset.copy));
+  const ed = e.target.closest('[data-edit-custom]');
+  if (ed) { $('#detail-sheet').close(); openAdd(state.customs.find((x) => x.id === ed.dataset.editCustom)); }
+});
+
+// ===================== add / edit custom app =====================
+let addEditing = null, addColor = COLORS[0];
+$('#a-folder').innerHTML = FOLDERS.map((f) => `<option>${f}</option>`).join('');
+function paintPreview() {
+  const name = $('#a-name').value.trim();
+  $('#a-preview').style.background = addColor;
+  $('#a-preview').innerHTML = `<span style="font-family:var(--f-display);font-weight:900;font-size:26px;color:#fff">${esc($('#a-glyph').value.trim() || name.slice(0, 1).toUpperCase() || '?')}</span>`;
+  $('#a-colors').innerHTML = COLORS.map((c) => `<button type="button" data-color="${c}" class="${c === addColor ? 'on' : ''}" style="background:${c}" aria-label="Color ${c}"></button>`).join('');
+}
+function openAdd(app, folder) {
+  addEditing = app || null; addColor = app?.color || COLORS[Math.floor(Math.random() * COLORS.length)];
+  $('#add-title').textContent = app ? `Edit ${app.name}` : 'Add an app';
+  $('#a-name').value = app?.name || ''; $('#a-url').value = app?.url || ''; $('#a-glyph').value = app?.glyph || '';
+  $('#a-folder').value = app?.folder || folder || 'Other';
+  $('#a-delete').hidden = !app; $('#a-delete').textContent = 'Remove'; $('#a-delete').dataset.confirm = '';
+  paintPreview(); $('#add-sheet').showModal();
+}
+$('#a-name').addEventListener('input', paintPreview);
+$('#a-glyph').addEventListener('input', paintPreview);
+$('#a-colors').addEventListener('click', (e) => { const b = e.target.closest('[data-color]'); if (b) { addColor = b.dataset.color; paintPreview(); } });
+$('#add-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  let url = $('#a-url').value.trim();
+  if (!/^https:\/\//i.test(url)) return toast('Use a link that starts with https://');
+  try { url = new URL(url).href; } catch { return toast('That link does not look right'); }
+  const app = { id: addEditing?.id || 'c' + Date.now().toString(36), name: $('#a-name').value.trim().slice(0, 24), url, folder: $('#a-folder').value, color: addColor, glyph: $('#a-glyph').value.trim().slice(0, 2) };
+  state.customs = [...state.customs.filter((x) => x.id !== app.id), app]; save();
+  $('#add-sheet').close(); render(); toast(addEditing ? 'Saved' : `${app.name} added`);
+});
+$('#a-delete').addEventListener('click', () => {
+  if ($('#a-delete').dataset.confirm !== '1') { $('#a-delete').dataset.confirm = '1'; $('#a-delete').textContent = 'Tap again to remove'; return; }
+  state.customs = state.customs.filter((x) => x.id !== addEditing.id); save(); $('#add-sheet').close(); render(); toast('Removed');
+});
+
+// ===================== settings =====================
+function renderSettings() {
+  $$('#open-in button').forEach((b) => b.classList.toggle('on', b.dataset.v === state.openIn));
+  const hid = BUILT_IN.filter((a) => state.hidden.includes(a.id));
+  $('#hidden-list').innerHTML = hid.length ? hid.map((a) => `<button type="button" class="pill-btn" data-unhide="${a.id}" style="margin:0 6px 6px 0">Show ${esc(a.name)}</button>`).join('') : 'None';
+}
+$('#settings-btn').addEventListener('click', () => { renderSettings(); $('#settings-sheet').showModal(); });
+$('#open-in').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (!b) return; state.openIn = b.dataset.v; save(); renderSettings(); render(); });
+$('#hidden-list').addEventListener('click', (e) => { const b = e.target.closest('[data-unhide]'); if (!b) return; state.hidden = state.hidden.filter((x) => x !== b.dataset.unhide); save(); renderSettings(); render(); });
+$$('[data-close]').forEach((b) => b.addEventListener('click', () => b.closest('dialog').close()));
+$$('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+window.addEventListener('focus', renderToday);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) renderToday(); });
+
+render();
+connectStore();
+</script>
+
+</body>
+</html>
