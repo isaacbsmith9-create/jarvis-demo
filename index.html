@@ -382,6 +382,19 @@ label.check input { width: auto; }
 .learned li { display: flex; align-items: center; gap: 8px; font-size: 13px; background: var(--surface-2); border-radius: 10px; padding: 6px 10px; }
 .learned li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .badge.learn { background: color-mix(in srgb, var(--protein) 22%, transparent); }
+.chat { display: grid; gap: 8px; max-height: 440px; overflow-y: auto; padding: 2px; }
+.msg { padding: 10px 12px; border-radius: 16px; font-size: 14px; max-width: 88%; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.45; }
+.msg.me { justify-self: end; background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 6px; }
+.msg.coach { justify-self: start; background: var(--surface-2); border-bottom-left-radius: 6px; }
+.msg.typing { color: var(--muted); }
+.usual { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; }
+.fix-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.fix-list li { display: grid; grid-template-columns: 58px minmax(0, 1fr) auto; gap: 10px; align-items: start; border-top: 1px solid var(--line); padding-top: 8px; }
+.fix-list li:first-child { border-top: 0; padding-top: 0; }
+.fix-list .t { font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums; }
+.fix-list b { display: block; font-size: 14px; }
+.fix-list .btn { padding: 6px 12px; font-size: 13px; }
+.caf-row { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 4px 0; }
 @media (prefers-reduced-motion: reduce) { *, *::before { transition: none !important; animation-duration: 0s !important; } }
 </style>
 
@@ -424,6 +437,8 @@ label.check input { width: auto; }
 
     <div class="card" id="timing-card" hidden></div>
     <div class="card" id="ontrack-card" hidden></div>
+    <div class="card" id="fix-card" hidden></div>
+    <div class="card" id="caffeine-card" hidden></div>
 
     <div class="card favs-card" id="favs-card" hidden>
       <div class="row-between"><h3>Quick add</h3><span class="muted small">Your most-logged foods</span></div>
@@ -455,6 +470,14 @@ label.check input { width: auto; }
 
   <!-- COACH -->
   <section id="view-coach" class="view" hidden>
+    <div class="card form" id="chat-card">
+      <div class="row-between"><h3>Ask Coach</h3><button type="button" class="chip" id="chat-clear" hidden>Clear chat</button></div>
+      <div class="chat" id="chat-log" aria-live="polite"></div>
+      <div class="chips" id="chat-sugg"></div>
+      <form class="inline-form" id="chat-form"><input type="text" id="chat-input" placeholder="Ask anything about food and training" autocomplete="off" aria-label="Question for Coach"><button class="btn primary">Ask</button></form>
+      <p class="muted small" id="chat-status" style="margin:0"></p>
+    </div>
+
     <div class="card">
       <div class="row-between"><h3>Today's fuel plan</h3><span class="muted small num" id="coach-left"></span></div>
       <form id="practice-form" class="practice-row">
@@ -733,6 +756,11 @@ label.check input { width: auto; }
     <label class="small" id="ref-row">Something in the photo for size?<select id="ref-obj">
       <option value="">Nothing extra</option><option value="hand">My hand</option><option value="phone">My phone</option><option value="basketball">A basketball</option>
       <option value="fork">A fork</option><option value="can">A 12 oz can</option><option value="card">A credit or ID card</option></select></label>
+    <label class="check" id="share-row"><input type="checkbox" id="share-on"> Shared dish: a whole pot, pan or tray for the family</label>
+    <div class="grid2" id="share-nums" hidden>
+      <label>It makes about (servings)<input id="share-total" type="number" min="1" max="20" value="4"></label>
+      <label>I took (servings)<input id="share-took" type="number" min="0.25" max="20" step="0.25" value="1"></label>
+    </div>
     <div class="inline-form" id="barcode-row" hidden><input type="text" id="barcode-input" inputmode="numeric" placeholder="Or type the numbers under the barcode" autocomplete="off"><button class="btn" id="barcode-btn" type="button">Look up</button></div>
     <input type="text" id="photo-note" placeholder="Help the AI: fried in butter, 2 cups of rice, ate half">
     <button class="btn primary" id="analyze-btn" disabled>Analyze photo</button>
@@ -741,6 +769,7 @@ label.check input { width: auto; }
 
   <div class="pane" data-pane="search" hidden>
     <input type="search" id="search-input" placeholder="Search foods: chicken, bagel, banana" autocomplete="off">
+    <button class="btn" id="recipe-open" type="button">＋ Build a recipe from ingredients</button>
     <div id="search-label" class="muted small"></div>
     <ul id="search-results" class="food-list"></ul>
   </div>
@@ -755,10 +784,12 @@ label.check input { width: auto; }
   </div>
 
   <div class="pane" data-pane="eatout" hidden>
-    <p class="muted small" style="margin:0">Pick where you're eating. Coach builds the best order for what you have left today, using the restaurant's published nutrition.</p>
+    <div id="usuals"></div>
+    <p class="muted small" style="margin:0">Pick where you're eating, or snap any menu. Coach builds the best order for what you have left today.</p>
     <div class="chips" id="chain-chips"></div>
     <input type="text" id="chain-input" placeholder="Or type any restaurant: Raising Cane's, Panda Express…">
     <input type="text" id="chain-craving" placeholder="Optional: what you're craving, or I have $12">
+    <div class="thumbs" id="menu-thumbs"></div>
     <button class="btn primary" id="chain-btn">Build my order</button>
     <p class="muted small" id="chain-status" style="margin:0"></p>
     <div id="chain-out" class="coach-out"></div>
@@ -792,6 +823,19 @@ label.check input { width: auto; }
   <div class="row-gap">
     <button class="btn danger" id="fd-delete" hidden>Remove</button>
     <button class="btn primary grow" id="fd-save">Add</button>
+  </div>
+</dialog>
+
+<!-- RECIPE BUILDER -->
+<dialog id="recipe-dialog" class="sheet">
+  <div class="sheet-head"><strong>Recipe builder</strong><button class="icon-btn" data-close aria-label="Close">✕</button></div>
+  <div class="form">
+    <label>Recipe name<input id="rc-name" placeholder="Chicken alfredo"></label>
+    <label>Ingredients: paste the recipe or list them<textarea id="rc-text" rows="6" placeholder="1 lb chicken breast&#10;12 oz fettuccine&#10;1 cup heavy cream&#10;1/2 cup parmesan&#10;2 tbsp butter"></textarea></label>
+    <label>Servings it makes<input id="rc-serv" type="number" min="1" max="40" value="4"></label>
+    <button class="btn primary" id="rc-btn" type="button">Calculate</button>
+    <p class="muted small" id="rc-status" style="margin:0"></p>
+    <div id="rc-out"></div>
   </div>
 </dialog>
 
@@ -918,7 +962,8 @@ const FOODS = [
   ['Butter', '1 tbsp', 102, 0.1, 0, 11.5, 0, 0, 90, 0, 3], ['Trail mix', '1/4 cup', 175, 5, 16, 11, 2, 6, 60, 1.1, 30], ['Protein bar', '1 bar', 210, 20, 22, 7, 3, 6, 200, 2.0, 150],
   ['Granola bar', '1 bar', 120, 2, 19, 4.5, 1, 7, 80, 0.7, 10], ['Beef jerky', '1 oz', 116, 9, 3, 7, 0.5, 3, 590, 1.5, 3], ['Hummus', '2 tbsp', 70, 2, 4, 5, 1, 0, 115, 0.7, 10],
   ['Tortilla chips', '1 oz', 140, 2, 18, 7, 1.5, 0, 120, 0.4, 30], ['Potato chips', '1 oz', 152, 2, 15, 10, 1.2, 0, 150, 0.5, 7], ['Dark chocolate', '1 oz', 170, 2, 13, 12, 3, 10, 6, 3.4, 20],
-  ['Sports drink', '20 oz bottle', 140, 0, 36, 0, 0, 34, 270, 0, 0], ['Soda', '12 oz can', 150, 0, 39, 0, 0, 39, 45, 0.1, 7], ['Coffee, black', '1 cup', 2, 0.3, 0, 0, 0, 0, 5, 0, 5],
+  ['Sports drink', '20 oz bottle', 140, 0, 36, 0, 0, 34, 270, 0, 0], ['Energy drink (Monster)', '16 oz can', 210, 0, 54, 0, 0, 54, 370, 0, 0], ['Red Bull', '8.4 oz can', 110, 1, 28, 0, 0, 27, 105, 0, 12],
+  ['Celsius energy drink', '12 oz can', 10, 0, 2, 0, 0, 0, 0, 0, 50], ['Pre-workout', '1 scoop', 10, 0, 2, 0, 0, 0, 100, 0, 0], ['Iced coffee with milk and sugar', '16 oz', 180, 4, 30, 4, 0, 25, 90, 0, 150], ['Soda', '12 oz can', 150, 0, 39, 0, 0, 39, 45, 0.1, 7], ['Coffee, black', '1 cup', 2, 0.3, 0, 0, 0, 0, 5, 0, 5],
   ['Cheeseburger', '1 burger', 300, 15, 33, 12, 1.5, 6, 700, 2.8, 170], ['Pepperoni pizza', '1 slice (large)', 310, 13, 35, 13, 2, 4, 720, 2.6, 200], ['Burrito, chicken', '1 burrito', 650, 40, 70, 22, 8, 1, 1600, 4.5, 250],
   ['Chicken nuggets', '6 pieces', 270, 14, 16, 17, 1, 0, 500, 0.8, 15], ['French fries', 'medium', 340, 4, 44, 16, 4, 0, 230, 1.0, 18], ['Turkey sandwich', '1 sandwich', 350, 24, 38, 10, 4, 3, 1100, 2.5, 100],
   ['PB&J sandwich', '1 sandwich', 380, 12, 50, 16, 4, 14, 450, 2.5, 80], ['Chicken Caesar salad', '1 bowl', 450, 35, 15, 28, 3, 1, 1100, 2.5, 250], ['Chicken rice bowl', '1 bowl', 600, 42, 70, 15, 4, 3, 1100, 3.0, 80],
@@ -1289,6 +1334,7 @@ function openAdd(meal, pane) {
 function switchPane(name) {
   $$('#add-tabs button').forEach((b) => b.classList.toggle('active', b.dataset.pane === name));
   $$('.pane').forEach((p) => (p.hidden = p.dataset.pane !== name));
+  if (name === 'eatout') { renderUsuals(); renderMenuThumbs(); }
   if (name === 'search') { renderSearch(); setTimeout(() => $('#search-input').focus(), 60); }
 }
 function mealLi(m, i) {
@@ -1583,16 +1629,16 @@ function setScanMode(mode) {
     barcode: ['Take a photo of the barcode', 'Fill the frame with the stripes and numbers, in good light', ''],
   }[mode];
   $('#photo-hint-title').textContent = copy[0]; $('#photo-hint-sub').textContent = copy[1]; $('#photo-note').placeholder = copy[2];
-  $('#ref-row').hidden = mode !== 'plate'; $('#barcode-row').hidden = mode !== 'barcode'; $('#photo-note').hidden = mode === 'barcode';
+  $('#ref-row').hidden = mode !== 'plate'; $('#share-row').hidden = mode !== 'plate'; $('#share-nums').hidden = mode !== 'plate' || !$('#share-on').checked; $('#barcode-row').hidden = mode !== 'barcode'; $('#photo-note').hidden = mode === 'barcode';
   renderThumbs();
 }
 $$('#add-sheet .mode button').forEach((b) => b.addEventListener('click', () => setScanMode(b.dataset.mode)));
 $('#analyze-btn').addEventListener('click', () => {
   if (!photos.length) return;
   if (scanMode === 'barcode') return scanBarcodePhoto();
-  rvSource = scanMode;
+  rvSource = scanMode; rvShare = scanMode === 'plate' && $('#share-on').checked ? shareFrac() : null;
   const note = $('#photo-note').value.trim();
-  const base = scanMode === 'label' ? LABEL_PROMPT : PLATE_PROMPT + refLine() + learnLine();
+  const base = scanMode === 'label' ? LABEL_PROMPT : PLATE_PROMPT + refLine() + shareLine() + learnLine();
   const ask = (scanMode === 'label' ? 'Read this label.' : `Analyze this meal (${photos.length} photo${photos.length > 1 ? 's' : ''}).`) + (note ? ' The user adds: ' + note : '');
   runAI(base + '\n\n' + ask, photos.slice(), scanMode !== 'label', $('#ai-status'), $('#analyze-btn'),
     scanMode === 'label' ? 'Reading label…' : 'Analyzing carefully… (20-60 s)');
@@ -1600,7 +1646,7 @@ $('#analyze-btn').addEventListener('click', () => {
 $('#describe-btn').addEventListener('click', () => {
   const t = $('#describe-input').value.trim();
   if (!t) return toast('Describe what you ate first');
-  rvSource = 'describe';
+  rvSource = 'describe'; rvShare = null;
   runAI(DESCRIBE_PROMPT + learnLine() + '\n\nThe user ate: ' + t.slice(0, 1000), null, false, $('#describe-status'), $('#describe-btn'), 'Estimating…');
 });
 
@@ -1611,7 +1657,8 @@ function openReview(meal) {
   rvMeal = meal;
   rvItems = meal.items;
   rvItems.forEach((it) => { it.ai ??= { grams: it.grams, calories: it.calories }; });
-  rvBase = rvItems.map((it) => ({ ...it })); rvMult = 1;
+  rvBase = rvItems.map((it) => ({ ...it })); rvMult = rvShare || 1;
+  if (rvShare) rvItems = rvBase.map((it) => scaleItem(it, rvShare));
   renderMult(); renderLearnedNote();
   $('#rv-title').textContent = meal.meal_name;
   $('#rv-notes').textContent = meal.notes;
@@ -1748,7 +1795,7 @@ function renderCoach() {
   renderReport(core().report);
   renderSweat();
   renderPrep();
-  renderFridgeThumbs(); renderPlan(); renderLunchThumbs();
+  renderFridgeThumbs(); renderPlan(); renderLunchThumbs(); renderChat();
   $('#cal-practice').hidden = !practiceToday() || dayDoc(todayIso())?.type === 'rest';
   $('#cal-game').hidden = !(core().game && core().game.date >= todayIso());
   renderGame();
@@ -2335,24 +2382,27 @@ $('#chain-input').addEventListener('input', () => $$('#chain-chips .chip-btn').f
 let chainOptions = [];
 $('#chain-btn').addEventListener('click', async () => {
   const chain = $('#chain-input').value.trim();
-  if (!chain) return toast('Pick or type a restaurant');
+  if (!chain && !menuPhotos.length) return toast('Pick a restaurant or snap the menu');
   if (!aiReady()) { $('#chain-status').textContent = 'Turn on AI first (open MacroLens in Claude, or add your API key in Profile).'; return; }
+  if (menuPhotos.length && !photosReady()) { $('#chain-status').textContent = 'Menu photos are not supported here. Type the restaurant instead.'; return; }
+  const place = chain.slice(0, 60) || 'this restaurant';
   const pr = practiceToday();
-  const prompt = `You are a sports dietitian helping a high school athlete order at ${chain.slice(0, 60)}.
+  const prompt = `You are a sports dietitian helping a high school athlete order at ${place}.
 ${athleteLine()}
 It is ${fmtMin(nowMin())}. ${pr ? `Practice or game today at ${fmtMin(toMin(pr.start))}.` : ''} ${remainingLine()}
 ${$('#chain-craving').value.trim() ? `They say: "${$('#chain-craving').value.trim().slice(0, 200)}"` : ''}
-Build 3 different orders from ${chain.slice(0, 60)}'s real US menu, using the restaurant's published nutrition. Order 1: best for performance and the remaining targets. Order 2: closest to a normal favorite order but adjusted. Order 3: lighter. Name the exact menu items and customizations (for example "double chicken, light rice, no sour cream"). Keep sodium in mind; fast food is salty. Split each order into its menu items.
+${menuPhotos.length ? `The photos show the menu. Read it first and order ONLY items on it. Use the restaurant's published nutrition if you know it; otherwise estimate from typical recipes and portions for that kind of restaurant.` : `Use ${place}'s real US menu and published nutrition.`}
+Build 3 different orders. Order 1: best for performance and the remaining targets. Order 2: closest to a normal favorite order but adjusted. Order 3: lighter. Name the exact menu items and customizations (for example "double chicken, light rice, no sour cream"). Keep sodium in mind; restaurant food is salty. Split each order into its menu items.
 Reply with only JSON in exactly this shape:
 {"headline": "One sentence of advice for ordering here", "options": [{"title": "Chicken burrito bowl, double chicken", "when": "Best for recovery", "why": "One sentence", "items": [{"name": "Chicken burrito bowl (double chicken, white rice, black beans, fajita veggies, salsa)", "portion": "1 bowl", "grams": 560, "calories": 790, "protein": 76, "carbs": 77, "fat": 21, "fiber": 13, "added_sugar": 1, "sodium_mg": 2100, "iron_mg": 6, "calcium_mg": 170, "confidence": "high"}]}]}
 Every number is for the whole portion. Calories must be close to 4 x protein + 4 x carbs + 9 x fat.`;
   const btn = $('#chain-btn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Building orders… (10-30 s)';
+  btn.disabled = true; btn.innerHTML = `<span class="spinner"></span> ${menuPhotos.length ? 'Reading the menu…' : 'Building orders…'} (10-40 s)`;
   $('#chain-status').textContent = ''; $('#chain-out').innerHTML = '';
   try {
-    const res = await askJson(prompt, COACH_SCHEMA);
+    const res = menuPhotos.length ? await askWithImages(prompt, menuPhotos.slice(), COACH_SCHEMA) : await askJson(prompt, COACH_SCHEMA);
     if (!res || !Array.isArray(res.options) || !res.options.length) throw { code: 'invalid_json' };
-    chainOptions = res.options.slice(0, 3).map((o) => ({ ...o, items: normalizeMeal({ is_food: true, items: o.items }).items }));
+    chainOptions = res.options.slice(0, 3).map((o) => ({ ...o, place: chain || 'Restaurant', items: normalizeMeal({ is_food: true, items: o.items }).items }));
     $('#chain-out').innerHTML = `<p style="margin:0"><b>${esc(res.headline || '')}</b></p>` + chainOptions.map((o, i) => optionCard(o, i, 'data-log-chain')).join('');
   } catch (e) {
     $('#chain-status').textContent = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
@@ -2360,7 +2410,7 @@ Every number is for the whole portion. Calories must be close to 4 x protein + 4
     btn.disabled = false; btn.textContent = 'Build my order';
   }
 });
-$('#chain-out').addEventListener('click', (e) => { const b = e.target.closest('[data-log-chain]'); if (b) logOption(chainOptions[Number(b.dataset.logChain)], b); });
+$('#chain-out').addEventListener('click', (e) => { const b = e.target.closest('[data-log-chain]'); if (!b) return; const o = chainOptions[Number(b.dataset.logChain)]; saveUsual(o); logOption(o, b, $('#add-meal').value); });
 
 // ===================== 6. Fridge scan =====================
 const FRIDGE_SCHEMA = {
@@ -2789,6 +2839,7 @@ function applyKeyState() {
   $('#describe-status').textContent = ownKey ? '' : msg;
   $('#describe-btn').disabled = !ownKey;
   $('#analyze-btn').disabled = !(photos.length && ownKey);
+  renderToday();
 }
 $('#key-card').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -2862,7 +2913,7 @@ function smartAdjust(date, t) {
 function renderExtras(t, tot) {
   const isToday = day === todayIso();
   const an = $('#adjust-note'); an.hidden = !t.adj; if (t.adj) an.textContent = 'Targets raised today. ' + t.adj.join(' · ') + '.';
-  renderTiming(isToday); renderOnTrack(isToday, t, tot); renderSpread(); renderHydro(isToday);
+  renderTiming(isToday); renderOnTrack(isToday, t, tot); renderFix(isToday); renderCaffeine(); renderSpread(); renderHydro(isToday);
   if (isToday) writeWidget(t, tot);
 }
 function stepState(steps) {
@@ -2923,14 +2974,12 @@ function renderOnTrack(isToday, t, tot) {
       : `To finish today: dinner of about ${round50(leftK * 0.7).toLocaleString()} kcal with ${Math.round(leftP * 0.65)} g protein, then a snack of about ${round50(leftK * 0.3).toLocaleString()} kcal with ${leftP - Math.round(leftP * 0.65)} g protein.`;
   el.innerHTML = `<div class="row-between"><h3>Am I on track?</h3><span class="pill ${status[1]}">${status[0]}</span></div>
     <div class="pace"><div><b class="num">${tot.calories.toLocaleString()}</b> <span class="muted small">/ ${expK.toLocaleString()}</span><small>kcal so far vs. pace</small></div><div><b class="num">${Math.round(tot.protein)} g</b> <span class="muted small">/ ${expP} g</span><small>protein so far vs. pace</small></div></div>
-    <p class="small" style="margin:0 0 10px">${finish}</p>${leftK > 100 && aiReady() ? '<button class="btn" id="ontrack-plan" type="button">Plan my dinner with Coach</button>' : ''}`;
+    <p class="small" style="margin:0 0 10px">${finish}</p>${leftK > 100 && aiReady() && !dayDoc(day)?.fix ? '<button class="btn" id="ontrack-plan" type="button">Fix my day</button>' : ''}`;
 }
 $('#ontrack-card').addEventListener('click', (e) => {
   if (!e.target.closest('#ontrack-plan')) return;
-  showView('coach');
-  $('#coach-q').value = "Plan my dinner and an evening snack that finish today's targets";
-  $('#coach-btn').click();
-  $('#coach-out').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  $('#fix-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  fixDay();
 });
 
 // ===================== Protein spread + streak =====================
@@ -3035,6 +3084,7 @@ function renderMult() {
   const opts = [[0.5, '½'], [1, '1×'], [1.5, '1½'], [2, '2×'], [3, '3×']];
   const pk = rvSource === 'label' ? packageServings() : 0;
   if (pk && !opts.some(([v]) => v === pk)) opts.push([pk, `Whole package (${pk}×)`]);
+  if (rvShare && !opts.some(([v]) => v === rvShare)) opts.unshift([rvShare, 'Your share']);
   $('#rv-mult').innerHTML = opts.map(([v, l]) => `<button type="button" class="chip-btn${v === rvMult ? ' active' : ''}" data-mult="${v}">${l}</button>`).join('');
 }
 function scaleItem(it, m) {
@@ -3345,6 +3395,269 @@ Every number is for the whole portion. Calories must be close to 4 x protein + 4
 });
 $('#lunch-out').addEventListener('click', (e) => { const b = e.target.closest('[data-log-lunch]'); if (b) logOption(lunchOptions[Number(b.dataset.logLunch)], b, 'lunch'); });
 
+// ===================== Usual orders + menu photos (Eat out) =====================
+let menuPhotos = [], shownUsuals = [];
+function saveUsual(o) {
+  const c = core(), place = o.place || 'Restaurant', key = (place + '|' + o.title).toLowerCase();
+  const items = o.items.map(({ per, ai, ...f }) => ({ ...f, serving: servingText(f) }));
+  const old = (c.usuals || []).find((u) => u.key === key);
+  c.usuals = [{ key, place, title: String(o.title).slice(0, 80), items, n: (old?.n || 0) + 1, last: Date.now() }, ...(c.usuals || []).filter((u) => u.key !== key)].slice(0, 24);
+  persist('core');
+}
+function renderUsuals() {
+  const pick = $('#chain-input').value.trim().toLowerCase();
+  shownUsuals = [...(core().usuals || [])].sort((a, b) => ((b.place.toLowerCase() === pick) - (a.place.toLowerCase() === pick)) || b.n - a.n || b.last - a.last).slice(0, 6);
+  $('#usuals').innerHTML = shownUsuals.length ? `<div class="row-between"><b class="small">Your usual orders</b><span class="muted small">One tap to log</span></div>
+    <div class="chips" style="margin-top:6px">${shownUsuals.map((u, i) => { const t = totals(u.items);
+      return `<span class="usual"><button type="button" class="fav" data-usual="${i}"><b>＋ ${esc(u.title)}</b><span>${esc(u.place)} · ${t.calories} kcal · P ${Math.round(t.protein)}</span></button><button type="button" class="mini" data-unusual="${i}" aria-label="Remove ${esc(u.title)}">✕</button></span>`; }).join('')}</div>` : '';
+}
+$('#usuals').addEventListener('click', (e) => {
+  const rm = e.target.closest('[data-unusual]');
+  if (rm) { const u = shownUsuals[Number(rm.dataset.unusual)], c = core(); c.usuals = (c.usuals || []).filter((x) => x.key !== u.key); persist('core'); return renderUsuals(); }
+  const b = e.target.closest('[data-usual]'); if (!b) return;
+  const u = shownUsuals[Number(b.dataset.usual)];
+  saveUsual({ place: u.place, title: u.title, items: u.items });
+  logOption({ title: u.title, items: u.items.map((it) => ({ ...it })) }, b, $('#add-meal').value);
+});
+$('#chain-chips').addEventListener('click', () => setTimeout(renderUsuals, 0));
+$('#chain-input').addEventListener('input', renderUsuals);
+function renderMenuThumbs() {
+  $$('#menu-thumbs img').forEach((img) => URL.revokeObjectURL(img.src));
+  $('#menu-thumbs').innerHTML = menuPhotos.map((b, i) => `<div class="thumb"><img alt="Menu photo ${i + 1}" src="${URL.createObjectURL(b)}"><button type="button" data-mrm="${i}" aria-label="Remove photo ${i + 1}">✕</button></div>`).join('') +
+    (menuPhotos.length < Math.min(2, maxPhotos) ? '<label class="thumb-add">＋ Menu photo<input type="file" accept="image/*" multiple hidden id="menu-input"></label>' : '');
+  $('#menu-input')?.addEventListener('change', async (e) => {
+    for (const f of [...e.target.files].filter((x) => x.type.startsWith('image/'))) { if (menuPhotos.length >= 2) break; try { menuPhotos.push(await compress(f)); } catch {} }
+    renderMenuThumbs();
+  });
+}
+$('#menu-thumbs').addEventListener('click', (e) => { const b = e.target.closest('[data-mrm]'); if (b) { menuPhotos.splice(Number(b.dataset.mrm), 1); renderMenuThumbs(); } });
+
+// ===================== Family dinner (shared dish) =====================
+let rvShare = null;
+function shareFrac() {
+  const total = Math.max(1, Number($('#share-total').value) || 4), took = Math.max(0.25, Number($('#share-took').value) || 1);
+  return Math.round(Math.min(1, took / total) * 1000) / 1000;
+}
+function shareLine() {
+  if (scanMode !== 'plate' || !$('#share-on').checked) return '';
+  return `\n\nSHARED DISH: The photo shows a whole pot, pan, tray or casserole cooked for the family, not one plate. Estimate EVERYTHING in it, the whole dish, item by item. The user says it makes about ${Math.max(1, Number($('#share-total').value) || 4)} servings; use that only as a sanity check. The app divides the total by the share they took.`;
+}
+$('#share-on').addEventListener('change', (e) => { $('#share-nums').hidden = !e.target.checked; });
+
+// ===================== Recipe builder =====================
+let rcItems = null, rcNotes = '';
+$('#recipe-open').addEventListener('click', () => {
+  $('#rc-status').textContent = aiReady() ? '' : 'Turn on AI first (open MacroLens in Claude, or add your API key in Profile).';
+  $('#recipe-dialog').showModal();
+});
+function recipeFood() {
+  const n = Math.max(1, Number($('#rc-serv').value) || 1), tot = totals(rcItems);
+  const f = { id: 'rc' + Date.now(), source: 'recipe', name: ($('#rc-name').value.trim() || 'My recipe').slice(0, 80), serving: `1 of ${n} servings`,
+    calories: Math.round(tot.calories / n), protein: r1(tot.protein / n), carbs: r1(tot.carbs / n), fat: r1(tot.fat / n) };
+  for (const k of MICRO_KEYS) if (rcItems.some((it) => it[k] != null)) f[k] = roundMicro(k, tot[k] / n);
+  return f;
+}
+function renderRecipe() {
+  if (!rcItems) { $('#rc-out').innerHTML = ''; return; }
+  const f = recipeFood(), tot = totals(rcItems);
+  $('#rc-out').innerHTML = `${rcNotes ? `<p class="muted small" style="margin:0 0 8px">${esc(rcNotes)}</p>` : ''}
+    <ul class="plain-list">${rcItems.map((it) => `<li><span>${esc(it.name)}${it.portion ? ` <span class="muted small">${esc(it.portion)}</span>` : ''}</span><span class="num">${it.calories}</span></li>`).join('')}
+      <li><b>Whole recipe</b><b class="num">${tot.calories.toLocaleString()} kcal</b></li></ul>
+    <p class="small" style="margin:10px 0 6px"><b>Per serving</b> (${esc(f.serving)})</p>
+    <div class="tiles"><div><b>${f.calories}</b><small>kcal</small></div><div><b>${Math.round(f.protein)}</b><small>protein g</small></div><div><b>${Math.round(f.carbs)}</b><small>carbs g</small></div><div><b>${Math.round(f.fat)}</b><small>fat g</small></div></div>
+    <div class="row-gap" style="margin-top:12px"><button class="btn" type="button" id="rc-save">Save to my foods</button><button class="btn primary grow" type="button" id="rc-log">Save and log 1 serving</button></div>`;
+}
+$('#rc-serv').addEventListener('input', renderRecipe);
+$('#rc-name').addEventListener('input', () => { if (rcItems) renderRecipe(); });
+$('#rc-btn').addEventListener('click', async () => {
+  const text = $('#rc-text').value.trim();
+  if (!text) return toast('Add the ingredients first');
+  if (!aiReady()) { $('#rc-status').textContent = 'Turn on AI first (open MacroLens in Claude, or add your API key in Profile).'; return; }
+  const prompt = `You are a dietitian calculating nutrition for a home recipe. Return one item per ingredient using the amounts given. When an amount is missing, assume a typical amount for this recipe and say so in notes. Use USDA FoodData Central values for each ingredient as listed (raw weight for raw meat unless it says cooked). Skip water and other zero-calorie ingredients, except count the sodium from salt. meal_name is the recipe's name.
+${JSON_SHAPE}
+
+Recipe (${Math.max(1, Number($('#rc-serv').value) || 1)} servings): ${text.slice(0, 3000)}`;
+  const btn = $('#rc-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Calculating… (10-30 s)'; $('#rc-status').textContent = '';
+  try {
+    const meal = normalizeMeal(await askMeal(prompt, null, false));
+    rcItems = meal.items.map(({ per, ...f }) => f); rcNotes = meal.notes;
+    if (!$('#rc-name').value.trim() && meal.meal_name) $('#rc-name').value = meal.meal_name;
+    renderRecipe();
+  } catch (e) {
+    $('#rc-status').textContent = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
+  } finally { btn.disabled = false; btn.textContent = 'Calculate'; }
+});
+$('#rc-out').addEventListener('click', (e) => {
+  const save = e.target.closest('#rc-save'), log = e.target.closest('#rc-log');
+  if (!save && !log) return;
+  const f = recipeFood(), c = core();
+  c.custom = [f, ...(c.custom || []).filter((x) => x.name !== f.name)].slice(0, 80); persist('core');
+  $('#recipe-dialog').close();
+  if (log) { addEntry(f, $('#add-meal').value, 1); sheet.close(); render(); toast(`Saved ${f.name} and logged 1 serving`); }
+  else { renderSearch(); toast(`Saved ${f.name}. Search for it anytime.`); }
+  rcItems = null; $('#rc-text').value = ''; $('#rc-name').value = ''; renderRecipe();
+});
+
+// ===================== Caffeine =====================
+const CAFFEINE = [[/\bred ?bull\b/, 80], [/\bmonster\b/, 160], [/\bcelsius\b/, 200], [/\bbang\b/, 300], [/\bghost energy\b/, 200], [/\bc4\b/, 200], [/\breign\b/, 300], [/\bprime energy\b/, 200],
+  [/\bpre.?workout\b/, 200], [/\benergy drink\b/, 160], [/\bcold brew\b/, 200], [/\b(espresso|latte|cappuccino|americano|macchiato|mocha)\b/, 130], [/\b(frappuccino|frappe)\b/, 100],
+  [/\bcoffee\b/, 95], [/\bmatcha\b/, 70], [/\bgreen tea\b/, 28], [/\b(iced|sweet|black|chai)? ?tea\b/, 47], [/\b(mountain|mtn) dew\b/, 54], [/\bdiet coke\b/, 46], [/\bdr\.? ?pepper\b/, 41],
+  [/\bpepsi\b/, 38], [/\b(coke|coca.?cola)\b/, 34], [/\bdark chocolate\b/, 20]];
+const ENERGY_RE = /energy|monster|red ?bull|celsius|\bbang\b|\bc4\b|reign|pre.?workout/i;
+function caffeineOf(e) {
+  const s = e.servings ?? 1;
+  if (e.caffeine != null) return e.caffeine * s;
+  const n = String(e.name || '').toLowerCase();
+  if (/decaf|caffeine.?free/.test(n)) return 0;
+  for (const [re, mg] of CAFFEINE) if (re.test(n)) return mg * s;
+  return 0;
+}
+function renderCaffeine() {
+  const el = $('#caffeine-card'), items = entriesOf(day).map((e) => ({ e, mg: Math.round(caffeineOf(e)) })).filter((x) => x.mg > 0);
+  if (!items.length) { el.hidden = true; return; }
+  el.hidden = false;
+  const total = items.reduce((a, x) => a + x.mg, 0), late = items.filter((x) => x.e.addedAt && addedMin(x.e) >= 14 * 60);
+  const g = core().game, gameDay = g && g.date === day, energy = items.filter((x) => ENERGY_RE.test(x.e.name));
+  const warns = [];
+  if (total > 100) warns.push(`Over 100 mg, the daily max for teens. Too much caffeine raises your heart rate and wrecks sleep, and sleep is when you recover.`);
+  if (late.length) warns.push(`${esc(late[0].e.name)} after 2 PM. Caffeine stays in your body 5-6 hours, so it is still working at bedtime. Cut it off by 2 PM.`);
+  if (gameDay && energy.length) warns.push('Game day: skip energy drinks. The jitters hurt your shot, and the crash hits in the 4th quarter. Use carbs and a sports drink instead.');
+  else if (energy.length) warns.push('Energy drinks are not recommended for teens. For a pick-me-up, try a banana, cold water, or a 20 minute nap.');
+  el.innerHTML = `<div class="row-between"><h3>Caffeine</h3><span class="pill ${total > 100 || late.length || energy.length ? 'skip' : 'ok'}">${total} mg / 100 mg max</span></div>
+    <div class="bar"><div class="bar-fill" style="width:${Math.min(100, total)}%;background:${total > 100 ? 'var(--over)' : 'var(--carbs)'}"></div></div>
+    <div style="margin-top:8px">${items.map((x) => `<div class="caf-row"><span>${esc(x.e.name)}${x.e.addedAt ? ` <span class="muted">${fmtMin(addedMin(x.e))}</span>` : ''}</span><span class="num muted">${x.mg} mg</span></div>`).join('')}</div>
+    ${warns.map((w) => `<p class="small" style="margin:8px 0 0;color:var(--over)">${w}</p>`).join('')}`;
+}
+
+// ===================== Ask Coach (chat) =====================
+const CHAT_SCHEMA = { type: 'object', additionalProperties: false, required: ['reply', 'follow_ups'], properties: { reply: { type: 'string' }, follow_ups: { type: 'array', items: { type: 'string' } } } };
+const STARTERS = ['What should I eat before a 7 AM tournament?', 'How do I gain 10 lb of muscle before next season?', 'Is chocolate milk good after practice?', 'What should I eat when I am really sore?'];
+let chatBusy = false, chatSugg = null;
+function chatDoc() { if (!doc('chat')) cache.chat = { msgs: [] }; return cache.chat; }
+function renderChat() {
+  const msgs = chatDoc().msgs, log = $('#chat-log');
+  log.innerHTML = msgs.length ? msgs.map((m) => `<div class="msg ${m.role === 'me' ? 'me' : 'coach'}">${esc(m.text)}</div>`).join('') + (chatBusy ? '<div class="msg coach typing">Coach is typing…</div>' : '')
+    : '<p class="muted small" style="margin:0">Text Coach like a sports dietitian. It knows your targets, what you ate, your practice and game times, and your goal weight.</p>';
+  log.scrollTop = log.scrollHeight;
+  const sugg = chatBusy ? [] : msgs.length ? (chatSugg || []) : STARTERS;
+  $('#chat-sugg').innerHTML = sugg.slice(0, 3).map((q) => `<button type="button" class="chip-btn" data-ask-q="${esc(q)}">${esc(q)}</button>`).join('');
+  $('#chat-clear').hidden = !msgs.length || chatBusy;
+}
+function coachContext() {
+  const w = weekAverages(), g = core().game, r = readyUpToday(), pr = practiceToday(), ws = core().weights || [];
+  return {
+    now: `${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}, ${fmtMin(nowMin())}`,
+    today: dayContext(todayIso()), eaten_today: entriesOf(todayIso()).map((e) => e.name).slice(0, 25),
+    last_7_days_avg: w ? { days_logged: w.days, calories: Math.round(w.avg.calories), protein: Math.round(w.avg.protein), carbs: Math.round(w.avg.carbs), fat: Math.round(w.avg.fat) } : null,
+    practice_today: pr ? `${fmtMin(toMin(pr.start))} for ${pr.mins} min` : null, next_game: g && g.date >= todayIso() ? `${g.date} at ${fmtMin(toMin(g.start))}` : null,
+    goal_weight: core().goalW || null, latest_weight_lb: ws.length ? [...ws].sort((a, b) => a.date.localeCompare(b.date)).at(-1).lb : null,
+    sweat_rate_oz_per_hr: core().sweat?.rate || null, readyup_recovery_score: r?.score ?? null, foods_they_like: (core().recents || []).slice(0, 12).map((x) => x.name),
+  };
+}
+async function askCoach(q) {
+  q = String(q || '').trim().slice(0, 500);
+  if (!q || chatBusy) return;
+  if (!aiReady()) { $('#chat-status').textContent = 'Turn on AI first (open MacroLens in Claude, or add your API key in Profile).'; return; }
+  const d = chatDoc(); d.msgs.push({ role: 'me', text: q, at: Date.now() }); d.msgs = d.msgs.slice(-40);
+  chatBusy = true; chatSugg = null; $('#chat-status').textContent = ''; $('#chat-input').value = ''; renderChat();
+  const history = d.msgs.slice(-11, -1).map((m) => `${m.role === 'me' ? 'Athlete' : 'Coach'}: ${m.text}`).join('\n');
+  const prompt = `You are Coach, a sports dietitian texting with a high school athlete inside their nutrition app. Talk like a real coach texting: direct, encouraging, specific. Use real foods with amounts and times. Keep it under 130 words unless they ask for a full plan. Use their data below when it helps, and do not invent data you do not have.
+Stay safe for a growing teen: no crash diets, no fasting, no fat burners or stimulants. Suggest creatine or other supplements only with a parent's and doctor's okay. For pain, injury, dizziness or eating worries, tell them to talk to their athletic trainer, doctor or a parent.
+${athleteLine()}
+Their data: ${JSON.stringify(coachContext())}
+${history ? `Conversation so far:\n${history}\n` : ''}Athlete: ${q}
+Reply with only JSON in exactly this shape:
+{"reply": "Your text message back", "follow_ups": ["Short question they might ask next", "Another one"]}`;
+  try {
+    const res = await askJson(prompt, CHAT_SCHEMA);
+    if (!res || typeof res.reply !== 'string' || !res.reply.trim()) throw { code: 'invalid_json' };
+    d.msgs.push({ role: 'coach', text: res.reply.trim().slice(0, 3000), at: Date.now() });
+    chatSugg = (res.follow_ups || []).map(String).filter(Boolean).slice(0, 3);
+    persist('chat');
+  } catch (e) {
+    $('#chat-status').textContent = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
+    persist('chat');
+  } finally { chatBusy = false; renderChat(); }
+}
+$('#chat-form').addEventListener('submit', (e) => { e.preventDefault(); askCoach($('#chat-input').value); });
+$('#chat-sugg').addEventListener('click', (e) => { const b = e.target.closest('[data-ask-q]'); if (b) askCoach(b.dataset.askQ); });
+$('#chat-clear').addEventListener('click', (e) => {
+  const b = e.currentTarget;
+  if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Tap again to clear'; setTimeout(() => { b.dataset.confirm = ''; b.textContent = 'Clear chat'; }, 3000); return; }
+  b.dataset.confirm = ''; b.textContent = 'Clear chat'; chatDoc().msgs = []; chatSugg = null; persist('chat'); renderChat();
+});
+
+// ===================== Fix my day =====================
+const FIX_SCHEMA = {
+  type: 'object', additionalProperties: false, required: ['headline', 'meals'],
+  properties: { headline: { type: 'string' }, meals: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['time', 'slot', 'title', 'why', 'items'],
+    properties: { time: { type: 'string' }, slot: { type: 'string', enum: ['breakfast', 'lunch', 'dinner', 'snacks'] }, title: { type: 'string' }, why: { type: 'string' }, items: { type: 'array', items: ITEM_SCHEMA } } } } },
+};
+let fixBusy = false;
+const fixTime = (t) => (/^\d{1,2}:\d{2}$/.test(String(t)) ? fmtMin(toMin(t)) : esc(String(t || '')));
+function renderFix(isToday) {
+  const el = $('#fix-card');
+  if (!isToday) { el.hidden = true; return; }
+  const fx = dayDoc(day)?.fix;
+  if (!fx) {
+    if (!aiReady()) { el.hidden = true; return; }
+    el.hidden = false;
+    el.innerHTML = `<h3>Fix my day</h3><p class="muted small" style="margin:4px 0 10px">One tap: Coach plans every meal and snack left today so you land on your targets, timed around practice.</p>
+      <button class="btn primary" type="button" id="fix-btn"${fixBusy ? ' disabled' : ''}>${fixBusy ? '<span class="spinner"></span> Planning the rest of today… (15-40 s)' : 'Fix my day'}</button><p class="muted small" id="fix-status" style="margin:6px 0 0"></p>`;
+    return;
+  }
+  el.hidden = false;
+  const tt = totals(fx.meals.flatMap((m) => m.items));
+  el.innerHTML = `<div class="row-between"><h3>Rest of today</h3><button type="button" class="chip" id="fix-btn"${fixBusy ? ' disabled' : ''}>${fixBusy ? 'Planning…' : 'Redo'}</button></div>
+    <p class="small" style="margin:4px 0 0">${esc(fx.headline)}</p><p class="muted small num" style="margin:2px 0 0">Plan adds ${tt.calories.toLocaleString()} kcal · P ${Math.round(tt.protein)} · C ${Math.round(tt.carbs)} · F ${Math.round(tt.fat)}</p>
+    <ul class="fix-list">${fx.meals.map((m, i) => { const mt = totals(m.items);
+      return `<li><span class="t">${fixTime(m.time)}</span><div><b>${esc(m.title)}</b><span class="muted small">${mt.calories} kcal · P ${Math.round(mt.protein)} · ${esc(m.why)}</span></div>${m.logged ? '<span class="muted small">Logged ✓</span>' : `<button class="btn" type="button" data-fix-log="${i}">Log</button>`}</li>`; }).join('')}</ul>
+    <p class="muted small" id="fix-status" style="margin:6px 0 0"></p>`;
+}
+async function fixDay() {
+  if (fixBusy) return;
+  if (!aiReady()) return toast('Turn on AI first');
+  const today = todayIso(), steps = todaysSteps();
+  const eaten = entriesOf(today).map((e) => `${e.name} (${e.serving}${(e.servings ?? 1) !== 1 ? ' x' + e.servings : ''})`);
+  const favorites = [...new Set([...(core().meals || []).map((m) => m.name), ...(core().recents || []).slice(0, 15).map((r) => r.name)])];
+  const bed = readLS('gp:core')?.routine?.bed || '22:30';
+  const prompt = `You are a sports dietitian planning the REST OF TODAY for a high school athlete so they finish on target.
+${athleteLine()}
+It is ${fmtMin(nowMin())} (24h ${String(Math.floor(nowMin() / 60)).padStart(2, '0')}:${String(nowMin() % 60).padStart(2, '0')}). Bedtime about ${fmtMin(toMin(bed))}.
+${remainingLine()}
+Already eaten today: ${eaten.join('; ') || 'nothing yet'}.
+${steps.length ? `Today's fueling schedule: ${steps.map((st) => `${fmtMin(st.at)} ${st.title}`).join('; ')}.` : 'No practice set today.'}
+Foods they eat often (prefer these): ${favorites.join('; ') || 'unknown'}.
+Plan every remaining meal and snack from now until bed: 2 to 4 of them, each with a time (24h HH:MM, not in the past) and a slot. Together they should land within 5% of the remaining calories and protein. Use real, easy food from home, school or a gas station. Respect the fueling schedule (quick carbs before practice, protein plus carbs after, slow protein before bed). If they are already over on calories, plan only one light high-protein snack and say so.
+Reply with only JSON in exactly this shape:
+{"headline": "One sentence on the plan", "meals": [{"time": "18:30", "slot": "dinner", "title": "Chicken burrito bowl at home", "why": "Recovery after practice", "items": [{"name": "Chicken burrito bowl", "portion": "1 big bowl", "grams": 550, "calories": 750, "protein": 50, "carbs": 90, "fat": 18, "fiber": 10, "added_sugar": 2, "sodium_mg": 1300, "iron_mg": 4, "calcium_mg": 150, "confidence": "medium"}]}]}
+Every number is for the whole portion. Calories must be close to 4 x protein + 4 x carbs + 9 x fat.`;
+  fixBusy = true; renderFix(day === today);
+  try {
+    const r = await askJson(prompt, FIX_SCHEMA);
+    if (!r || !Array.isArray(r.meals) || !r.meals.length) throw { code: 'invalid_json' };
+    const slots = new Set(['breakfast', 'lunch', 'dinner', 'snacks']);
+    const meals = r.meals.slice(0, 5).filter((m) => Array.isArray(m.items) && m.items.length).map((m) => ({ time: String(m.time || ''), slot: slots.has(m.slot) ? m.slot : 'snacks', title: String(m.title || 'Meal').slice(0, 80), why: String(m.why || '').slice(0, 140),
+      items: normalizeMeal({ is_food: true, items: m.items }).items.map(({ per, ...f }) => ({ ...f, serving: servingText(f) })), logged: false }))
+      .sort((a, b) => (toMin(a.time) || 0) - (toMin(b.time) || 0));
+    dayDoc(today, true).fix = { at: Date.now(), headline: String(r.headline || ''), meals };
+    persist('day-' + today);
+  } catch (e) {
+    const msg = AI_ERRORS[e?.code] || 'Something went wrong reaching the AI. Try again.';
+    fixBusy = false; renderFix(day === today); const st = $('#fix-status'); if (st) st.textContent = msg; else toast(msg);
+    return;
+  }
+  fixBusy = false; render();
+}
+$('#fix-card').addEventListener('click', (e) => {
+  if (e.target.closest('#fix-btn')) return fixDay();
+  const b = e.target.closest('[data-fix-log]'); if (!b) return;
+  const fx = dayDoc(todayIso())?.fix, m = fx?.meals[Number(b.dataset.fixLog)]; if (!m) return;
+  m.logged = true; persist('day-' + todayIso());
+  logOption({ title: m.title, items: m.items.map((it) => ({ ...it })) }, b, m.slot);
+});
+
 // ===================== boot =====================
 setSync('local');
 render();
@@ -3359,6 +3672,7 @@ render();
   if (lim?.images?.mediaTypes) $('#photo-input').accept = lim.images.mediaTypes.join(',');
   if (lim?.images?.maxCount) maxPhotos = Math.max(1, Math.min(3, lim.images.maxCount));
   $('#analyze-btn').disabled = !(photos.length && aiImages);
+  renderToday();
 })();
 try { const r = localStorage.getItem('macrolens-ref'); if (r) $('#ref-obj').value = r; } catch {}
 setScanMode('plate');
