@@ -1,0 +1,977 @@
+<title>Jarvis</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one dark HUD column. Home = AI dashboard, Talk = the orb, Player = Life RPG card. Fixed tab bar with the orb as the center button. */
+:root {
+  --bg: #04080e;
+  --bg-2: #0a1826;
+  --panel: rgba(14, 30, 44, .72);
+  --panel-solid: #0d1d2b;
+  --line: rgba(120, 200, 230, .16);
+  --line-strong: rgba(120, 210, 240, .38);
+  --ink: #dcedf6;
+  --muted: #7ea3b5;
+  --cyan: #4fd8ff;
+  --cyan-soft: rgba(79, 216, 255, .14);
+  --amber: #ffb35c;
+  --green: #5ef0a6;
+  --red: #ff8a7a;
+  --gold: #f5d36b;
+  --f-display: "Chakra Petch", "Inter", system-ui, sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; min-height: 100vh; color: var(--ink); font: 15px/1.5 var(--f-body); -webkit-font-smoothing: antialiased;
+  background: radial-gradient(120% 70% at 50% 0%, #0b1d2e 0%, #060c14 55%, #03050a 100%) fixed var(--bg); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: #050a11; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.wrap { max-width: 620px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 calc(100px + env(safe-area-inset-bottom, 0px)); }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 12px 10px; background: linear-gradient(#050a11 70%, rgba(5, 10, 17, 0)); }
+.brand { font-family: var(--f-display); font-weight: 700; letter-spacing: .28em; font-size: 15px; color: var(--cyan); text-shadow: 0 0 16px rgba(79, 216, 255, .5); }
+.top-right { display: flex; align-items: center; gap: 8px; }
+.icon-btn { width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); display: grid; place-items: center; color: var(--muted); }
+.icon-btn svg { width: 19px; height: 19px; }
+.mono { font-family: var(--f-mono); }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.num { font-variant-numeric: tabular-nums; }
+.view { display: grid; gap: 14px; }
+.panel { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; min-width: 0; backdrop-filter: blur(6px); }
+/* HUD corner ticks */
+.panel::before, .panel::after { content: ""; position: absolute; width: 12px; height: 12px; border: 2px solid var(--cyan); opacity: .55; pointer-events: none; }
+.panel::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; border-top-left-radius: 16px; }
+.panel::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; border-bottom-right-radius: 16px; }
+.p-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.label { font-family: var(--f-mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--cyan); }
+h1, h2, h3 { margin: 0; font-family: var(--f-display); font-weight: 600; text-wrap: balance; }
+h1 { font-size: 28px; line-height: 1.1; }
+h3 { font-size: 18px; }
+.btn { border: 1px solid var(--line-strong); background: rgba(20, 44, 60, .8); border-radius: 12px; padding: 10px 14px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn.primary { background: linear-gradient(180deg, #1d5a78, #123c52); border-color: var(--cyan); box-shadow: 0 0 24px -8px rgba(79, 216, 255, .7); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--cyan); padding: 6px 8px; }
+.btn:disabled { opacity: .5; cursor: default; }
+.chip { border: 1px solid var(--line); background: rgba(255, 255, 255, .03); border-radius: 99px; padding: 7px 12px; font-size: 13px; color: var(--ink); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Home */
+.hello { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; padding-top: 4px; }
+.hello .date { font-family: var(--f-mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+.ovr-mini { display: grid; justify-items: center; padding: 8px 12px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--panel); text-decoration: none; color: inherit; }
+.ovr-mini b { font-family: var(--f-display); font-size: 26px; line-height: 1; color: var(--gold); }
+.ovr-mini small { font-family: var(--f-mono); font-size: 10px; letter-spacing: .18em; color: var(--muted); }
+.cmd { display: flex; gap: 8px; align-items: center; }
+.cmd input { flex: 1; min-width: 0; border: 1px solid var(--line-strong); background: rgba(5, 14, 22, .8); border-radius: 14px; padding: 13px 14px; font-size: 16px; }
+.cmd input::placeholder { color: #57788a; }
+.mic-btn { flex: none; width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--cyan); background: radial-gradient(circle at 50% 40%, #1e6688, #0c2c3e); display: grid; place-items: center; box-shadow: 0 0 22px -6px rgba(79, 216, 255, .8); }
+.mic-btn svg { width: 22px; height: 22px; }
+.mic-btn.on { background: radial-gradient(circle, #ff8a7a, #8a2a22); border-color: var(--red); box-shadow: 0 0 28px -4px rgba(255, 138, 122, .9); }
+.brief h2 { font-size: 20px; line-height: 1.25; }
+.brief ul { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.brief li { display: grid; grid-template-columns: 14px 1fr; gap: 8px; font-size: 14px; }
+.brief li::before { content: ""; width: 6px; height: 6px; margin-top: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.focus { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: var(--cyan-soft); border: 1px solid var(--line-strong); font-size: 14px; }
+.focus b { font-family: var(--f-mono); font-size: 11px; letter-spacing: .18em; color: var(--cyan); display: block; margin-bottom: 2px; }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tile { display: grid; gap: 2px; padding: 12px; border-radius: 14px; border: 1px solid var(--line); background: rgba(8, 20, 30, .7); text-decoration: none; color: inherit; min-width: 0; }
+.tile .t-app { font-family: var(--f-mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.tile .t-app i { width: 7px; height: 7px; border-radius: 50%; background: var(--c, var(--cyan)); box-shadow: 0 0 8px var(--c, var(--cyan)); }
+.tile b { font-family: var(--f-display); font-size: 22px; line-height: 1.15; overflow-wrap: anywhere; }
+.tile small { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.tile.todo { border-color: rgba(255, 179, 92, .45); }
+.meter { height: 5px; border-radius: 4px; background: rgba(255, 255, 255, .07); overflow: hidden; margin-top: 6px; }
+.meter div { height: 100%; border-radius: 4px; background: var(--c, var(--cyan)); box-shadow: 0 0 8px var(--c, var(--cyan)); }
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; }
+.timeline li { display: grid; grid-template-columns: 66px 1fr auto; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; align-items: baseline; }
+.timeline li:first-child { border-top: 0; }
+.timeline .tt { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.timeline .src { font-family: var(--f-mono); font-size: 10px; letter-spacing: .1em; color: var(--muted); text-transform: uppercase; }
+.timeline li.past { opacity: .45; }
+.timeline li.now { color: var(--cyan); }
+.timeline li.now .tt { color: var(--cyan); }
+.timeline li.nowline { display: flex; align-items: center; gap: 8px; color: var(--amber); font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; border-top: 0; padding: 2px 0; }
+.timeline li.nowline::after { content: ""; flex: 1; height: 1px; background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+.insight { padding: 10px 0; border-top: 1px solid var(--line); }
+.insight:first-child { border-top: 0; padding-top: 0; }
+.insight b { display: block; font-family: var(--f-display); font-size: 16px; }
+.insight p { margin: 2px 0 0; font-size: 14px; }
+.insight .do { color: var(--cyan); }
+
+/* Talk */
+.stage { display: grid; justify-items: center; gap: 6px; padding-top: 4px; }
+#orb { width: min(78vw, 360px); height: min(78vw, 360px); display: block; }
+.status { font-family: var(--f-mono); font-size: 12px; letter-spacing: .34em; text-transform: uppercase; color: var(--cyan); opacity: .9; }
+.caption { min-height: 2.8em; text-align: center; font-size: 17px; line-height: 1.45; max-width: 36ch; text-wrap: pretty; }
+.log { display: grid; gap: 10px; }
+.msg { max-width: 88%; padding: 10px 13px; border-radius: 16px; font-size: 15px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg.me { justify-self: end; background: linear-gradient(180deg, #1d5a78, #123c52); border: 1px solid rgba(79, 216, 255, .5); border-bottom-right-radius: 6px; }
+.msg.jv { justify-self: start; background: var(--panel); border: 1px solid var(--line); border-bottom-left-radius: 6px; }
+.msg .who { display: block; font-family: var(--f-mono); font-size: 10px; letter-spacing: .2em; color: var(--cyan); margin-bottom: 3px; }
+.done-list { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.done-list li { font-size: 13px; color: var(--green); font-family: var(--f-mono); }
+.done-list li.fail { color: var(--red); }
+.undo { margin-top: 8px; }
+.talk-bar { position: sticky; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); z-index: 3; padding: 8px 0; background: linear-gradient(rgba(4, 8, 14, 0), #04080e 35%); }
+
+/* Player */
+.card2k { position: relative; overflow: hidden; border-radius: 20px; padding: 18px; border: 1px solid rgba(245, 211, 107, .45);
+  background: radial-gradient(120% 90% at 85% 0%, rgba(245, 211, 107, .22), transparent 55%), linear-gradient(160deg, #13293b, #08131d 60%, #0b1a26); box-shadow: 0 20px 60px -30px rgba(245, 211, 107, .5); }
+.card2k .row { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; }
+.ovr { display: grid; justify-items: center; width: 92px; padding: 10px 0; border-radius: 16px; background: rgba(0, 0, 0, .3); border: 1px solid rgba(245, 211, 107, .4); }
+.ovr b { font-family: var(--f-display); font-size: 48px; line-height: 1; color: var(--gold); text-shadow: 0 0 18px rgba(245, 211, 107, .5); }
+.ovr small { font-family: var(--f-mono); font-size: 11px; letter-spacing: .3em; color: var(--muted); }
+.who-name { font-family: var(--f-display); font-size: 24px; font-weight: 700; line-height: 1.1; }
+.tier { display: inline-block; margin-top: 6px; font-family: var(--f-mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #0b1a26; background: var(--gold); border-radius: 6px; padding: 3px 8px; }
+.lvl { margin-top: 14px; }
+.lvl .row2 { display: flex; justify-content: space-between; font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.xpbar { height: 8px; border-radius: 6px; background: rgba(255, 255, 255, .08); overflow: hidden; margin-top: 5px; }
+.xpbar div { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--gold)); box-shadow: 0 0 12px var(--cyan); }
+.attrs { display: grid; gap: 10px; margin-top: 16px; }
+.attr { display: grid; grid-template-columns: 96px 1fr 34px; gap: 10px; align-items: center; font-size: 13px; }
+.attr span:first-child { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.attr .bar { height: 8px; border-radius: 5px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.attr .bar div { height: 100%; border-radius: 5px; background: var(--c); }
+.attr b { font-family: var(--f-display); font-size: 18px; text-align: right; color: var(--c); }
+.spark svg { width: 100%; height: auto; display: block; margin-top: 12px; }
+.quest { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); text-decoration: none; color: inherit; }
+.quest:first-of-type { border-top: 0; }
+.quest .box { width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--line-strong); display: grid; place-items: center; }
+.quest.done .box { background: var(--green); border-color: var(--green); color: #04220f; }
+.quest.done .qt { color: var(--muted); text-decoration: line-through; }
+.quest .xp { font-family: var(--f-mono); font-size: 12px; color: var(--gold); }
+.quest small { display: block; font-size: 12px; color: var(--muted); }
+.boss .hp { height: 12px; border-radius: 8px; background: rgba(255, 138, 122, .15); border: 1px solid rgba(255, 138, 122, .4); overflow: hidden; margin: 10px 0 6px; }
+.boss .hp div { height: 100%; background: linear-gradient(90deg, #ff8a7a, #ffb35c); transition: width .4s; }
+.boss.dead .hp div { background: var(--green); }
+.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.badge { display: grid; justify-items: center; gap: 4px; padding: 10px 6px; border-radius: 12px; border: 1px solid var(--line); text-align: center; font-size: 12px; }
+.badge svg { width: 34px; height: 34px; }
+.badge.locked { opacity: .35; filter: grayscale(1); }
+.badge b { font-size: 12px; }
+details.how summary { cursor: pointer; color: var(--cyan); font-size: 13px; font-weight: 600; }
+details.how p { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+
+/* Level up */
+#levelup { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; background: rgba(2, 6, 10, .82); }
+#levelup .lu { text-align: center; display: grid; gap: 8px; padding: 24px; }
+#levelup .lu b { font-family: var(--f-display); font-size: 64px; color: var(--gold); text-shadow: 0 0 30px rgba(245, 211, 107, .8); line-height: 1; }
+#levelup .lu span { font-family: var(--f-mono); letter-spacing: .4em; color: var(--cyan); }
+@media (prefers-reduced-motion: no-preference) { #levelup .lu { animation: pop .6s cubic-bezier(.2, 1.4, .4, 1); } }
+@keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* Tab bar */
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: rgba(5, 10, 17, .94); border-top: 1px solid var(--line); backdrop-filter: blur(10px);
+  padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+.tabs-in { max-width: 620px; margin: 0 auto; display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; }
+.tab { display: grid; justify-items: center; gap: 3px; padding: 6px; font-size: 11px; font-weight: 600; color: var(--muted); text-decoration: none; letter-spacing: .04em; }
+.tab svg { width: 22px; height: 22px; }
+.tab[aria-current="page"] { color: var(--cyan); }
+.tab.orb-tab { margin-top: -26px; }
+.orb-tab .disc { width: 62px; height: 62px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, #e8fbff 0 10%, #7fe6ff 22%, #1a6688 52%, #0a2333 72%); border: 1px solid var(--cyan); box-shadow: 0 0 30px -4px rgba(79, 216, 255, .9); }
+.orb-tab[aria-current="page"] .disc { box-shadow: 0 0 44px 0 rgba(79, 216, 255, 1); }
+
+/* Sheet */
+dialog.sheet { border: 1px solid var(--line-strong); border-bottom: 0; padding: 0; width: min(560px, 100%); max-width: 100%; margin: auto auto 0; border-radius: 20px 20px 0 0; background: var(--panel-solid); color: var(--ink); max-height: 90vh; }
+dialog.sheet::backdrop { background: rgba(2, 6, 10, .7); }
+.sheet form { padding: 16px max(16px, env(safe-area-inset-left, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 12px; }
+.field { display: grid; gap: 5px; }
+.field > span { font-size: 12px; color: var(--muted); font-weight: 600; }
+.field input, .field select { width: 100%; min-width: 0; border: 1px solid var(--line-strong); background: rgba(5, 14, 22, .8); border-radius: 10px; padding: 10px; font-size: 16px; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+.mem { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mem li { display: flex; gap: 8px; align-items: center; font-size: 13px; background: rgba(255, 255, 255, .04); border-radius: 10px; padding: 6px 10px; }
+.mem li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.x { border: 0; background: rgba(255, 255, 255, .06); border-radius: 8px; padding: 4px 8px; font-size: 12px; color: var(--muted); }
+.toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 40; background: #e8fbff; color: #04080e; padding: 9px 14px; border-radius: 99px; font-weight: 600; font-size: 14px; max-width: calc(100% - 32px); opacity: 0; pointer-events: none; transition: opacity .2s; text-align: center; }
+.toast.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation-duration: 0s !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">J.A.R.V.I.S.</div>
+    <div class="top-right"><span class="small muted mono" id="ai-state"></span>
+      <button class="icon-btn" id="settings-btn" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
+  </header>
+
+  <!-- HOME: AI dashboard -->
+  <section class="view" id="v-home">
+    <div class="hello">
+      <div><h1 id="greet">Good evening.</h1><div class="date" id="today-date"></div></div>
+      <a class="ovr-mini" href="#player" aria-label="Your player rating"><b id="mini-ovr">–</b><small>OVR</small></a>
+    </div>
+    <form class="cmd" id="home-cmd"><input type="text" id="home-input" placeholder="Tell Jarvis… “log 2 eggs and toast”" autocomplete="off" aria-label="Command for Jarvis"><button type="button" class="mic-btn" id="home-mic" aria-label="Talk to Jarvis"><svg viewBox="0 0 24 24" fill="none" stroke="#e8fbff" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></form>
+
+    <div class="panel brief" id="brief-panel">
+      <div class="p-head"><span class="label">Daily briefing</span><span class="small muted mono" id="brief-time"></span></div>
+      <div id="brief-body"></div>
+    </div>
+
+    <div class="panel">
+      <div class="p-head"><span class="label">Systems</span><span class="small muted" id="sys-note"></span></div>
+      <div class="tiles" id="tiles"></div>
+    </div>
+
+    <div class="panel">
+      <div class="p-head"><span class="label">Today</span><span class="small muted mono" id="tl-count"></span></div>
+      <ul class="timeline" id="timeline"></ul>
+    </div>
+
+    <div class="panel">
+      <div class="p-head"><span class="label">Quests</span><a class="btn ghost" href="#player">Player card</a></div>
+      <div id="home-quests"></div>
+    </div>
+
+    <div class="panel">
+      <div class="p-head"><span class="label">Patterns</span><span class="small muted mono" id="ins-date"></span></div>
+      <div id="ins-body"></div>
+    </div>
+  </section>
+
+  <!-- TALK -->
+  <section class="view" id="v-talk" hidden>
+    <div class="stage">
+      <canvas id="orb" width="720" height="720" aria-hidden="true"></canvas>
+      <div class="status" id="status">Ready</div>
+      <div class="caption" id="caption">Ask me anything, or tell me what to log, add or start.</div>
+    </div>
+    <div class="chips" id="talk-sugg"></div>
+    <div class="log" id="log"></div>
+    <div class="talk-bar"><form class="cmd" id="talk-cmd"><input type="text" id="talk-input" placeholder="Type or tap the mic" autocomplete="off" aria-label="Message Jarvis"><button type="button" class="mic-btn" id="talk-mic" aria-label="Hold a conversation by voice"><svg viewBox="0 0 24 24" fill="none" stroke="#e8fbff" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button></form></div>
+  </section>
+
+  <!-- PLAYER -->
+  <section class="view" id="v-player" hidden>
+    <div class="card2k" id="card2k"></div>
+    <div class="panel">
+      <div class="p-head"><span class="label">Daily quests</span><span class="small muted mono" id="q-count"></span></div>
+      <div id="quests"></div>
+    </div>
+    <div class="panel boss" id="boss"></div>
+    <div class="panel">
+      <div class="p-head"><span class="label">Badges</span><span class="small muted mono" id="b-count"></span></div>
+      <div class="badges" id="badges"></div>
+    </div>
+    <div class="panel">
+      <details class="how"><summary>How your ratings work</summary>
+        <p>Every rating comes from your real data in the last 14 days, so it rises when you put in work and drops when you slack. <b>Fuel</b>: MacroLens protein, calories and water. <b>Strength</b>: training minutes from ReadyUp, Gameplan and Weekboard. <b>Recovery</b>: sleep from ReadyUp and your Gameplan night routine. <b>IQ</b>: homework and study time plus Spanish in Charla. <b>Discipline</b>: finishing your Top 3, phone under your goal, and showing up in your apps.</p>
+        <p>XP never goes down. You earn it every day from the same data, and it levels you up.</p>
+      </details>
+    </div>
+  </section>
+</div>
+
+<nav class="tabs" aria-label="Sections"><div class="tabs-in">
+  <a class="tab" href="#home" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="5" rx="2"/><rect x="13" y="10" width="8" height="11" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/></svg>Dashboard</a>
+  <a class="tab orb-tab" href="#talk" data-tab="talk" aria-label="Talk to Jarvis"><span class="disc"></span>Talk</a>
+  <a class="tab" href="#player" data-tab="player"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>Player</a>
+</div></nav>
+
+<dialog class="sheet" id="settings"><form method="dialog" id="settings-form">
+  <div class="p-head"><h3>Settings</h3><button type="button" class="btn ghost" data-close>Done</button></div>
+  <label class="field"><span>Your name</span><input type="text" id="s-name" placeholder="Isaac" autocomplete="off"></label>
+  <label class="field"><span>Jarvis calls you</span><select id="s-call"><option value="sir">Sir</option><option value="name">Your name</option><option value="boss">Boss</option></select></label>
+  <label class="field"><span>Voice</span><select id="s-voice"></select></label>
+  <label class="field"><span>Speaking speed</span><select id="s-rate"><option value="0.9">Calm</option><option value="1">Normal</option><option value="1.1">Quick</option><option value="1.2">Fast</option></select></label>
+  <label class="check"><input type="checkbox" id="s-speak"> Speak replies out loud</label>
+  <label class="field"><span>Claude API key (shared with MacroLens, saved on this phone only)</span><input type="password" id="s-key" placeholder="sk-ant-…" autocomplete="off" spellcheck="false"></label>
+  <p class="small muted" id="s-key-state" style="margin:-6px 0 0"></p>
+  <div><div class="label" style="margin-bottom:8px">What Jarvis remembers</div><ul class="mem" id="s-mem"></ul></div>
+  <button type="button" class="btn" id="s-clear">Clear conversation</button>
+  <button class="btn primary">Save</button>
+</form></dialog>
+
+<div id="levelup" hidden><div class="lu"><span>LEVEL UP</span><b id="lu-level">2</b><div class="muted" id="lu-sub"></div><button class="btn primary" type="button" id="lu-close" style="margin-top:12px">Let's go</button></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+// ===================== helpers =====================
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const pad = (n) => String(n).padStart(2, '0');
+const isoDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const todayIso = () => isoDate(new Date());
+const shiftIso = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoDate(d); };
+const weekdayNum = (iso) => (new Date(iso + 'T12:00:00').getDay() + 6) % 7; // Mon = 0
+const mondayOf = (iso) => shiftIso(iso, -weekdayNum(iso));
+const toMin = (t) => { const m = String(t || '').match(/^(\d{1,2}):(\d{2})/); return m ? Number(m[1]) * 60 + Number(m[2]) : null; };
+const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+const fmt12 = (m) => { m = ((Math.round(m) % 1440) + 1440) % 1440; const h = Math.floor(m / 60); return `${h % 12 || 12}:${pad(m % 60)} ${h < 12 ? 'AM' : 'PM'}`; };
+const fmtDur = (m) => { m = Math.max(0, Math.round(m)); const h = Math.floor(m / 60), r = m % 60; return h ? (r ? `${h}h ${r}m` : `${h}h`) : `${r}m`; };
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const rd = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
+const wr = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } };
+let toastT; function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
+const SITE = 'https://isaacbsmith9-create.github.io/jarvis-demo/';
+const APPS = {
+  macrolens: { name: 'MacroLens', url: SITE, c: '#34d399' }, readyup: { name: 'ReadyUp', url: SITE + 'recovery/', c: '#6c8cff' },
+  weekboard: { name: 'Weekboard', url: SITE + 'weekboard/', c: '#ffd23f' }, gameplan: { name: 'Gameplan', url: SITE + 'gameplan/', c: '#f2a33a' },
+  charla: { name: 'Charla', url: SITE + 'charla/', c: '#2dd4bf' }, locker: { name: 'Locker', url: SITE + 'locker/', c: '#9aa3b2' },
+};
+
+// ===================== Jarvis's own storage =====================
+const DEFAULT_CORE = () => ({ name: '', call: 'sir', voice: '', rate: 1, speak: true, memory: [], badges: {}, seenLevel: 0, insights: null });
+let core = { ...DEFAULT_CORE(), ...(rd('jv:core') || {}) };
+const saveCore = () => wr('jv:core', core);
+let chat = rd('jv:chat') || { msgs: [] };
+const saveChat = () => { chat.msgs = chat.msgs.slice(-60); wr('jv:chat', chat); };
+const callMe = () => (core.call === 'name' && core.name ? core.name : core.call === 'boss' ? 'boss' : 'sir');
+
+// ===================== Reading your apps =====================
+const MEALS = ['breakfast', 'lunch', 'dinner', 'snacks'];
+function mlTargets(iso) {
+  const c = rd('ml:core') || {};
+  const t = { calories: 2800, protein: 140, carbs: 390, fat: 84, waterOz: 100, ...(c.targets || {}) };
+  for (const [k, v] of Object.entries(c.overrides || {})) if (v > 0) t[k] = v;
+  const d = rd('ml:day-' + iso);
+  if (d?.type === 'rest') { const cut = Math.round(t.carbs * 0.3); t.carbs -= cut; t.calories -= cut * 4; }
+  const w = rd('mlw:today');
+  if (w && w.date === iso) { t.protein = w.pTarget || t.protein; }
+  return t;
+}
+function mlDay(iso) {
+  const d = rd('ml:day-' + iso); if (!d) return null;
+  const o = { cal: 0, p: 0, c: 0, f: 0, n: 0, water: d.water || 0, type: d.type || 'training', foods: [] };
+  for (const m of MEALS) for (const e of d[m] || []) { const s = e.servings ?? 1; o.cal += (e.calories || 0) * s; o.p += (e.protein || 0) * s; o.c += (e.carbs || 0) * s; o.f += (e.fat || 0) * s; o.n++; o.foods.push(e.name); }
+  for (const k of ['cal', 'p', 'c', 'f']) o[k] = Math.round(o[k]);
+  return o;
+}
+function ruScore(c, goal = 9) {
+  if (!c) return null;
+  const v = clamp((c.sleepH - (goal - 3.5)) / 3.5) * 30 + ((c.quality - 1) / 4) * 15 + ((5 - c.soreness) / 4) * 20 + ((c.energy - 1) / 4) * 15 + ((5 - c.stress) / 4) * 10 + 8;
+  return Number.isFinite(v) ? Math.round(clamp(v, 0, 100)) : null;
+}
+function ruDay(iso) {
+  const d = rd('ru:day-' + iso); if (!d) return null;
+  const goal = Number(rd('ru:core')?.settings?.goal) || 9;
+  return { checkin: d.checkin || null, score: ruScore(d.checkin, goal), sleepH: d.checkin?.sleepH ?? null, sessions: d.sessions || [], trainMins: (d.sessions || []).reduce((a, s) => a + (Number(s.mins) || 0), 0) };
+}
+function wbItems(iso) {
+  const wc = rd('wb:core'); if (!wc) return [];
+  const w = rd('wb:w-' + mondayOf(iso)) || {}, wd = weekdayNum(iso);
+  const reps = (wc.rules || []).filter((r) => (r.days || []).includes(wd) && !w.skip?.[`${r.id}|${iso}`]).map((r) => ({ title: r.title, type: r.type, start: r.start, mins: Number(r.mins) || 60, done: !!w.done?.[`${r.id}|${iso}`] }));
+  const own = (w.items || []).filter((i) => i.date === iso).map((i) => ({ title: i.title, type: i.type, start: i.start, mins: Number(i.mins) || 60, done: !!i.done }));
+  return [...reps, ...own];
+}
+const gpCore = () => rd('gp:core') || { tasks: [], routine: { steps: [], bed: '22:30', wake: '06:45' }, running: null, settings: { phoneGoal: 120 } };
+function gpDay(iso) {
+  const d = rd('gp:d-' + iso) || { blocks: [], entries: [], night: { done: {} } };
+  const by = {}; for (const e of d.entries || []) by[e.cat] = (by[e.cat] || 0) + (Number(e.mins) || 0);
+  const r = gpCore().running; if (r && isoDate(new Date(r.start)) === iso) by[r.cat] = (by[r.cat] || 0) + (Date.now() - r.start) / 60000;
+  return { d, by };
+}
+function gpNight(iso) {
+  const steps = gpCore().routine?.steps || [], n = rd('gp:d-' + iso)?.night?.done || {};
+  const plan = gpCore().tasks?.some((t) => t.top === shiftIso(iso, 1));
+  const done = steps.filter((s) => n[s.id] || (s.id === 'plan' && plan)).length;
+  return { done, total: steps.length };
+}
+function chDay(iso) { const goal = Number(rd('ch:core')?.settings?.goal) || 5; const secs = rd('ch:day-' + iso)?.secs || 0; return { mins: secs / 60, goal }; }
+function chStreak() { const goal = (Number(rd('ch:core')?.settings?.goal) || 5) * 60; let d = todayIso(), n = 0; if ((rd('ch:day-' + d)?.secs || 0) < goal) d = shiftIso(d, -1); while ((rd('ch:day-' + d)?.secs || 0) >= goal && n < 999) { n++; d = shiftIso(d, -1); } return n; }
+const hasAny = () => ['ml:core', 'ru:core', 'wb:core', 'gp:core', 'ch:core'].some((k) => localStorage.getItem(k) != null) || Object.keys(localStorage).some((k) => /^(ml:day|ru:day|gp:d|ch:day)-/.test(k));
+
+// ===================== Life RPG: daily scores, ratings, XP =====================
+const ATTRS = [
+  { id: 'fuel', name: 'Fuel', c: '#34d399' }, { id: 'str', name: 'Strength', c: '#ff8a5c' }, { id: 'rec', name: 'Recovery', c: '#6c8cff' },
+  { id: 'iq', name: 'IQ', c: '#c084fc' }, { id: 'dsc', name: 'Discipline', c: '#f5d36b' },
+];
+function dayScores(iso) {
+  const ml = mlDay(iso), ru = ruDay(iso), gp = gpDay(iso), wb = wbItems(iso), ch = chDay(iso), gc = gpCore();
+  const s = { fuel: 0, str: 0, rec: 0, iq: 0, dsc: 0, active: 0 };
+  if (ml && ml.n) {
+    const t = mlTargets(iso);
+    s.fuel = 0.4 * clamp(ml.p / t.protein) + 0.3 * clamp(1 - Math.abs(ml.cal - t.calories) / (t.calories * 0.5)) + 0.3 * clamp(ml.water / (t.waterOz || 100));
+    s.active++;
+  }
+  const wbTrain = wb.filter((i) => i.done && ['practice', 'game', 'lift'].includes(i.type)).reduce((a, i) => a + i.mins, 0);
+  const trainMins = Math.max(ru?.trainMins || 0, (gp.by.practice || 0) + (gp.by.training || 0), wbTrain);
+  s.str = clamp(trainMins / 90);
+  const night = gpNight(iso);
+  if (ru?.sleepH != null || night.done) s.rec = (ru?.sleepH != null ? 0.7 * clamp(ru.sleepH / 9) : 0) + (night.total ? 0.3 * (night.done / night.total) : 0) + (ru?.sleepH == null && night.total ? 0.3 * (night.done / night.total) : 0);
+  if (ru?.checkin) s.active++;
+  const study = (gp.by.homework || 0) + (gp.by.school || 0) * 0.25 + wb.filter((i) => i.done && ['homework', 'study'].includes(i.type)).reduce((a, i) => a + i.mins, 0);
+  s.iq = clamp(0.7 * clamp(study / 60) + 0.3 * clamp(ch.mins / ch.goal));
+  if (ch.mins > 0) s.active++;
+  const tops = (gc.tasks || []).filter((t) => t.top === iso), parts = [];
+  if (tops.length) parts.push(tops.filter((t) => t.done).length / Math.max(3, tops.length));
+  const goal = gc.settings?.phoneGoal || 120;
+  if (gp.by.phone != null) parts.push(clamp(1 - (gp.by.phone - goal) / goal));
+  if ((gp.d.entries || []).length || tops.length || night.done) s.active++;
+  parts.push(clamp(s.active / 3));
+  s.dsc = parts.reduce((a, b) => a + b, 0) / parts.length;
+  if (!s.active && !trainMins && !study) s.dsc = 0;
+  return s;
+}
+function ratingsAt(endIso, cache) {
+  const days = Array.from({ length: 14 }, (_, i) => shiftIso(endIso, -i));
+  const sc = days.map((d) => cache[d] ??= dayScores(d));
+  const avg = (k) => sc.reduce((a, s) => a + s[k], 0) / sc.length;
+  const strTarget = sc.reduce((a, s) => a + s.str, 0) / 10; // about 10 sessions in 14 days is a full score
+  const r = { fuel: avg('fuel'), str: clamp(strTarget), rec: avg('rec'), iq: avg('iq'), dsc: avg('dsc') };
+  const out = {}; for (const a of ATTRS) out[a.id] = Math.round(45 + 54 * clamp(r[a.id]));
+  out.ovr = Math.round((out.fuel * 1.1 + out.str * 1.2 + out.rec + out.iq * 0.8 + out.dsc * 0.9) / 5);
+  return out;
+}
+const xpForDay = (s) => Math.round(60 * s.fuel + 80 * s.str + 50 * s.rec + 50 * s.iq + 60 * s.dsc);
+const levelNeed = (L) => 250 + 100 * L; // XP to go from level L to L+1
+function levelFrom(xp) { let L = 1; while (xp >= levelNeed(L)) { xp -= levelNeed(L); L++; } return { level: L, into: xp, need: levelNeed(L) }; }
+function allDataDates() {
+  const set = new Set();
+  for (const k of Object.keys(localStorage)) { const m = k.match(/^(?:ml:day|ru:day|gp:d|ch:day)-(\d{4}-\d{2}-\d{2})$/); if (m) set.add(m[1]); }
+  return [...set].sort();
+}
+const TIERS = [[94, 'D1 Ready'], [88, 'All-State'], [80, 'All-Conference'], [72, 'Starter'], [62, 'Rotation'], [0, 'Bench']];
+let rpg = null;
+function computeRpg() {
+  const today = todayIso(), cache = {};
+  const r = ratingsAt(today, cache);
+  const spark = Array.from({ length: 14 }, (_, i) => ratingsAt(shiftIso(today, i - 13), cache).ovr);
+  let xp = 0; for (const d of allDataDates()) if (d <= today) xp += xpForDay(cache[d] ??= dayScores(d));
+  const todayXp = xpForDay(cache[today] ??= dayScores(today));
+  rpg = { r, spark, xp, todayXp, lv: levelFrom(xp), tier: TIERS.find(([min]) => r.ovr >= min)[1], cache };
+  return rpg;
+}
+
+// ===================== Quests, boss, badges =====================
+function quests() {
+  const t = todayIso(), ml = mlDay(t), tg = mlTargets(t), ru = ruDay(t), gc = gpCore(), tops = (gc.tasks || []).filter((x) => x.top === t), night = gpNight(t), ch = chDay(t), sc = rpg.cache[t];
+  const q = [];
+  q.push({ id: 'checkin', title: 'Morning check-in', sub: 'ReadyUp', app: 'readyup', xp: 15, done: !!ru?.checkin });
+  q.push({ id: 'protein', title: `Hit ${tg.protein} g protein`, sub: ml ? `${ml.p} g so far · MacroLens` : 'MacroLens', app: 'macrolens', xp: 30, done: !!ml && ml.p >= tg.protein * 0.95 });
+  q.push({ id: 'train', title: 'Train 60+ minutes', sub: 'Practice, lift or workout', app: 'readyup', xp: 50, done: sc.str >= 0.66 });
+  q.push({ id: 'top3', title: 'Finish your Top 3', sub: tops.length ? `${tops.filter((x) => x.done).length} of ${tops.length} done · Gameplan` : 'Pick them in Gameplan', app: 'gameplan', xp: 35, done: tops.length > 0 && tops.every((x) => x.done) });
+  q.push({ id: 'spanish', title: `${ch.goal} min of Spanish`, sub: `${Math.floor(ch.mins)} min · Charla`, app: 'charla', xp: 20, done: ch.mins >= ch.goal });
+  q.push({ id: 'night', title: 'Night routine', sub: night.total ? `${night.done} of ${night.total} · Gameplan` : 'Gameplan', app: 'gameplan', xp: 30, done: night.total > 0 && night.done === night.total });
+  q.push({ id: 'water', title: `Drink ${tg.waterOz} oz of water`, sub: ml ? `${ml.water} oz so far` : 'MacroLens', app: 'macrolens', xp: 15, done: !!ml && ml.water >= tg.waterOz });
+  return q;
+}
+const BOSSES = [
+  { name: 'The Iron Wall', goal: 6, desc: 'Hit your protein on 6 of 7 days this week.', test: (d) => { const m = mlDay(d); return !!m && m.p >= mlTargets(d).protein * 0.95; } },
+  { name: 'The Grind', goal: 5, desc: 'Train 60+ minutes on 5 days this week.', test: (d) => (rpg.cache[d] ??= dayScores(d)).str >= 0.66 },
+  { name: 'The Sandman', goal: 5, desc: 'Sleep 8+ hours on 5 nights this week.', test: (d) => (ruDay(d)?.sleepH || 0) >= 8 },
+  { name: 'The Closer', goal: 5, desc: 'Finish your whole Top 3 on 5 days this week.', test: (d) => { const tops = (gpCore().tasks || []).filter((x) => x.top === d); return tops.length > 0 && tops.every((x) => x.done); } },
+];
+function boss() {
+  const mon = mondayOf(todayIso()), weekNo = Math.floor(new Date(mon + 'T12:00:00').getTime() / (7 * 864e5));
+  const b = BOSSES[weekNo % BOSSES.length], days = Array.from({ length: 7 }, (_, i) => shiftIso(mon, i)).filter((d) => d <= todayIso());
+  const hits = days.filter((d) => b.test(d)).length;
+  return { ...b, hits, left: 7 - days.length, dead: hits >= b.goal };
+}
+const BADGES = [
+  { id: 'lv5', name: 'Level 5', test: () => rpg.lv.level >= 5 }, { id: 'lv10', name: 'Level 10', test: () => rpg.lv.level >= 10 }, { id: 'lv20', name: 'Level 20', test: () => rpg.lv.level >= 20 },
+  { id: 'ovr70', name: '70 OVR', test: () => rpg.r.ovr >= 70 }, { id: 'ovr80', name: '80 OVR', test: () => rpg.r.ovr >= 80 }, { id: 'ovr90', name: '90 OVR', test: () => rpg.r.ovr >= 90 },
+  { id: 'fuel90', name: 'Fuel 90', test: () => rpg.r.fuel >= 90 }, { id: 'str90', name: 'Strength 90', test: () => rpg.r.str >= 90 }, { id: 'rec90', name: 'Recovery 90', test: () => rpg.r.rec >= 90 },
+  { id: 'quests', name: 'Perfect day', test: () => quests().every((q) => q.done) }, { id: 'boss', name: 'Boss slayer', test: () => boss().dead },
+];
+const MEDAL = (c) => `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3l14 7v10c0 9-6 14-14 17C12 34 6 29 6 20V10z" fill="${c}" opacity=".9"/><path d="M14 20l4 4 8-8" fill="none" stroke="#04080e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+function checkBadges() {
+  let fresh = [];
+  for (const b of BADGES) if (!core.badges[b.id] && b.test()) { core.badges[b.id] = todayIso(); fresh.push(b.name); }
+  if (fresh.length) { saveCore(); toast(`Badge unlocked: ${fresh.join(', ')}`); }
+}
+
+// ===================== AI =====================
+const KEY_STORE = 'macrolens-apikey';
+const SDK_URL = 'https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.8.0/+esm';
+const MODEL = 'claude-opus-5-5';
+let sdk = null, sample = null;
+const getKey = () => { try { return localStorage.getItem(KEY_STORE) || ''; } catch { return ''; } };
+const aiReady = () => !!(sample || getKey());
+async function askJson(prompt, schema, effort = 'medium') {
+  if (sample) return sample.json(prompt, { modelTier: effort === 'high' ? 'complex' : 'default' });
+  const key = getKey(); if (!key) throw { code: 'no_key' };
+  sdk ??= await import(SDK_URL).catch(() => { throw { code: 'sdk' }; });
+  const Anthropic = sdk.default, client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
+  let res;
+  try {
+    res = await client.beta.messages.create({ model: MODEL, max_tokens: 8000, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default',
+      output_config: { effort, format: { type: 'json_schema', schema } }, messages: [{ role: 'user', content: prompt }] });
+  } catch (e) {
+    if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) throw { code: 'bad_key' };
+    if (e instanceof Anthropic.RateLimitError) throw { code: 'rate' };
+    throw { code: 'net' };
+  }
+  if (res.stop_reason === 'refusal') throw { code: 'refused' };
+  try { return JSON.parse(res.content.find((b) => b.type === 'text').text); } catch { throw { code: 'json' }; }
+}
+const AI_ERR = { no_key: 'I need a Claude API key for that. Add it in Settings, top right.', bad_key: 'That API key was rejected. Check it in Settings.', rate: 'I am being rate limited. Give me a minute.',
+  sdk: 'I could not load my AI library. Check your connection.', net: 'I could not reach Claude. Check your connection and try again.', refused: 'I cannot help with that one.', json: 'My answer came back garbled. Try again.' };
+
+function persona() {
+  return `You are JARVIS, ${core.name || 'the user'}'s personal AI assistant and the command center for all of their apps. Persona: composed, precise, dryly witty, quietly confident, a brilliant British butler of an AI. Call them "${callMe()}" now and then, not every line. They are a 16-year-old high school basketball guard working toward varsity and college ball, who also cares about school, Spanish, money and their habits.`;
+}
+// A compact snapshot of today across every app, so Jarvis answers from real data.
+function snapshot() {
+  const t = todayIso(), ml = mlDay(t), tg = mlTargets(t), ru = ruDay(t), gc = gpCore(), gp = gpDay(t), night = gpNight(t);
+  const sched = [...wbItems(t).map((i) => ({ ...i, src: 'Weekboard' })), ...(gp.d.blocks || []).map((b) => ({ title: b.title, start: b.start, mins: b.mins, done: b.done, src: 'Gameplan' }))]
+    .filter((i) => i.start).sort((a, b) => toMin(a.start) - toMin(b.start)).map((i) => `${i.start} ${i.title} (${i.mins} min${i.done ? ', done' : ''})`);
+  const w = rd('mlw:today');
+  return {
+    now: `${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}, ${fmt12(nowMin())}`,
+    nutrition: ml ? { eaten_kcal: ml.cal, target_kcal: tg.calories, protein_g: ml.p, protein_target: tg.protein, carbs_g: ml.c, fat_g: ml.f, water_oz: ml.water, water_target: tg.waterOz, foods: ml.foods.slice(0, 20), day_type: ml.type, next_meal: w?.date === t && w.next ? `${w.next.title} at ${fmt12(w.next.at)}` : null } : 'nothing logged in MacroLens today',
+    recovery: ru?.checkin ? { readiness: ru.score, sleep_h: ru.sleepH, soreness_1to5: ru.checkin.soreness, pain: !!ru.checkin.pain } : 'no ReadyUp check-in today',
+    schedule_today: sched, timer_running: gc.running ? `${gc.running.cat} since ${fmt12(new Date(gc.running.start).getHours() * 60 + new Date(gc.running.start).getMinutes())}` : null,
+    time_tracked_min: Object.fromEntries(Object.entries(gp.by).map(([k, v]) => [k, Math.round(v)])),
+    top3_today: (gc.tasks || []).filter((x) => x.top === t).map((x) => `${x.title}${x.done ? ' (done)' : ''}`),
+    open_tasks: (gc.tasks || []).filter((x) => !x.done).slice(0, 12).map((x) => `${x.title} [${x.u ? 'urgent' : 'not urgent'}, ${x.i ? 'important' : 'not important'}${x.due ? ', due ' + x.due : ''}]`),
+    homework_tray: (rd('wb:core')?.tray || []).slice(0, 8).map((x) => `${x.title} ${x.mins} min${x.due ? ' due ' + x.due : ''}`),
+    night_routine: night.total ? `${night.done} of ${night.total} steps, bedtime ${gc.routine?.bed || '22:30'}` : null,
+    spanish: { streak_days: chStreak(), minutes_today: Math.floor(chDay(t).mins) },
+    player: rpg ? { ovr: rpg.r.ovr, tier: rpg.tier, level: rpg.lv.level, ratings: { fuel: rpg.r.fuel, strength: rpg.r.str, recovery: rpg.r.rec, iq: rpg.r.iq, discipline: rpg.r.dsc } } : null,
+  };
+}
+
+// ===================== Commands: what Jarvis can do in your apps =====================
+const GP_CATS = ['school', 'homework', 'practice', 'training', 'work', 'gaming', 'phone', 'people', 'other'];
+const FOOD = { type: 'object', additionalProperties: false, required: ['name', 'portion', 'calories', 'protein', 'carbs', 'fat'],
+  properties: { name: { type: 'string' }, portion: { type: 'string' }, grams: { type: 'number' }, calories: { type: 'number' }, protein: { type: 'number' }, carbs: { type: 'number' }, fat: { type: 'number' }, fiber: { type: 'number' }, added_sugar: { type: 'number' }, sodium_mg: { type: 'number' } } };
+const ACTION = { type: 'object', additionalProperties: false, required: ['type'], properties: {
+  type: { type: 'string', enum: ['log_food', 'log_water', 'add_task', 'complete_task', 'start_timer', 'stop_timer', 'add_homework', 'add_event', 'open_app', 'remember'] },
+  meal: { type: 'string', enum: MEALS }, items: { type: 'array', items: FOOD }, oz: { type: 'number' }, title: { type: 'string' }, urgent: { type: 'boolean' }, important: { type: 'boolean' },
+  due: { type: 'string' }, top: { type: 'string', enum: ['today', 'tomorrow', 'none'] }, category: { type: 'string', enum: GP_CATS }, minutes: { type: 'number' },
+  date: { type: 'string' }, start: { type: 'string' }, event_type: { type: 'string', enum: ['practice', 'game', 'lift', 'homework', 'study', 'work', 'personal', 'other'] },
+  app: { type: 'string', enum: Object.keys(APPS) }, fact: { type: 'string' } } };
+const CMD_SCHEMA = { type: 'object', additionalProperties: false, required: ['say', 'actions'], properties: { say: { type: 'string' }, actions: { type: 'array', items: ACTION } } };
+const ACTION_GUIDE = `Actions you can take (only when they clearly ask you to change something; questions need no action):
+- log_food {meal, items}: log food in MacroLens. Estimate each item with typical US portions and USDA values; calories close to 4P+4C+9F. meal from what they say, or from the time of day.
+- log_water {oz}: add water.
+- add_task {title, urgent, important, due (YYYY-MM-DD, optional), top ("today", "tomorrow" or "none")}: add to the Gameplan priority matrix. top puts it in that day's Top 3.
+- complete_task {title}: mark a Gameplan task done (title as close to the existing one as you can).
+- start_timer {category} / stop_timer {}: Gameplan time tracker. Categories: ${GP_CATS.join(', ')}.
+- add_homework {title, minutes, due (YYYY-MM-DD)}: put homework in the Weekboard tray so it auto-fits into the week.
+- add_event {title, date (YYYY-MM-DD), start (HH:MM 24h), minutes, event_type}: put something on the Weekboard calendar.
+- open_app {app}: open one of their apps.
+- remember {fact}: save a lasting fact about them (a goal, a preference, a date) when they tell you something worth remembering.
+Today is ${todayIso()} (${new Date().toLocaleDateString('en-US', { weekday: 'long' })}). Resolve words like "Friday" or "tomorrow" into real dates.`;
+
+// Undo: snapshot every localStorage key an action touches.
+let undoSnap = null;
+function snap(keys) { if (!undoSnap) undoSnap = {}; for (const k of keys) if (!(k in undoSnap)) undoSnap[k] = localStorage.getItem(k); }
+function doUndo() { if (!undoSnap) return; for (const [k, v] of Object.entries(undoSnap)) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch {} } undoSnap = null; toast('Undone'); renderAll(); }
+
+function runAction(a) {
+  const t = todayIso();
+  switch (a.type) {
+    case 'log_food': {
+      const items = (a.items || []).filter((i) => i && i.name); if (!items.length) return null;
+      const k = 'ml:day-' + t; snap([k, 'ml:core']);
+      const d = rd(k) || { breakfast: [], lunch: [], dinner: [], snacks: [], water: 0 }, meal = MEALS.includes(a.meal) ? a.meal : (nowMin() < 600 ? 'breakfast' : nowMin() < 900 ? 'lunch' : nowMin() < 1260 ? 'dinner' : 'snacks');
+      d[meal] = d[meal] || [];
+      for (const i of items) {
+        const e = { name: String(i.name).slice(0, 80), serving: String(i.portion || '1 serving').slice(0, 60), calories: Math.round(Number(i.calories) || 0), protein: Math.round((Number(i.protein) || 0) * 10) / 10,
+          carbs: Math.round((Number(i.carbs) || 0) * 10) / 10, fat: Math.round((Number(i.fat) || 0) * 10) / 10, servings: 1, addedAt: Date.now(), source: 'AI scan' };
+        if (i.grams) e.grams = Math.round(i.grams); if (i.fiber != null) e.fiber = i.fiber; if (i.added_sugar != null) e.sugar = i.added_sugar; if (i.sodium_mg != null) e.sodium = Math.round(i.sodium_mg);
+        d[meal].push(e);
+      }
+      wr(k, d);
+      const kcal = items.reduce((s, i) => s + (Number(i.calories) || 0), 0), p = items.reduce((s, i) => s + (Number(i.protein) || 0), 0);
+      return `Logged ${items.map((i) => i.name).join(', ')} to ${meal} · ${Math.round(kcal)} kcal, ${Math.round(p)} g protein`;
+    }
+    case 'log_water': {
+      const oz = Math.round(Number(a.oz) || 0); if (oz <= 0 || oz > 200) return null;
+      const k = 'ml:day-' + t; snap([k]); const d = rd(k) || { breakfast: [], lunch: [], dinner: [], snacks: [], water: 0 };
+      d.water = (d.water || 0) + oz; wr(k, d); return `Added ${oz} oz of water · ${d.water} oz today`;
+    }
+    case 'add_task': {
+      if (!a.title) return null; snap(['gp:core']); const c = gpCore();
+      const topIso = a.top === 'today' ? t : a.top === 'tomorrow' ? shiftIso(t, 1) : null;
+      const full = topIso && (c.tasks || []).filter((x) => x.top === topIso).length >= 3;
+      c.tasks = [...(c.tasks || []), { id: uid(), title: String(a.title).slice(0, 120), u: a.urgent !== false && !!a.urgent, i: a.important !== false, due: /^\d{4}-\d{2}-\d{2}$/.test(a.due || '') ? a.due : '', done: false, top: full ? null : topIso, created: Date.now() }];
+      wr('gp:core', c);
+      return `Added "${a.title}" to Gameplan${topIso && !full ? ` as a Top 3 for ${a.top}` : ''}${full ? ' (Top 3 was already full)' : ''}`;
+    }
+    case 'complete_task': {
+      const c = gpCore(), q = String(a.title || '').toLowerCase(); if (!q) return null;
+      const words = q.split(/\s+/).filter((w) => w.length > 2);
+      const open = (c.tasks || []).filter((x) => !x.done);
+      const best = open.map((x) => ({ x, s: words.filter((w) => x.title.toLowerCase().includes(w)).length + (x.title.toLowerCase() === q ? 5 : 0) })).sort((a2, b) => b.s - a2.s)[0];
+      if (!best || !best.s) return `!Could not find an open task like "${a.title}"`;
+      snap(['gp:core']); best.x.done = true; best.x.doneAt = Date.now(); wr('gp:core', c); return `Marked "${best.x.title}" done`;
+    }
+    case 'start_timer': {
+      const cat = GP_CATS.includes(a.category) ? a.category : 'other'; snap(['gp:core', 'gp:d-' + t]);
+      const c = gpCore(); const stopped = stopRunning(c);
+      c.running = { cat, start: Date.now() }; wr('gp:core', c);
+      return `${stopped ? stopped + ' · ' : ''}Started a ${cat} timer`;
+    }
+    case 'stop_timer': {
+      snap(['gp:core', 'gp:d-' + t]); const c = gpCore(); const stopped = stopRunning(c);
+      wr('gp:core', c); return stopped || '!No timer was running';
+    }
+    case 'add_homework': {
+      if (!a.title) return null; snap(['wb:core']);
+      const c = rd('wb:core') || { settings: { school: '15:15', bed: '22:30', wkstart: '09:00', max: 120 }, rules: [], tray: [] };
+      c.tray = [...(c.tray || []), { id: uid(), title: String(a.title).slice(0, 100), type: 'homework', mins: Math.max(10, Math.round(Number(a.minutes) || 45)), due: /^\d{4}-\d{2}-\d{2}$/.test(a.due || '') ? a.due : null, done: false }];
+      wr('wb:core', c); return `Added "${a.title}" (${Math.round(Number(a.minutes) || 45)} min${a.due ? ', due ' + new Date(a.due + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short' }) : ''}) to your Weekboard tray`;
+    }
+    case 'add_event': {
+      const date = /^\d{4}-\d{2}-\d{2}$/.test(a.date || '') ? a.date : t, start = toMin(a.start) != null ? a.start.slice(0, 5).padStart(5, '0') : null;
+      if (!a.title) return null; const k = 'wb:w-' + mondayOf(date); snap([k]);
+      const w = rd(k) || { items: [], done: {}, skip: {} };
+      w.items = [...(w.items || []), { id: uid(), title: String(a.title).slice(0, 100), type: a.event_type || 'other', date, start, mins: Math.max(10, Math.round(Number(a.minutes) || 60)), done: false }];
+      wr(k, w); return `Put "${a.title}" on Weekboard for ${new Date(date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}${start ? ' at ' + fmt12(toMin(start)) : ''}`;
+    }
+    case 'open_app': { const ap = APPS[a.app]; if (!ap) return null; setTimeout(() => { location.href = ap.url; }, 1600); return `Opening ${ap.name}`; }
+    case 'remember': { if (!a.fact) return null; core.memory = [String(a.fact).slice(0, 200), ...core.memory.filter((m) => m !== a.fact)].slice(0, 40); saveCore(); return `Remembered: ${a.fact}`; }
+  }
+  return null;
+}
+function stopRunning(c) {
+  const r = c.running; if (!r) return '';
+  const mins = Math.round((Date.now() - r.start) / 60000); c.running = null;
+  if (mins < 1) return 'Stopped the timer';
+  const iso = isoDate(new Date(r.start)), k = 'gp:d-' + iso, d = rd(k) || { blocks: [], entries: [], night: { done: {} } };
+  d.entries = [...(d.entries || []), { id: uid(), cat: r.cat, start: r.start, mins }]; wr(k, d);
+  return `Logged ${fmtDur(mins)} of ${r.cat}`;
+}
+
+// Without an API key, Jarvis still handles the most common commands on its own.
+function localCommand(text) {
+  const q = text.toLowerCase().trim(), t = todayIso();
+  let m;
+  if ((m = q.match(/(?:drank|drink|add|log)?\s*(\d{1,3})\s*(?:oz|ounces)\s*(?:of\s*)?water|water\D{0,12}(\d{1,3})/))) return { say: 'Done.', actions: [{ type: 'log_water', oz: Number(m[1] || m[2]) }] };
+  if (/\bstop\b.*\btimer\b|\bstop tracking\b/.test(q)) return { say: 'Timer stopped.', actions: [{ type: 'stop_timer' }] };
+  if ((m = q.match(/start (?:a |my |the )?(\w+)(?: timer)?/)) && /timer|start (homework|school|practice|training|work|gaming|phone)/.test(q)) {
+    const map = { hw: 'homework', homework: 'homework', study: 'homework', studying: 'homework', school: 'school', practice: 'practice', training: 'training', workout: 'training', lift: 'training', work: 'work', gaming: 'gaming', game: 'gaming', '2k': 'gaming', phone: 'phone', social: 'phone' };
+    return { say: 'Timer running.', actions: [{ type: 'start_timer', category: map[m[1]] || 'other' }] };
+  }
+  if ((m = q.match(/^(?:add (?:a )?task|remind me to|todo:?)\s+(.+)/))) return { say: 'Added.', actions: [{ type: 'add_task', title: m[1].replace(/[.!]$/, ''), urgent: false, important: true, top: 'none' }] };
+  if (/what'?s next|next up|what do i have/.test(q)) {
+    const items = [...wbItems(t), ...(gpDay(t).d.blocks || [])].filter((i) => i.start && toMin(i.start) >= nowMin() - 10).sort((a, b) => toMin(a.start) - toMin(b.start));
+    return { say: items.length ? `Next is ${items[0].title} at ${fmt12(toMin(items[0].start))}${items[1] ? `, then ${items[1].title} at ${fmt12(toMin(items[1].start))}` : ''}.` : 'Nothing else on the schedule today.', actions: [] };
+  }
+  if (/protein|calorie|macro/.test(q)) {
+    const ml = mlDay(t), tg = mlTargets(t);
+    return { say: ml ? `You are at ${ml.p} of ${tg.protein} grams of protein and ${ml.cal.toLocaleString()} of ${tg.calories.toLocaleString()} calories.` : 'Nothing logged in MacroLens yet today.', actions: [] };
+  }
+  return null;
+}
+
+// ===================== Voice: speech in and out =====================
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, listening = false, voices = [], speaking = false, orbLevel = 0;
+function loadVoices() {
+  voices = (window.speechSynthesis?.getVoices() || []).filter((v) => /^en/i.test(v.lang));
+  const pick = core.voice || (voices.find((v) => /daniel|arthur|uk english male|oliver|george/i.test(v.name)) || voices.find((v) => /en-GB/i.test(v.lang)) || voices[0])?.name || '';
+  $('#s-voice').innerHTML = voices.length ? voices.map((v) => `<option value="${esc(v.name)}"${v.name === pick ? ' selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('') : '<option value="">Default voice</option>';
+}
+if (window.speechSynthesis) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+let unlocked = false;
+function unlockSpeech() { if (unlocked || !window.speechSynthesis) return; unlocked = true; try { const u = new SpeechSynthesisUtterance(''); u.volume = 0; speechSynthesis.speak(u); } catch {} }
+function speak(text) {
+  if (!core.speak || !window.speechSynthesis || !text) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text.replace(/[*_#`]/g, ''));
+    const v = voices.find((x) => x.name === ($('#s-voice').value || core.voice)); if (v) u.voice = v;
+    u.rate = Number(core.rate) || 1; u.pitch = 0.95;
+    u.onstart = () => { speaking = true; setStatus('Speaking'); };
+    u.onboundary = () => { orbLevel = 1; };
+    u.onend = u.onerror = () => { speaking = false; setStatus('Ready'); };
+    speechSynthesis.speak(u);
+  } catch {}
+}
+function setStatus(s) { $('#status').textContent = s; orbState = s.toLowerCase(); }
+function startListening(target) {
+  unlockSpeech();
+  if (!SR) { $(target === 'home' ? '#home-input' : '#talk-input').focus(); toast('Use the mic on your keyboard to dictate'); return; }
+  if (listening) { rec?.stop(); return; }
+  window.speechSynthesis?.cancel();
+  rec = new SR(); rec.lang = 'en-US'; rec.interimResults = true; rec.continuous = false;
+  let finalText = '';
+  rec.onresult = (e) => { let t = ''; for (const r of e.results) t += r[0].transcript; finalText = t; if (target === 'talk') { $('#caption').textContent = t; } else $('#home-input').value = t; };
+  rec.onerror = (e) => { if (e.error === 'not-allowed') toast('Allow the microphone to talk to Jarvis'); };
+  rec.onend = () => { listening = false; $$('.mic-btn').forEach((b) => b.classList.remove('on')); setStatus('Ready'); if (finalText.trim()) { if (target === 'home') { location.hash = '#talk'; } send(finalText.trim()); } };
+  try { rec.start(); listening = true; $$('.mic-btn').forEach((b) => b.classList.add('on')); setStatus('Listening'); } catch { listening = false; }
+}
+
+// ===================== Conversation =====================
+let busy = false;
+async function send(text) {
+  text = String(text || '').trim(); if (!text || busy) return;
+  unlockSpeech();
+  undoSnap = null;
+  chat.msgs.push({ role: 'me', text, at: Date.now() }); saveChat();
+  if (view !== 'talk') location.hash = '#talk';
+  busy = true; setStatus('Thinking'); $('#caption').textContent = '…'; renderLog();
+  let res = null, err = null;
+  const local = !aiReady() ? localCommand(text) : null;
+  if (local) res = local;
+  else if (!aiReady()) err = 'no_key';
+  else {
+    const hist = chat.msgs.slice(-13, -1).map((m) => `${m.role === 'me' ? 'Them' : 'Jarvis'}: ${m.text}`).join('\n');
+    const prompt = `${persona()}
+Your replies are spoken aloud: 1 to 3 short natural sentences, under 45 words, no markdown, lists, emoji or URLs. Write numbers and times the way they are said. If they ask for a plan, a breakdown or advice, you may use up to 110 words. Answer from their data below; never invent numbers you do not have. If a needed app has no data, say so plainly.
+${ACTION_GUIDE}
+What you remember about them: ${core.memory.length ? core.memory.join('; ') : 'nothing yet'}.
+Their apps right now: ${JSON.stringify(snapshot())}
+${hist ? `Recent conversation:\n${hist}\n` : ''}They said: "${text.slice(0, 800)}"
+Reply with only JSON: {"say": "what you say out loud", "actions": [ ... ]}. Use an empty actions array when nothing should change. When you take an action, "say" confirms it briefly.`;
+    try { res = await askJson(prompt, CMD_SCHEMA); if (!res || typeof res.say !== 'string') throw { code: 'json' }; }
+    catch (e) { err = e?.code || 'net'; res = localCommand(text); if (res) err = null; }
+  }
+  const done = [];
+  if (res) for (const a of (res.actions || []).slice(0, 8)) { try { const r = runAction(a); if (r) done.push(r); } catch { done.push('!Something went wrong with that action'); } }
+  const say = err ? AI_ERR[err] || AI_ERR.net : res.say;
+  chat.msgs.push({ role: 'jv', text: say, done, undo: done.some((d) => !d.startsWith('!') && !d.startsWith('Opening') && !d.startsWith('Remembered')) && !!undoSnap, at: Date.now() });
+  saveChat(); busy = false; setStatus('Ready');
+  $('#caption').textContent = say; renderLog(); renderAll(false);
+  speak(say);
+}
+
+// ===================== Briefing + patterns =====================
+const BRIEF_SCHEMA = { type: 'object', additionalProperties: false, required: ['headline', 'points', 'focus', 'spoken'], properties: { headline: { type: 'string' }, points: { type: 'array', items: { type: 'string' } }, focus: { type: 'string' }, spoken: { type: 'string' } } };
+const INS_SCHEMA = { type: 'object', additionalProperties: false, required: ['insights'], properties: { insights: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['title', 'detail', 'action'], properties: { title: { type: 'string' }, detail: { type: 'string' }, action: { type: 'string' } } } } } };
+let briefBusy = false, insBusy = false;
+async function makeBrief() {
+  if (briefBusy) return; if (!aiReady()) return toast(AI_ERR.no_key);
+  briefBusy = true; renderBrief();
+  const prompt = `${persona()}
+Write their daily briefing for right now, like a chief of staff: what matters today across nutrition, training, recovery, school and schedule. Be specific with their real numbers and times. If an app has no data, skip it rather than guessing.
+What you remember about them: ${core.memory.join('; ') || 'nothing yet'}.
+Their apps right now: ${JSON.stringify(snapshot())}
+Reply with only JSON: {"headline": "one sharp sentence on the day", "points": ["3 to 5 short specific points"], "focus": "the one thing that matters most next", "spoken": "the same briefing as 3 to 4 natural spoken sentences, under 70 words, in your voice"}`;
+  try {
+    const r = await askJson(prompt, BRIEF_SCHEMA);
+    if (!r?.headline) throw { code: 'json' };
+    wr('jv:day-' + todayIso(), { ...(rd('jv:day-' + todayIso()) || {}), brief: { at: Date.now(), headline: String(r.headline), points: (r.points || []).map(String).slice(0, 5), focus: String(r.focus || ''), spoken: String(r.spoken || r.headline) } });
+    briefBusy = false; renderBrief(); speak(r.spoken || r.headline);
+  } catch (e) { briefBusy = false; renderBrief(); toast(AI_ERR[e?.code] || AI_ERR.net); }
+}
+function dailyRows(n = 14) {
+  return Array.from({ length: n }, (_, i) => shiftIso(todayIso(), i - n + 1)).map((d) => {
+    const ml = mlDay(d), ru = ruDay(d), gp = gpDay(d), tops = (gpCore().tasks || []).filter((x) => x.top === d), night = gpNight(d), ch = chDay(d);
+    return { date: d, day: new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' }), kcal: ml?.cal ?? null, protein: ml?.p ?? null, water: ml?.water ?? null,
+      sleep_h: ru?.sleepH ?? null, readiness: ru?.score ?? null, soreness: ru?.checkin?.soreness ?? null, train_min: ru?.trainMins || Math.round((gp.by.practice || 0) + (gp.by.training || 0)) || null,
+      homework_min: Math.round(gp.by.homework || 0) || null, phone_min: gp.by.phone != null ? Math.round(gp.by.phone) : null, gaming_min: gp.by.gaming != null ? Math.round(gp.by.gaming) : null,
+      top3: tops.length ? `${tops.filter((x) => x.done).length}/${tops.length}` : null, night_routine: night.total && night.done ? `${night.done}/${night.total}` : null, spanish_min: ch.mins ? Math.round(ch.mins) : null };
+  });
+}
+async function makeInsights() {
+  if (insBusy) return; if (!aiReady()) return toast(AI_ERR.no_key);
+  insBusy = true; renderInsights();
+  const prompt = `${persona()}
+Study their last 14 days across all apps and find the 3 most useful patterns: connections between apps (for example short sleep before low readiness, phone time on days homework slipped, protein on days they trained). Only claim a pattern the numbers actually show; null means no data that day. Each insight: a punchy title, the evidence with real numbers and days, and one concrete action for this week.
+Data: ${JSON.stringify(dailyRows())}
+Reply with only JSON: {"insights": [{"title": "...", "detail": "...", "action": "..."}]}`;
+  try {
+    const r = await askJson(prompt, INS_SCHEMA, 'high');
+    if (!Array.isArray(r?.insights) || !r.insights.length) throw { code: 'json' };
+    core.insights = { at: todayIso(), list: r.insights.slice(0, 3).map((x) => ({ title: String(x.title), detail: String(x.detail), action: String(x.action) })) }; saveCore();
+  } catch (e) { toast(AI_ERR[e?.code] || AI_ERR.net); }
+  insBusy = false; renderInsights();
+}
+
+// ===================== Render: Home =====================
+function renderHome() {
+  const h = new Date().getHours();
+  $('#greet').textContent = `${h < 5 ? 'Late night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'}${core.name ? ', ' + core.name : ''}.`;
+  $('#today-date').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  $('#mini-ovr').textContent = rpg.r.ovr;
+  renderBrief(); renderTiles(); renderTimeline(); renderInsights();
+  const q = quests(), left = q.filter((x) => !x.done).slice(0, 3);
+  $('#home-quests').innerHTML = left.length ? left.map(questRow).join('') : '<p class="small" style="margin:0;color:var(--green)">Every quest done today. Legendary.</p>';
+}
+function renderBrief() {
+  const b = rd('jv:day-' + todayIso())?.brief, el = $('#brief-body');
+  $('#brief-time').textContent = b ? new Date(b.at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '';
+  if (briefBusy) { el.innerHTML = '<p class="muted" style="margin:0"><span class="spinner"></span> Pulling everything together…</p>'; return; }
+  if (!b) {
+    el.innerHTML = `<h2>${hasAny() ? 'Your day, in 20 seconds.' : 'Welcome. I run your apps from here.'}</h2><p class="small muted" style="margin:6px 0 12px">${hasAny() ? 'I read MacroLens, ReadyUp, Weekboard, Gameplan and Charla, then tell you what matters right now.' : 'Use your apps on this website and everything shows up here.'}</p>
+      <button class="btn primary" type="button" id="brief-btn">${aiReady() ? 'Brief me' : 'Add an API key to get briefings'}</button>`;
+    return;
+  }
+  el.innerHTML = `<h2>${esc(b.headline)}</h2><ul>${b.points.map((p) => `<li><span>${esc(p)}</span></li>`).join('')}</ul>${b.focus ? `<div class="focus"><b>FOCUS</b>${esc(b.focus)}</div>` : ''}
+    <div class="chips" style="margin-top:12px"><button class="chip" type="button" id="brief-say">Read it to me</button><button class="chip" type="button" id="brief-btn">Refresh</button></div>`;
+}
+function tile(app, label, big, small, extra = '', todo = false) {
+  const a = APPS[app];
+  return `<a class="tile${todo ? ' todo' : ''}" href="${a.url}" style="--c:${a.c}"><span class="t-app"><i></i>${label}</span><b class="num">${big}</b><small>${small}</small>${extra}</a>`;
+}
+function renderTiles() {
+  const t = todayIso(), ml = mlDay(t), tg = mlTargets(t), ru = ruDay(t), gc = gpCore(), gp = gpDay(t), tops = (gc.tasks || []).filter((x) => x.top === t), ch = chDay(t), st = chStreak();
+  const items = [...wbItems(t), ...(gp.d.blocks || [])].filter((i) => i.start && !i.done && toMin(i.start) + i.mins > nowMin()).sort((a, b) => toMin(a.start) - toMin(b.start));
+  const w = rd('mlw:today'), nextMeal = w?.date === t && w.next ? w.next : null;
+  const out = [];
+  out.push(tile('macrolens', 'Fuel', ml ? `${Math.max(0, tg.protein - ml.p)} g` : '–', ml ? `protein left · ${Math.max(0, tg.calories - ml.cal).toLocaleString()} kcal left` : 'Nothing logged yet',
+    `<div class="meter"><div style="width:${ml ? clamp(ml.p / tg.protein) * 100 : 0}%"></div></div>`, !ml));
+  out.push(tile('readyup', 'Recovery', ru?.score != null ? ru.score : '–', ru?.checkin ? `readiness · ${ru.sleepH} h sleep` : 'Check in this morning', '', !ru?.checkin));
+  out.push(tile('weekboard', 'Next up', items[0] ? fmt12(toMin(items[0].start)) : 'Clear', items[0] ? esc(items[0].title) : 'Nothing else timed today'));
+  out.push(tile('gameplan', 'Top 3', tops.length ? `${tops.filter((x) => x.done).length}/${tops.length}` : '–', gc.running ? `Timer: ${gc.running.cat} running` : tops.length ? 'done today' : 'Pick 3 in Gameplan', '', !tops.length));
+  out.push(tile('macrolens', 'Next meal', nextMeal ? (nextMeal.now ? 'Now' : fmt12(nextMeal.at)) : '–', nextMeal ? esc(nextMeal.title) : 'Set practice time for meal timing'));
+  out.push(tile('charla', 'Spanish', `${st} day${st === 1 ? '' : 's'}`, `streak · ${Math.floor(ch.mins)} of ${ch.goal} min today`, '', ch.mins < ch.goal));
+  $('#tiles').innerHTML = out.join('');
+  $('#sys-note').textContent = hasAny() ? 'live' : 'no app data on this device yet';
+}
+function renderTimeline() {
+  const t = todayIso(), gp = gpDay(t), w = rd('mlw:today');
+  const items = [...wbItems(t).map((i) => ({ ...i, src: 'Weekboard' })), ...(gp.d.blocks || []).map((b) => ({ title: b.title, start: b.start, mins: b.mins, done: b.done, src: 'Gameplan' }))].filter((i) => i.start);
+  if (w?.date === t && w.next) items.push({ title: w.next.title, start: `${pad(Math.floor(w.next.at / 60))}:${pad(w.next.at % 60)}`, mins: 20, src: 'MacroLens' });
+  const bed = gpCore().routine?.bed; if (bed && rd('gp:core')) items.push({ title: 'Lights out', start: bed, mins: 0, src: 'Gameplan' });
+  items.sort((a, b) => toMin(a.start) - toMin(b.start));
+  const now = nowMin(); let html = '', placed = false;
+  for (const i of items) {
+    const s = toMin(i.start), e = s + (i.mins || 0);
+    if (!placed && s > now) { html += `<li class="nowline">NOW ${fmt12(now)}</li>`; placed = true; }
+    html += `<li class="${e <= now && i.mins ? 'past' : s <= now && now < e ? 'now' : ''}"><span class="tt">${fmt12(s)}</span><span>${esc(i.title)}${i.done ? ' ✓' : ''}</span><span class="src">${i.src}</span></li>`;
+  }
+  if (items.length && !placed) html += `<li class="nowline">NOW ${fmt12(now)}</li>`;
+  $('#timeline').innerHTML = items.length ? html : '<li class="muted small" style="border:0">Nothing scheduled today. Add practice in Weekboard or blocks in Gameplan, or just tell me.</li>';
+  $('#tl-count').textContent = items.length ? `${items.length} items` : '';
+}
+function renderInsights() {
+  const ins = core.insights, el = $('#ins-body');
+  $('#ins-date').textContent = ins ? 'from ' + new Date(ins.at + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+  if (insBusy) { el.innerHTML = '<p class="muted" style="margin:0"><span class="spinner"></span> Studying your last 2 weeks…</p>'; return; }
+  el.innerHTML = (ins ? ins.list.map((x) => `<div class="insight"><b>${esc(x.title)}</b><p class="muted">${esc(x.detail)}</p><p class="do">→ ${esc(x.action)}</p></div>`).join('') : '<p class="small muted" style="margin:0 0 10px">I look across all your apps for connections you would never spot, like how your sleep changes your readiness or what your phone time does to homework.</p>') +
+    `<button class="btn${ins ? '' : ' primary'}" type="button" id="ins-btn" style="margin-top:10px">${ins ? 'Re-analyze' : 'Analyze my last 2 weeks'}</button>`;
+}
+
+// ===================== Render: Talk =====================
+const SUGG = ['Brief me on today', 'Log 2 eggs and toast for breakfast', 'Start a homework timer', 'What should I do right now?', 'Add chem test study, due Friday, to my Top 3 tomorrow'];
+function renderLog() {
+  const msgs = chat.msgs.slice(-30);
+  $('#log').innerHTML = msgs.map((m, i) => `<div class="msg ${m.role === 'me' ? 'me' : 'jv'}">${m.role === 'jv' ? '<span class="who">JARVIS</span>' : ''}${esc(m.text)}${m.done?.length ? `<ul class="done-list">${m.done.map((d) => `<li class="${d.startsWith('!') ? 'fail' : ''}">${d.startsWith('!') ? '✕ ' + esc(d.slice(1)) : '✓ ' + esc(d)}</li>`).join('')}</ul>` : ''}${m.undo && i === msgs.length - 1 && undoSnap ? '<div class="undo"><button class="chip" type="button" id="undo-btn">Undo</button></div>' : ''}</div>`).join('') +
+    (busy ? '<div class="msg jv"><span class="who">JARVIS</span><span class="spinner"></span></div>' : '');
+  $('#talk-sugg').innerHTML = chat.msgs.length ? '' : SUGG.map((s) => `<button class="chip" type="button" data-say="${esc(s)}">${esc(s)}</button>`).join('');
+  if (view === 'talk') requestAnimationFrame(() => window.scrollTo(0, document.body.scrollHeight));
+}
+
+// ===================== Render: Player =====================
+function questRow(q) {
+  return `<a class="quest${q.done ? ' done' : ''}" href="${APPS[q.app].url}"><span class="box">${q.done ? '✓' : ''}</span><span><span class="qt">${esc(q.title)}</span><small>${esc(q.sub)}</small></span><span class="xp">+${q.xp} XP</span></a>`;
+}
+function renderPlayer() {
+  const { r, lv, tier, spark, todayXp } = rpg;
+  const W = 300, H = 60, min = Math.min(...spark) - 2, max = Math.max(...spark) + 2, x = (i) => 6 + (i / 13) * (W - 12), y = (v) => H - 8 - ((v - min) / Math.max(1, max - min)) * (H - 20);
+  const path = spark.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const trend = spark[13] - spark[0];
+  $('#card2k').innerHTML = `<div class="row"><div class="ovr"><b class="num">${r.ovr}</b><small>OVR</small></div>
+      <div style="min-width:0"><div class="who-name">${esc(core.name || 'Player One')}</div><div class="muted small">Guard · ${trend > 0 ? `+${trend} in 2 weeks` : trend < 0 ? `${trend} in 2 weeks` : 'steady'}</div><span class="tier">${tier}</span></div></div>
+    <div class="lvl"><div class="row2"><span>LEVEL ${lv.level}</span><span class="num">${lv.into} / ${lv.need} XP · +${todayXp} today</span></div><div class="xpbar"><div style="width:${(lv.into / lv.need) * 100}%"></div></div></div>
+    <div class="attrs">${ATTRS.map((a) => `<div class="attr" style="--c:${a.c}"><span>${a.name}</span><div class="bar"><div style="width:${((r[a.id] - 40) / 59) * 100}%"></div></div><b class="num">${r[a.id]}</b></div>`).join('')}</div>
+    <div class="spark"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="OVR over the last 14 days"><path d="${path}" fill="none" stroke="#f5d36b" stroke-width="2.5" stroke-linejoin="round"/><circle cx="${x(13)}" cy="${y(spark[13])}" r="4" fill="#f5d36b"/><text x="6" y="${H - 1}" fill="#7ea3b5" font-size="9" font-family="monospace">14 DAYS AGO</text><text x="${W - 6}" y="${H - 1}" fill="#7ea3b5" font-size="9" font-family="monospace" text-anchor="end">TODAY</text></svg></div>`;
+  const q = quests();
+  $('#q-count').textContent = `${q.filter((x) => x.done).length} / ${q.length}`;
+  $('#quests').innerHTML = q.map(questRow).join('');
+  const b = boss();
+  $('#boss').classList.toggle('dead', b.dead);
+  $('#boss').innerHTML = `<div class="p-head"><span class="label">Weekly boss</span><span class="small muted mono">${b.dead ? 'DEFEATED' : `${b.left} day${b.left === 1 ? '' : 's'} left`}</span></div>
+    <h3>${b.name}</h3><p class="small muted" style="margin:4px 0 0">${b.desc}</p><div class="hp"><div style="width:${b.dead ? 100 : Math.max(0, 100 - (b.hits / b.goal) * 100)}%"></div></div>
+    <div class="small mono">${b.dead ? 'Boss down. +150 XP of pride.' : `${b.hits} of ${b.goal} hits landed`}</div>`;
+  const got = BADGES.filter((x) => core.badges[x.id]).length;
+  $('#b-count').textContent = `${got} / ${BADGES.length}`;
+  $('#badges').innerHTML = BADGES.map((x) => `<div class="badge${core.badges[x.id] ? '' : ' locked'}">${MEDAL(core.badges[x.id] ? '#f5d36b' : '#7ea3b5')}<b>${x.name}</b></div>`).join('');
+}
+function checkLevelUp() {
+  const L = rpg.lv.level;
+  if (!core.seenLevel) { core.seenLevel = L; saveCore(); return; }
+  if (L > core.seenLevel) { core.seenLevel = L; saveCore(); $('#lu-level').textContent = L; $('#lu-sub').textContent = `${rpg.tier} · ${rpg.r.ovr} OVR`; $('#levelup').hidden = false; speak(`Level ${L}. Well done, ${callMe()}.`); }
+}
+
+// ===================== The orb =====================
+let orbState = 'ready';
+const orb = $('#orb'), ctx2 = orb.getContext('2d');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const parts = Array.from({ length: 90 }, () => ({ a: Math.random() * Math.PI * 2, r: 0.55 + Math.random() * 0.4, s: (Math.random() * 0.6 + 0.2) * (Math.random() < 0.5 ? -1 : 1), z: Math.random() }));
+let energy = 0.2, tPrev = 0;
+function drawOrb(ts) {
+  const dt = Math.min(0.05, (ts - tPrev) / 1000 || 0.016); tPrev = ts;
+  const target = orbState === 'speaking' ? 0.55 + orbLevel * 0.45 : orbState === 'listening' ? 0.75 : orbState === 'thinking' ? 0.5 : 0.18;
+  energy += (target - energy) * Math.min(1, dt * 6); orbLevel *= 0.9;
+  const W = orb.width, H = orb.height, cx = W / 2, cy = H / 2, R = W * 0.3;
+  ctx2.clearRect(0, 0, W, H);
+  const breathe = reduce ? 0 : Math.sin(ts / 900) * 0.03;
+  const g = ctx2.createRadialGradient(cx, cy, 0, cx, cy, R * (1.25 + energy * 0.4));
+  g.addColorStop(0, `rgba(232,251,255,${0.85})`); g.addColorStop(0.18, `rgba(127,230,255,${0.55 + energy * 0.3})`); g.addColorStop(0.5, `rgba(79,216,255,${0.16 + energy * 0.2})`); g.addColorStop(1, 'rgba(79,216,255,0)');
+  ctx2.fillStyle = g; ctx2.beginPath(); ctx2.arc(cx, cy, R * (1.3 + energy * 0.4 + breathe), 0, Math.PI * 2); ctx2.fill();
+  ctx2.lineWidth = 3; ctx2.strokeStyle = 'rgba(79,216,255,.25)'; ctx2.beginPath(); ctx2.arc(cx, cy, R * 1.45, 0, Math.PI * 2); ctx2.stroke();
+  const spin = reduce ? 0 : ts / (orbState === 'thinking' ? 300 : 1400);
+  ctx2.lineWidth = 6; ctx2.lineCap = 'round'; ctx2.strokeStyle = 'rgba(79,216,255,.9)'; ctx2.shadowColor = '#4fd8ff'; ctx2.shadowBlur = 20;
+  ctx2.beginPath(); ctx2.arc(cx, cy, R * 1.45, spin, spin + 1.2 + energy * 1.5); ctx2.stroke();
+  ctx2.beginPath(); ctx2.arc(cx, cy, R * 1.45, spin + Math.PI, spin + Math.PI + 0.6 + energy); ctx2.stroke();
+  ctx2.shadowBlur = 0; ctx2.setLineDash([4, 12]); ctx2.lineWidth = 2; ctx2.strokeStyle = 'rgba(79,216,255,.4)';
+  ctx2.beginPath(); ctx2.arc(cx, cy, R * 1.12, -spin * 0.6, -spin * 0.6 + Math.PI * 2); ctx2.stroke(); ctx2.setLineDash([]);
+  for (const p of parts) {
+    if (!reduce) p.a += p.s * dt * (0.4 + energy * 2.2);
+    const rr = R * (1.05 + p.r * (0.5 + energy * 0.8)), x = cx + Math.cos(p.a) * rr, y = cy + Math.sin(p.a) * rr * (0.75 + p.z * 0.25);
+    ctx2.fillStyle = `rgba(160,236,255,${0.25 + p.z * 0.6 * (0.4 + energy)})`; ctx2.beginPath(); ctx2.arc(x, y, 1.5 + p.z * 2.5, 0, Math.PI * 2); ctx2.fill();
+  }
+  ctx2.fillStyle = '#e8fbff'; ctx2.shadowColor = '#e8fbff'; ctx2.shadowBlur = 30 + energy * 40; ctx2.beginPath(); ctx2.arc(cx, cy, R * (0.22 + energy * 0.1 + orbLevel * 0.05), 0, Math.PI * 2); ctx2.fill(); ctx2.shadowBlur = 0;
+  if (view === 'talk') requestAnimationFrame(drawOrb); else orbRunning = false;
+}
+let orbRunning = false;
+function startOrb() { if (!orbRunning) { orbRunning = true; requestAnimationFrame(drawOrb); } }
+
+// ===================== Routing + wiring =====================
+const VIEWS = ['home', 'talk', 'player'];
+let view = 'home';
+function route() {
+  const h = location.hash.slice(1); view = VIEWS.includes(h) ? h : 'home';
+  for (const v of VIEWS) $('#v-' + v).hidden = v !== view;
+  $$('.tab').forEach((t) => { if (t.dataset.tab === view) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
+  renderAll(); if (view === 'talk') { startOrb(); renderLog(); } else window.scrollTo(0, 0);
+}
+function renderAll(full = true) {
+  computeRpg(); checkBadges();
+  if (view === 'home') renderHome(); else if (view === 'player') renderPlayer();
+  $('#ai-state').textContent = sample ? 'AI · CLAUDE' : getKey() ? 'AI · ONLINE' : 'AI · OFF';
+  if (full) checkLevelUp();
+}
+window.addEventListener('hashchange', route);
+$('#home-cmd').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#home-input').value; $('#home-input').value = ''; send(v); });
+$('#talk-cmd').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#talk-input').value; $('#talk-input').value = ''; send(v); });
+$('#home-mic').addEventListener('click', () => startListening('home'));
+$('#talk-mic').addEventListener('click', () => startListening('talk'));
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  if (t.closest('#brief-btn')) return makeBrief();
+  if (t.closest('#brief-say')) { unlockSpeech(); const b = rd('jv:day-' + todayIso())?.brief; if (b) { const was = core.speak; core.speak = true; speak(b.spoken); core.speak = was; } return; }
+  if (t.closest('#ins-btn')) return makeInsights();
+  if (t.closest('#undo-btn')) { doUndo(); chat.msgs.at(-1).undo = false; chat.msgs.at(-1).done = [...chat.msgs.at(-1).done, 'Undone']; saveChat(); return renderLog(); }
+  const s = t.closest('[data-say]'); if (s) return send(s.dataset.say);
+  if (t.closest('[data-close]')) t.closest('dialog').close();
+});
+$('#lu-close').addEventListener('click', () => { $('#levelup').hidden = true; });
+
+// Settings
+function renderSettings() {
+  $('#s-name').value = core.name || ''; $('#s-call').value = core.call || 'sir'; $('#s-rate').value = String(core.rate || 1); $('#s-speak').checked = core.speak !== false;
+  const k = getKey(); $('#s-key').value = ''; $('#s-key-state').textContent = sample ? 'Running inside Claude: AI is on.' : k ? `Key saved (ends in ${k.slice(-4)}). AI is on.` : 'No key yet. Without one, I can still log water, run timers, add tasks and read your schedule.';
+  $('#s-mem').innerHTML = core.memory.length ? core.memory.map((m, i) => `<li><span>${esc(m)}</span><button type="button" class="x" data-forget="${i}">Forget</button></li>`).join('') : '<li><span class="muted">Nothing yet. Tell me your goals and I will remember them.</span></li>';
+}
+$('#settings-btn').addEventListener('click', () => { renderSettings(); loadVoices(); $('#settings').showModal(); });
+$('#s-mem').addEventListener('click', (e) => { const b = e.target.closest('[data-forget]'); if (!b) return; core.memory.splice(Number(b.dataset.forget), 1); saveCore(); renderSettings(); });
+$('#s-clear').addEventListener('click', (e) => { const b = e.currentTarget; if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Tap again to clear'; setTimeout(() => { b.dataset.confirm = ''; b.textContent = 'Clear conversation'; }, 3000); return; } chat.msgs = []; saveChat(); b.dataset.confirm = ''; b.textContent = 'Clear conversation'; renderLog(); toast('Conversation cleared'); });
+$('#settings-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  core.name = $('#s-name').value.trim().slice(0, 40); core.call = $('#s-call').value; core.rate = Number($('#s-rate').value); core.speak = $('#s-speak').checked; core.voice = $('#s-voice').value;
+  const k = $('#s-key').value.trim();
+  if (k) { if (!/^sk-ant-[\w-]{20,}$/.test(k)) return toast('That does not look like a Claude API key (it starts with sk-ant-)'); try { localStorage.setItem(KEY_STORE, k); } catch {} }
+  saveCore(); $('#settings').close(); renderAll(); toast('Saved');
+});
+$$('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+
+// Keep the dashboard live: other apps write to the same storage.
+window.addEventListener('storage', () => renderAll(false));
+document.addEventListener('visibilitychange', () => { if (!document.hidden) renderAll(false); });
+setInterval(() => { if (!busy) renderAll(false); }, 60000);
+
+// Boot
+(async () => {
+  if (window.claude?.use) { try { sample = await claude.use('sample'); } catch { sample = null; } }
+  route();
+  if (!core.name && !chat.msgs.length) setTimeout(() => { if (view === 'home') toast('Tap the gear to tell Jarvis your name'); }, 1200);
+})();
+</script>
