@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0d0f13">
+<meta name="theme-color" content="#111111">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Locker">
@@ -60,6 +60,7 @@ button, input, select { font: inherit; color: inherit; }
 /* today strip */
 .today { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .widget { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 12px; display: grid; gap: 4px; text-decoration: none; color: inherit; min-width: 0; }
+.widget:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .widget .w-head { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); font-weight: 600; }
 .widget .w-head svg { width: 16px; height: 16px; border-radius: 4px; flex: none; }
 .widget b { font-family: var(--f-display); font-size: 22px; font-weight: 800; line-height: 1.1; overflow-wrap: anywhere; }
@@ -193,14 +194,22 @@ const ICONS = {
   readyup: '<rect width="64" height="64" fill="#3552c9"/><path d="M14 42a18 18 0 0 1 36 0" fill="none" stroke="#dfe6fb" stroke-width="6" stroke-linecap="round"/><path d="M14 42a18 18 0 0 1 28-15" fill="none" stroke="#3fcf8e" stroke-width="6" stroke-linecap="round"/><circle cx="32" cy="42" r="4" fill="#fff"/>',
   charla: '<rect width="64" height="64" fill="#0f7c86"/><path d="M12 18a6 6 0 0 1 6-6h22a6 6 0 0 1 6 6v12a6 6 0 0 1-6 6H24l-8 6v-6.5A6 6 0 0 1 12 30z" fill="#fff"/><path d="M28 30h18a6 6 0 0 1 6 6v8a6 6 0 0 1-4 5.6V56l-7-6H34a6 6 0 0 1-6-6z" fill="#e9a300"/><text x="29" y="28" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="13" fill="#0f7c86">¡Hola!</text>',
   weekboard: '<rect width="64" height="64" fill="#1f3b73"/><rect x="11" y="14" width="42" height="38" rx="5" fill="#fff"/><rect x="11" y="14" width="42" height="9" rx="4" fill="#ffd23f"/><rect x="16" y="28" width="14" height="5" rx="2.5" fill="#2f6fdd"/><rect x="33" y="28" width="15" height="5" rx="2.5" fill="#d99a0b"/><rect x="16" y="37" width="20" height="5" rx="2.5" fill="#e2533a"/><rect x="39" y="37" width="9" height="5" rx="2.5" fill="#2e9a55"/><rect x="16" y="46" width="11" height="3" rx="1.5" fill="#8a4fd8"/>',
+  dayplan: '<rect width="64" height="64" fill="#0f5a4a"/><rect x="13" y="13" width="38" height="40" rx="6" fill="#f6f1e4"/><rect x="13" y="13" width="38" height="10" rx="5" fill="#f2a33a"/><rect x="19" y="29" width="10" height="4" rx="2" fill="#0f5a4a"/><rect x="31" y="29" width="14" height="4" rx="2" fill="#0f5a4a" opacity=".4"/><rect x="19" y="37" width="10" height="4" rx="2" fill="#0f5a4a"/><rect x="31" y="37" width="14" height="4" rx="2" fill="#0f5a4a" opacity=".4"/><rect x="19" y="45" width="10" height="4" rx="2" fill="#f2a33a"/>',
+  matrix: '<rect width="64" height="64" fill="#15201b"/><rect x="12" y="12" width="18" height="18" rx="4" fill="#ff7a6b"/><rect x="34" y="12" width="18" height="18" rx="4" fill="#6c9ef5"/><rect x="12" y="34" width="18" height="18" rx="4" fill="#f4bf3a"/><rect x="34" y="34" width="18" height="18" rx="4" fill="#9aa3b2"/>',
+  timetrack: '<rect width="64" height="64" fill="#f2a33a"/><circle cx="32" cy="35" r="17" fill="#fff"/><path d="M32 35V24" stroke="#0f5a4a" stroke-width="4" stroke-linecap="round"/><path d="M32 35l8 5" stroke="#0f5a4a" stroke-width="4" stroke-linecap="round"/><rect x="26" y="10" width="12" height="5" rx="2.5" fill="#fff"/>',
+  night: '<rect width="64" height="64" fill="#1b2350"/><path d="M42 40A15 15 0 1 1 28 16a12 12 0 0 0 14 24z" fill="#ffd98a"/><circle cx="44" cy="18" r="2" fill="#fff"/><circle cx="50" cy="28" r="1.5" fill="#fff"/><path d="M38 47l3 3 6-7" fill="none" stroke="#5fd0b0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>',
 };
 const BUILT_IN = [
   { id: 'macrolens', name: 'MacroLens', folder: 'Training', tag: 'Food, macros and AI coach', desc: 'Food diary with AI photo scanning, macro and nutrient targets, a Coach tab with fuel plans, game day, groceries, meal prep and weekly reports.', claude: 'https://claude.ai/artifact/8zA7Vcnoi8ez5qeAHFJyjQ', web: SITE },
   { id: 'readyup', name: 'ReadyUp', folder: 'Training', tag: 'Recovery and readiness', desc: 'Morning check-in for a 0-100 readiness score, a daily training plan, sleep and load trends, and guided recovery routines.', claude: 'https://claude.ai/artifact/S9xPngi3ZUsD6okgc7jqwG', web: SITE + 'recovery/' },
   { id: 'weekboard', name: 'Weekboard', folder: 'School', tag: 'Weekly planner', desc: 'Your week of school, practice and work. Homework auto-fits before it is due, and you can drag anything to another day.', claude: 'https://claude.ai/artifact/CT9KqYWe3FPY9a9n5EeLDN', web: SITE + 'weekboard/' },
   { id: 'charla', name: 'Charla', folder: 'School', tag: 'Spanish practice', desc: 'Daily Spanish conversation at your class level with corrections, spoken replies, a streak and a flashcard deck.', claude: 'https://claude.ai/artifact/Ya3DWBwNJ7gtNNvZ1Ndgvz', web: SITE + 'charla/' },
+  { id: 'dayplan', name: 'Day Planner', folder: 'Daily', tag: 'Top 3, schedule and day score', desc: 'Today at a glance: what is happening now, your Top 3, a timeline with Weekboard items, and a score out of 100.', claude: 'https://claude.ai/artifact/H3zsNQoe2ytrjRtUL9Jfhx#today', web: SITE + 'gameplan/#today' },
+  { id: 'matrix', name: 'Priority Matrix', folder: 'Daily', tag: 'Urgent vs important', desc: 'Sort every task into Do now, Schedule, Quick hits or Drop it, then star your Top 3 for today or tomorrow.', claude: 'https://claude.ai/artifact/H3zsNQoe2ytrjRtUL9Jfhx#matrix', web: SITE + 'gameplan/#matrix' },
+  { id: 'timetrack', name: 'Time Tracker', folder: 'Daily', tag: 'Where your hours go', desc: 'One-tap timers for homework, practice, phone and more, with a 7-day chart and a phone time goal.', claude: 'https://claude.ai/artifact/H3zsNQoe2ytrjRtUL9Jfhx#time', web: SITE + 'gameplan/#time' },
+  { id: 'night', name: 'Night Routine', folder: 'Daily', tag: 'Wind-down checklist', desc: 'Bedtime countdown, a checklist you can edit, tomorrow\'s Top 3 and a streak of finished nights.', claude: 'https://claude.ai/artifact/H3zsNQoe2ytrjRtUL9Jfhx#night', web: SITE + 'gameplan/#night' },
 ];
-const FOLDERS = ['Training', 'School', 'Life', 'Business', 'Fun', 'Other'];
+const FOLDERS = ['Training', 'School', 'Daily', 'Life', 'Business', 'Fun', 'Other'];
 const COLORS = ['#ee6a2c', '#e2533a', '#d4498f', '#8a4fd8', '#3552c9', '#0e9aa7', '#2e9a55', '#4a4a4e', '#111111'];
 
 // ===================== storage =====================
@@ -263,6 +272,11 @@ function weekNext() {
   const left = items.filter((i) => !i.done).length;
   return { next, left, total: items.length };
 }
+function gameplanToday() {
+  const core = readLS('gp:core'); if (!core) return null;
+  const t = todayIso(), tops = (core.tasks || []).filter((x) => x.top === t);
+  return { tops: tops.length, done: tops.filter((x) => x.done).length, running: core.running };
+}
 function iconSvg(id) { return `<svg viewBox="0 0 64 64" aria-hidden="true">${ICONS[id]}</svg>`; }
 function renderToday() {
   const el = $('#today');
@@ -276,6 +290,8 @@ function renderToday() {
   if (w) ws.push(`<a class="widget" href="${appHref(BUILT_IN[2])}"><div class="w-head">${iconSvg('weekboard')}Weekboard</div><b>${w.next ? esc(fmtMin(toMin(w.next.start))) : w.left ? `${w.left} to do` : 'All done'}</b><small>${w.next ? esc(w.next.title) : w.total ? 'Nothing else timed today' : 'Nothing planned today'}</small></a>`);
   const c = charlaToday();
   if (c) ws.push(`<a class="widget${c.done ? '' : ' todo'}" href="${appHref(BUILT_IN[3])}"><div class="w-head">${iconSvg('charla')}Charla</div><b>${c.streak} day${c.streak === 1 ? '' : 's'}</b><small>${c.done ? 'streak · goal done today' : `streak · ${c.goal - c.mins} min to go`}</small><div class="bar"><div style="width:${Math.min(100, (c.mins / c.goal) * 100)}%;background:#e9a300"></div></div></a>`);
+  const g = gameplanToday();
+  if (g) ws.push(`<a class="widget${g.tops && g.done === g.tops ? '' : ' todo'}" href="${appHref(BUILT_IN[4])}"><div class="w-head">${iconSvg('dayplan')}Top 3</div><b>${g.tops ? `${g.done}/${g.tops} done` : 'Pick 3'}</b><small>${g.running ? 'Timer running' : g.tops ? 'today\'s priorities' : 'Nothing picked for today'}</small><div class="bar"><div style="width:${g.tops ? (g.done / g.tops) * 100 : 0}%;background:#f2a33a"></div></div></a>`);
   el.hidden = !ws.length;
   el.innerHTML = ws.join('');
 }

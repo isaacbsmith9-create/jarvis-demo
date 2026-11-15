@@ -1,0 +1,684 @@
+<title>Gameplan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a coach's clipboard. One column of cards per tab (Today, Matrix, Time, Night) with a fixed tab bar at the bottom. */
+:root {
+  --bg: #eef2ef;
+  --surface: #ffffff;
+  --surface-2: #e3e9e5;
+  --line: #d2dbd5;
+  --fg: #142019;
+  --muted: #5c6b62;
+  --accent: #0f5a4a;
+  --accent-ink: #ffffff;
+  --accent-soft: #d8ebe4;
+  --hi: #e08a12;
+  --hi-soft: #fbecd2;
+  --ok: #16803c;
+  --warn: #c2410c;
+  --q1: #d9483b; --q2: #2f6fdd; --q3: #d99a0b; --q4: #7b8494;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0d1512; --surface: #15201b; --surface-2: #1d2a24; --line: #2a3a33; --fg: #e6efe9; --muted: #8fa198; --accent: #5fd0b0; --accent-ink: #062019; --accent-soft: #173a30; --hi: #f6b04a; --hi-soft: #3a2a12; --ok: #4ade80; --warn: #fb8b5a; --q1: #ff7a6b; --q2: #6c9ef5; --q3: #f4bf3a; --q4: #9aa3b2; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #0d1512; --surface: #15201b; --surface-2: #1d2a24; --line: #2a3a33; --fg: #e6efe9; --muted: #8fa198; --accent: #5fd0b0; --accent-ink: #062019; --accent-soft: #173a30; --hi: #f6b04a; --hi-soft: #3a2a12; --ok: #4ade80; --warn: #fb8b5a; --q1: #ff7a6b; --q2: #6c9ef5; --q3: #f4bf3a; --q4: #9aa3b2; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { background: var(--bg); }
+body { color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.45; -webkit-tap-highlight-color: transparent; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 640px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px calc(96px + env(safe-area-inset-bottom, 0px)); }
+header.top { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+header.top h1 { font-family: var(--f-display); font-weight: 800; font-size: 34px; line-height: 1; margin: 0; letter-spacing: .01em; text-transform: uppercase; }
+header.top h1 span { color: var(--hi); }
+header.top .date { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.pill { font-size: 12px; padding: 4px 10px; border-radius: 99px; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
+.pill[data-s="synced"] { background: var(--accent-soft); color: var(--accent); }
+.view { display: grid; gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; min-width: 0; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.card-head h2 { font-family: var(--f-display); font-weight: 700; font-size: 21px; text-transform: uppercase; letter-spacing: .02em; margin: 0; line-height: 1.1; }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 12px; font-weight: 600; font-size: 14px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--accent); padding: 6px 8px; }
+.btn.danger { color: var(--warn); }
+.btn.wide { width: 100%; padding: 12px; }
+.row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.grow { flex: 1; min-width: 0; }
+.empty { color: var(--muted); font-size: 14px; padding: 6px 0; }
+.check { flex: none; width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--line); background: transparent; display: grid; place-items: center; padding: 0; }
+.check svg { width: 15px; height: 15px; opacity: 0; }
+.check.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.check.on svg { opacity: 1; }
+.done-text { text-decoration: line-through; color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Today */
+.scoreboard { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.ring { width: 92px; height: 92px; position: relative; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring b { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--f-display); font-size: 34px; font-weight: 800; }
+.scoreboard .eyebrow { color: inherit; opacity: .8; }
+.scoreboard .now { font-family: var(--f-display); font-size: 22px; font-weight: 700; line-height: 1.15; margin-top: 2px; text-transform: uppercase; }
+.scoreboard .next { font-size: 13px; opacity: .85; margin-top: 4px; }
+.breakdown { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.breakdown div { background: var(--surface-2); border-radius: 10px; padding: 6px 4px; text-align: center; font-size: 11px; color: var(--muted); }
+.breakdown b { display: block; font-family: var(--f-display); font-size: 19px; color: var(--fg); }
+.top3 { display: grid; gap: 8px; }
+.top3 .t { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; background: var(--hi-soft); }
+.top3 .rank { font-family: var(--f-display); font-weight: 800; font-size: 22px; color: var(--hi); width: 16px; text-align: center; }
+.agenda { display: grid; gap: 2px; }
+.block { display: grid; grid-template-columns: 54px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.block:last-child { border-bottom: 0; }
+.block .time { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.block .title { font-weight: 600; min-width: 0; overflow-wrap: anywhere; background: none; border: 0; padding: 0; text-align: left; }
+.block .meta { font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.block .tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 2px 6px; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
+.block.past .title { color: var(--muted); }
+.block.current { background: var(--accent-soft); border-radius: 10px; padding-inline: 8px; margin-inline: -8px; border-bottom-color: transparent; }
+.nowline { display: flex; align-items: center; gap: 8px; color: var(--hi); font-size: 12px; font-weight: 700; padding: 4px 0; }
+.nowline::after { content: ""; flex: 1; height: 2px; background: var(--hi); border-radius: 2px; }
+
+/* Matrix */
+.matrix { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.quad { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--qc); border-radius: 14px; padding: 10px; min-width: 0; min-height: 150px; display: flex; flex-direction: column; gap: 6px; }
+.quad header { display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; }
+.quad h3 { margin: 0; font-family: var(--f-display); font-size: 19px; font-weight: 800; text-transform: uppercase; color: var(--qc); line-height: 1; }
+.quad .sub { font-size: 11px; color: var(--muted); }
+.quad .add { flex: none; width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface-2); font-size: 18px; line-height: 1; padding: 0; }
+.task { display: flex; align-items: flex-start; gap: 7px; padding: 5px 0; min-width: 0; }
+.task .check { width: 22px; height: 22px; border-radius: 7px; }
+.task button.tt { background: none; border: 0; padding: 0; text-align: left; font-size: 14px; font-weight: 500; min-width: 0; overflow-wrap: anywhere; flex: 1; }
+.task .star { color: var(--hi); font-size: 12px; font-weight: 700; }
+.task .due { display: block; font-size: 11px; color: var(--muted); }
+.task .due.late { color: var(--warn); font-weight: 600; }
+.axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); padding: 0 2px; }
+.quick-add { display: flex; gap: 8px; }
+.quick-add input { flex: 1; min-width: 0; }
+
+/* Time */
+.timer { display: grid; gap: 4px; text-align: center; padding-block: 18px; }
+.timer .clock { font-family: var(--f-display); font-weight: 800; font-size: 56px; line-height: 1; font-variant-numeric: tabular-nums; }
+.timer.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.timer.on .muted { color: inherit; opacity: .8; }
+.timer .btn { justify-self: center; margin-top: 8px; min-width: 140px; }
+.timer.on .btn { background: var(--accent-ink); color: var(--accent); border-color: transparent; }
+.cats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.cat { border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 10px 6px; display: grid; gap: 4px; justify-items: center; font-size: 13px; font-weight: 600; text-align: center; min-width: 0; }
+.cat i { width: 12px; height: 12px; border-radius: 4px; background: var(--c); }
+.cat.on { border-color: var(--c); box-shadow: inset 0 0 0 2px var(--c); }
+.bars { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: 96px 1fr 52px; gap: 8px; align-items: center; font-size: 13px; }
+.bar .track { height: 10px; background: var(--surface-2); border-radius: 6px; overflow: hidden; }
+.bar .fill { height: 100%; background: var(--c); border-radius: 6px; }
+.bar .v { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+.chart svg { width: 100%; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+.entry { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.entry:last-child { border-bottom: 0; }
+.entry i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; }
+.x { border: 0; background: var(--surface-2); border-radius: 8px; padding: 4px 8px; font-size: 12px; color: var(--muted); }
+.x[data-confirm="1"] { background: var(--warn); color: #fff; }
+.insights { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.insights li { padding: 8px 10px; border-radius: 10px; background: var(--surface-2); font-size: 14px; }
+
+/* Night */
+.moon { display: grid; gap: 4px; }
+.moon .big { font-family: var(--f-display); font-weight: 800; font-size: 40px; line-height: 1; text-transform: uppercase; }
+.moon .times { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.steps { display: grid; gap: 4px; }
+.step { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.step:last-child { border-bottom: 0; }
+.step label { flex: 1; min-width: 0; font-weight: 500; cursor: pointer; }
+.progress { height: 8px; border-radius: 6px; background: var(--surface-2); overflow: hidden; margin-bottom: 8px; }
+.progress div { height: 100%; background: var(--accent); border-radius: 6px; transition: width .25s; }
+.dots { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 4px; }
+.dots span { aspect-ratio: 1; border-radius: 6px; background: var(--surface-2); max-width: 100%; }
+.dots span.part { background: var(--accent-soft); }
+.dots span.full { background: var(--accent); }
+.dots span.today { outline: 2px solid var(--hi); outline-offset: 1px; }
+.streak { font-family: var(--f-display); font-size: 30px; font-weight: 800; color: var(--hi); line-height: 1; }
+.locked { padding: 10px 12px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+/* Tab bar */
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr); padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.tab { border: 0; background: none; display: grid; justify-items: center; gap: 2px; padding: 8px 0 9px; font-size: 11px; font-weight: 600; color: var(--muted); text-decoration: none; }
+.tab svg { width: 22px; height: 22px; }
+.tab[aria-current="page"] { color: var(--accent); }
+
+/* Sheets */
+dialog.sheet { border: 0; padding: 0; width: min(560px, 100%); max-width: 100%; margin: auto auto 0; border-radius: 20px 20px 0 0; background: var(--surface); color: var(--fg); max-height: 88vh; }
+dialog.sheet::backdrop { background: rgba(5, 12, 9, .5); }
+dialog.sheet form { padding: 16px max(16px, env(safe-area-inset-left, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 12px; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; }
+.sheet-head h2 { margin: 0; font-family: var(--f-display); font-size: 24px; text-transform: uppercase; }
+.field { display: grid; gap: 5px; min-width: 0; }
+.field > span { font-size: 12px; font-weight: 600; color: var(--muted); }
+input[type=text], input[type=time], input[type=date], input[type=number], select { width: 100%; min-width: 0; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 10px; font-size: 16px; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.seg { display: grid; grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); gap: 6px; }
+.seg button { border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 9px 4px; font-size: 13px; font-weight: 600; }
+.seg button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.seg.quads button.on { background: var(--qc); border-color: var(--qc); color: #fff; }
+.pick-list { display: grid; gap: 6px; max-height: 50vh; overflow: auto; }
+.pick { display: flex; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); text-align: left; }
+.pick.on { border-color: var(--hi); background: var(--hi-soft); }
+.pick i { width: 8px; height: 26px; border-radius: 4px; background: var(--qc); flex: none; }
+.toast { position: fixed; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 9px 14px; border-radius: 10px; font-size: 14px; z-index: 20; max-width: calc(100% - 32px); opacity: 0; pointer-events: none; transition: opacity .2s; }
+.toast.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div><h1>Game<span>plan</span></h1><div class="date" id="date-label"></div></div>
+    <span class="pill" id="sync" data-s="local">This device</span>
+  </header>
+
+  <!-- TODAY -->
+  <section class="view" id="v-today" data-view="today">
+    <div class="card scoreboard">
+      <div class="ring" aria-label="Day score"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="10"/><circle id="ring-fill" cx="50" cy="50" r="42" fill="none" stroke="var(--hi)" stroke-width="10" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264"/></svg><b id="score" class="num">0</b></div>
+      <div style="min-width:0"><div class="eyebrow" id="now-label">Right now</div><div class="now" id="now-title">Free time</div><div class="next" id="next-title"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Day score</h2><span class="small muted">out of 100</span></div>
+      <div class="breakdown" id="breakdown"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Top 3 today</h2><button class="btn ghost" id="pick-today">Pick</button></div>
+      <div class="top3" id="top3"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Schedule</h2><button class="btn primary" id="add-block">＋ Block</button></div>
+      <div class="agenda" id="agenda"></div>
+    </div>
+  </section>
+
+  <!-- MATRIX -->
+  <section class="view" id="v-matrix" data-view="matrix" hidden>
+    <div class="card">
+      <div class="card-head"><h2>Priority matrix</h2><span class="small muted" id="matrix-count"></span></div>
+      <form class="quick-add" id="quick-add"><input type="text" id="qa-title" placeholder="New task, e.g. Chem lab report" autocomplete="off" aria-label="New task"><button class="btn primary">Add</button></form>
+      <div class="seg" style="--n:2;margin-top:8px" id="qa-flags"><button type="button" data-flag="u">Urgent</button><button type="button" data-flag="i">Important</button></div>
+    </div>
+    <div class="axis"><span>Urgent</span><span>Not urgent</span></div>
+    <div class="matrix" id="matrix"></div>
+    <div class="card" id="done-card" hidden>
+      <div class="card-head"><h2>Done</h2><button class="btn ghost" id="clear-done">Clear</button></div>
+      <div id="done-list"></div>
+    </div>
+  </section>
+
+  <!-- TIME -->
+  <section class="view" id="v-time" data-view="time" hidden>
+    <div class="card timer" id="timer"></div>
+    <div class="card">
+      <div class="card-head"><h2>Start a timer</h2><button class="btn ghost" id="add-entry">＋ Log past time</button></div>
+      <div class="cats" id="cats"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Today</h2><span class="small muted num" id="today-total"></span></div>
+      <div class="bars" id="today-bars"></div>
+    </div>
+    <div class="card chart">
+      <div class="card-head"><h2>Last 7 days</h2><span class="small muted">hours</span></div>
+      <div id="week-chart"></div>
+      <div class="legend" id="week-legend"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Insights</h2>
+        <label class="small muted row" style="gap:6px">Phone goal <select id="phone-goal" style="width:auto;padding:6px 8px;font-size:14px"><option value="60">1h</option><option value="90">1.5h</option><option value="120">2h</option><option value="180">3h</option></select></label></div>
+      <ul class="insights" id="insights"></ul>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Today's log</h2></div>
+      <div id="entries"></div>
+    </div>
+  </section>
+
+  <!-- NIGHT -->
+  <section class="view" id="v-night" data-view="night" hidden>
+    <div class="card moon">
+      <div class="eyebrow" id="moon-label">Wind-down</div>
+      <div class="big num" id="moon-big"></div>
+      <div class="small muted" id="moon-sub"></div>
+      <div class="times"><span class="pill" id="bed-pill"></span><span class="pill" id="wake-pill"></span><span class="pill" id="sleep-pill"></span></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Tonight</h2><button class="btn ghost" id="edit-routine">Edit</button></div>
+      <div class="progress"><div id="night-prog" style="width:0%"></div></div>
+      <div class="steps" id="steps"></div>
+      <div class="locked" id="locked" hidden></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Tomorrow's Top 3</h2><button class="btn ghost" id="pick-tomorrow">Pick</button></div>
+      <div class="top3" id="top3-tomorrow"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>Streak</h2><span class="streak num" id="streak">0</span></div>
+      <div class="dots" id="dots"></div>
+      <p class="small muted" style="margin:8px 0 0">Last 14 nights. Solid means every step done.</p>
+    </div>
+  </section>
+
+  <p class="small muted" id="storage-note" style="text-align:center;margin-top:18px">Your plans are saved in this browser.</p>
+</div>
+
+<nav class="tabs" aria-label="Sections">
+  <a class="tab" href="#today" data-tab="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4M8 14h3"/></svg>Today</a>
+  <a class="tab" href="#matrix" data-tab="matrix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>Matrix</a>
+  <a class="tab" href="#time" data-tab="time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>Time</a>
+  <a class="tab" href="#night" data-tab="night"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>Night</a>
+</nav>
+
+<!-- Block sheet -->
+<dialog class="sheet" id="block-sheet" aria-labelledby="bs-title"><form method="dialog" id="block-form">
+  <div class="sheet-head"><h2 id="bs-title">Add block</h2><button type="button" class="btn ghost" data-close>Close</button></div>
+  <label class="field"><span>What</span><input type="text" id="b-title" placeholder="Shooting workout" autocomplete="off"></label>
+  <div class="two">
+    <label class="field"><span>Start</span><input type="time" id="b-start" value="16:00"></label>
+    <label class="field"><span>Length</span><select id="b-mins"><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60" selected>1 hr</option><option value="90">1.5 hr</option><option value="120">2 hr</option><option value="180">3 hr</option><option value="420">7 hr</option></select></label>
+  </div>
+  <div class="field"><span>Type</span><div class="seg" style="--n:4" id="b-types"></div></div>
+  <button class="btn primary wide" id="b-save">Add to today</button>
+  <button type="button" class="btn danger wide" id="b-delete" hidden>Delete</button>
+</form></dialog>
+
+<!-- Task sheet -->
+<dialog class="sheet" id="task-sheet" aria-labelledby="ts-title"><form method="dialog" id="task-form">
+  <div class="sheet-head"><h2 id="ts-title">Task</h2><button type="button" class="btn ghost" data-close>Close</button></div>
+  <label class="field"><span>Task</span><input type="text" id="t-title" autocomplete="off"></label>
+  <div class="field"><span>Box</span><div class="seg quads" style="--n:2" id="t-quads"></div></div>
+  <label class="field"><span>Due (optional)</span><input type="date" id="t-due"></label>
+  <div class="field"><span>Top 3</span><div class="seg" style="--n:3" id="t-top"><button type="button" data-top="">Not picked</button><button type="button" data-top="today">Today</button><button type="button" data-top="tomorrow">Tomorrow</button></div></div>
+  <button class="btn primary wide" id="t-save">Save</button>
+  <button type="button" class="btn danger wide" id="t-delete">Delete</button>
+</form></dialog>
+
+<!-- Pick Top 3 sheet -->
+<dialog class="sheet" id="pick-sheet" aria-labelledby="ps-title"><form method="dialog">
+  <div class="sheet-head"><h2 id="ps-title">Pick Top 3</h2><button type="button" class="btn ghost" data-close>Done</button></div>
+  <p class="small muted" style="margin:0" id="ps-sub">Tap up to 3 tasks. Do-now and Schedule tasks are listed first.</p>
+  <div class="pick-list" id="pick-list"></div>
+  <div class="quick-add"><input type="text" id="ps-new" placeholder="Or type a new one" autocomplete="off" aria-label="New task"><button type="button" class="btn" id="ps-add">Add</button></div>
+</form></dialog>
+
+<!-- Entry sheet -->
+<dialog class="sheet" id="entry-sheet" aria-labelledby="es-title"><form method="dialog" id="entry-form">
+  <div class="sheet-head"><h2 id="es-title">Log past time</h2><button type="button" class="btn ghost" data-close>Close</button></div>
+  <label class="field"><span>Category</span><select id="e-cat"></select></label>
+  <div class="two">
+    <label class="field"><span>Date</span><input type="date" id="e-date"></label>
+    <label class="field"><span>Started</span><input type="time" id="e-start" value="16:00"></label>
+  </div>
+  <label class="field"><span>Minutes</span><input type="number" id="e-mins" min="1" max="720" value="30" inputmode="numeric"></label>
+  <button class="btn primary wide">Log it</button>
+</form></dialog>
+
+<!-- Routine sheet -->
+<dialog class="sheet" id="routine-sheet" aria-labelledby="rs-title"><form method="dialog" id="routine-form">
+  <div class="sheet-head"><h2 id="rs-title">Night routine</h2><button type="button" class="btn ghost" data-close>Done</button></div>
+  <div class="two">
+    <label class="field"><span>Lights out</span><input type="time" id="r-bed"></label>
+    <label class="field"><span>Wake up</span><input type="time" id="r-wake"></label>
+  </div>
+  <label class="field"><span>Start winding down</span><select id="r-wind"><option value="30">30 min before</option><option value="45">45 min before</option><option value="60">1 hr before</option><option value="90">1.5 hr before</option></select></label>
+  <div class="field"><span>Steps</span><div id="r-steps" class="steps"></div></div>
+  <div class="quick-add"><input type="text" id="r-new" placeholder="Add a step" autocomplete="off" aria-label="New step"><button type="button" class="btn" id="r-add">Add</button></div>
+</form></dialog>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+// ===================== helpers =====================
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const pad = (n) => String(n).padStart(2, '0');
+const isoDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const todayIso = () => isoDate(new Date());
+const shiftIso = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoDate(d); };
+const mondayOf = (iso) => shiftIso(iso, -((new Date(iso + 'T12:00:00').getDay() + 6) % 7));
+const weekdayNum = (iso) => (new Date(iso + 'T12:00:00').getDay() + 6) % 7; // Mon=0
+const toMin = (t) => { const [h, m] = String(t).split(':').map(Number); return h * 60 + (m || 0); };
+const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+const fmt12 = (t) => { let m = typeof t === 'number' ? t : toMin(t); m = ((m % 1440) + 1440) % 1440; const h = Math.floor(m / 60), mm = m % 60; return `${h % 12 || 12}:${pad(mm)}${h < 12 ? 'a' : 'p'}`; };
+const fmtDur = (mins) => { mins = Math.round(mins); const h = Math.floor(mins / 60), m = mins % 60; return h ? (m ? `${h}h ${m}m` : `${h}h`) : `${m}m`; };
+const dayName = (iso, len = 'short') => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { weekday: len });
+const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+let toastT; function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2400); }
+// Two taps to confirm a destructive button (the viewer has no confirm dialog).
+function confirmTap(btn, label = 'Tap again to delete') { if (btn.dataset.confirm === '1') return true; btn.dataset.confirm = '1'; const old = btn.textContent; btn.textContent = label; setTimeout(() => { if (btn.isConnected && btn.dataset.confirm === '1') { btn.dataset.confirm = ''; btn.textContent = old; } }, 3000); return false; }
+
+const QUADS = [
+  { id: 'do', u: true, i: true, name: 'Do now', sub: 'Urgent + important', c: 'var(--q1)' },
+  { id: 'plan', u: false, i: true, name: 'Schedule', sub: 'Important, not urgent', c: 'var(--q2)' },
+  { id: 'quick', u: true, i: false, name: 'Quick hits', sub: 'Urgent, not important', c: 'var(--q3)' },
+  { id: 'drop', u: false, i: false, name: 'Drop it', sub: 'Neither. Skip or later', c: 'var(--q4)' },
+];
+const quadOf = (t) => QUADS.find((q) => q.u === !!t.u && q.i === !!t.i);
+const CATS = [
+  { id: 'school', name: 'School', c: '#7b8494' }, { id: 'homework', name: 'Homework', c: '#d99a0b' }, { id: 'practice', name: 'Practice', c: '#2f6fdd' },
+  { id: 'training', name: 'Training', c: '#8a4fd8' }, { id: 'work', name: 'Work', c: '#2e9a55' }, { id: 'gaming', name: 'Gaming', c: '#e2533a' },
+  { id: 'phone', name: 'Phone / social', c: '#d4498f' }, { id: 'people', name: 'Family / friends', c: '#0e9aa7' }, { id: 'other', name: 'Other', c: '#a08a6a' },
+];
+const catOf = (id) => CATS.find((c) => c.id === id) || CATS[CATS.length - 1];
+const BTYPES = [{ id: 'train', name: 'Train', c: 'var(--q2)' }, { id: 'school', name: 'School', c: 'var(--q4)' }, { id: 'focus', name: 'Focus', c: 'var(--q3)' }, { id: 'life', name: 'Life', c: 'var(--accent)' }];
+const DEFAULT_STEPS = [
+  { id: 'bag', label: 'Pack bag and lay out clothes' }, { id: 'plan', label: "Plan tomorrow's Top 3" }, { id: 'charge', label: 'Phone on the charger, outside the room' },
+  { id: 'shower', label: 'Shower' }, { id: 'stretch', label: 'Stretch 5 min' }, { id: 'read', label: 'Read 10 min' }, { id: 'lights', label: 'Lights out' },
+];
+
+// ===================== storage =====================
+const PREFIX = 'gp:';
+const cache = {}; let remote = null; const pending = new Set(); let flushing = false, flushT;
+const lsGet = (k) => { try { return JSON.parse(localStorage.getItem(PREFIX + k)); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(PREFIX + k, JSON.stringify(v)); } catch {} };
+const lsKeys = () => { try { return Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).map((k) => k.slice(PREFIX.length)); } catch { return []; } };
+const DEFAULT_CORE = () => ({ tasks: [], routine: { steps: DEFAULT_STEPS.map((s) => ({ ...s })), bed: '22:30', wake: '06:45', wind: 45 }, running: null, settings: { phoneGoal: 120 } });
+function doc(k) { if (!(k in cache)) cache[k] = lsGet(k) ?? (k === 'core' ? DEFAULT_CORE() : null); return cache[k]; }
+const core = () => doc('core');
+const day = (iso, create = true) => { const k = 'd-' + iso; if (!doc(k) && create) cache[k] = { blocks: [], entries: [], night: { done: {}, completedAt: null } }; return cache[k]; };
+function persist(k) { lsSet(k, cache[k]); if (!remote) return; pending.add(k); clearTimeout(flushT); flushT = setTimeout(flush, 700); }
+const saveCore = () => persist('core');
+const saveDay = (iso) => persist('d-' + iso);
+async function flush() { if (flushing || !remote) return; flushing = true; try { while (pending.size) { const k = pending.values().next().value; pending.delete(k); await remote.doc(k).set(JSON.parse(JSON.stringify(cache[k]))); } setSync('synced'); } catch { setSync('error'); } finally { flushing = false; } }
+function setSync(s) { const el = $('#sync'); el.dataset.s = s; el.textContent = s === 'synced' ? 'Synced' : s === 'error' ? 'Not synced' : s === 'loading' ? 'Syncing…' : 'This device';
+  $('#storage-note').textContent = s === 'synced' ? 'Saved to your Claude account. Syncs across your devices.' : 'Your plans are saved in this browser.'; }
+async function connectStore() {
+  if (!window.claude?.use) return setSync('local');
+  setSync('loading');
+  const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+  const id = user ? await user.id() : null;
+  if (!db || !id) return setSync('local');
+  const coll = db.collection('data/users/' + id);
+  const t = setTimeout(() => setSync('local'), 10000);
+  try {
+    const snap = await coll.get(); clearTimeout(t); remote = coll;
+    const have = new Set();
+    for (const d of snap.docs) { if (!d.exists) continue; have.add(d.id); cache[d.id] = JSON.parse(JSON.stringify(d.data())); lsSet(d.id, cache[d.id]); }
+    for (const k of lsKeys()) if (!have.has(k)) { doc(k); if (cache[k]) pending.add(k); }
+    setSync('synced'); if (pending.size) flush(); render();
+  } catch { clearTimeout(t); setSync('local'); }
+}
+
+// ===================== Weekboard (same website only) =====================
+// On github.io all apps share one origin, so Weekboard's plan for today shows up here read-only.
+function weekboardItems(date) {
+  try {
+    const wc = JSON.parse(localStorage.getItem('wb:core') || 'null'); if (!wc) return [];
+    const w = JSON.parse(localStorage.getItem('wb:w-' + mondayOf(date)) || 'null') || { items: [], done: {}, skip: {} };
+    const wd = weekdayNum(date);
+    const reps = (wc.rules || []).filter((r) => (r.days || []).includes(wd) && !w.skip?.[`${r.id}|${date}`] && r.start)
+      .map((r) => ({ id: 'wb-' + r.id, title: r.title, start: r.start, mins: r.mins || 60, done: !!w.done?.[`${r.id}|${date}`], wb: true }));
+    const own = (w.items || []).filter((i) => i.date === date && i.start).map((i) => ({ id: 'wb-' + i.id, title: i.title, start: i.start, mins: i.mins || 60, done: !!i.done, wb: true }));
+    return [...reps, ...own];
+  } catch { return []; }
+}
+
+// ===================== model =====================
+const topFor = (iso) => core().tasks.filter((t) => t.top === iso);
+// Night belongs to the evening it started: 1am still counts as last night.
+const nightDate = () => { const d = new Date(); if (d.getHours() < 4) d.setDate(d.getDate() - 1); return isoDate(d); };
+function nightState(iso) { const steps = core().routine.steps; const n = day(iso, false)?.night?.done || {}; const done = steps.filter((s) => n[s.id] || (s.id === 'plan' && topFor(shiftIso(iso, 1)).length)).length; return { done, total: steps.length }; }
+function minsBy(iso) { const out = {}; for (const e of day(iso, false)?.entries || []) out[e.cat] = (out[e.cat] || 0) + e.mins; const r = core().running; if (r && isoDate(new Date(r.start)) === iso) out[r.cat] = (out[r.cat] || 0) + (Date.now() - r.start) / 60000; return out; }
+function scoreFor(iso) {
+  const tops = topFor(iso); const topPts = tops.length ? Math.round(40 * tops.filter((t) => t.done).length / Math.max(3, tops.length)) : 0;
+  const ns = nightState(iso); const nightPts = ns.total ? Math.round(20 * ns.done / ns.total) : 0;
+  const blocks = [...(day(iso, false)?.blocks || []), ...(iso === todayIso() ? weekboardItems(iso) : [])];
+  const blockPts = blocks.length ? Math.round(20 * blocks.filter((b) => b.done).length / blocks.length) : 0;
+  const goal = core().settings.phoneGoal || 120; const phone = minsBy(iso).phone || 0;
+  const phonePts = Math.round(20 * Math.max(0, Math.min(1, 1 - (phone - goal) / goal)));
+  return { total: topPts + nightPts + blockPts + phonePts, topPts, nightPts, blockPts, phonePts, phone, goal, tops, blocks };
+}
+
+// ===================== routing =====================
+const VIEWS = ['today', 'matrix', 'time', 'night'];
+let view = 'today';
+function route() { const h = location.hash.slice(1); view = VIEWS.includes(h) ? h : 'today'; for (const v of VIEWS) $('#v-' + v).hidden = v !== view; $$('.tab').forEach((t) => { if (t.dataset.tab === view) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); }); render(); window.scrollTo(0, 0); }
+
+// ===================== render =====================
+function render() {
+  $('#date-label').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  if (view === 'today') renderToday(); else if (view === 'matrix') renderMatrix(); else if (view === 'time') renderTime(); else renderNight();
+}
+
+function taskRow(t, rank) {
+  return `<div class="t">${rank ? `<span class="rank">${rank}</span>` : ''}<button class="check ${t.done ? 'on' : ''}" data-task-check="${t.id}" aria-label="Done">${CHECK}</button><button class="grow tt" data-task-open="${t.id}" style="background:none;border:0;padding:0;text-align:left;font-weight:600;overflow-wrap:anywhere"><span class="${t.done ? 'done-text' : ''}">${esc(t.title)}</span></button></div>`;
+}
+function renderToday() {
+  const iso = todayIso(), s = scoreFor(iso);
+  $('#score').textContent = s.total; $('#ring-fill').style.strokeDashoffset = String(264 - 264 * s.total / 100);
+  $('#breakdown').innerHTML = [['Top 3', s.topPts, 40], ['Night', s.nightPts, 20], ['Blocks', s.blockPts, 20], ['Phone', s.phonePts, 20]].map(([l, v, m]) => `<div><b class="num">${v}<small style="font-size:12px;color:var(--muted)">/${m}</small></b>${l}</div>`).join('');
+  $('#top3').innerHTML = s.tops.length ? s.tops.map((t, i) => taskRow(t, i + 1)).join('') : '<p class="empty">No Top 3 yet. Tap Pick to choose the 3 things that make today a win.</p>';
+  const items = [...(day(iso, false)?.blocks || []), ...weekboardItems(iso)].sort((a, b) => toMin(a.start) - toMin(b.start));
+  const nm = nowMin(); let html = '', placed = false; let cur = null, next = null;
+  for (const b of items) {
+    const st = toMin(b.start), en = st + b.mins;
+    if (!placed && st > nm) { html += `<div class="nowline">Now ${fmt12(nm)}</div>`; placed = true; }
+    const state = en <= nm ? 'past' : st <= nm ? 'current' : '';
+    if (state === 'current' && !cur) cur = b; if (!state && !next) next = b;
+    html += `<div class="block ${state}"><span class="time">${fmt12(st)}</span><div style="min-width:0">${b.wb ? `<span class="title ${b.done ? 'done-text' : ''}">${esc(b.title)}</span>` : `<button class="title ${b.done ? 'done-text' : ''}" data-block-open="${b.id}">${esc(b.title)}</button>`}<div class="meta"><span>${fmtDur(b.mins)} · til ${fmt12(en)}</span>${b.wb ? '<span class="tag">Weekboard</span>' : b.type ? `<span class="tag">${esc(BTYPES.find((t) => t.id === b.type)?.name || '')}</span>` : ''}</div></div>${b.wb ? '' : `<button class="check ${b.done ? 'on' : ''}" data-block-check="${b.id}" aria-label="Done">${CHECK}</button>`}</div>`;
+  }
+  if (items.length && !placed) html += `<div class="nowline">Now ${fmt12(nm)}</div>`;
+  $('#agenda').innerHTML = items.length ? html : '<p class="empty">Nothing scheduled. Add blocks like practice, a shooting workout or homework so you can see your day.</p>';
+  if (cur) { $('#now-label').textContent = `Right now · until ${fmt12(toMin(cur.start) + cur.mins)}`; $('#now-title').textContent = cur.title; }
+  else { $('#now-label').textContent = 'Right now'; const firstOpen = s.tops.find((t) => !t.done); $('#now-title').textContent = firstOpen ? firstOpen.title : 'Free time'; if (firstOpen) $('#now-label').textContent = 'Free time · knock out'; }
+  $('#next-title').textContent = next ? `Next: ${next.title} at ${fmt12(next.start)}` : s.total >= 80 ? 'Big day. Keep it rolling.' : '';
+}
+
+function renderMatrix() {
+  const open = core().tasks.filter((t) => !t.done), done = core().tasks.filter((t) => t.done);
+  $('#matrix-count').textContent = `${open.length} open`;
+  const today = todayIso();
+  $('#matrix').innerHTML = QUADS.map((q) => {
+    const list = open.filter((t) => quadOf(t) === q).sort((a, b) => (a.due || '9') .localeCompare(b.due || '9'));
+    return `<div class="quad" style="--qc:${q.c}"><header><div><h3>${q.name}</h3><div class="sub">${q.sub}</div></div><button class="add" data-quad-add="${q.id}" aria-label="Add to ${q.name}">＋</button></header>
+      ${list.length ? list.map((t) => `<div class="task"><button class="check" data-task-check="${t.id}" aria-label="Done">${CHECK}</button><button class="tt" data-task-open="${t.id}">${esc(t.title)}${t.top === today ? ' <span class="star">★ today</span>' : t.top === shiftIso(today, 1) ? ' <span class="star">★ tmrw</span>' : ''}${t.due ? `<span class="due ${t.due < today ? 'late' : ''}">${t.due < today ? 'Late · ' : 'Due '}${t.due === today ? 'today' : dayName(t.due) + ' ' + t.due.slice(5).replace('-', '/')}</span>` : ''}</button></div>`).join('') : `<p class="empty small">${q.id === 'do' ? 'Due soon and it matters.' : q.id === 'plan' ? 'Workouts, study, long goals.' : q.id === 'quick' ? 'Small asks with a deadline.' : 'Stuff you can let go.'}</p>`}</div>`;
+  }).join('');
+  $('#done-card').hidden = !done.length;
+  $('#done-list').innerHTML = done.slice(-8).reverse().map((t) => `<div class="task"><button class="check on" data-task-check="${t.id}" aria-label="Not done">${CHECK}</button><span class="done-text grow small">${esc(t.title)}</span></div>`).join('');
+}
+
+function renderTime() {
+  const r = core().running;
+  const timer = $('#timer'); timer.classList.toggle('on', !!r);
+  if (r) { const sec = Math.floor((Date.now() - r.start) / 1000); timer.innerHTML = `<div class="eyebrow muted">Tracking · since ${fmt12(new Date(r.start).getHours() * 60 + new Date(r.start).getMinutes())}</div><div class="clock" id="clock">${Math.floor(sec / 3600)}:${pad(Math.floor(sec / 60) % 60)}:${pad(sec % 60)}</div><div style="font-weight:700">${esc(catOf(r.cat).name)}</div><button class="btn" id="stop">Stop</button>`; }
+  else timer.innerHTML = '<div class="eyebrow muted">No timer running</div><div class="clock">0:00:00</div><div class="small muted">Tap a category below to start tracking.</div>';
+  $('#cats').innerHTML = CATS.map((c) => `<button class="cat ${r?.cat === c.id ? 'on' : ''}" style="--c:${c.c}" data-cat="${c.id}"><i></i>${c.name}</button>`).join('');
+  const iso = todayIso(), by = minsBy(iso), total = Object.values(by).reduce((a, b) => a + b, 0);
+  $('#today-total').textContent = total ? fmtDur(total) + ' tracked' : '';
+  const sorted = Object.entries(by).sort((a, b) => b[1] - a[1]); const max = sorted[0]?.[1] || 1;
+  $('#today-bars').innerHTML = sorted.length ? sorted.map(([id, m]) => { const c = catOf(id); return `<div class="bar" style="--c:${c.c}"><span>${c.name}</span><div class="track"><div class="fill" style="width:${Math.max(3, 100 * m / max)}%"></div></div><span class="v">${fmtDur(m)}</span></div>`; }).join('') : '<p class="empty">Nothing tracked today. Start a timer when you sit down for homework or pick up your phone.</p>';
+  // week chart
+  const days = Array.from({ length: 7 }, (_, i) => shiftIso(iso, i - 6)); const data = days.map((d) => minsBy(d));
+  const tot = data.map((o) => Object.values(o).reduce((a, b) => a + b, 0)); const maxH = Math.max(2, Math.ceil(Math.max(...tot) / 60));
+  const W = 340, H = 170, L = 26, B = 22, T = 8, bw = (W - L) / 7; const y = (m) => H - B - (H - B - T) * (m / 60) / maxH;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Hours tracked per day">`;
+  const step = maxH > 8 ? 4 : maxH > 4 ? 2 : 1;
+  for (let h = 0; h <= maxH; h += step) svg += `<line x1="${L}" x2="${W}" y1="${y(h * 60)}" y2="${y(h * 60)}" stroke="var(--line)" stroke-width="1"/><text x="${L - 6}" y="${y(h * 60) + 4}" text-anchor="end" font-size="10" fill="var(--muted)">${h}</text>`;
+  days.forEach((d, i) => { let acc = 0; const x = L + i * bw + bw * .18, w = bw * .64;
+    for (const c of CATS) { const m = data[i][c.id]; if (!m) continue; svg += `<rect x="${x}" y="${y(acc + m)}" width="${w}" height="${Math.max(0.5, y(acc) - y(acc + m))}" fill="${c.c}"/>`; acc += m; }
+    svg += `<text x="${x + w / 2}" y="${H - 6}" text-anchor="middle" font-size="10" fill="${d === iso ? 'var(--fg)' : 'var(--muted)'}" font-weight="${d === iso ? 700 : 400}">${dayName(d).slice(0, 2)}</text>`; });
+  $('#week-chart').innerHTML = svg + '</svg>';
+  const used = CATS.filter((c) => data.some((o) => o[c.id]));
+  $('#week-legend').innerHTML = used.map((c) => `<span style="--c:${c.c}"><i></i>${c.name}</span>`).join('');
+  // insights
+  const sum = (id) => data.reduce((a, o) => a + (o[id] || 0), 0); const goal = core().settings.phoneGoal || 120;
+  $('#phone-goal').value = String(goal);
+  const tips = []; const weekTotal = tot.reduce((a, b) => a + b, 0);
+  if (weekTotal) {
+    const top = CATS.map((c) => [c, sum(c.id)]).sort((a, b) => b[1] - a[1])[0];
+    tips.push(`Most time this week: <b>${top[0].name}</b> at ${fmtDur(top[1])}.`);
+    const daysWithPhone = data.filter((o) => o.phone).length, phoneAvg = daysWithPhone ? sum('phone') / daysWithPhone : 0;
+    if (daysWithPhone) tips.push(phoneAvg > goal ? `Phone averages <b>${fmtDur(phoneAvg)}</b> a day, ${fmtDur(phoneAvg - goal)} over your goal. That's ${fmtDur((phoneAvg - goal) * 7)} a week you could put into shooting.` : `Phone averages <b>${fmtDur(phoneAvg)}</b> a day. Under your ${fmtDur(goal)} goal.`);
+    const work = sum('practice') + sum('training'); if (work) tips.push(`Practice + training: <b>${fmtDur(work)}</b> this week.`);
+    const hw = sum('homework'); if (hw) tips.push(`Homework: <b>${fmtDur(hw)}</b> across ${data.filter((o) => o.homework).length === 1 ? '1 day' : data.filter((o) => o.homework).length + ' days'}.`);
+    if (sum('gaming') > work && work) tips.push('Gaming beat training this week. Flip that next week.');
+  } else tips.push('Track a few days and this fills in with where your hours go.');
+  $('#insights').innerHTML = tips.map((t) => `<li>${t}</li>`).join('');
+  const entries = [...(day(iso, false)?.entries || [])].sort((a, b) => a.start - b.start);
+  $('#entries').innerHTML = entries.length ? entries.map((e) => { const c = catOf(e.cat); const d = new Date(e.start); return `<div class="entry" style="--c:${c.c}"><i></i><span class="grow">${c.name}</span><span class="muted num small">${fmt12(d.getHours() * 60 + d.getMinutes())} · ${fmtDur(e.mins)}</span><button class="x" data-entry-del="${e.id}">Delete</button></div>`; }).join('') : '<p class="empty">Finished timers show up here.</p>';
+}
+
+function renderNight() {
+  const rt = core().routine, iso = nightDate(), d = new Date();
+  let nm = d.getHours() * 60 + d.getMinutes(); const bed = toMin(rt.bed); let bedAbs = bed < 12 * 60 ? bed + 1440 : bed; if (d.getHours() < 4) nm += 1440;
+  const windAt = bedAbs - rt.wind, sleepMins = ((toMin(rt.wake) + 1440 - bed) % 1440) || 1440;
+  if (nm < windAt) { $('#moon-label').textContent = 'Wind-down starts in'; $('#moon-big').textContent = fmtDur(windAt - nm); $('#moon-sub').textContent = `At ${fmt12(windAt)}. Phone goes on the charger then.`; }
+  else if (nm < bedAbs) { $('#moon-label').textContent = 'Wind down now · lights out in'; $('#moon-big').textContent = fmtDur(bedAbs - nm); $('#moon-sub').textContent = 'Work through the list below.'; }
+  else { $('#moon-label').textContent = 'Past lights out'; $('#moon-big').textContent = `+${fmtDur(nm - bedAbs)}`; $('#moon-sub').textContent = `Get to bed. You'll still get ${fmtDur(Math.max(0, sleepMins - (nm - bedAbs)))} before ${fmt12(rt.wake)}.`; }
+  $('#bed-pill').textContent = `Lights out ${fmt12(rt.bed)}`; $('#wake-pill').textContent = `Wake ${fmt12(rt.wake)}`; $('#sleep-pill').textContent = `${fmtDur(sleepMins)} of sleep`;
+  const n = day(iso, false)?.night?.done || {}; const tomorrowTops = topFor(shiftIso(iso, 1));
+  $('#steps').innerHTML = rt.steps.map((s) => { const auto = s.id === 'plan' && tomorrowTops.length; const on = n[s.id] || auto;
+    return `<div class="step"><button class="check ${on ? 'on' : ''}" id="st-${s.id}" data-step="${s.id}" aria-label="${esc(s.label)}">${CHECK}</button><label for="st-${s.id}" class="${on ? 'done-text' : ''}">${esc(s.label)}</label>${s.id === 'plan' && !auto ? '<button class="btn ghost small" data-pick="tomorrow">Pick</button>' : ''}</div>`; }).join('') || '<p class="empty">No steps. Tap Edit to build your routine.</p>';
+  const st = nightState(iso); $('#night-prog').style.width = (st.total ? 100 * st.done / st.total : 0) + '%';
+  const lock = $('#locked'); lock.hidden = !(st.total && st.done === st.total); lock.textContent = 'Routine done. Locked in for tomorrow.';
+  $('#top3-tomorrow').innerHTML = tomorrowTops.length ? tomorrowTops.map((t, i) => taskRow(t, i + 1)).join('') : '<p class="empty">Pick 3 tasks tonight so you wake up knowing what matters.</p>';
+  // streak + dots
+  const full = (x) => { const s = nightState(x); return s.total && s.done === s.total; };
+  let streak = 0, cur = full(iso) ? iso : shiftIso(iso, -1); while (full(cur) && streak < 999) { streak++; cur = shiftIso(cur, -1); }
+  $('#streak').textContent = streak + (streak === 1 ? ' night' : ' nights');
+  $('#dots').innerHTML = Array.from({ length: 14 }, (_, i) => shiftIso(iso, i - 13)).map((x) => { const s = nightState(x); return `<span class="${s.total && s.done === s.total ? 'full' : s.done ? 'part' : ''} ${x === iso ? 'today' : ''}" title="${dayName(x)} ${x.slice(5)}: ${s.done}/${s.total}"></span>`; }).join('');
+}
+
+// ===================== actions: tasks =====================
+let qaFlags = { u: false, i: true };
+function syncQaFlags() { $$('#qa-flags button').forEach((b) => b.classList.toggle('on', !!qaFlags[b.dataset.flag])); }
+function addTask(title, u, i, top = null) { const t = { id: uid(), title: title.trim(), u, i, due: '', done: false, top, created: Date.now() }; core().tasks.push(t); saveCore(); return t; }
+$('#quick-add').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#qa-title').value.trim(); if (!v) return $('#qa-title').focus(); const t = addTask(v, qaFlags.u, qaFlags.i); $('#qa-title').value = ''; render(); toast(`Added to ${quadOf(t).name}`); });
+$('#qa-flags').addEventListener('click', (e) => { const b = e.target.closest('[data-flag]'); if (!b) return; qaFlags[b.dataset.flag] = !qaFlags[b.dataset.flag]; syncQaFlags(); });
+
+let editTask = null, tForm = {};
+function openTask(id, quadId) {
+  const t = id ? core().tasks.find((x) => x.id === id) : null; editTask = t;
+  const q = t ? quadOf(t) : QUADS.find((x) => x.id === quadId) || QUADS[0];
+  const today = todayIso();
+  tForm = { u: q.u, i: q.i, top: t?.top === today ? 'today' : t?.top === shiftIso(today, 1) ? 'tomorrow' : '' };
+  $('#ts-title').textContent = t ? 'Edit task' : `Add to ${q.name}`; $('#t-title').value = t?.title || ''; $('#t-due').value = t?.due || '';
+  $('#t-delete').hidden = !t; $('#t-delete').dataset.confirm = ''; $('#t-delete').textContent = 'Delete';
+  $('#t-save').textContent = t ? 'Save' : 'Add task';
+  syncTaskSheet(); $('#task-sheet').showModal(); if (!t) setTimeout(() => $('#t-title').focus(), 50);
+}
+function syncTaskSheet() {
+  $('#t-quads').innerHTML = QUADS.map((q) => `<button type="button" data-q="${q.id}" style="--qc:${q.c}" class="${q.u === tForm.u && q.i === tForm.i ? 'on' : ''}">${q.name}</button>`).join('');
+  $$('#t-top button').forEach((b) => b.classList.toggle('on', b.dataset.top === tForm.top));
+}
+$('#t-quads').addEventListener('click', (e) => { const b = e.target.closest('[data-q]'); if (!b) return; const q = QUADS.find((x) => x.id === b.dataset.q); tForm.u = q.u; tForm.i = q.i; syncTaskSheet(); });
+$('#t-top').addEventListener('click', (e) => { const b = e.target.closest('[data-top]'); if (!b) return; tForm.top = b.dataset.top; syncTaskSheet(); });
+$('#task-form').addEventListener('submit', (e) => {
+  e.preventDefault(); const title = $('#t-title').value.trim(); if (!title) return toast('Give the task a name');
+  const today = todayIso(); const topIso = tForm.top === 'today' ? today : tForm.top === 'tomorrow' ? shiftIso(today, 1) : null;
+  const t = editTask || addTask(title, tForm.u, tForm.i);
+  if (topIso && t.top !== topIso && topFor(topIso).filter((x) => x.id !== t.id).length >= 3) { toast(`${tForm.top === 'today' ? 'Today' : 'Tomorrow'} already has 3. Unpick one first.`); if (!editTask) { t.top = null; } }
+  else t.top = topIso;
+  Object.assign(t, { title, u: tForm.u, i: tForm.i, due: $('#t-due').value }); saveCore(); $('#task-sheet').close(); render();
+});
+$('#t-delete').addEventListener('click', (e) => { if (!confirmTap(e.currentTarget)) return; core().tasks = core().tasks.filter((t) => t !== editTask); saveCore(); $('#task-sheet').close(); render(); toast('Task deleted'); });
+function toggleTask(id) { const t = core().tasks.find((x) => x.id === id); if (!t) return; t.done = !t.done; t.doneAt = t.done ? Date.now() : null; saveCore(); render(); if (t.done) toast('Done. Nice.'); }
+$('#clear-done').addEventListener('click', (e) => { if (!confirmTap(e.currentTarget, 'Tap again to clear')) return; core().tasks = core().tasks.filter((t) => !t.done); saveCore(); render(); });
+
+// Top 3 picker
+let pickIso = null;
+function openPicker(which) {
+  pickIso = which === 'tomorrow' ? shiftIso(nightDate(), 1) : todayIso();
+  $('#ps-title').textContent = which === 'tomorrow' ? "Tomorrow's Top 3" : "Today's Top 3"; renderPicker(); $('#pick-sheet').showModal();
+}
+function renderPicker() {
+  const open = core().tasks.filter((t) => !t.done).sort((a, b) => QUADS.indexOf(quadOf(a)) - QUADS.indexOf(quadOf(b)));
+  const n = topFor(pickIso).length; $('#ps-sub').textContent = `${n} of 3 picked. Do-now and Schedule tasks are listed first.`;
+  $('#pick-list').innerHTML = open.length ? open.map((t) => `<button type="button" class="pick ${t.top === pickIso ? 'on' : ''}" data-pick-task="${t.id}" style="--qc:${quadOf(t).c}"><i></i><span class="grow">${esc(t.title)}<br><span class="small muted">${quadOf(t).name}${t.top && t.top !== pickIso ? ' · picked for another day' : ''}</span></span>${t.top === pickIso ? '<b style="color:var(--hi)">★</b>' : ''}</button>`).join('') : '<p class="empty">No open tasks yet. Type one below.</p>';
+}
+$('#pick-list').addEventListener('click', (e) => { const b = e.target.closest('[data-pick-task]'); if (!b) return; const t = core().tasks.find((x) => x.id === b.dataset.pickTask);
+  if (t.top === pickIso) t.top = null; else { if (topFor(pickIso).length >= 3) return toast('3 max. Unpick one first.'); t.top = pickIso; } saveCore(); renderPicker(); render(); });
+$('#ps-add').addEventListener('click', () => { const v = $('#ps-new').value.trim(); if (!v) return; if (topFor(pickIso).length >= 3) return toast('3 max. Unpick one first.'); addTask(v, true, true, pickIso); $('#ps-new').value = ''; renderPicker(); render(); });
+$('#ps-new').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('#ps-add').click(); } });
+
+// ===================== actions: blocks =====================
+let editBlock = null, bType = 'train';
+function openBlock(id) {
+  const b = id ? day(todayIso()).blocks.find((x) => x.id === id) : null; editBlock = b;
+  $('#bs-title').textContent = b ? 'Edit block' : 'Add block'; $('#b-title').value = b?.title || '';
+  const nm = nowMin(); $('#b-start').value = b?.start || `${pad(Math.min(23, Math.floor(nm / 60) + 1))}:00`;
+  $('#b-mins').value = String(b?.mins || 60); bType = b?.type || 'train';
+  $('#b-save').textContent = b ? 'Save' : 'Add to today'; $('#b-delete').hidden = !b; $('#b-delete').dataset.confirm = ''; $('#b-delete').textContent = 'Delete';
+  syncBTypes(); $('#block-sheet').showModal(); if (!b) setTimeout(() => $('#b-title').focus(), 50);
+}
+function syncBTypes() { $('#b-types').innerHTML = BTYPES.map((t) => `<button type="button" data-bt="${t.id}" class="${t.id === bType ? 'on' : ''}">${t.name}</button>`).join(''); }
+$('#b-types').addEventListener('click', (e) => { const b = e.target.closest('[data-bt]'); if (!b) return; bType = b.dataset.bt; syncBTypes(); });
+$('#block-form').addEventListener('submit', (e) => {
+  e.preventDefault(); const title = $('#b-title').value.trim(); if (!title) return toast('Name the block');
+  const start = $('#b-start').value || '16:00', mins = Number($('#b-mins').value), iso = todayIso(), d = day(iso);
+  if (editBlock) Object.assign(editBlock, { title, start, mins, type: bType }); else d.blocks.push({ id: uid(), title, start, mins, type: bType, done: false });
+  const st = toMin(start), clash = [...d.blocks, ...weekboardItems(iso)].find((x) => x !== editBlock && x.title !== title && toMin(x.start) < st + mins && st < toMin(x.start) + x.mins);
+  saveDay(iso); $('#block-sheet').close(); render(); toast(clash ? `Saved. Overlaps with ${clash.title}.` : 'Saved');
+});
+$('#b-delete').addEventListener('click', (e) => { if (!confirmTap(e.currentTarget)) return; const d = day(todayIso()); d.blocks = d.blocks.filter((b) => b !== editBlock); saveDay(todayIso()); $('#block-sheet').close(); render(); });
+
+// ===================== actions: time =====================
+function stopTimer() { const c = core(), r = c.running; if (!r) return; const mins = Math.round((Date.now() - r.start) / 60000); c.running = null; saveCore();
+  if (mins >= 1) { const iso = isoDate(new Date(r.start)); day(iso).entries.push({ id: uid(), cat: r.cat, start: r.start, mins }); saveDay(iso); toast(`Logged ${fmtDur(mins)} of ${catOf(r.cat).name}`); } else toast('Under a minute, not logged'); }
+$('#cats').addEventListener('click', (e) => { const b = e.target.closest('[data-cat]'); if (!b) return; const r = core().running; if (r?.cat === b.dataset.cat) { stopTimer(); return render(); } if (r) stopTimer(); core().running = { cat: b.dataset.cat, start: Date.now() }; saveCore(); render(); });
+$('#timer').addEventListener('click', (e) => { if (e.target.closest('#stop')) { stopTimer(); render(); } });
+$('#phone-goal').addEventListener('change', (e) => { core().settings.phoneGoal = Number(e.target.value); saveCore(); render(); });
+$('#add-entry').addEventListener('click', () => { $('#e-cat').innerHTML = CATS.map((c) => `<option value="${c.id}">${c.name}</option>`).join(''); $('#e-date').value = todayIso(); $('#entry-sheet').showModal(); });
+$('#entry-form').addEventListener('submit', (e) => { e.preventDefault(); const iso = $('#e-date').value || todayIso(), mins = Math.round(Number($('#e-mins').value));
+  if (!(mins > 0 && mins <= 720)) return toast('Minutes must be 1 to 720'); const start = new Date(`${iso}T${$('#e-start').value || '12:00'}:00`).getTime();
+  day(iso).entries.push({ id: uid(), cat: $('#e-cat').value, start, mins }); saveDay(iso); $('#entry-sheet').close(); render(); toast(`Logged ${fmtDur(mins)}`); });
+$('#entries').addEventListener('click', (e) => { const b = e.target.closest('[data-entry-del]'); if (!b || !confirmTap(b, 'Sure?')) return; const d = day(todayIso()); d.entries = d.entries.filter((x) => x.id !== b.dataset.entryDel); saveDay(todayIso()); render(); });
+
+// ===================== actions: night =====================
+$('#steps').addEventListener('click', (e) => {
+  if (e.target.closest('[data-pick]')) return openPicker('tomorrow');
+  const b = e.target.closest('[data-step]'); if (!b) return; const id = b.dataset.step, iso = nightDate();
+  if (id === 'plan' && topFor(shiftIso(iso, 1)).length) return toast("Checked because tomorrow's Top 3 is picked");
+  const n = day(iso).night; n.done[id] = !n.done[id]; const st = nightState(iso); n.completedAt = st.done === st.total ? Date.now() : null; saveDay(iso); render();
+  if (st.done === st.total) toast('Routine done. Good night.');
+});
+$('#edit-routine').addEventListener('click', () => { const rt = core().routine; $('#r-bed').value = rt.bed; $('#r-wake').value = rt.wake; $('#r-wind').value = String(rt.wind); renderRoutineSteps(); $('#routine-sheet').showModal(); });
+function renderRoutineSteps() { $('#r-steps').innerHTML = core().routine.steps.map((s, i) => `<div class="step"><span class="grow">${esc(s.label)}</span>${i ? `<button type="button" class="x" data-up="${i}" aria-label="Move up">↑</button>` : ''}<button type="button" class="x" data-rm="${s.id}">Remove</button></div>`).join(''); }
+$('#r-steps').addEventListener('click', (e) => { const rt = core().routine; const up = e.target.closest('[data-up]'), rm = e.target.closest('[data-rm]');
+  if (up) { const i = Number(up.dataset.up); [rt.steps[i - 1], rt.steps[i]] = [rt.steps[i], rt.steps[i - 1]]; }
+  else if (rm) { if (!confirmTap(rm, 'Sure?')) return; rt.steps = rt.steps.filter((s) => s.id !== rm.dataset.rm); } else return;
+  saveCore(); renderRoutineSteps(); render(); });
+$('#r-add').addEventListener('click', () => { const v = $('#r-new').value.trim(); if (!v) return; core().routine.steps.push({ id: uid(), label: v }); $('#r-new').value = ''; saveCore(); renderRoutineSteps(); render(); });
+$('#r-new').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('#r-add').click(); } });
+for (const [id, key, num] of [['#r-bed', 'bed'], ['#r-wake', 'wake'], ['#r-wind', 'wind', true]]) $(id).addEventListener('change', (e) => { if (!e.target.value) return; core().routine[key] = num ? Number(e.target.value) : e.target.value; saveCore(); render(); });
+$('#routine-form').addEventListener('submit', (e) => { e.preventDefault(); $('#routine-sheet').close(); });
+
+// ===================== shared clicks =====================
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  if (t.closest('[data-close]')) return t.closest('dialog').close();
+  const tc = t.closest('[data-task-check]'); if (tc) return toggleTask(tc.dataset.taskCheck);
+  const to = t.closest('[data-task-open]'); if (to) return openTask(to.dataset.taskOpen);
+  const qa = t.closest('[data-quad-add]'); if (qa) return openTask(null, qa.dataset.quadAdd);
+  const bc = t.closest('[data-block-check]'); if (bc) { const b = day(todayIso()).blocks.find((x) => x.id === bc.dataset.blockCheck); if (b) { b.done = !b.done; saveDay(todayIso()); render(); } return; }
+  const bo = t.closest('[data-block-open]'); if (bo) return openBlock(bo.dataset.blockOpen);
+});
+$$('dialog.sheet').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+$('#add-block').addEventListener('click', () => openBlock(null));
+$('#pick-today').addEventListener('click', () => openPicker('today'));
+$('#pick-tomorrow').addEventListener('click', () => openPicker('tomorrow'));
+
+// ===================== boot =====================
+// Clean up Top 3 picks from past days so old picks don't pile up.
+function tidy() { const today = todayIso(); let changed = false; for (const t of core().tasks) if (t.top && t.top < shiftIso(today, -14)) { t.top = null; changed = true; } if (changed) saveCore(); }
+window.addEventListener('hashchange', route);
+setInterval(() => { if (view === 'time' && core().running) { const r = core().running, sec = Math.floor((Date.now() - r.start) / 1000), c = $('#clock'); if (c) c.textContent = `${Math.floor(sec / 3600)}:${pad(Math.floor(sec / 60) % 60)}:${pad(sec % 60)}`; } }, 1000);
+setInterval(() => { if (!$$('dialog[open]').length) render(); }, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+syncQaFlags(); tidy(); route(); connectStore();
+</script>
