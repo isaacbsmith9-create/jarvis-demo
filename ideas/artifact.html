@@ -1,0 +1,462 @@
+<title>Idea Vault</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a numbered catalog. Search and category chips stick to the top; ideas are tappable rows grouped by category; picks collect in a bar at the bottom. */
+:root {
+  --bg: #f3f4f7; --surface: #ffffff; --surface-2: #e9ecf1; --line: #d9dde5;
+  --fg: #12151b; --muted: #5d6676; --accent: #c77700; --accent-ink: #ffffff; --pick: #1f7a4d; --pick-soft: #dcf1e5;
+  --f-display: "Archivo", "Inter", system-ui, sans-serif; --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0d0f13; --surface: #171a21; --surface-2: #20242d; --line: #2b303a; --fg: #f2f4f8; --muted: #8d95a5; --accent: #ffb020; --accent-ink: #1a1200; --pick: #3fcf8e; --pick-soft: #143a28; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #0d0f13; --surface: #171a21; --surface-2: #20242d; --line: #2b303a; --fg: #f2f4f8; --muted: #8d95a5; --accent: #ffb020; --accent-ink: #1a1200; --pick: #3fcf8e; --pick-soft: #143a28; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 15px/1.4 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 calc(96px + env(safe-area-inset-bottom, 0px)); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 680px; margin: 0 auto; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hero { padding-block: 18px 8px; display: grid; gap: 6px; }
+.hero h1 { font-family: var(--f-display); font-weight: 900; font-size: 34px; letter-spacing: -1px; line-height: 1; margin: 0; text-transform: uppercase; }
+.hero h1 span { color: var(--accent); }
+.hero p { margin: 0; color: var(--muted); max-width: 52ch; }
+.controls { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 10px; display: grid; gap: 8px; }
+.search { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 0 12px; }
+.search svg { width: 18px; height: 18px; color: var(--muted); flex: none; }
+.search input { border: 0; background: none; outline: none; padding: 11px 0; width: 100%; min-width: 0; }
+.chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.chip { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.chip.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.chip .n { color: var(--muted); font-weight: 500; margin-left: 4px; }
+.chip.on .n { color: inherit; opacity: .7; }
+.cat { margin-top: 18px; }
+.cat-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.cat-head h2 { font-family: var(--f-display); font-weight: 800; font-size: 14px; letter-spacing: 1.2px; text-transform: uppercase; margin: 0; display: flex; align-items: center; gap: 8px; }
+.cat-head h2 i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.list { display: grid; gap: 6px; }
+.idea { display: grid; grid-template-columns: 44px 1fr 26px; gap: 10px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; cursor: pointer; text-align: left; width: 100%; }
+.idea:hover { border-color: var(--muted); }
+.idea.on { border-color: var(--pick); background: var(--pick-soft); }
+.idea .num { font-family: var(--f-display); font-weight: 800; font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.idea .body { min-width: 0; }
+.idea b { font-weight: 700; }
+.idea .star { color: var(--accent); font-size: 12px; font-weight: 700; margin-left: 6px; white-space: nowrap; }
+.idea small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+.idea .box { width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--line); display: grid; place-items: center; font-size: 13px; font-weight: 700; color: #fff; }
+.idea.on .box { background: var(--pick); border-color: var(--pick); }
+.empty { text-align: center; color: var(--muted); padding: 40px 10px; }
+.tray { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--surface); border-top: 1px solid var(--line);
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.tray-inner { max-width: 680px; margin: 0 auto; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+.tray-inner > div:first-child { min-width: 0; flex: 1; }
+.tray-inner > div:last-child { flex: none; }
+.tray b { font-family: var(--f-display); font-size: 17px; }
+.tray small { display: block; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn { border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 10px 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.btn:disabled { opacity: .45; cursor: default; }
+#toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 99px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; transition: .25s; z-index: 50; max-width: calc(100vw - 32px); text-align: center; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+@media (prefers-reduced-motion: reduce) { #toast { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <h1>Idea <span>Vault</span></h1>
+    <p>300 app ideas for your training, school, money and life. Tap the ones you want built, then copy your picks and send them to Claude.</p>
+  </header>
+  <div class="controls">
+    <label class="search" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg><input id="q" type="search" placeholder="Search 300 ideas: shooting, money, SAT…" autocomplete="off"></label>
+    <div class="chips" id="chips"></div>
+  </div>
+  <main id="list"></main>
+</div>
+
+<div class="tray"><div class="tray-inner">
+  <div><b id="pick-count">0 picked</b><small id="pick-list">Tap ideas to pick them</small></div>
+  <div style="display:flex;gap:6px"><button class="btn" id="clear" type="button" disabled>Clear</button><button class="btn primary" id="copy" type="button" disabled>Copy picks</button></div>
+</div></div>
+<div id="toast" role="status"></div>
+
+<script>
+// [category, color, ideas: [name, what it does, top pick?]]
+const CATS = [
+  ['Basketball', '#ee6a2c', [
+    ['Shot Diary', 'Log makes and attempts from 5 spots after each workout and see your hot and cold zones.', 1],
+    ['Free Throw Routine Lab', 'Test different pre-shot routines and find the one with your best percentage.'],
+    ['Handle Ladder', 'Ball-handling levels that unlock as you pass timed dribble tests.'],
+    ['Moves Library', 'Save the moves you are learning and mark them learning, game-ready or mastered.'],
+    ['Scouting Report Maker', 'Turn what you know about an opponent into a one-page game plan.'],
+    ['Stat Sheet', 'Log your real game stats and see averages and trends over the season.'],
+    ['Film Notes', 'Timestamp moments in game film and turn them into things to fix.'],
+    ['Weak Hand 30', 'A 30-day off-hand challenge with a new mission every day.'],
+    ['Shot Form Check', 'Upload a shooting photo and AI checks your base, elbow and release.'],
+    ['Pickup Ratings', 'Rate your pickup games like a 2K overall and watch it climb.'],
+    ['Closeout Timer', 'Time your defensive slides and closeouts and track your speed.'],
+    ['Workout Builder', 'Pick a focus and how many minutes you have, get a drill session with timers.', 1],
+    ['Game Day Checklist', 'Shoes, warmup, focus cues and water in one checklist.'],
+    ['Coach Feedback Log', 'Save what coaches tell you and turn it into weekly goals.'],
+    ['Guard Playbook', 'Reads for pick-and-roll, handoffs and off-ball cuts as quick cards.'],
+    ['Highlight Tagger', 'List your best plays with timestamps so your tape is easy to cut.'],
+    ['Make Streaks', 'Daily make goals (200, 300, 500) with streaks and badges.'],
+    ['Matchup Memory', 'Remember the guards you have faced and what worked against them.'],
+    ['1v1 Ladder', 'Track 1v1 games against friends with a real rating system.'],
+    ['Plays Quiz', 'Flashcards for your team\'s plays and sets.'],
+  ]],
+  ['Athletic training', '#3552c9', [
+    ['Vertical Lab', 'Monthly vertical, broad jump and sprint tests with percentiles for your age.', 1],
+    ['Lift Log', 'Sets, reps and weight, with a nudge when it is time to go up.', 1],
+    ['Jump Program', 'A 12-week plyometric plan with test days built in.'],
+    ['Speed Ladder', 'Sprint and agility drills with a stopwatch and personal records.'],
+    ['Mobility Score', 'Monthly ankle, hip and hamstring tests with fixes for tight spots.'],
+    ['Warmup Builder', '10-minute dynamic warmups for practice, games or lifting.'],
+    ['Conditioning Cards', 'Basketball conditioning workouts like 17s and intervals, with timers.'],
+    ['Core Circuit Timer', 'Guided core circuits with work and rest timers.'],
+    ['Ankle Armor', 'Daily ankle strength and balance routine to prevent sprains.'],
+    ['Knee Care', 'An injury-prevention warmup for knees, tracked as a streak.'],
+    ['Growth Tracker', 'Height, wingspan and standing reach over time.'],
+    ['Season Phases', 'Plan off-season, pre-season and in-season training blocks.'],
+    ['Bodyweight Anywhere', 'No-equipment workouts for when you cannot get to a gym.'],
+    ['Grip Strength', 'Grip and forearm routines for ball security.'],
+    ['Footwork Patterns', 'Agility ladder and cone patterns with clear cues.'],
+    ['Track Sessions', 'Sprint workouts with distances, reps and rest.'],
+    ['Deload Detector', 'Reads your training log and tells you when to take an easy week.'],
+    ['Partner Workout', 'Two-person drills with a shared timer.'],
+    ['PR Board', 'Bench, squat and trap bar records with charts.'],
+    ['Stretch Timer', 'Guided stretching routines with hold timers.'],
+  ]],
+  ['Health', '#d4498f', [
+    ['Sleep Coach', 'Bedtime targets, a wind-down routine and a sleep log with patterns.'],
+    ['Injury Log', 'Track injuries, rehab exercises and return-to-play steps.', 1],
+    ['Bottle Counter', 'Tap each bottle you finish; bigger goals on practice days.'],
+    ['Screen Time Goals', 'Set daily limits and log how you did.'],
+    ['Breathing Coach', 'Box breathing and calm-down timers for games and tests.'],
+    ['Posture Check', 'Quick daily posture fixes for long school days.'],
+    ['Trainer Notes', 'Save what the doctor or athletic trainer told you.'],
+    ['Stress Meter', 'A quick daily stress check and what helped.'],
+    ['Ice or Heat', 'When to ice and when to heat, with timers.'],
+    ['Daylight Log', 'Outdoor time in winter for vitamin D and mood.'],
+    ['Allergy Tracker', 'Log symptoms and see which days are worst.'],
+    ['Head Injury Guide', 'Concussion warning signs and return steps, for learning, not diagnosis.'],
+    ['Mood Tracker', 'Daily mood with notes on what affected it.'],
+    ['Nap Planner', 'When and how long to nap before a game.'],
+    ['Eye Breaks', 'Reminders to rest your eyes while studying.'],
+    ['Foot Care', 'Blister care, shoe rotation and insole tracking.'],
+    ['Sick Day Plan', 'What to eat and how to ease back into training after being sick.'],
+    ['Caffeine Check', 'Track caffeine and see how it affects your sleep.'],
+    ['Step Streak', 'Daily step goal with a streak.'],
+    ['Cold Plunge Log', 'Time and temperature with how you felt after.'],
+  ]],
+  ['Food', '#2e9a55', [
+    ['Lunch Packer', 'School lunch ideas that hit your macros.'],
+    ['Recipe Box', 'Save recipes with macros per serving.'],
+    ['Protein Snack Finder', 'High-protein snacks ranked by price and where to buy.'],
+    ['Smoothie Builder', 'Build shakes for your goal with the macros added up.'],
+    ['Cheap Eats Planner', 'A week of meals under a set budget.'],
+    ['Cook Mode', 'Step-by-step cooking with timers and big text.'],
+    ['Pantry Tracker', 'What is in the house and what is about to expire.'],
+    ['DIY Sports Drinks', 'Homemade sports drink recipes for practice.'],
+    ['Breakfast Rotation', '14 fast breakfasts to rotate through.'],
+    ['Late-Night Snacks', 'What to eat before bed for recovery.'],
+    ['Meal Rater', 'Rate how meals made you feel at practice.'],
+    ['Family Dinner Plan', 'A dinner plan the whole family can use.'],
+    ['Grocery Prices', 'Compare prices across stores near you.'],
+    ['Lean Bulk Plan', 'Calorie-dense meals for gaining weight the right way.'],
+    ['Fast Food Swaps', 'Better swaps at the fast food places you go.'],
+    ['5 a Day Streak', 'Fruit and vegetable streak with easy ideas.'],
+    ['Cooking Skills Ladder', 'Learn 20 basic recipes, one level at a time.'],
+    ['Bake Sale Planner', 'Recipes, costs and profit for fundraisers.'],
+    ['Allergy-Safe Menu', 'Meals filtered for food allergies.'],
+    ['Water Flavor Ideas', 'Ways to make water taste good so you drink more.'],
+  ]],
+  ['School', '#0e9aa7', [
+    ['Homework Helper', 'Snap a problem and get each step explained, hints first.', 1],
+    ['Test Prep Planner', 'Enter a test date and topics, get a day-by-day study plan.', 1],
+    ['Grade Tracker', 'Your current grades and what you need on each final.'],
+    ['Notes to Flashcards', 'Paste class notes and get a flashcard deck.'],
+    ['Quiz Me', 'AI quizzes you on any topic before a test.'],
+    ['Essay Outliner', 'Turn a topic into a thesis and paragraph plan; you write it.'],
+    ['Formula Sheet', 'Searchable math and science formulas with examples.'],
+    ['Vocab Builder', '5 SAT-level words a day with quizzes.'],
+    ['Reading Tracker', 'Books, pages and a reading streak.'],
+    ['Class Schedule', 'Today\'s classes, rooms and teachers at a glance.'],
+    ['Focus Timer', 'Study sessions with breaks and a lock-in mode.'],
+    ['Math Practice', 'Endless practice problems by topic, with answers.'],
+    ['Lab Report Helper', 'A clear structure for science lab reports.'],
+    ['Study Group Board', 'A shared plan for group study sessions.'],
+    ['Question Log', 'Questions to ask in class or office hours.'],
+    ['Chapter Cards', 'Chapter summaries you write and review.'],
+    ['Timeline Builder', 'History events on a visual timeline.'],
+    ['Citation Maker', 'Build MLA and APA citations.'],
+    ['Assignment Inbox', 'Paste assignments from teachers and sort them by due date.'],
+    ['SAT/ACT Daily', 'A few practice questions a day with a score tracker.'],
+  ]],
+  ['College & recruiting', '#8a4fd8', [
+    ['Athlete Resume', 'A one-page profile for college coaches.', 1],
+    ['Coach Email Writer', 'Personal emails to college coaches using your stats.', 1],
+    ['Recruiting Tracker', 'Schools, coaches, contact history and status.'],
+    ['Camp Finder', 'Camps, costs, dates and which coaches attend.'],
+    ['Eligibility Checker', 'NCAA core courses and GPA progress.'],
+    ['College Fit Finder', 'Compare schools by division, academics and need at your position.'],
+    ['Visit Planner', 'Questions to ask on campus and official visits.'],
+    ['Highlight Tape Planner', 'Order your clips and title cards for a recruiting video.'],
+    ['Scholarship Tracker', 'Applications, amounts and deadlines.'],
+    ['Recruiting Calendar', 'Contact periods and key dates.'],
+    ['Season Stat Card', 'A shareable stat card image of your season.'],
+    ['Application Checklist', 'Essays, recommendations, transcripts and deadlines.'],
+    ['Essay Brainstormer', 'College essay ideas pulled from your story.'],
+    ['Recommendation Asks', 'Write polite asks to coaches and teachers.'],
+    ['AAU Season Tracker', 'Tournaments, results and exposure events.'],
+    ['Coach Interview Prep', 'Practice the questions college coaches ask.'],
+    ['Major Explorer', 'Majors and careers that fit what you like.'],
+    ['College Cost Calculator', 'Real cost of each school after aid.'],
+    ['Profile Clean-Up', 'A checklist so your social media looks good to coaches.'],
+    ['JUCO Path Guide', 'How junior college and transfers work.'],
+  ]],
+  ['Money', '#c77700', [
+    ['Savings Goals', 'Goals like new shoes by March, with weekly targets.', 1],
+    ['Paycheck Splitter', 'Split each paycheck into spend, save and invest.'],
+    ['Budget Tracker', 'Money in and out by category.'],
+    ['Sneaker Vault', 'Your collection, what it is worth and your wishlist.'],
+    ['Investing Simulator', 'Practice investing with fake money.'],
+    ['Subscription Tracker', 'Everything you pay for monthly.'],
+    ['Bill Splitter', 'Split food and trips with friends.'],
+    ['Price Drop Watch', 'Items you want with the price you would pay.'],
+    ['Chore Pay', 'Chores done and money earned.'],
+    ['Credit Basics', 'Learn how credit works before you need it.'],
+    ['Growth Visualizer', 'See how saving early grows with compound interest.'],
+    ['First Car Fund', 'Save for a car, with insurance and gas costs.'],
+    ['Spending Challenges', 'No-spend weeks and round-up savings.'],
+    ['Gift Planner', 'Birthdays and gift budgets.'],
+    ['Money Review', 'A monthly 5-minute look at your money habits.'],
+    ['Flip Tracker', 'Buy, resell and track your profit.'],
+    ['First Paycheck Guide', 'What taxes and deductions mean on a pay stub.'],
+    ['Roth IRA Calculator', 'What investing as a teenager could grow into.'],
+    ['Impulse Buy Timer', 'Wait 48 hours before buying and see if you still want it.'],
+    ['Net Worth Tracker', 'What you own minus what you owe, over time.'],
+  ]],
+  ['Business', '#1f7a4d', [
+    ['Window Cleaning Kit', 'Quotes, customers, schedule and payments for your business.', 1],
+    ['Route Planner', 'Order the day\'s jobs so you drive less.'],
+    ['Review Collector', 'Ask happy customers for reviews and track them.'],
+    ['Flyer Maker', 'AI flyer text and a printable layout.'],
+    ['Pricing Calculator', 'Supplies plus time equals the price to charge.'],
+    ['Door Knock Tracker', 'Houses visited, interest level and follow-ups.'],
+    ['Business Dashboard', 'Revenue, jobs done and average job price.'],
+    ['Invoice Maker', 'Clean invoices you can text to customers.'],
+    ['Rebooking Texts', 'Auto-written follow-ups so customers book again.'],
+    ['Before & After Gallery', 'Job photos for marketing.'],
+    ['Job Expenses', 'Gas, supplies and real profit per job.'],
+    ['Side Hustle Finder', 'Business ideas matched to your skills and time.'],
+    ['Digital Product Planner', 'Plan, price and launch a digital product.'],
+    ['Link-in-Bio Page', 'One page for your links and products.'],
+    ['Seasonal Services', 'Lawn, leaves and snow jobs by season.'],
+    ['Referral Tracker', 'Who sent you customers, with thank-you reminders.'],
+    ['One-Page Business Plan', 'A simple plan that fits on one page.'],
+    ['Revenue Goal Planner', 'How many jobs you need to hit an income goal.'],
+    ['Service Agreements', 'Simple written agreements for jobs.'],
+    ['Partner Split', 'Split money fairly with a business partner.'],
+  ]],
+  ['Content', '#e2533a', [
+    ['Clip Finder', 'Find the best 30-60 second moments in a long video.'],
+    ['Content Calendar', 'Plan posts and keep a posting streak.'],
+    ['Hook Bank', 'Save hooks that worked so you can reuse the formula.'],
+    ['Thumbnail Ideas', 'Thumbnail concepts and text for a video idea.'],
+    ['Caption Writer', 'Captions and hashtags in your style.'],
+    ['Trend Notebook', 'Save trends and sounds with the date you saw them.'],
+    ['Post Analytics Log', 'Views and likes per post to see what grows you.'],
+    ['Niche Finder', 'Find the angle that makes your account different.'],
+    ['Collab Tracker', 'Creators to work with and where things stand.'],
+    ['Comment Replies', 'Reply ideas for comments on your posts.'],
+    ['Shot List', 'What to film at a workout so editing is easy.'],
+    ['Series Planner', 'Plan a multi-part video series.'],
+    ['Brand Deal Tracker', 'Pitches, rates and what you owe each brand.'],
+    ['Upload Checklist', 'Title, tags, thumbnail and pinned comment before posting.'],
+    ['Viewer Questions', 'Collect questions to answer in future videos.'],
+    ['Bio Builder', 'A stronger profile bio in a few tries.'],
+    ['Repurpose Planner', 'Turn one video into five posts.'],
+    ['Best Time to Post', 'Find when your followers are most active.'],
+    ['Story Ideas', 'Daily story ideas for when you are out of ideas.'],
+    ['Creator Milestones', 'Follower and view goals with progress bars.'],
+  ]],
+  ['Productivity', '#0b6e8a', [
+    ['Day Planner', 'Your whole day on one screen with a nightly score.', 1],
+    ['Morning Routine Timer', 'Step-by-step mornings with a timer per step.'],
+    ['Habit Streaks', 'Any habit with streaks and badges.'],
+    ['Priority Matrix', 'Sort tasks by urgent and important.'],
+    ['Sunday Reset', 'A 10-minute weekly review and plan.'],
+    ['Bag Check', 'Practice, game and school bag checklists.'],
+    ['Goal Ladder', 'Big goals broken into monthly and weekly steps.'],
+    ['Brain Dump', 'Capture every thought fast and sort it later.'],
+    ['Time Tracker', 'See where your hours actually go.'],
+    ['Focus Sounds', 'Study sessions with background sounds.'],
+    ['Deadline Radar', 'Every due date across school, sports and work.'],
+    ['Night Routine', 'A wind-down checklist for better sleep.'],
+    ['School Email Triage', 'Sort school emails into do, read and ignore.'],
+    ['Calendar Export', 'Turn plans into calendar files for your phone.'],
+    ['Distraction Log', 'Notice what pulls you off task.'],
+    ['Quick Notes', 'Fast notes with tags and search.'],
+    ['Countdown Board', 'Days until games, trips and birthdays.'],
+    ['Daily Top 3', 'Pick three must-dos each morning.'],
+    ['Energy Planner', 'Put hard tasks at the times you focus best.'],
+    ['Weekend Planner', 'Balance fun, rest and catch-up.'],
+  ]],
+  ['Mindset', '#5b5bd6', [
+    ['Mindset Journal', 'A 2-minute daily journal with confidence prompts.'],
+    ['Confidence Cues', 'Your personal cue words and a short visualization.'],
+    ['Pre-Game Routine', 'A calm, focused routine before tip-off.'],
+    ['Post-Game Reflection', 'Three questions after every game.'],
+    ['Gratitude Log', 'Three good things a day.'],
+    ['Affirmation Cards', 'Cards you write yourself and read daily.'],
+    ['Fear Ladder', 'Face fears in small steps.'],
+    ['Win Wall', 'Save every win, big and small.'],
+    ['Next Play Reset', 'A reset routine after mistakes in games.'],
+    ['Visualization Coach', 'Guided visualizations of big moments.'],
+    ['Pressure Free Throws', 'Practice games that simulate pressure.'],
+    ['Vision Board', 'Goals with pictures and progress.'],
+    ['Self-Talk Rewrites', 'Turn negative thoughts into useful ones.'],
+    ['Quote Locker', 'Quotes from athletes you look up to.'],
+    ['Bounce Back Plan', 'What to do in the 24 hours after a bad game.'],
+    ['Word of the Week', 'One focus word for the week.'],
+    ['Past Self Progress', 'Compare yourself to you a year ago, not others.'],
+    ['Values Finder', 'Figure out what matters most to you.'],
+    ['Leadership Log', 'Moments you led on and off the court.'],
+    ['Discipline Score', 'Did you do what you said you would do today?'],
+  ]],
+  ['Life skills', '#4a4a4e', [
+    ['Driving Log', 'Practice hours and skills toward your license.', 1],
+    ['Laundry Guide', 'How to wash everything without ruining it.'],
+    ['First Job Prep', 'A resume and interview practice for a first job.'],
+    ['Car Care Log', 'Oil changes, tires and gas.'],
+    ['Room Reset', 'A quick room cleaning checklist.'],
+    ['Trip Packing', 'Packing lists for trips and tournaments.'],
+    ['20 Meals to Know', 'The basic meals everyone should be able to cook.'],
+    ['How to Message Adults', 'Templates for texting coaches, emails and teachers.'],
+    ['Emergency Card', 'Contacts, allergies and info for emergencies.'],
+    ['Important Contacts', 'Numbers you might need without your phone.'],
+    ['Chore Board', 'A family chore rotation.'],
+    ['Outfit Planner', 'Outfits for the week and laundry days.'],
+    ['Haircut Tracker', 'When you last went and when to book.'],
+    ['Birthday Reminders', 'Never forget a birthday again.'],
+    ['How-To Library', 'Change a tire, jump a car, unclog a drain.'],
+    ['Travel Planner', 'Plans and checklists for trips.'],
+    ['Interview Practice', 'AI mock interviews for jobs and schools.'],
+    ['Volunteer Hours', 'Track service hours for school and college.'],
+    ['Family Shopping List', 'A shared list everyone can add to.'],
+    ['Pet & Plant Care', 'Feeding and watering reminders.'],
+  ]],
+  ['Team & friends', '#2f6fdd', [
+    ['Team Hub', 'Your team\'s schedule, carpools and links in one place.'],
+    ['Carpool Planner', 'Who drives to which practice.'],
+    ['Quick Polls', 'Fast votes for where to eat or what to do.'],
+    ['Fundraiser Tracker', 'Team fundraising goals and donors.'],
+    ['Hangout Finder', 'Find a day everyone is free.'],
+    ['Team Leaderboard', 'Team stats and challenge rankings.'],
+    ['Attendance Tracker', 'Who showed up to open gym.'],
+    ['Number Picker', 'A fair way to pick jersey numbers.'],
+    ['Warmup Playlist Vote', 'The team votes on warmup songs.'],
+    ['Secret Santa', 'Draw names without anyone knowing.'],
+    ['Friend Birthdays', 'Birthday reminders for friends.'],
+    ['Team Challenge', 'A shared workout challenge with a leaderboard.'],
+    ['Trip Cost Splitter', 'Split costs for a team trip.'],
+    ['Captain\'s Notes', 'Notes and plans for team leaders.'],
+    ['Team Bonding Ideas', 'Activities to bring the team closer.'],
+    ['Ride Board', 'Ask for and offer rides.'],
+    ['Pickup Team Picker', 'Fair teams for pickup games.'],
+    ['Event Countdown', 'Countdowns for prom, games and trips.'],
+    ['Group Study Notes', 'Shared notes for a study group.'],
+    ['Season Awards', 'Team votes for end-of-season awards.'],
+  ]],
+  ['Gaming & 2K', '#ff7a62', [
+    ['2K Dynasty Tracker', 'Your franchise saves: trades, drafts and player growth.', 1],
+    ['AI GM', 'Suggests trades and a rebuild plan for any team.'],
+    ['Rebuild Challenges', 'Random rebuild challenges with rules and difficulty.'],
+    ['Trade Grader', 'Build NBA trades and get a grade for both sides.'],
+    ['Draft Big Board', 'Rank prospects and run mock drafts.'],
+    ['MyCareer Build Planner', 'Plan attributes and badges for a build.'],
+    ['Pack Opener', 'A just-for-fun pack opening simulator.'],
+    ['Fantasy Helper', 'Fantasy basketball lineup decisions.'],
+    ['Gaming Time Budget', 'Set and track gaming hours.'],
+    ['Tournament Brackets', 'Run gaming tournaments with friends.'],
+    ['2K Stat Tracker', 'Your stats across 2K games.'],
+    ['Badge Grind Planner', 'Plan the fastest badge grinding.'],
+    ['Roster Rater', 'Rate any roster on offense, defense and depth.'],
+    ['All-Time Team Builder', 'Build all-time teams and compare.'],
+    ['Daily NBA Trivia', 'A trivia question every day with a streak.'],
+    ['Player Compare', 'Compare two players side by side.'],
+    ['Season Simulator', 'Simulate a season with dice and stats.'],
+    ['GOAT Debate', 'Build your argument with real stats.'],
+    ['Clip List', 'Save your best gaming clips with notes.'],
+    ['Game Backlog', 'Games you want to play and finish.'],
+  ]],
+  ['Fun & creative', '#d99a0b', [
+    ['NBA Picks League', 'Pick game winners against friends with a leaderboard.'],
+    ['Bracket Maker', 'Brackets for March Madness, 1v1s or anything.'],
+    ['Mood Playlists', 'Playlist plans by mood and activity.'],
+    ['Sneaker Drops', 'Release dates and reminders.'],
+    ['Caption Templates', 'Meme caption templates for group chats.'],
+    ['Watchlist', 'Movies and shows with your ratings.'],
+    ['Would You Rather', 'A game for road trips and bus rides.'],
+    ['Story Generator', 'AI short stories from your prompts.'],
+    ['Sketch Prompts', 'A drawing idea every day.'],
+    ['Music Practice Log', 'Instrument practice time and goals.'],
+    ['Photo Challenge', 'A daily photo idea.'],
+    ['Joke Bank', 'Save the funniest stuff you hear.'],
+    ['Decision Wheel', 'Spin a wheel to decide.'],
+    ['Bucket List', 'Things to do before graduation.'],
+    ['Year in Review', 'A recap page of your year.'],
+    ['Quote Wall', 'Your favorite quotes in one place.'],
+    ['Travel Wishlist', 'Places you want to go someday.'],
+    ['Lyric Pad', 'Write bars with rhyme suggestions.'],
+    ['Fit Check', 'Plan and rate outfits.'],
+    ['Time Capsule', 'Notes to open a year from now.'],
+  ]],
+];
+const IDEAS = []; CATS.forEach(([cat, color, list]) => list.forEach(([name, desc, top]) => IDEAS.push({ n: IDEAS.length + 1, cat, color, name, desc, top: !!top })));
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+let picks = new Set(), filter = 'All';
+try { picks = new Set(JSON.parse(localStorage.getItem('vault-picks') || '[]')); } catch {}
+const savePicks = () => { try { localStorage.setItem('vault-picks', JSON.stringify([...picks])); } catch {} };
+let toastT; function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2400); }
+
+function renderChips() {
+  const opts = [['All', IDEAS.length], ['Top picks', IDEAS.filter((i) => i.top).length], ...CATS.map(([c, , l]) => [c, l.length])];
+  $('#chips').innerHTML = opts.map(([c, n]) => `<button type="button" class="chip${filter === c ? ' on' : ''}" data-f="${esc(c)}">${c === 'Top picks' ? '★ ' : ''}${esc(c)}<span class="n">${n}</span></button>`).join('');
+}
+function render() {
+  const q = $('#q').value.trim().toLowerCase();
+  const shown = IDEAS.filter((i) => (filter === 'All' || (filter === 'Top picks' ? i.top : i.cat === filter)) && (!q || `${i.n} ${i.name} ${i.desc} ${i.cat}`.toLowerCase().includes(q)));
+  const groups = CATS.map(([c, color]) => [c, color, shown.filter((i) => i.cat === c)]).filter(([, , l]) => l.length);
+  $('#list').innerHTML = groups.length ? groups.map(([c, color, list]) => `<section class="cat"><div class="cat-head"><h2><i style="background:${color}"></i>${esc(c)}</h2><span class="muted small" style="color:var(--muted);font-size:13px">${list.length}</span></div><div class="list">
+    ${list.map((i) => `<button type="button" class="idea${picks.has(i.n) ? ' on' : ''}" data-n="${i.n}" aria-pressed="${picks.has(i.n)}"><span class="num">#${i.n}</span><span class="body"><b>${esc(i.name)}</b>${i.top ? '<span class="star">★ top pick</span>' : ''}<small>${esc(i.desc)}</small></span><span class="box" aria-hidden="true">${picks.has(i.n) ? '✓' : ''}</span></button>`).join('')}
+  </div></section>`).join('') : `<div class="empty">No ideas match "${esc(q)}". Try another word.</div>`;
+  renderTray();
+}
+function renderTray() {
+  const list = [...picks].sort((a, b) => a - b);
+  $('#pick-count').textContent = `${list.length} picked`;
+  $('#pick-list').textContent = list.length ? list.map((n) => `#${n} ${IDEAS[n - 1].name}`).join(', ') : 'Tap ideas to pick them';
+  $('#copy').disabled = $('#clear').disabled = !list.length;
+}
+$('#chips').addEventListener('click', (e) => { const c = e.target.closest('[data-f]'); if (!c) return; filter = c.dataset.f; renderChips(); render(); window.scrollTo(0, 0); });
+$('#q').addEventListener('input', render);
+$('#list').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-n]'); if (!b) return;
+  const n = Number(b.dataset.n); picks.has(n) ? picks.delete(n) : picks.add(n); savePicks();
+  b.classList.toggle('on', picks.has(n)); b.setAttribute('aria-pressed', String(picks.has(n))); b.querySelector('.box').textContent = picks.has(n) ? '✓' : '';
+  renderTray();
+});
+$('#clear').addEventListener('click', () => { picks.clear(); savePicks(); render(); });
+$('#copy').addEventListener('click', () => {
+  const list = [...picks].sort((a, b) => a - b);
+  const text = 'Build these from the Idea Vault: ' + list.map((n) => `#${n} ${IDEAS[n - 1].name}`).join(', ');
+  navigator.clipboard.writeText(text).then(() => toast('Copied. Paste it in the chat.'), () => { $('#pick-list').textContent = text; toast('Copy is blocked here. The list is shown below; send me the numbers.'); });
+});
+renderChips(); render();
+</script>
