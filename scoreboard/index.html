@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Scoreboard">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<title>Scoreboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sticky header with range + section chips, then sections of chart cards (one column on phones, two on wide screens). */
+:root {
+  --bg: #eff1f0;
+  --surface: #fcfcfb;
+  --surface-2: #eceeec;
+  --line: #dcdfdc;
+  --grid: #e6e8e5;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #74736e;
+  --accent: #2a78d6;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #6250d6; --s8: #e34948;
+  --good: #006300; --bad: #d03b3b; --done: #2a78d6; --done-soft: #d6e5f7;
+  --f-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #111110; --surface: #1a1a19; --surface-2: #242423; --line: #2e2e2c; --grid: #2a2a28; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #95948c;
+    --accent: #3987e5; --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #0ca30c; --s7: #9085e9; --s8: #e66767; --good: #0ca30c; --bad: #e66767; --done: #3987e5; --done-soft: #1f3550; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #111110; --surface: #1a1a19; --surface-2: #242423; --line: #2e2e2c; --grid: #2a2a28; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #95948c;
+  --accent: #3987e5; --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #0ca30c; --s7: #9085e9; --s8: #e66767; --good: #0ca30c; --bad: #e66767; --done: #3987e5; --done-soft: #1f3550; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 var(--f-body); -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1100px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 calc(40px + env(safe-area-inset-bottom, 0px)); }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+h1, h2, h3 { margin: 0; font-family: var(--f-display); font-weight: 700; text-wrap: balance; }
+header.top { padding-block: 14px 4px; display: grid; gap: 10px; }
+.title-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.title-row h1 { font-size: 32px; line-height: 1; letter-spacing: .01em; text-transform: uppercase; }
+.title-row .date { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.seg { display: inline-flex; background: var(--surface-2); border-radius: 10px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+.sections { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-block: 8px; margin-inline: -4px; padding-inline: 4px; }
+.sections::-webkit-scrollbar { display: none; }
+.sections a { flex: none; text-decoration: none; color: var(--ink-2); font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); }
+.sections a.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.demo { margin: 8px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--done-soft); font-size: 13px; }
+section.block { scroll-margin-top: 48px; padding-top: 22px; display: grid; gap: 12px; }
+.block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.block-head h2 { font-size: 22px; text-transform: uppercase; letter-spacing: .02em; }
+.block-head a { font-size: 13px; color: var(--accent); text-decoration: none; font-weight: 600; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px 12px; min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+.card-head h3 { font-size: 17px; font-weight: 600; }
+.card-head .kpi { font-family: var(--f-display); font-size: 20px; font-weight: 700; white-space: nowrap; }
+.card-head .kpi small { font-family: var(--f-body); font-size: 12px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+.card .sub { font-size: 12px; color: var(--muted); margin: -2px 0 6px; }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.chart text { fill: var(--muted); font: 11px var(--f-body); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-2); margin-top: 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+.legend i.line { height: 3px; border-radius: 2px; }
+.legend i.dash { height: 0; border-top: 2px dashed var(--muted); background: none; width: 14px; border-radius: 0; }
+details.table { margin-top: 6px; }
+details.table summary { font-size: 12px; color: var(--muted); cursor: pointer; }
+details.table .tw { overflow-x: auto; margin-top: 6px; }
+details.table table { border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+details.table th, details.table td { padding: 4px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+details.table th:first-child, details.table td:first-child { text-align: left; }
+/* Today tiles */
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: grid; gap: 2px; text-decoration: none; color: inherit; min-width: 0; }
+.tile .lab { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.tile b { font-family: var(--f-display); font-size: 30px; line-height: 1.05; }
+.tile b small { font-family: var(--f-body); font-size: 13px; font-weight: 500; color: var(--muted); }
+.tile .vs { font-size: 12px; color: var(--muted); }
+.tile .vs .up { color: var(--good); font-weight: 600; } .tile .vs .down { color: var(--bad); font-weight: 600; }
+.bar { height: 5px; border-radius: 4px; background: var(--surface-2); overflow: hidden; margin-top: 6px; }
+.bar div { height: 100%; border-radius: 4px; background: var(--accent); }
+/* Score */
+.score { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; }
+.ovr { display: grid; justify-items: center; width: 96px; padding: 10px 0; border-radius: 14px; background: var(--ink); color: var(--bg); }
+.ovr b { font-family: var(--f-display); font-size: 48px; line-height: 1; }
+.ovr small { font-size: 11px; font-weight: 700; letter-spacing: .25em; opacity: .7; }
+.ratings { display: grid; gap: 8px; }
+.rating { display: grid; grid-template-columns: 82px 1fr 30px; gap: 10px; align-items: center; font-size: 13px; }
+.rating span:first-child { color: var(--ink-2); font-weight: 600; }
+.rating .bar { margin: 0; height: 8px; }
+.rating b { font-family: var(--f-display); font-size: 18px; text-align: right; }
+.tier { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+/* Habit grid */
+.habits { display: grid; gap: 4px; overflow-x: auto; }
+.hrow { display: grid; grid-template-columns: 96px repeat(var(--n), minmax(9px, 1fr)) 36px; gap: 3px; align-items: center; min-width: 0; }
+.hrow .hn { font-size: 11.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hrow .hc { aspect-ratio: 1; border-radius: 4px; background: var(--surface-2); max-width: 100%; }
+.hrow .hc.on { background: var(--done); }
+.hrow .hc.na { background: transparent; border: 1px dashed var(--line); }
+.hrow .hp { font-size: 12px; text-align: right; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.hrow.head .hd { font-size: 10px; color: var(--muted); text-align: center; }
+.streaks { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.streak { background: var(--surface-2); border-radius: 12px; padding: 10px; }
+.streak b { font-family: var(--f-display); font-size: 26px; display: block; line-height: 1.1; }
+.streak span { font-size: 12px; color: var(--ink-2); }
+.stats3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.stats3 div { background: var(--surface-2); border-radius: 10px; padding: 8px; }
+.stats3 b { display: block; font-family: var(--f-display); font-size: 20px; }
+.stats3 small { font-size: 11px; color: var(--muted); }
+.empty { color: var(--muted); font-size: 13px; padding: 18px 0; text-align: center; }
+#tip { position: fixed; z-index: 20; pointer-events: none; background: var(--ink); color: var(--bg); border-radius: 10px; padding: 8px 10px; font-size: 12px; line-height: 1.45; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); max-width: 220px; }
+#tip b { display: block; font-size: 12px; margin-bottom: 2px; }
+#tip .row { display: flex; justify-content: space-between; gap: 12px; }
+#tip i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; background: var(--c); }
+footer { margin-top: 28px; font-size: 12px; color: var(--muted); text-align: center; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="title-row">
+      <div><h1>Scoreboard</h1><div class="date" id="date"></div></div>
+      <div class="seg" id="range" role="group" aria-label="Time range"><button type="button" data-n="7">7 days</button><button type="button" data-n="14">14 days</button><button type="button" data-n="30">30 days</button></div>
+    </div>
+  </header>
+    <nav class="sections" id="secnav" aria-label="Sections">
+      <a href="#today">Today</a><a href="#score">Score</a><a href="#habits">Habits</a><a href="#food">Food</a><a href="#training">Training</a><a href="#time">Time</a><a href="#school">School</a><a href="#body">Body</a>
+    </nav>
+  <p class="demo" id="demo" hidden>You're looking at <b>example data</b>. Use MacroLens, ReadyUp, Weekboard, Gameplan and Charla on this website, and your real numbers replace it automatically.</p>
+
+  <section class="block" id="today">
+    <div class="block-head"><h2>Today</h2><span class="small muted" id="today-sub"></span></div>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section class="block" id="score">
+    <div class="block-head"><h2>Score</h2><span class="small muted">From your last 14 days</span></div>
+    <div class="grid2">
+      <div class="card"><div class="score" id="scorecard"></div></div>
+      <div class="card"><div class="card-head"><h3>Day score</h3><span class="kpi num" id="ds-kpi"></span></div><div class="sub">0-100 each day from food, training, recovery, school and discipline</div><div class="chart" id="c-dayscore"></div></div>
+    </div>
+  </section>
+
+  <section class="block" id="habits">
+    <div class="block-head"><h2>Habits</h2><span class="small muted" id="habit-sub"></span></div>
+    <div class="card"><div class="habits" id="habit-grid"></div></div>
+    <div class="card"><div class="card-head"><h3>Streaks</h3><span class="small muted">days in a row, counting today or yesterday</span></div><div class="streaks" id="streaks"></div></div>
+  </section>
+
+  <section class="block" id="food">
+    <div class="block-head"><h2>Food</h2><a href="https://isaacbsmith9-create.github.io/jarvis-demo/">Open MacroLens</a></div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h3>Calories</h3><span class="kpi num" id="cal-kpi"></span></div><div class="chart" id="c-cal"></div></div>
+      <div class="card"><div class="card-head"><h3>Protein</h3><span class="kpi num" id="pro-kpi"></span></div><div class="chart" id="c-pro"></div></div>
+      <div class="card"><div class="card-head"><h3>Water</h3><span class="kpi num" id="wat-kpi"></span></div><div class="chart" id="c-wat"></div></div>
+      <div class="card"><div class="card-head"><h3>Macro split</h3><span class="small muted">average on logged days</span></div><div class="chart" id="c-split"></div></div>
+    </div>
+  </section>
+
+  <section class="block" id="training">
+    <div class="block-head"><h2>Training &amp; recovery</h2><a href="https://isaacbsmith9-create.github.io/jarvis-demo/recovery/">Open ReadyUp</a></div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h3>Training minutes</h3><span class="kpi num" id="tr-kpi"></span></div><div class="chart" id="c-train"></div></div>
+      <div class="card"><div class="card-head"><h3>Sleep</h3><span class="kpi num" id="sl-kpi"></span></div><div class="chart" id="c-sleep"></div></div>
+      <div class="card"><div class="card-head"><h3>Readiness</h3><span class="kpi num" id="rd-kpi"></span></div><div class="sub">ReadyUp morning score, 0-100</div><div class="chart" id="c-ready"></div></div>
+      <div class="card"><div class="card-head"><h3>Soreness</h3><span class="kpi num" id="so-kpi"></span></div><div class="sub">1 = fresh, 5 = very sore</div><div class="chart" id="c-sore"></div></div>
+    </div>
+  </section>
+
+  <section class="block" id="time">
+    <div class="block-head"><h2>Where your time goes</h2><a href="https://isaacbsmith9-create.github.io/jarvis-demo/gameplan/#time">Open Time Tracker</a></div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h3>Hours tracked per day</h3><span class="kpi num" id="time-kpi"></span></div><div class="chart" id="c-time"></div></div>
+      <div class="card"><div class="card-head"><h3>Phone vs. training</h3><span class="kpi num" id="pt-kpi"></span></div><div class="sub">Minutes per day. Dashed line is your phone goal.</div><div class="chart" id="c-phone"></div></div>
+    </div>
+  </section>
+
+  <section class="block" id="school">
+    <div class="block-head"><h2>School</h2><a href="https://isaacbsmith9-create.github.io/jarvis-demo/weekboard/">Open Weekboard</a></div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h3>Homework &amp; study</h3><span class="kpi num" id="hw-kpi"></span></div><div class="chart" id="c-hw"></div></div>
+      <div class="card"><div class="card-head"><h3>Tasks finished</h3><span class="kpi num" id="tk-kpi"></span></div><div class="sub">Gameplan tasks checked off each day</div><div class="chart" id="c-tasks"></div></div>
+      <div class="card"><div class="card-head"><h3>Spanish practice</h3><span class="kpi num" id="sp-kpi"></span></div><div class="chart" id="c-span"></div></div>
+    </div>
+  </section>
+
+  <section class="block" id="body">
+    <div class="block-head"><h2>Body</h2><a href="https://isaacbsmith9-create.github.io/jarvis-demo/#progress">Log weight</a></div>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><h3>Weight</h3><span class="kpi num" id="wt-kpi"></span></div><div class="chart" id="c-weight"></div></div>
+    </div>
+  </section>
+  <footer>Reads MacroLens, ReadyUp, Weekboard, Gameplan and Charla on this device. Nothing leaves your phone.</footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+// ===================== helpers =====================
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = (n) => String(n).padStart(2, '0');
+const isoDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const todayIso = () => isoDate(new Date());
+const shiftIso = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoDate(d); };
+const weekdayNum = (iso) => (new Date(iso + 'T12:00:00').getDay() + 6) % 7;
+const mondayOf = (iso) => shiftIso(iso, -weekdayNum(iso));
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const fmtDur = (m) => { m = Math.max(0, Math.round(m)); const h = Math.floor(m / 60), r = m % 60; return h ? (r ? `${h}h ${r}m` : `${h}h`) : `${r}m`; };
+const short = (iso) => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+const wk = (iso) => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short' });
+const avg = (a) => { const v = a.filter((x) => x != null && Number.isFinite(x)); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; };
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+// ===================== data: every app on this site shares one storage =====================
+let store = null; // null = real localStorage; an object = example data
+const rd = (k) => { if (store) return store[k] ?? null; try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
+const keys = () => { if (store) return Object.keys(store); try { return Object.keys(localStorage); } catch { return []; } };
+const MEALS = ['breakfast', 'lunch', 'dinner', 'snacks'];
+function mlTargets(iso) {
+  const c = rd('ml:core') || {};
+  const t = { calories: 2800, protein: 140, carbs: 390, fat: 84, waterOz: 100, ...(c.targets || {}) };
+  for (const [k, v] of Object.entries(c.overrides || {})) if (v > 0) t[k] = v;
+  if (rd('ml:day-' + iso)?.type === 'rest') { const cut = Math.round(t.carbs * 0.3); t.carbs -= cut; t.calories -= cut * 4; }
+  const w = rd('mlw:today'); if (w && w.date === iso && w.pTarget) t.protein = w.pTarget;
+  return t;
+}
+function mlDay(iso) {
+  const d = rd('ml:day-' + iso); if (!d) return null;
+  const o = { cal: 0, p: 0, c: 0, f: 0, n: 0, water: d.water || 0 };
+  for (const m of MEALS) for (const e of d[m] || []) { const s = e.servings ?? 1; o.cal += (e.calories || 0) * s; o.p += (e.protein || 0) * s; o.c += (e.carbs || 0) * s; o.f += (e.fat || 0) * s; o.n++; }
+  return o.n || o.water ? o : null;
+}
+function ruScore(c, goal) {
+  if (!c) return null;
+  const v = clamp((c.sleepH - (goal - 3.5)) / 3.5) * 30 + ((c.quality - 1) / 4) * 15 + ((5 - c.soreness) / 4) * 20 + ((c.energy - 1) / 4) * 15 + ((5 - c.stress) / 4) * 10 + 8;
+  return Number.isFinite(v) ? Math.round(clamp(v, 0, 100)) : null;
+}
+function ruDay(iso) {
+  const d = rd('ru:day-' + iso); if (!d) return null;
+  const goal = Number(rd('ru:core')?.settings?.goal) || 9;
+  return { checkin: d.checkin || null, score: ruScore(d.checkin, goal), sleepH: d.checkin?.sleepH ?? null, sore: d.checkin?.soreness ?? null, train: (d.sessions || []).reduce((a, s) => a + (Number(s.mins) || 0), 0) };
+}
+function wbItems(iso) {
+  const wc = rd('wb:core'); if (!wc) return [];
+  const w = rd('wb:w-' + mondayOf(iso)) || {}, wd = weekdayNum(iso);
+  return [...(wc.rules || []).filter((r) => (r.days || []).includes(wd) && !w.skip?.[`${r.id}|${iso}`]).map((r) => ({ type: r.type, mins: Number(r.mins) || 60, done: !!w.done?.[`${r.id}|${iso}`] })),
+    ...(w.items || []).filter((i) => i.date === iso).map((i) => ({ type: i.type, mins: Number(i.mins) || 60, done: !!i.done }))];
+}
+const gpCore = () => rd('gp:core') || { tasks: [], routine: { steps: [] }, settings: { phoneGoal: 120 } };
+function gpDay(iso) {
+  const d = rd('gp:d-' + iso) || {}, by = {};
+  for (const e of d.entries || []) by[e.cat] = (by[e.cat] || 0) + (Number(e.mins) || 0);
+  const r = gpCore().running; if (!store && r && isoDate(new Date(r.start)) === iso) by[r.cat] = (by[r.cat] || 0) + (Date.now() - r.start) / 60000;
+  return { d, by, tracked: (d.entries || []).length > 0 || !!(r && isoDate(new Date(r.start)) === iso) };
+}
+function gpNight(iso) {
+  const steps = gpCore().routine?.steps || [], n = rd('gp:d-' + iso)?.night?.done || {}, plan = (gpCore().tasks || []).some((t) => t.top === shiftIso(iso, 1));
+  return { done: steps.filter((s) => n[s.id] || (s.id === 'plan' && plan)).length, total: steps.length };
+}
+function chDay(iso) { const goal = Number(rd('ch:core')?.settings?.goal) || 5; return { mins: (rd('ch:day-' + iso)?.secs || 0) / 60, goal }; }
+const hasReal = () => { try { return Object.keys(localStorage).some((k) => /^(ml|ru|wb|gp|ch):/.test(k)); } catch { return false; } };
+
+// One row per day with everything the dashboard needs.
+function dayRow(iso) {
+  const ml = mlDay(iso), tg = mlTargets(iso), ru = ruDay(iso), gp = gpDay(iso), wb = wbItems(iso), ch = chDay(iso), gc = gpCore();
+  const wbTrain = wb.filter((i) => i.done && ['practice', 'game', 'lift'].includes(i.type)).reduce((a, i) => a + i.mins, 0);
+  const train = Math.max(ru?.train || 0, (gp.by.practice || 0) + (gp.by.training || 0), wbTrain);
+  const study = (gp.by.homework || 0) + wb.filter((i) => i.done && ['homework', 'study'].includes(i.type)).reduce((a, i) => a + i.mins, 0);
+  const tops = (gc.tasks || []).filter((t) => t.top === iso), night = gpNight(iso);
+  const finished = (gc.tasks || []).filter((t) => t.done && t.doneAt && isoDate(new Date(t.doneAt)) === iso).length;
+  const phoneGoal = gc.settings?.phoneGoal || 120;
+  const r = { iso, ml, tg, ru, gp, ch, train, study, tops, night, finished, phoneGoal };
+  // 0-1 scores per area (the same model as the Player card)
+  r.fuel = ml && ml.n ? 0.4 * clamp(ml.p / tg.protein) + 0.3 * clamp(1 - Math.abs(ml.cal - tg.calories) / (tg.calories * 0.5)) + 0.3 * clamp(ml.water / (tg.waterOz || 100)) : 0;
+  r.str = clamp(train / 90);
+  r.rec = (ru?.sleepH != null ? 0.7 * clamp(ru.sleepH / 9) : 0) + (night.total ? 0.3 * (night.done / night.total) : 0) + (ru?.sleepH == null && night.total ? 0.3 * (night.done / night.total) : 0);
+  r.iq = clamp(0.7 * clamp(study / 60) + 0.3 * clamp(ch.mins / ch.goal));
+  const parts = [], active = (ml?.n ? 1 : 0) + (ru?.checkin ? 1 : 0) + (ch.mins > 0 ? 1 : 0) + (gp.tracked || tops.length || night.done ? 1 : 0);
+  if (tops.length) parts.push(tops.filter((t) => t.done).length / Math.max(3, tops.length));
+  if (gp.by.phone != null) parts.push(clamp(1 - (gp.by.phone - phoneGoal) / phoneGoal));
+  parts.push(clamp(active / 3));
+  r.dsc = active || train || study ? parts.reduce((a, b) => a + b, 0) / parts.length : 0;
+  r.any = active > 0 || train > 0 || study > 0;
+  r.score = r.any ? Math.round(((r.fuel + r.str + r.rec + r.iq + r.dsc) / 5) * 100) : null;
+  return r;
+}
+
+// ===================== state =====================
+let N = 14;
+try { N = Number(localStorage.getItem('sb:range')) || 14; } catch {}
+let rows = [], cache = {};
+const getRow = (iso) => (cache[iso] ??= dayRow(iso));
+const rangeDays = (n) => Array.from({ length: n }, (_, i) => shiftIso(todayIso(), i - n + 1));
+
+// ===================== tooltip =====================
+const tip = $('#tip');
+function showTip(e, html) { tip.innerHTML = html; tip.hidden = false; const w = tip.offsetWidth, h = tip.offsetHeight; let x = e.clientX + 14, y = e.clientY - h - 12; if (x + w > innerWidth - 8) x = e.clientX - w - 14; if (y < 8) y = e.clientY + 16; tip.style.left = x + 'px'; tip.style.top = y + 'px'; }
+const hideTip = () => { tip.hidden = true; };
+const tipRow = (c, label, val) => `<div class="row"><span>${c ? `<i style="--c:${c}"></i>` : ''}${esc(label)}</span><span class="num">${val}</span></div>`;
+
+// ===================== charts (drawn at the card's real width, redrawn on resize) =====================
+const charts = [];
+function niceMax(v) { if (v <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))), f = v / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+function frame(el, H = 180) {
+  const W = Math.max(260, el.clientWidth || 320), L = 38, R = 8, T = 10, B = 22;
+  return { W, H, L, R, T, B, iw: W - L - R, ih: H - T - B };
+}
+function axes(f, max, fmt, days) {
+  let s = '';
+  for (let i = 0; i <= 4; i++) { const v = (max / 4) * i, y = f.T + f.ih - (v / max) * f.ih; s += `<line x1="${f.L}" x2="${f.W - f.R}" y1="${y}" y2="${y}" stroke="var(--grid)" stroke-width="1"/><text x="${f.L - 6}" y="${y + 4}" text-anchor="end">${fmt(v)}</text>`; }
+  const every = days.length > 16 ? 5 : days.length > 8 ? 2 : 1, bw = f.iw / days.length;
+  days.forEach((d, i) => { if ((days.length - 1 - i) % every === 0) s += `<text x="${f.L + bw * (i + 0.5)}" y="${f.H - 6}" text-anchor="middle">${days.length > 8 ? short(d).replace(/^\w+ /, '') : wk(d).slice(0, 2)}</text>`; });
+  return s;
+}
+function tableHtml(days, cols) {
+  return `<details class="table"><summary>Show as table</summary><div class="tw"><table><thead><tr><th>Day</th>${cols.map((c) => `<th>${esc(c.name)}</th>`).join('')}</tr></thead><tbody>${days.map((d, i) => `<tr><td>${wk(d)} ${short(d)}</td>${cols.map((c) => `<td>${c.values[i] == null ? '–' : esc(c.fmt ? c.fmt(c.values[i]) : c.values[i])}</td>`).join('')}</tr>`).join('')}</tbody></table></div></details>`;
+}
+// Hover zones: one invisible column per day, wider than the mark.
+function wireHover(el, f, days, html) {
+  const svg = el.querySelector('svg'), hl = svg.querySelector('.hl');
+  const at = (e) => { const r = svg.getBoundingClientRect(), x = e.clientX - r.left; const i = Math.floor(((x - f.L) / f.iw) * days.length); return i >= 0 && i < days.length ? i : -1; };
+  const show = (e) => { const i = at(e); if (i < 0) { hideTip(); hl.setAttribute('opacity', 0); return; } const bw = f.iw / days.length; hl.setAttribute('x', f.L + bw * i); hl.setAttribute('width', bw); hl.setAttribute('opacity', 1); showTip(e, html(i)); };
+  svg.addEventListener('pointermove', show); svg.addEventListener('pointerdown', show);
+  svg.addEventListener('pointerleave', () => { hideTip(); hl.setAttribute('opacity', 0); });
+}
+function barRounded(x, y, w, h, r = 4) { if (h <= 0) return ''; r = Math.min(r, w / 2, h); return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`; }
+
+/** Single-series bars with an optional dashed target line. */
+function bars(id, days, values, { color = 'var(--s1)', target = null, unit = '', fmt = (v) => Math.round(v), name = '', targetName = 'Goal' } = {}) {
+  const el = $('#' + id);
+  const draw = () => {
+    const f = frame(el), tv = Array.isArray(target) ? target : days.map(() => target);
+    const max = niceMax(Math.max(1, ...values.map((v) => v || 0), ...tv.map((v) => v || 0)) * 1.05);
+    const bw = f.iw / days.length, w = Math.max(3, Math.min(28, bw * 0.62));
+    let s = `<svg height="${f.H}" viewBox="0 0 ${f.W} ${f.H}" role="img" aria-label="${esc(name)} per day"><rect class="hl" x="0" y="${f.T}" width="0" height="${f.ih}" fill="var(--surface-2)" opacity="0"/>${axes(f, max, (v) => (v >= 1000 ? (v / 1000) + 'k' : Math.round(v)), days)}`;
+    values.forEach((v, i) => { if (!v) return; const h = (v / max) * f.ih, x = f.L + bw * i + (bw - w) / 2; s += `<path d="${barRounded(x, f.T + f.ih - h, w, h)}" fill="${color}"/>`; });
+    if (tv.some((v) => v)) s += `<path d="${tv.map((v, i) => v ? `${i && tv[i - 1] ? 'L' : 'M'}${f.L + bw * i},${f.T + f.ih - (v / max) * f.ih}H${f.L + bw * (i + 1)}` : '').join('')}" fill="none" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    el.innerHTML = s + '</svg>' + (tv.some((v) => v) ? `<div class="legend"><span><i style="--c:${color}"></i>${esc(name)}</span><span><i class="dash"></i>${esc(targetName)}</span></div>` : '') +
+      tableHtml(days, [{ name, values, fmt: (v) => fmt(v) + unit }, ...(tv.some((v) => v) ? [{ name: targetName, values: tv, fmt: (v) => fmt(v) + unit }] : [])]);
+    wireHover(el, f, days, (i) => `<b>${wk(days[i])} ${short(days[i])}</b>${tipRow(color, name, values[i] == null ? 'no data' : fmt(values[i]) + unit)}${tv[i] ? tipRow(null, targetName, fmt(tv[i]) + unit) : ''}`);
+  };
+  charts.push(draw); draw();
+}
+/** Lines (1-3 series) with gaps where there's no data, an optional reference line. */
+function lines(id, days, series, { min = 0, max = null, unit = '', fmt = (v) => Math.round(v), ref = null, refName = '' } = {}) {
+  const el = $('#' + id);
+  const draw = () => {
+    const f = frame(el), all = series.flatMap((s) => s.values).filter((v) => v != null);
+    if (!all.length) { el.innerHTML = '<div class="empty">No data in this range yet.</div>'; return; }
+    let lo = min ?? Math.min(...all), hi = max ?? niceMax(Math.max(...all, ref || 0) * 1.08);
+    if (min == null) { const span = Math.max(...all) - Math.min(...all) || 2; lo = Math.floor(Math.min(...all) - span * 0.3); hi = Math.ceil(Math.max(...all, ref ?? -Infinity) + span * 0.3); }
+    const bw = f.iw / days.length, x = (i) => f.L + bw * (i + 0.5), y = (v) => f.T + f.ih - ((v - lo) / (hi - lo)) * f.ih;
+    let s = `<svg height="${f.H}" viewBox="0 0 ${f.W} ${f.H}" role="img" aria-label="${esc(series.map((x2) => x2.name).join(' and '))} per day"><rect class="hl" x="0" y="${f.T}" width="0" height="${f.ih}" fill="var(--surface-2)" opacity="0"/>`;
+    for (let i = 0; i <= 4; i++) { const v = lo + ((hi - lo) / 4) * i; s += `<line x1="${f.L}" x2="${f.W - f.R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${f.L - 6}" y="${y(v) + 4}" text-anchor="end">${fmt(v)}</text>`; }
+    s += axes({ ...f, ih: 0 }, 1, () => '', days).replace(/<line[^>]*\/>|<text[^>]*text-anchor="end"[^>]*><\/text>/g, '');
+    if (ref != null) s += `<line x1="${f.L}" x2="${f.W - f.R}" y1="${y(ref)}" y2="${y(ref)}" stroke="var(--ink-2)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    for (const se of series) {
+      let d = '', prev = false;
+      se.values.forEach((v, i) => { if (v == null) { prev = false; return; } d += `${prev ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`; prev = true; });
+      s += `<path d="${d}" fill="none" stroke="${se.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      se.values.forEach((v, i) => { if (v != null && (days.length <= 14 || i === days.length - 1)) s += `<circle cx="${x(i)}" cy="${y(v)}" r="${i === days.length - 1 ? 4.5 : 3}" fill="${se.color}" stroke="var(--surface)" stroke-width="2"/>`; });
+    }
+    el.innerHTML = s + '</svg>' + (series.length > 1 || ref != null ? `<div class="legend">${series.map((se) => `<span><i class="line" style="--c:${se.color}"></i>${esc(se.name)}</span>`).join('')}${ref != null ? `<span><i class="dash"></i>${esc(refName)}</span>` : ''}</div>` : '') +
+      tableHtml(days, series.map((se) => ({ name: se.name, values: se.values, fmt: (v) => fmt(v) + unit })));
+    wireHover(el, f, days, (i) => `<b>${wk(days[i])} ${short(days[i])}</b>${series.map((se) => tipRow(se.color, se.name, se.values[i] == null ? 'no data' : fmt(se.values[i]) + unit)).join('')}`);
+  };
+  charts.push(draw); draw();
+}
+/** Stacked bars, categories in fixed palette order with a 2px surface gap between segments. */
+function stacked(id, days, cats, { unit = 'h', fmt = (v) => (v / 60).toFixed(1) } = {}) {
+  const el = $('#' + id);
+  const draw = () => {
+    const f = frame(el, 200), tot = days.map((_, i) => cats.reduce((a, c) => a + (c.values[i] || 0), 0));
+    if (!tot.some((v) => v)) { el.innerHTML = '<div class="empty">No time tracked in this range. Start timers in Gameplan → Time.</div>'; return; }
+    const max = niceMax(Math.max(...tot) / 60 * 1.05) * 60, bw = f.iw / days.length, w = Math.max(3, Math.min(28, bw * 0.62));
+    let s = `<svg height="${f.H}" viewBox="0 0 ${f.W} ${f.H}" role="img" aria-label="Hours tracked per day by category"><rect class="hl" x="0" y="${f.T}" width="0" height="${f.ih}" fill="var(--surface-2)" opacity="0"/>${axes(f, max, (v) => Math.round(v / 60) + 'h', days)}`;
+    days.forEach((d, i) => {
+      let acc = 0; const x = f.L + bw * i + (bw - w) / 2, segs = cats.filter((c) => c.values[i] > 0);
+      segs.forEach((c, j) => { const h = (c.values[i] / max) * f.ih, y0 = f.T + f.ih - ((acc + c.values[i]) / max) * f.ih; acc += c.values[i];
+        s += j === segs.length - 1 ? `<path d="${barRounded(x, y0, w, Math.max(0, h - (j ? 2 : 0)))}" fill="${c.color}"/>` : `<rect x="${x}" y="${y0}" width="${w}" height="${Math.max(0, h - (j ? 2 : 0))}" fill="${c.color}"/>`; });
+    });
+    const used = cats.filter((c) => c.values.some((v) => v > 0));
+    el.innerHTML = s + `</svg><div class="legend">${used.map((c) => `<span><i style="--c:${c.color}"></i>${esc(c.name)}</span>`).join('')}</div>` + tableHtml(days, used.map((c) => ({ name: c.name, values: c.values.map((v) => v || null), fmt: (v) => fmtDur(v) })));
+    wireHover(el, f, days, (i) => `<b>${wk(days[i])} ${short(days[i])} · ${fmtDur(tot[i])}</b>${used.filter((c) => c.values[i] > 0).map((c) => tipRow(c.color, c.name, fmtDur(c.values[i]))).join('') || 'Nothing tracked'}`);
+  };
+  charts.push(draw); draw();
+}
+/** Macro split as one horizontal bar of shares (it's one total, so a bar beats a pie). */
+function split(id, p, c, fat) {
+  const el = $('#' + id), kc = [p * 4, c * 4, fat * 9], sum = kc.reduce((a, b) => a + b, 0);
+  if (!sum) { el.innerHTML = '<div class="empty">Log food in MacroLens to see your split.</div>'; return; }
+  const parts = [['Protein', kc[0], 'var(--s1)', p], ['Carbs', kc[1], 'var(--s4)', c], ['Fat', kc[2], 'var(--s5)', fat]];
+  el.innerHTML = `<div style="display:flex;gap:2px;height:28px;border-radius:6px;overflow:hidden;margin:10px 0 8px">${parts.map(([n, v, col]) => `<div title="${n}" style="flex:${v};background:${col}"></div>`).join('')}</div>
+    <div class="stats3">${parts.map(([n, v, col, g]) => `<div><b class="num">${Math.round((v / sum) * 100)}%</b><small><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${col};margin-right:5px"></i>${n} · ${Math.round(g)} g/day</small></div>`).join('')}</div>`;
+}
+
+// ===================== render =====================
+const TIME_CATS = [
+  { name: 'School', ids: ['school'], color: 'var(--s1)' }, { name: 'Training', ids: ['practice', 'training'], color: 'var(--s2)' }, { name: 'Homework', ids: ['homework'], color: 'var(--s3)' },
+  { name: 'Gaming', ids: ['gaming'], color: 'var(--s4)' }, { name: 'Phone', ids: ['phone'], color: 'var(--s5)' }, { name: 'Work', ids: ['work'], color: 'var(--s6)' },
+  { name: 'Friends & family', ids: ['people'], color: 'var(--s7)' }, { name: 'Other', ids: ['other'], color: 'var(--s8)' },
+];
+const TIERS = [[94, 'D1 Ready'], [88, 'All-State'], [80, 'All-Conference'], [72, 'Starter'], [62, 'Rotation'], [0, 'Bench']];
+const deltaHtml = (now, base, unit = '', better = 'up') => {
+  if (now == null || base == null || !Number.isFinite(base)) return '';
+  const d = unit === ' h' ? Math.round((now - base) * 10) / 10 : Math.round(now - base); if (!d) return `<span>same as your ${N}-day avg</span>`;
+  const good = better === 'up' ? d > 0 : d < 0;
+  return `<span class="${good ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d).toLocaleString()}${unit}</span> vs ${N}-day avg`;
+};
+function tile(label, big, small, vs, pct, href) {
+  return `<a class="tile" href="${href}"><span class="lab">${label}</span><b class="num">${big}${small ? ` <small>${small}</small>` : ''}</b><span class="vs">${vs || '&nbsp;'}</span>${pct != null ? `<div class="bar"><div style="width:${clamp(pct) * 100}%"></div></div>` : ''}</a>`;
+}
+const SITE = 'https://isaacbsmith9-create.github.io/jarvis-demo/';
+function renderToday() {
+  const t = getRow(todayIso()), past = rows.slice(0, -1);
+  $('#today-sub').textContent = new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  const pAvg = avg(past.map((r) => r.ml?.p ?? null)), cAvg = avg(past.map((r) => r.ml?.cal ?? null)), sAvg = avg(past.map((r) => r.ru?.sleepH ?? null)), rAvg = avg(past.map((r) => r.ru?.score ?? null)), trAvg = avg(past.map((r) => r.train || null));
+  const tops = t.tops, ph = t.gp.by.phone;
+  $('#tiles').innerHTML = [
+    tile('Day score', t.score ?? '–', '/100', deltaHtml(t.score, avg(past.map((r) => r.score))), t.score != null ? t.score / 100 : null, '#score'),
+    tile('Calories', t.ml ? Math.round(t.ml.cal).toLocaleString() : '–', `/ ${t.tg.calories.toLocaleString()}`, deltaHtml(t.ml?.cal, cAvg), t.ml ? t.ml.cal / t.tg.calories : 0, SITE),
+    tile('Protein', t.ml ? Math.round(t.ml.p) : '–', `/ ${t.tg.protein} g`, deltaHtml(t.ml?.p, pAvg, ' g'), t.ml ? t.ml.p / t.tg.protein : 0, SITE),
+    tile('Water', t.ml ? t.ml.water : '–', `/ ${t.tg.waterOz} oz`, '', t.ml ? t.ml.water / t.tg.waterOz : 0, SITE),
+    tile('Readiness', t.ru?.score ?? '–', '/100', deltaHtml(t.ru?.score, rAvg), t.ru?.score != null ? t.ru.score / 100 : null, SITE + 'recovery/'),
+    tile('Sleep', t.ru?.sleepH ?? '–', 'h', deltaHtml(t.ru?.sleepH, sAvg, ' h'), t.ru?.sleepH != null ? t.ru.sleepH / 9 : null, SITE + 'recovery/'),
+    tile('Training', fmtDur(t.train), '', deltaHtml(t.train, trAvg, ' min'), clamp(t.train / 90), SITE + 'recovery/'),
+    tile('Top 3', tops.length ? `${tops.filter((x) => x.done).length}/${tops.length}` : '–', '', tops.length ? '' : 'Pick them in Gameplan', tops.length ? tops.filter((x) => x.done).length / tops.length : null, SITE + 'gameplan/'),
+    tile('Phone', ph != null ? fmtDur(ph) : '–', '', ph != null ? (ph <= t.phoneGoal ? `<span class="up">under</span> your ${fmtDur(t.phoneGoal)} goal` : `<span class="down">over</span> your ${fmtDur(t.phoneGoal)} goal`) : 'Track it in Gameplan', ph != null ? ph / t.phoneGoal : null, SITE + 'gameplan/#time'),
+    tile('Spanish', Math.floor(t.ch.mins), `/ ${t.ch.goal} min`, '', t.ch.mins / t.ch.goal, SITE + 'charla/'),
+  ].join('');
+}
+function renderScore() {
+  const last14 = rangeDays(14).map(getRow), a = (k) => last14.reduce((s, r) => s + r[k], 0) / 14;
+  const r = { fuel: a('fuel'), str: clamp(last14.reduce((s, x) => s + x.str, 0) / 10), rec: a('rec'), iq: a('iq'), dsc: a('dsc') };
+  const R = Object.fromEntries(Object.entries(r).map(([k, v]) => [k, Math.round(45 + 54 * clamp(v))]));
+  const ovr = Math.round((R.fuel * 1.1 + R.str * 1.2 + R.rec + R.iq * 0.8 + R.dsc * 0.9) / 5);
+  $('#scorecard').innerHTML = `<div><div class="ovr"><b class="num">${ovr}</b><small>OVR</small></div><div class="tier" style="text-align:center;width:96px">${TIERS.find(([m]) => ovr >= m)[1]}</div></div>
+    <div class="ratings">${[['Fuel', 'fuel'], ['Strength', 'str'], ['Recovery', 'rec'], ['IQ', 'iq'], ['Discipline', 'dsc']].map(([n, k]) => `<div class="rating"><span>${n}</span><div class="bar"><div style="width:${((R[k] - 40) / 59) * 100}%"></div></div><b class="num">${R[k]}</b></div>`).join('')}</div>`;
+  const days = rows.map((x) => x.iso), sc = rows.map((x) => x.score);
+  $('#ds-kpi').innerHTML = `${Math.round(avg(sc) ?? 0)}<small>avg</small>`;
+  lines('c-dayscore', days, [{ name: 'Day score', values: sc, color: 'var(--s1)' }], { min: 0, max: 100 });
+}
+const HABITS = [
+  { name: 'Logged food', app: 'MacroLens', test: (r) => (r.ml?.n ? true : r.any ? false : null) },
+  { name: 'Hit protein', test: (r) => (r.ml?.n ? r.ml.p >= r.tg.protein * 0.95 : r.any ? false : null) },
+  { name: 'Water goal', test: (r) => (r.ml ? r.ml.water >= r.tg.waterOz : r.any ? false : null) },
+  { name: 'Trained 60+ min', test: (r) => (r.any ? r.train >= 60 : null) },
+  { name: 'Checked in', test: (r) => (r.any ? !!r.ru?.checkin : null) },
+  { name: 'Slept 8+ hours', test: (r) => (r.ru?.sleepH != null ? r.ru.sleepH >= 8 : null) },
+  { name: 'Top 3 done', test: (r) => (r.tops.length ? r.tops.every((t) => t.done) : null) },
+  { name: 'Night routine', test: (r) => (r.night.total && r.any ? r.night.done === r.night.total : null) },
+  { name: 'Spanish goal', test: (r) => (r.any ? r.ch.mins >= r.ch.goal : null) },
+  { name: 'Phone under goal', test: (r) => (r.gp.by.phone != null ? r.gp.by.phone <= r.phoneGoal : null) },
+];
+function renderHabits() {
+  const n = rows.length;
+  let html = `<div class="hrow head" style="--n:${n}"><span></span>${rows.map((r, i) => `<span class="hd">${n <= 14 || i % 5 === (n - 1) % 5 ? (n <= 7 ? wk(r.iso).slice(0, 2) : r.iso.slice(8).replace(/^0/, '')) : ''}</span>`).join('')}<span class="hd">rate</span></div>`;
+  let best = null;
+  for (const h of HABITS) {
+    const v = rows.map(h.test), known = v.filter((x) => x != null), hit = known.filter(Boolean).length;
+    const pct = known.length ? Math.round((hit / known.length) * 100) : null;
+    if (pct != null && (!best || pct > best.pct)) best = { name: h.name, pct };
+    html += `<div class="hrow" style="--n:${n}"><span class="hn" title="${esc(h.name)}">${esc(h.name)}</span>${v.map((x, i) => `<span class="hc${x ? ' on' : x == null ? ' na' : ''}" title="${esc(h.name)} · ${wk(rows[i].iso)} ${short(rows[i].iso)}: ${x ? 'done' : x == null ? 'no data' : 'missed'}"></span>`).join('')}<span class="hp">${pct == null ? '–' : pct + '%'}</span></div>`;
+  }
+  $('#habit-grid').innerHTML = html;
+  $('#habit-sub').textContent = best ? `Best: ${best.name} (${best.pct}%)` : '';
+  // streaks ending today (or yesterday if today isn't done yet)
+  const streakOf = (h) => { let d = todayIso(), k = 0; if (!h.test(getRow(d))) d = shiftIso(d, -1); while (h.test(getRow(d)) && k < 365) { k++; d = shiftIso(d, -1); } return k; };
+  $('#streaks').innerHTML = HABITS.filter((h) => !['Phone under goal'].includes(h.name)).map((h) => { const k = streakOf(h); return `<div class="streak"><b class="num">${k}</b><span>${esc(h.name)}</span></div>`; }).join('');
+}
+function renderFood() {
+  const days = rows.map((r) => r.iso), logged = rows.filter((r) => r.ml?.n);
+  const cal = rows.map((r) => (r.ml?.n ? Math.round(r.ml.cal) : null)), pro = rows.map((r) => (r.ml?.n ? Math.round(r.ml.p) : null)), wat = rows.map((r) => r.ml?.water || null);
+  $('#cal-kpi').innerHTML = logged.length ? `${Math.round(avg(cal)).toLocaleString()}<small>avg / day</small>` : '';
+  $('#pro-kpi').innerHTML = logged.length ? `${Math.round(avg(pro))} g<small>avg · hit ${rows.filter((r) => r.ml?.n && r.ml.p >= r.tg.protein * 0.95).length} of ${logged.length} days</small>` : '';
+  $('#wat-kpi').innerHTML = rows.some((r) => r.ml?.water) ? `${Math.round(avg(wat))} oz<small>avg</small>` : '';
+  bars('c-cal', days, cal, { color: 'var(--s1)', target: rows.map((r) => r.tg.calories), name: 'Calories', targetName: 'Target', fmt: (v) => Math.round(v).toLocaleString() });
+  bars('c-pro', days, pro, { color: 'var(--s3)', target: rows.map((r) => r.tg.protein), unit: ' g', name: 'Protein', targetName: 'Target' });
+  bars('c-wat', days, wat, { color: 'var(--s1)', target: rows.map((r) => r.tg.waterOz), unit: ' oz', name: 'Water', targetName: 'Goal' });
+  split('c-split', avg(logged.map((r) => r.ml.p)) || 0, avg(logged.map((r) => r.ml.c)) || 0, avg(logged.map((r) => r.ml.f)) || 0);
+}
+function renderTraining() {
+  const days = rows.map((r) => r.iso), tr = rows.map((r) => r.train || null);
+  $('#tr-kpi').innerHTML = `${fmtDur(tr.reduce((a, v) => a + (v || 0), 0))}<small>total · ${tr.filter(Boolean).length} days</small>`;
+  bars('c-train', days, tr, { color: 'var(--s2)', unit: ' min', name: 'Training' });
+  const sl = rows.map((r) => r.ru?.sleepH ?? null), rdn = rows.map((r) => r.ru?.score ?? null), so = rows.map((r) => r.ru?.sore ?? null);
+  $('#sl-kpi').innerHTML = avg(sl) != null ? `${avg(sl).toFixed(1)} h<small>avg</small>` : '';
+  $('#rd-kpi').innerHTML = avg(rdn) != null ? `${Math.round(avg(rdn))}<small>avg</small>` : '';
+  $('#so-kpi').innerHTML = avg(so) != null ? `${avg(so).toFixed(1)}<small>avg</small>` : '';
+  lines('c-sleep', days, [{ name: 'Sleep', values: sl, color: 'var(--s7)' }], { min: 4, max: 11, unit: ' h', fmt: (v) => (Math.round(v * 10) / 10).toString(), ref: 8, refName: '8 hour goal' });
+  lines('c-ready', days, [{ name: 'Readiness', values: rdn, color: 'var(--s3)' }], { min: 0, max: 100 });
+  lines('c-sore', days, [{ name: 'Soreness', values: so, color: 'var(--s2)' }], { min: 1, max: 5 });
+}
+function renderTime() {
+  const days = rows.map((r) => r.iso);
+  const cats = TIME_CATS.map((c) => ({ ...c, values: rows.map((r) => c.ids.reduce((a, id) => a + (r.gp.by[id] || 0), 0)) }));
+  const tot = rows.reduce((a, r) => a + Object.values(r.gp.by).reduce((x, y) => x + y, 0), 0), tracked = rows.filter((r) => Object.keys(r.gp.by).length).length;
+  $('#time-kpi').innerHTML = tracked ? `${(tot / 60 / tracked).toFixed(1)} h<small>avg tracked</small>` : '';
+  stacked('c-time', days, cats);
+  const phone = rows.map((r) => (r.gp.by.phone != null ? Math.round(r.gp.by.phone) : null)), train = rows.map((r) => r.train || null);
+  const pa = avg(phone), ta = avg(rows.map((r) => r.train));
+  $('#pt-kpi').innerHTML = pa != null ? `${fmtDur(pa)} vs ${fmtDur(ta || 0)}<small>avg</small>` : '';
+  lines('c-phone', days, [{ name: 'Phone', values: phone, color: 'var(--s5)' }, { name: 'Training', values: train, color: 'var(--s2)' }], { min: 0, unit: ' min', ref: rows.at(-1).phoneGoal, refName: 'Phone goal' });
+}
+function renderSchool() {
+  const days = rows.map((r) => r.iso), hw = rows.map((r) => Math.round(r.study) || null), tk = rows.map((r) => r.finished || null), sp = rows.map((r) => Math.round(r.ch.mins) || null);
+  $('#hw-kpi').innerHTML = `${fmtDur(hw.reduce((a, v) => a + (v || 0), 0))}<small>total</small>`;
+  $('#tk-kpi').innerHTML = `${tk.reduce((a, v) => a + (v || 0), 0)}<small>finished</small>`;
+  $('#sp-kpi').innerHTML = `${sp.filter((v, i) => v && v >= rows[i].ch.goal).length}<small>of ${rows.length} days at goal</small>`;
+  bars('c-hw', days, hw, { color: 'var(--s3)', unit: ' min', name: 'Homework & study' });
+  bars('c-tasks', days, tk, { color: 'var(--s7)', name: 'Tasks finished' });
+  bars('c-span', days, sp, { color: 'var(--s4)', unit: ' min', target: rows.map((r) => r.ch.goal), name: 'Spanish', targetName: 'Daily goal' });
+}
+function renderBody() {
+  const c = rd('ml:core') || {}, ws = [...(c.weights || [])].sort((a, b) => a.date.localeCompare(b.date));
+  const days = rows.map((r) => r.iso), byDay = Object.fromEntries(ws.map((w) => [w.date, w.lb]));
+  // Carry the series across the range: show actual weigh-ins as points on a daily axis.
+  const vals = days.map((d) => byDay[d] ?? null);
+  const last = ws.at(-1), first = ws.find((w) => w.date >= days[0]);
+  $('#wt-kpi').innerHTML = last ? `${last.lb} lb${first && first !== last ? `<small>${last.lb - first.lb >= 0 ? '+' : ''}${(last.lb - first.lb).toFixed(1)} in range</small>` : ''}` : '';
+  if (!vals.some((v) => v != null)) { $('#c-weight').innerHTML = `<div class="empty">${ws.length ? 'No weigh-ins in this range. Try 30 days.' : 'Log your weight in MacroLens → Progress.'}</div>`; return; }
+  const gw = c.goalW;
+  lines('c-weight', days, [{ name: 'Weight', values: vals, color: 'var(--s1)' }], { min: null, unit: ' lb', fmt: (v) => (Math.round(v * 10) / 10).toString(), ref: gw?.lb ?? null, refName: gw ? `Goal ${gw.lb} lb by ${short(gw.date)}` : '' });
+}
+function renderAll() {
+  cache = {}; charts.length = 0;
+  rows = rangeDays(N).map(getRow);
+  $('#date').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  $$('#range button').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.n) === N)));
+  renderToday(); renderScore(); renderHabits(); renderFood(); renderTraining(); renderTime(); renderSchool(); renderBody();
+}
+
+// ===================== example data (only when this device has none) =====================
+function exampleStore() {
+  const s = {}, T = todayIso(); let seed = 7; const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+  s['ml:core'] = { targets: { calories: 3000, protein: 155, carbs: 400, fat: 90, waterOz: 102 }, overrides: {}, weights: [], goalW: { lb: 165, date: shiftIso(T, 90) } };
+  s['ru:core'] = { settings: { goal: 9 } }; s['ch:core'] = { settings: { goal: 5 } };
+  const tasks = []; s['gp:core'] = { tasks, routine: { steps: [{ id: 'bag' }, { id: 'charge' }, { id: 'read' }] }, settings: { phoneGoal: 120 } };
+  s['wb:core'] = { rules: [{ id: 'p', title: 'Practice', type: 'practice', days: [0, 1, 2, 3, 4], start: '15:30', mins: 120 }], tray: [] };
+  for (let i = 29; i >= 0; i--) {
+    const d = shiftIso(T, -i), wd = weekdayNum(d), school = wd < 5, trend = (29 - i) / 29;
+    const p = Math.round(110 + 40 * trend + rnd() * 30), cal = Math.round(2500 + 400 * trend + rnd() * 500);
+    s['ml:day-' + d] = { breakfast: [{ name: 'Breakfast', calories: cal * 0.25, protein: p * 0.25, carbs: cal * 0.25 * 0.55 / 4, fat: cal * 0.25 * 0.25 / 9 }], lunch: [{ name: 'Lunch', calories: cal * 0.35, protein: p * 0.35, carbs: cal * 0.35 * 0.5 / 4, fat: cal * 0.35 * 0.28 / 9 }], dinner: i === 0 ? [] : [{ name: 'Dinner', calories: cal * 0.4, protein: p * 0.4, carbs: cal * 0.4 * 0.5 / 4, fat: cal * 0.4 * 0.3 / 9 }], snacks: [], water: Math.round(60 + rnd() * 50) };
+    const sleep = Math.round((6.6 + rnd() * 2.4 + trend * 0.4) * 10) / 10;
+    s['ru:day-' + d] = { checkin: rnd() < 0.85 ? { sleepH: sleep, quality: 3 + Math.round(rnd()), soreness: 2 + Math.round(rnd() * 2), energy: 3 + Math.round(rnd()), stress: 2 + Math.round(rnd()) } : null, sessions: school || rnd() < 0.4 ? [{ type: 'Practice', mins: school ? 120 : 60, rpe: 6 }] : [] };
+    const entries = [{ cat: 'phone', mins: Math.round(160 - 60 * trend + rnd() * 60) }, { cat: 'homework', mins: school ? Math.round(30 + rnd() * 60) : 0 }, { cat: 'gaming', mins: Math.round(rnd() * 90) }, { cat: 'people', mins: Math.round(rnd() * 60) }];
+    if (school) entries.push({ cat: 'school', mins: 420 }, { cat: 'practice', mins: 120 });
+    s['gp:d-' + d] = { blocks: [], entries: entries.filter((e) => e.mins > 0).map((e) => ({ ...e, start: new Date(d + 'T15:00:00').getTime() })), night: { done: rnd() < 0.6 ? { bag: true, charge: true, read: true } : { bag: true } } };
+    for (let k = 0; k < 3; k++) tasks.push({ id: d + k, title: 'Task', top: d, done: i === 0 ? k === 0 : rnd() < 0.7, doneAt: new Date(d + 'T18:00:00').getTime() });
+    s['ch:day-' + d] = { secs: rnd() < 0.7 ? Math.round(240 + rnd() * 400) : 0 };
+    if (i % 3 === 0) s['ml:core'].weights.push({ date: d, lb: Math.round((152 + trend * 3 + rnd() * 0.8) * 10) / 10 });
+  }
+  return s;
+}
+
+// ===================== wiring =====================
+$('#range').addEventListener('click', (e) => { const b = e.target.closest('[data-n]'); if (!b) return; N = Number(b.dataset.n); try { localStorage.setItem('sb:range', N); } catch {} renderAll(); });
+let rt; window.addEventListener('scroll', hideTip, { passive: true });
+window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => charts.forEach((d) => d()), 150); });
+window.addEventListener('storage', () => { if (!store) renderAll(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !store) renderAll(); });
+// Highlight the section in view.
+const io = 'IntersectionObserver' in window ? new IntersectionObserver((ents) => { for (const en of ents) if (en.isIntersecting) $$('#secnav a').forEach((a) => a.classList.toggle('on', a.getAttribute('href') === '#' + en.target.id)); }, { rootMargin: '-60px 0px -60% 0px' }) : null;
+$$('section.block').forEach((s) => io?.observe(s));
+if (!hasReal()) { store = exampleStore(); $('#demo').hidden = false; }
+renderAll();
+</script>
+
+</body>
+</html>
