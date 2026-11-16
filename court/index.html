@@ -130,17 +130,70 @@ dialog.board::backdrop { background: rgba(0, 0, 0, .6); }
 .big3 div { background: var(--surface-2); border-radius: 12px; padding: 10px; }
 .big3 b { display: block; font-family: var(--f-display); font-size: 26px; }
 .big3 small { font-size: 12px; color: var(--muted); }
-nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr; padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(5, 1fr); padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
 .tab { display: grid; justify-items: center; gap: 2px; padding: 6px; font-size: 12px; font-weight: 600; color: var(--muted); text-decoration: none; }
 .tab svg { width: 22px; height: 22px; }
 .tab[aria-current="page"] { color: var(--accent); }
+.tab { font-size: 11px; }
+.preset { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
+.preset:first-of-type { border-top: 0; }
+.preset b { font-size: 16px; } .preset small { color: var(--muted); font-size: 13px; grid-column: 1; }
+.preset .btn { grid-row: 1 / span 2; grid-column: 2; }
+.drill-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.drill-row:first-child { border-top: 0; }
+.drill-row .n { font-family: var(--f-display); font-weight: 700; color: var(--muted); text-align: center; }
+.drill-row small { display: block; color: var(--muted); font-size: 12px; }
+.drill-row .amt { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+/* player */
+dialog.player { border: 0; padding: 0; width: 100%; max-width: 620px; height: 100%; max-height: 100%; margin: 0 auto; background: var(--bg); color: var(--fg); }
+.pl-in { height: 100%; display: grid; grid-template-rows: auto auto 1fr auto; gap: 12px; padding: calc(12px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.pl-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.pl-prog { height: 6px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.pl-prog div { height: 100%; background: var(--accent); }
+.pl-main { display: grid; align-content: center; justify-items: center; gap: 10px; text-align: center; min-height: 0; }
+.pl-phase { font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.pl-name { font-family: var(--f-display); font-weight: 800; font-size: clamp(30px, 8vw, 44px); line-height: 1.05; text-transform: uppercase; }
+.pl-cue { color: var(--muted); max-width: 34ch; margin: 0; }
+.ring-t { width: min(62vw, 240px); }
+.ring-t svg { width: 100%; height: auto; display: block; }
+.ring-t .tv { font-family: var(--f-display); font-weight: 800; font-size: 56px; fill: var(--fg); }
+.ring-t .tl { font-size: 13px; fill: var(--muted); font-family: var(--f-body); }
+.pl-reps { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 360px; }
+.pl-reps button { border: 0; border-radius: 16px; padding: 18px 0; font-size: 20px; font-weight: 800; }
+.pl-reps .mk { background: var(--accent); color: var(--accent-ink); } .pl-reps .ms { background: var(--surface-2); }
+.pl-clip { width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #000; max-width: 100%; }
+.pl-clip iframe { width: 100%; height: 100%; border: 0; display: block; }
+.pl-next { color: var(--muted); font-size: 14px; text-align: center; }
+.pl-ctrl { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 8px; }
+/* shots */
+.shot-court { border-radius: 14px; overflow: hidden; background: var(--court); }
+.shot-court svg { display: block; width: 100%; height: auto; }
+.shot-court .lines { fill: none; stroke: var(--court-line); stroke-width: 2; }
+.spot { cursor: pointer; }
+.spot text { font: 700 9.5px var(--f-body); fill: var(--fg); pointer-events: none; }
+.spot .pct { font-size: 10.5px; }
+.shot-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.shot-btns button { border: 0; border-radius: 14px; padding: 16px 0; font-size: 18px; font-weight: 800; }
+.shot-btns .mk { background: var(--accent); color: var(--accent-ink); } .shot-btns .ms { background: var(--surface-2); }
+.trend svg { width: 100%; height: auto; display: block; }
+.trend text { font: 10px var(--f-body); fill: var(--muted); }
+/* videos */
+textarea { width: 100%; border: 1px solid var(--line); background: var(--surface-2); border-radius: 10px; padding: 10px 12px; font: 14px/1.4 var(--f-body); color: inherit; min-height: 110px; resize: vertical; }
+.vid-clip { aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; margin-top: 10px; max-width: 100%; }
+.vid-clip iframe { width: 100%; height: 100%; border: 0; display: block; }
+.vrow { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.vrow:first-child { border-top: 0; }
+.vrow .ts { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+.vrow .acts { display: flex; gap: 6px; }
+.vrow .acts button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 9px; padding: 6px 10px; font-size: 13px; font-weight: 700; }
+.vrow .acts button.go { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 9px 14px; border-radius: 99px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 30; max-width: calc(100% - 32px); text-align: center; }
 .toast.show { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
 <div class="wrap">
-  <header class="top"><h1>Court<span>Lab</span></h1><p>Small-sided games for you and a partner</p></header>
+  <header class="top"><h1>Court<span>Lab</span></h1><p>Games, workouts, shots and video drills</p></header>
 
   <section class="view" id="v-games">
     <div class="card" id="setup">
@@ -171,6 +224,48 @@ nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background
     </div>
   </section>
 
+  <section class="view" id="v-solo" hidden>
+    <div class="card">
+      <h2>Solo workout</h2><p class="muted small" style="margin:4px 0 0">No partner? Build a workout and the app runs it hands-free: it calls out each drill, counts down, and beeps.</p>
+      <div class="label">Work on</div>
+      <div class="chips" id="s-focus"><button type="button" class="chip" data-v="handles">Handles</button><button type="button" class="chip" data-v="shooting">Shooting</button><button type="button" class="chip" data-v="finishing">Finishing</button><button type="button" class="chip" data-v="athletic">Athletic</button></div>
+      <div class="label">Time</div>
+      <div class="chips" id="s-time"><button type="button" class="chip" data-v="15">15 min</button><button type="button" class="chip" data-v="30">30 min</button><button type="button" class="chip" data-v="45">45 min</button></div>
+      <button class="btn primary wide" id="s-build" type="button" style="margin-top:16px">Build workout</button>
+    </div>
+    <div class="card" id="s-plan" hidden></div>
+    <div class="card"><h3>Quick starts</h3><div id="s-presets" style="margin-top:6px"></div></div>
+    <div class="card"><h3>Workouts done</h3><div id="s-hist" style="margin-top:6px"></div></div>
+  </section>
+
+  <section class="view" id="v-shots" hidden>
+    <div class="card">
+      <div class="sess-head"><h2>Shot chart</h2><div class="chips" id="sh-mode"><button type="button" class="chip" data-v="live">This session</button><button type="button" class="chip" data-v="all">All-time</button></div></div>
+      <p class="muted small" style="margin:6px 0 10px" id="sh-help">Tap a spot, then tap Make or Miss for every shot.</p>
+      <div class="shot-court" id="sh-court"></div>
+      <div id="sh-live-ctrl">
+        <div class="muted small" id="sh-sel" style="margin:10px 0 8px;text-align:center"></div>
+        <div class="shot-btns"><button type="button" class="ms" id="sh-miss">Miss</button><button type="button" class="mk" id="sh-make">Make</button></div>
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-top:8px"><button type="button" class="btn" id="sh-undo">Undo</button><button type="button" class="btn primary" id="sh-save">Save session</button></div>
+      </div>
+    </div>
+    <div class="card"><h3>Shooting numbers</h3><div class="big3" id="sh-stats" style="margin-top:10px"></div><p class="small" id="sh-best" style="margin:10px 0 0"></p></div>
+    <div class="card trend"><h3>FG% by session</h3><div id="sh-trend" style="margin-top:8px"></div></div>
+  </section>
+
+  <section class="view" id="v-videos" hidden>
+    <div class="card">
+      <h2>Video drills</h2>
+      <p class="muted small" style="margin:4px 0 10px">Paste a YouTube training video, then paste its chapters (from the description) or its transcript (… → Show transcript). Each drill becomes a 10-second clip you can watch, then do.</p>
+      <input type="text" id="v-link" placeholder="YouTube link" autocomplete="off" inputmode="url">
+      <input type="text" id="v-name" placeholder="Name it (optional): Cole handles workout" autocomplete="off" style="margin-top:8px">
+      <textarea id="v-text" placeholder="0:00 Intro&#10;0:45 Pound dribbles&#10;2:10 Crossover series&#10;… or paste the transcript" style="margin-top:8px"></textarea>
+      <button class="btn primary wide" id="v-go" type="button" style="margin-top:10px">Find the drills</button>
+      <p class="muted small" style="margin:8px 0 0">YouTube only. TikTok and Instagram can't be clipped by time.</p>
+    </div>
+    <div id="v-list"></div>
+  </section>
+
   <section class="view" id="v-record" hidden>
     <div class="card"><h2>Record</h2><div class="big3" id="rec-big" style="margin-top:12px"></div></div>
     <div class="card"><h3>Win % by skill</h3><p class="muted small" style="margin:4px 0 10px">The skills you lose most are the ones to build next.</p><div class="bars" id="rec-skill"></div></div>
@@ -180,6 +275,9 @@ nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background
 
 <nav class="tabs" aria-label="Sections">
   <a class="tab" href="#games" data-tab="games"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>Games</a>
+  <a class="tab" href="#solo" data-tab="solo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>Solo</a>
+  <a class="tab" href="#shots" data-tab="shots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4h16"/><path d="M8 4v3a4 4 0 0 0 8 0V4"/><circle cx="7" cy="17" r="1.6" fill="currentColor"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/><circle cx="17" cy="16" r="1.6" fill="currentColor"/></svg>Shots</a>
+  <a class="tab" href="#videos" data-tab="videos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg>Videos</a>
   <a class="tab" href="#record" data-tab="record"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20h16M7 16v-5M12 16V6M17 16v-8"/></svg>Record</a>
 </nav>
 
@@ -190,6 +288,12 @@ nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background
     <div class="side you"><div class="who">You</div><div class="pts num" id="b-you">0</div><div class="adds" data-side="you"><button type="button" data-add="1">+1</button><button type="button" data-add="2">+2</button><button type="button" data-add="3">+3</button></div></div>
   </div>
   <div><div class="win-banner" id="b-win" hidden></div><div class="board-foot"><button type="button" class="btn" id="b-undo">Undo</button><button type="button" class="btn primary" id="b-save">Save result</button></div></div>
+</div></dialog>
+<dialog class="player" id="player" aria-labelledby="pl-name"><div class="pl-in">
+  <div><div class="pl-top"><span class="muted small num" id="pl-count"></span><button type="button" class="btn" id="pl-exit">End</button></div><div class="pl-prog" style="margin-top:10px"><div id="pl-prog"></div></div></div>
+  <div id="pl-clip"></div>
+  <div class="pl-main"><div class="pl-phase" id="pl-phase"></div><div class="pl-name" id="pl-name"></div><p class="pl-cue" id="pl-cue"></p><div id="pl-center"></div></div>
+  <div><div class="pl-next" id="pl-next"></div><div class="pl-ctrl" style="margin-top:10px"><button type="button" class="btn" id="pl-back">Back</button><button type="button" class="btn primary" id="pl-pause">Pause</button><button type="button" class="btn" id="pl-skip">Skip</button></div></div>
 </div></dialog>
 <div class="toast" id="toast" role="status"></div>
 
@@ -432,9 +536,278 @@ $('#session').addEventListener('click', (e) => {
   const s = e.target.closest('[data-swap]'); if (s) return swapGame(Number(s.dataset.swap));
   if (e.target.closest('#reroll')) { buildSession(Date.now() % 1000000); renderSession(); toast('New session built'); }
 });
+// ===================== Drill library (solo) =====================
+// kind 'time' = seconds of work, kind 'reps' = makes to hit.
+const DRILLS = [
+  ['handles', 'Pound dribbles, right', 'time', 30, 'As hard as you can, ball below the knee, eyes up.'],
+  ['handles', 'Pound dribbles, left', 'time', 30, 'Same speed as your right. Do not let it get soft.'],
+  ['handles', 'Low crossovers', 'time', 30, 'Wide and low. Ball never comes above your knee.'],
+  ['handles', 'Between the legs', 'time', 30, 'Push it through hard, stay in a low stance.'],
+  ['handles', 'Behind the back', 'time', 30, 'Wrap it tight to your hip, keep your chest up.'],
+  ['handles', 'Cross, legs, back combo', 'time', 45, 'Chain all three without stopping. Speed up each round.'],
+  ['handles', 'Two-ball pounds', 'time', 30, 'Both balls hit the floor at the same time.'],
+  ['handles', 'Two-ball alternating', 'time', 30, 'Like a drum beat: left, right, left, right.'],
+  ['handles', 'In-and-out to cross', 'time', 45, 'Sell the in-and-out with your head and shoulders.'],
+  ['handles', 'Hesi and go', 'time', 45, 'Freeze at the top, then explode past an imaginary defender.'],
+  ['handles', 'Retreat dribble and attack', 'time', 45, 'Two hard retreat dribbles, then attack forward.'],
+  ['shooting', 'Form shooting, one hand', 'reps', 10, 'Close to the rim. Elbow in, hold your follow-through.'],
+  ['shooting', 'Corner threes', 'reps', 10, 'Feet set before the catch. Shoot it the same every time.'],
+  ['shooting', 'Wing threes', 'reps', 10, 'Hop into your shot, land where you took off.'],
+  ['shooting', 'One-dribble pull-up, right', 'reps', 10, 'Big last dribble, stop on a dime, rise straight up.'],
+  ['shooting', 'One-dribble pull-up, left', 'reps', 10, 'Same rhythm going left. Square up before you rise.'],
+  ['shooting', 'Step-back threes', 'reps', 8, 'Push off hard, land balanced, then shoot.'],
+  ['shooting', 'Elbow jumpers', 'reps', 10, 'Game speed. Sprint to the spot every rep.'],
+  ['shooting', 'Free throws', 'reps', 10, 'Same routine every single shot.'],
+  ['finishing', 'Mikan drill', 'time', 60, 'Never let the ball touch the floor. Both hands.'],
+  ['finishing', 'Reverse Mikan', 'time', 60, 'Use the rim to protect the ball.'],
+  ['finishing', 'Off-hand layups', 'reps', 10, 'From the wing, two hard dribbles, weak hand finish.'],
+  ['finishing', 'Euro step layups', 'reps', 10, 'Long first step one way, then the other.'],
+  ['finishing', 'Floaters', 'reps', 10, 'Release it early and high off one foot.'],
+  ['finishing', 'Two-foot power layups', 'reps', 10, 'Jump stop, chin the ball, go up strong.'],
+  ['finishing', 'Reverse layups', 'reps', 8, 'Finish on the far side with spin off the glass.'],
+  ['athletic', 'Defensive slides', 'time', 30, 'Lane line to lane line, stay low, no crossing feet.'],
+  ['athletic', 'Closeout and slide', 'time', 30, 'Sprint, chop your feet, slide two steps, repeat.'],
+  ['athletic', 'Skater jumps', 'time', 30, 'Stick every landing for a second.'],
+  ['athletic', 'Jump rope', 'time', 60, 'Light and quick on the balls of your feet.'],
+  ['athletic', 'Down-and-backs', 'time', 45, 'Full sprints. Touch the line every time.'],
+].map(([cat, name, kind, amt, cue]) => ({ cat, name, kind, secs: kind === 'time' ? amt : 0, reps: kind === 'reps' ? amt : 0, cue }));
+const WARM = { cat: 'warm', name: 'Dynamic warm-up', kind: 'time', secs: 120, reps: 0, cue: 'High knees, butt kicks, lunges, arm circles. Get loose.' };
+const estSecs = (d) => (d.kind === 'time' ? d.secs : d.reps * 9) + 15;
+let solo = rd('solo', { focus: ['handles', 'shooting'], time: '30' }), plan = null;
+function buildWorkout(focus, minutes, seed) {
+  const r = rng(seed), cats = focus.length ? focus : ['handles'], goal = minutes * 60, out = [{ ...WARM }];
+  const pools = Object.fromEntries(cats.map((c) => [c, DRILLS.filter((d) => d.cat === c).sort(() => r() - 0.5)]));
+  let used = estSecs(WARM), i = 0, guard = 0;
+  while (used < goal - 30 && guard++ < 80) {
+    const c = cats[i++ % cats.length], d = pools[c].shift(); if (!d) continue;
+    out.push({ ...d }); used += estSecs(d);
+    if (!pools[c].length) pools[c] = DRILLS.filter((x) => x.cat === c).sort(() => r() - 0.5);
+  }
+  return out;
+}
+const PRESETS = [
+  { name: 'Daily handles', focus: ['handles'], min: 15, note: 'Every day before practice' },
+  { name: 'Shooting reps', focus: ['shooting'], min: 30, note: 'Catch-and-shoot, pull-ups, free throws' },
+  { name: 'Finishing at the rim', focus: ['finishing'], min: 20, note: 'Both hands, all angles' },
+  { name: 'Game-speed mix', focus: ['handles', 'shooting', 'finishing', 'athletic'], min: 45, note: 'A full workout' },
+];
+const fmtT = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+function renderSolo() {
+  for (const b of $$('#s-focus .chip')) b.setAttribute('aria-pressed', String(solo.focus.includes(b.dataset.v)));
+  for (const b of $$('#s-time .chip')) b.setAttribute('aria-pressed', String(solo.time === b.dataset.v));
+  const pl = $('#s-plan'); pl.hidden = !plan;
+  if (plan) {
+    const tot = plan.reduce((a, d) => a + estSecs(d), 0);
+    pl.innerHTML = `<div class="sess-head"><h3>Your workout</h3><span class="muted small num">${plan.length} drills · about ${Math.round(tot / 60)} min</span></div>
+      <div style="margin-top:6px">${plan.map((d, i) => `<div class="drill-row"><span class="n">${i + 1}</span><span>${esc(d.name)}<small>${esc(d.cue)}</small></span><span class="amt">${d.kind === 'time' ? fmtT(d.secs) : d.reps + ' makes'}</span></div>`).join('')}</div>
+      <div class="g-actions" style="margin-top:12px"><button type="button" class="btn" id="s-reroll">Shuffle</button><button type="button" class="btn primary" id="s-start">Start workout</button></div>`;
+  }
+  $('#s-presets').innerHTML = PRESETS.map((p, i) => `<div class="preset"><b>${p.name}</b><small>${p.min} min · ${p.note}</small><button type="button" class="btn" data-preset="${i}">Start</button></div>`).join('');
+  const h = rd('soloHist', []);
+  $('#s-hist').innerHTML = h.length ? h.slice(0, 12).map((x) => `<div class="rec-row"><span>${esc(x.name)}<small>${new Date(x.at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} · ${x.done} of ${x.total} drills</small></span><span class="num muted">${Math.round(x.secs / 60)} min</span></div>`).join('') : '<p class="muted small" style="margin:0">Finished workouts show up here.</p>';
+}
+$('#s-focus').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; const v = b.dataset.v; solo.focus = solo.focus.includes(v) ? solo.focus.filter((x) => x !== v) : [...solo.focus, v]; wr('solo', solo); renderSolo(); });
+$('#s-time').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; solo.time = b.dataset.v; wr('solo', solo); renderSolo(); });
+$('#s-build').addEventListener('click', () => { if (!solo.focus.length) return toast('Pick at least one thing to work on'); plan = buildWorkout(solo.focus, Number(solo.time), Date.now() % 99991); renderSolo(); $('#s-plan').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+$('#v-solo').addEventListener('click', (e) => {
+  if (e.target.closest('#s-reroll')) { plan = buildWorkout(solo.focus, Number(solo.time), Date.now() % 99991); return renderSolo(); }
+  if (e.target.closest('#s-start')) return startPlayer(plan, 'Custom workout');
+  const pr = e.target.closest('[data-preset]'); if (pr) { const p = PRESETS[Number(pr.dataset.preset)]; startPlayer(buildWorkout(p.focus, p.min, Date.now() % 99991), p.name); }
+});
+
+// ===================== Hands-free player =====================
+let pl = null, audio = null;
+function beep(freq = 880, ms = 120) {
+  try { audio ??= new (window.AudioContext || window.webkitAudioContext)(); const o = audio.createOscillator(), g = audio.createGain(); o.frequency.value = freq; o.connect(g); g.connect(audio.destination); g.gain.setValueAtTime(0.18, audio.currentTime); g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + ms / 1000); o.start(); o.stop(audio.currentTime + ms / 1000); } catch {}
+}
+function say(t) { try { if (!window.speechSynthesis) return; speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = 1.05; speechSynthesis.speak(u); } catch {} }
+const ytEmbed = (vid, start) => `https://www.youtube-nocookie.com/embed/${vid}?start=${Math.max(0, Math.floor(start))}&end=${Math.floor(start) + 10}&autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+function startPlayer(items, name) {
+  if (!items?.length) return;
+  pl = { items, name, i: 0, phase: 'ready', left: 5, paused: false, made: 0, att: 0, done: 0, secs: 0, started: Date.now() };
+  try { audio ??= new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch {}
+  try { navigator.wakeLock?.request('screen').then((w) => { pl && (pl.lock = w); }).catch(() => {}); } catch {}
+  $('#player').showModal(); enterPhase('ready');
+  clearInterval(pl.timer); pl.timer = setInterval(tick, 1000);
+}
+function enterPhase(ph) {
+  const d = pl.items[pl.i];
+  pl.phase = ph; pl.made = 0; pl.att = 0;
+  if (ph === 'ready') { pl.left = d.clip ? 15 : 5; say(`${d.clip ? 'Watch the clip. ' : ''}Next up: ${d.name}. ${d.kind === 'time' ? d.secs + ' seconds' : d.reps + ' makes'}.`); }
+  if (ph === 'work') { pl.left = d.kind === 'time' ? d.secs : 0; beep(1200, 260); say('Go'); }
+  if (ph === 'rest') { pl.left = 15; beep(600, 300); }
+  renderPlayer();
+}
+function nextItem(countDone = true) {
+  if (countDone) pl.done++;
+  if (pl.i >= pl.items.length - 1) return finishPlayer(true);
+  pl.i++; enterPhase('ready');
+}
+function tick() {
+  if (!pl || pl.paused) return;
+  pl.secs++;
+  const d = pl.items[pl.i];
+  if (pl.phase === 'work' && d.kind === 'reps') { renderPlayer(); return; }
+  pl.left--;
+  if (pl.left > 0 && pl.left <= 3) beep(880, 110);
+  if (pl.left <= 0) {
+    if (pl.phase === 'ready') enterPhase('work');
+    else if (pl.phase === 'work') { if (pl.i >= pl.items.length - 1) return finishPlayer(true); enterPhase('rest'); pl.done++; }
+    else if (pl.phase === 'rest') { pl.i++; enterPhase('ready'); }
+    return;
+  }
+  renderPlayer();
+}
+function renderPlayer() {
+  const d = pl.items[pl.i], n = pl.items.length;
+  $('#pl-count').textContent = `${pl.name} · drill ${pl.i + 1} of ${n}`;
+  $('#pl-prog').style.width = `${((pl.i + (pl.phase === 'rest' ? 1 : 0)) / n) * 100}%`;
+  $('#pl-phase').textContent = { ready: 'Get ready', work: d.kind === 'reps' ? 'Make ' + d.reps : 'Go', rest: 'Rest' }[pl.phase];
+  $('#pl-name').textContent = pl.phase === 'rest' ? `Next: ${pl.items[pl.i + 1]?.name || ''}` : d.name;
+  $('#pl-cue').textContent = pl.phase === 'rest' ? 'Grab water, breathe.' : d.cue;
+  const clipEl = $('#pl-clip'), wantClip = d.clip && pl.phase !== 'rest';
+  if (wantClip && clipEl.dataset.key !== `${pl.i}`) { clipEl.innerHTML = `<div class="pl-clip"><iframe src="${ytEmbed(d.clip.vid, d.clip.t)}" title="${esc(d.name)} clip" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`; clipEl.dataset.key = `${pl.i}`; }
+  if (!wantClip) { clipEl.innerHTML = ''; clipEl.dataset.key = ''; }
+  const C = 2 * Math.PI * 88;
+  if (pl.phase === 'work' && d.kind === 'reps') {
+    const pct = Math.min(1, pl.made / d.reps);
+    $('#pl-center').innerHTML = `<div class="ring-t"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="88" fill="none" stroke="var(--surface-2)" stroke-width="12"/><circle cx="100" cy="100" r="88" fill="none" stroke="var(--accent)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(pct * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 100 100)"/><text x="100" y="108" text-anchor="middle" class="tv">${pl.made}/${d.reps}</text><text x="100" y="134" text-anchor="middle" class="tl">${pl.att ? Math.round((pl.made / pl.att) * 100) + '% · ' + pl.att + ' shots' : 'tap every shot'}</text></svg></div>
+      <div class="pl-reps"><button type="button" class="ms" data-shot="0">Miss</button><button type="button" class="mk" data-shot="1">Make</button></div>`;
+  } else {
+    const total = pl.phase === 'ready' ? (d.clip ? 15 : 5) : pl.phase === 'rest' ? 15 : d.secs, pct = total ? pl.left / total : 0;
+    $('#pl-center').innerHTML = `<div class="ring-t"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="88" fill="none" stroke="var(--surface-2)" stroke-width="12"/><circle cx="100" cy="100" r="88" fill="none" stroke="${pl.phase === 'rest' ? 'var(--muted)' : 'var(--accent)'}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(pct * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 100 100)"/><text x="100" y="114" text-anchor="middle" class="tv">${fmtT(Math.max(0, pl.left))}</text></svg></div>`;
+  }
+  const nx = pl.items[pl.i + 1];
+  $('#pl-next').textContent = pl.phase === 'rest' ? '' : nx ? `Then: ${nx.name}` : 'Last drill';
+  $('#pl-pause').textContent = pl.paused ? 'Resume' : 'Pause';
+  $('#pl-back').disabled = pl.i === 0;
+}
+function finishPlayer(completed) {
+  if (!pl) return;
+  clearInterval(pl.timer); try { pl.lock?.release(); } catch {}
+  if (pl.done || pl.secs > 60) { const h = rd('soloHist', []); h.unshift({ at: Date.now(), name: pl.name, done: Math.min(pl.done, pl.items.length), total: pl.items.length, secs: pl.secs }); wr('soloHist', h.slice(0, 200)); }
+  if (completed) { beep(1300, 400); say('Workout done. Nice work.'); toast('Workout done'); }
+  pl = null; $('#pl-clip').innerHTML = ''; $('#player').close(); if (location.hash === '#solo') renderSolo();
+}
+$('#player').addEventListener('click', (e) => {
+  if (!pl) return;
+  const s = e.target.closest('[data-shot]');
+  if (s) { const d = pl.items[pl.i]; pl.att++; if (s.dataset.shot === '1') { pl.made++; beep(1000, 80); } if (pl.made >= d.reps) { if (pl.i >= pl.items.length - 1) return finishPlayer(true); pl.done++; enterPhase('rest'); } else renderPlayer(); }
+});
+$('#pl-pause').addEventListener('click', () => { if (!pl) return; pl.paused = !pl.paused; renderPlayer(); });
+$('#pl-skip').addEventListener('click', () => { if (!pl) return; if (pl.phase === 'ready') return enterPhase('work'); nextItem(pl.phase === 'work'); });
+$('#pl-back').addEventListener('click', () => { if (!pl || pl.i === 0) return; pl.i--; enterPhase('ready'); });
+$('#pl-exit').addEventListener('click', () => finishPlayer(false));
+$('#player').addEventListener('cancel', (e) => { e.preventDefault(); finishPlayer(false); });
+
+// ===================== Shot chart =====================
+const SPOTS = [
+  ['lc3', 'L corner 3', 26, 30, true], ['lw3', 'L wing 3', 52, 152, true], ['top3', 'Top 3', 150, 214, true], ['rw3', 'R wing 3', 248, 152, true], ['rc3', 'R corner 3', 274, 30, true],
+  ['lbm', 'L baseline', 72, 44, false], ['le', 'L elbow', 100, 122, false], ['ft', 'Free throw', 150, 132, false], ['re', 'R elbow', 200, 122, false], ['rbm', 'R baseline', 228, 44, false], ['lay', 'At the rim', 150, 62, false],
+].map(([id, name, x, y, three]) => ({ id, name, x, y, three }));
+let shotMode = 'live', shotSel = 'top3', shotLog = [];
+let shotLive = rd('shotLive', {});
+const pctOf = (o) => (o && o.a ? Math.round((o.m / o.a) * 100) : null);
+function allTimeShots() { const t = {}; for (const s of [...rd('shots', []).map((x) => x.spots), shotLive]) for (const [k, v] of Object.entries(s)) { t[k] ??= { m: 0, a: 0 }; t[k].m += v.m; t[k].a += v.a; } return t; }
+function renderShots() {
+  for (const b of $$('#sh-mode .chip')) b.setAttribute('aria-pressed', String(b.dataset.v === shotMode));
+  const data = shotMode === 'live' ? shotLive : allTimeShots();
+  let g = `<rect width="300" height="250" fill="var(--court)"/><g class="lines"><line x1="6" y1="8" x2="294" y2="8"/><rect x="108" y="8" width="84" height="112"/><circle cx="150" cy="120" r="30"/><path d="M14 8v34a136 136 0 0 0 272 0V8"/><line x1="134" y1="20" x2="166" y2="20"/><circle cx="150" cy="28" r="7"/></g>`;
+  for (const sp of SPOTS) {
+    const o = data[sp.id], pc = pctOf(o), sel = shotMode === 'live' && sp.id === shotSel;
+    const fill = pc == null ? 'var(--surface)' : `color-mix(in srgb, var(--accent) ${20 + pc * 0.75}%, var(--surface))`;
+    g += `<g class="spot" data-spot="${sp.id}" role="button" tabindex="0" aria-label="${sp.name}${o ? `: ${o.m} of ${o.a}` : ''}"><circle cx="${sp.x}" cy="${sp.y}" r="18" fill="${fill}" stroke="${sel ? 'var(--fg)' : 'var(--court-line)'}" stroke-width="${sel ? 3 : 1.5}"/>
+      <text x="${sp.x}" y="${sp.y - 1}" text-anchor="middle" class="pct">${pc == null ? '–' : pc + '%'}</text><text x="${sp.x}" y="${sp.y + 11}" text-anchor="middle">${o ? `${o.m}/${o.a}` : ''}</text></g>`;
+  }
+  $('#sh-court').innerHTML = `<svg viewBox="0 0 300 250" role="img" aria-label="Shot chart">${g}</svg>`;
+  $('#sh-live-ctrl').hidden = shotMode !== 'live';
+  $('#sh-help').textContent = shotMode === 'live' ? 'Tap a spot, then tap Make or Miss for every shot.' : 'Every saved session plus this one. Darker means you shoot it better.';
+  const o = shotLive[shotSel]; $('#sh-sel').textContent = `${SPOTS.find((x) => x.id === shotSel).name}${o ? ` · ${o.m} of ${o.a} (${pctOf(o)}%)` : ''}`;
+  const sum = (f) => Object.entries(data).filter(([k]) => f(SPOTS.find((x) => x.id === k))).reduce((a, [, v]) => ({ m: a.m + v.m, a: a.a + v.a }), { m: 0, a: 0 });
+  const all = sum(() => true), th = sum((x) => x?.three), mid = sum((x) => x && !x.three && x.id !== 'lay');
+  $('#sh-stats').innerHTML = `<div><b class="num">${pctOf(all) ?? '–'}${all.a ? '%' : ''}</b><small>FG · ${all.m}/${all.a}</small></div><div><b class="num">${pctOf(th) ?? '–'}${th.a ? '%' : ''}</b><small>3PT · ${th.m}/${th.a}</small></div><div><b class="num">${pctOf(mid) ?? '–'}${mid.a ? '%' : ''}</b><small>Midrange · ${mid.m}/${mid.a}</small></div>`;
+  const ranked = SPOTS.map((sp) => ({ sp, o: data[sp.id] })).filter((x) => x.o && x.o.a >= 5).sort((a, b) => b.o.m / b.o.a - a.o.m / a.o.a);
+  $('#sh-best').innerHTML = ranked.length >= 2 ? `Best spot: <b>${ranked[0].sp.name}</b> (${pctOf(ranked[0].o)}%). Work on: <b>${ranked.at(-1).sp.name}</b> (${pctOf(ranked.at(-1).o)}%).` : '<span class="muted">Take at least 5 shots at two spots to see your best and worst.</span>';
+  const ss = rd('shots', []).slice(0, 12).reverse();
+  if (ss.length < 2) { $('#sh-trend').innerHTML = '<p class="muted small" style="margin:0">Save 2 or more sessions to see your trend.</p>'; return; }
+  const pts = ss.map((x) => { const t = Object.values(x.spots).reduce((a, v) => ({ m: a.m + v.m, a: a.a + v.a }), { m: 0, a: 0 }); return t.a ? (t.m / t.a) * 100 : 0; });
+  const W = 300, H = 120, L = 28, x = (i) => L + (i / (pts.length - 1)) * (W - L - 8), y = (v) => H - 18 - (v / 100) * (H - 28);
+  let svg = ''; for (const v of [0, 50, 100]) svg += `<line x1="${L}" x2="${W - 8}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L - 5}" y="${y(v) + 3}" text-anchor="end">${v}%</text>`;
+  svg += `<path d="${pts.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('')}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  pts.forEach((v, i) => { svg += `<circle cx="${x(i)}" cy="${y(v)}" r="${i === pts.length - 1 ? 5 : 3.5}" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"><title>${new Date(ss[i].at).toLocaleDateString()}: ${Math.round(v)}%</title></circle>`; });
+  svg += `<text x="${x(pts.length - 1)}" y="${y(pts.at(-1)) - 9}" text-anchor="middle" style="fill:var(--fg);font-weight:700">${Math.round(pts.at(-1))}%</text>`;
+  $('#sh-trend').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Field goal percentage by session">${svg}</svg>`;
+}
+function logShot(made) { const o = (shotLive[shotSel] ??= { m: 0, a: 0 }); o.a++; if (made) o.m++; shotLog.push([shotSel, made]); wr('shotLive', shotLive); if (navigator.vibrate) navigator.vibrate(12); renderShots(); }
+$('#sh-court').addEventListener('click', (e) => { const g = e.target.closest('[data-spot]'); if (!g || shotMode !== 'live') return; shotSel = g.dataset.spot; renderShots(); });
+$('#sh-make').addEventListener('click', () => logShot(true));
+$('#sh-miss').addEventListener('click', () => logShot(false));
+$('#sh-undo').addEventListener('click', () => { const l = shotLog.pop(); if (!l) return; const o = shotLive[l[0]]; o.a--; if (l[1]) o.m--; if (!o.a) delete shotLive[l[0]]; wr('shotLive', shotLive); renderShots(); });
+$('#sh-save').addEventListener('click', () => { if (!Object.keys(shotLive).length) return toast('Log some shots first'); const s2 = rd('shots', []); s2.unshift({ at: Date.now(), spots: shotLive }); wr('shots', s2.slice(0, 300)); shotLive = {}; shotLog = []; wr('shotLive', shotLive); renderShots(); toast('Session saved'); });
+$('#sh-mode').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) { shotMode = b.dataset.v; renderShots(); } });
+
+// ===================== Video drills =====================
+function ytId(u) { const m = String(u).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/))([\w-]{11})/); return m ? m[1] : null; }
+const tsSec = (h, m, s) => (Number(h) || 0) * 3600 + Number(m) * 60 + Number(s);
+const fmtTs = (t) => { const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0'); };
+const SKIP = /^(intro|introduction|outro|end|ending|subscribe|sponsor|thanks|recap|conclusion|outro and recap)\b/i;
+/** Chapters ("0:45 Pound dribbles") give exact drills. A transcript gives timestamps plus speech; find where a new drill starts. */
+function findDrills(text) {
+  const lines = String(text || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean), re = /^(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\b\s*[-–—:|.)]?\s*(.*)$/;
+  const parsed = lines.map((l) => { const m = l.match(re); return m ? { t: tsSec(m[1], m[2], m[3]), text: m[4].trim() } : { t: null, text: l }; });
+  const withText = parsed.filter((p) => p.t != null && p.text && p.text.split(' ').length <= 9);
+  // Transcript format: a timestamp on its own line, the words on the next line(s).
+  const segs = [];
+  for (let i = 0; i < parsed.length; i++) { const p = parsed[i]; if (p.t == null) continue; let txt = p.text; if (!txt) { const nx = parsed[i + 1]; if (nx && nx.t == null) txt = nx.text; } segs.push({ t: p.t, text: txt }); }
+  const looksLikeChapters = withText.length >= 2 && withText.length >= segs.length * 0.6 && segs.length <= 40;
+  if (looksLikeChapters) return { mode: 'chapters', drills: withText.filter((c) => !SKIP.test(c.text)).map((c) => ({ t: c.t, name: c.text.replace(/^[-–—:\s]+/, '').slice(0, 60) })) };
+  const cue = /\b(drill|next (one|up|drill|move)|first (one|drill|move)|second (one|drill)|third|number (one|two|three|four|five|\d)|this one is|we'?re (going|gonna) (to )?(do|work|go)|let'?s (go|start|work)|starting with|moving on)\b/i;
+  const picks = [];
+  for (const sg of segs) { if (!cue.test(sg.text)) continue; if (picks.length && sg.t - picks.at(-1).t < 25) continue; picks.push(sg); }
+  // Name each drill from the words right after the cue: "first drill is the mikan drill, keep it high" -> "Mikan drill".
+  const nameAfter = (text) => {
+    const m = text.match(cue); if (!m) return '';
+    let a = text.slice(m.index + m[0].length).replace(/^[\s,.:;-]+/, '');
+    for (let k = 0; k < 4; k++) a = a.replace(/^(is|are|it'?s|called|the|a|an|uh|um|so|now|we('?re| are)? (going|gonna) (to )?(do|work on|be doing)|gonna do|going to do|do|work on|this)\s+/i, '');
+    a = a.split(/[,.;!?]|\b(keep|make sure|and|so|you|from|off|with|for|right|okay|alright|because|where)\b/i)[0].trim().split(/\s+/).slice(0, 5).join(' ');
+    return a.length > 2 ? a.charAt(0).toUpperCase() + a.slice(1) : '';
+  };
+  if (picks.length >= 2) return { mode: 'transcript', drills: picks.slice(0, 20).map((sg, i) => ({ t: Math.max(0, sg.t), name: nameAfter(sg.text) || `Drill ${i + 1}` })) };
+  if (segs.length >= 2) { const end = segs.at(-1).t, n = Math.min(6, Math.max(2, Math.round(end / 90))); return { mode: 'split', drills: Array.from({ length: n }, (_, i) => ({ t: Math.round((end * i) / n), name: `Part ${i + 1}` })) }; }
+  return { mode: 'none', drills: [{ t: 0, name: 'Start of the video' }] };
+}
+let openVid = null, playing = null;
+function renderVideos() {
+  const vids = rd('videos', []);
+  $('#v-list').innerHTML = vids.length ? vids.map((v, vi) => `<div class="card" style="margin-top:12px">
+      <div class="sess-head"><h3>${esc(v.name)}</h3><span class="muted small">${v.drills.length} clip${v.drills.length === 1 ? '' : 's'}</span></div>
+      ${v.mode === 'split' ? '<p class="muted small" style="margin:4px 0 0">No drill names found, so the video is split into equal parts. Paste the chapters for exact drills.</p>' : v.mode === 'none' ? '<p class="muted small" style="margin:4px 0 0">Paste the chapters or transcript to split this into drills.</p>' : ''}
+      ${playing && playing.vi === vi ? `<div class="vid-clip"><iframe src="${ytEmbed(v.vid, v.drills[playing.di].t)}" title="${esc(v.drills[playing.di].name)} clip" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>` : ''}
+      <div style="margin-top:8px">${v.drills.map((d, di) => `<div class="vrow"><span class="ts">${fmtTs(d.t)}</span><span>${esc(d.name)}</span><span class="acts"><button type="button" data-watch="${vi}:${di}">Watch 10s</button><button type="button" class="go" data-doit="${vi}:${di}">Do it</button></span></div>`).join('')}</div>
+      <div class="g-actions" style="margin-top:10px"><a class="btn" href="https://www.youtube.com/watch?v=${v.vid}" target="_blank" rel="noopener">Open video</a><button type="button" class="btn" data-vdel="${vi}">Delete</button><button type="button" class="btn primary" data-vall="${vi}">Do all</button></div>
+    </div>`).join('') : '<div class="card"><p class="muted small" style="margin:0">Your saved videos show up here, each split into drills.</p></div>';
+}
+$('#v-go').addEventListener('click', () => {
+  const vid = ytId($('#v-link').value); if (!vid) return toast('Paste a YouTube link (youtube.com or youtu.be)');
+  const res = findDrills($('#v-text').value), vids = rd('videos', []);
+  const name = $('#v-name').value.trim() || `Workout video ${new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+  vids.unshift({ id: Date.now(), vid, name: name.slice(0, 60), mode: res.mode, drills: res.drills, at: Date.now() }); wr('videos', vids.slice(0, 60));
+  $('#v-link').value = ''; $('#v-name').value = ''; $('#v-text').value = ''; playing = null; renderVideos();
+  toast(res.mode === 'chapters' ? `Found ${res.drills.length} drills` : res.mode === 'transcript' ? `Found ${res.drills.length} drills in the transcript` : res.mode === 'split' ? 'Split into parts' : 'Saved. Paste chapters to split it.');
+});
+$('#v-list').addEventListener('click', (e) => {
+  const vids = rd('videos', []);
+  const w = e.target.closest('[data-watch]'); if (w) { const [vi, di] = w.dataset.watch.split(':').map(Number); playing = { vi, di }; renderVideos(); return; }
+  const d = e.target.closest('[data-doit]'); if (d) { const [vi, di] = d.dataset.doit.split(':').map(Number), v = vids[vi], dr = v.drills[di]; return startPlayer([{ cat: 'video', name: dr.name, kind: 'time', secs: 60, reps: 0, cue: `From ${v.name}. Watch it, then match it.`, clip: { vid: v.vid, t: dr.t } }], dr.name); }
+  const a = e.target.closest('[data-vall]'); if (a) { const v = vids[Number(a.dataset.vall)]; return startPlayer(v.drills.map((dr) => ({ cat: 'video', name: dr.name, kind: 'time', secs: 60, reps: 0, cue: `From ${v.name}.`, clip: { vid: v.vid, t: dr.t } })), v.name); }
+  const x = e.target.closest('[data-vdel]');
+  if (x) { if (x.dataset.confirm !== '1') { x.dataset.confirm = '1'; x.textContent = 'Tap to delete'; setTimeout(() => { if (x.isConnected) { x.dataset.confirm = ''; x.textContent = 'Delete'; } }, 2500); return; } vids.splice(Number(x.dataset.vdel), 1); wr('videos', vids); playing = null; renderVideos(); }
+});
+
 function route() {
-  const v = location.hash === '#record' ? 'record' : 'games';
-  $('#v-games').hidden = v !== 'games'; $('#v-record').hidden = v !== 'record';
+  const h = location.hash.slice(1), v = ['games', 'solo', 'shots', 'videos', 'record'].includes(h) ? h : 'games';
+  for (const x of ['games', 'solo', 'shots', 'videos', 'record']) $('#v-' + x).hidden = x !== v;
+  if (v === 'solo') renderSolo(); if (v === 'shots') renderShots(); if (v === 'videos') renderVideos();
   $$('.tab').forEach((t) => { if (t.dataset.tab === v) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
   if (v === 'record') renderRecord();
   window.scrollTo(0, 0);
