@@ -1,0 +1,30 @@
+// Small shared helpers: dates, formatting, DOM.
+export const $ = (s, r = document) => r.querySelector(s);
+export const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+export const pad = (n) => String(n).padStart(2, '0');
+export const isoDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+export const todayIso = () => isoDate(new Date());
+export const shiftIso = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoDate(d); };
+export const weekdayNum = (iso) => (new Date(iso + 'T12:00:00').getDay() + 6) % 7; // Mon = 0
+export const mondayOf = (iso) => shiftIso(iso, -weekdayNum(iso));
+export const daysBetween = (a, b) => Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 864e5);
+export const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+export const r1 = (x) => Math.round(x * 10) / 10;
+export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+export const toMin = (t) => { const [h, m] = String(t || '0:0').split(':').map(Number); return h * 60 + (m || 0); };
+export const toHHMM = (m) => `${pad(Math.floor(m / 60) % 24)}:${pad(m % 60)}`;
+export const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+export const fmtTime = (t) => { let m = typeof t === 'number' ? t : toMin(t); m = ((Math.round(m) % 1440) + 1440) % 1440; const h = Math.floor(m / 60), mm = m % 60; return `${h % 12 || 12}:${pad(mm)} ${h < 12 ? 'AM' : 'PM'}`; };
+export const fmtTimeShort = (t) => fmtTime(t).replace(':00 ', ' ').replace(' AM', 'a').replace(' PM', 'p');
+export const fmtDur = (m) => { m = Math.max(0, Math.round(m)); const h = Math.floor(m / 60), r = m % 60; return h ? (r ? `${h}h ${r}m` : `${h}h`) : `${r}m`; };
+export const fmtNum = (n) => Math.round(n).toLocaleString();
+export const dayLabel = (iso, opts = { weekday: 'short' }) => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, opts);
+export const shortDate = (iso) => dayLabel(iso, { month: 'short', day: 'numeric' });
+export const longDate = (iso) => dayLabel(iso, { weekday: 'long', month: 'long', day: 'numeric' });
+export const relDay = (iso) => { const d = daysBetween(iso, todayIso()); return d === 0 ? 'Today' : d === 1 ? 'Yesterday' : d === -1 ? 'Tomorrow' : dayLabel(iso, { weekday: 'long' }); };
+export const avg = (a) => { const v = a.filter((x) => x != null && Number.isFinite(x)); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; };
+export const sum = (a) => a.reduce((s, x) => s + (Number(x) || 0), 0);
+export const plural = (n, w, p = w + 's') => `${n} ${n === 1 ? w : p}`;
+export const greeting = () => { const h = new Date().getHours(); return h < 5 ? 'Late night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
+export const haptic = (ms = 8) => { try { navigator.vibrate?.(ms); } catch {} };
