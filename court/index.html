@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#d9692c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Court Lab">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<title>Court Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one phone column. Setup card -> generated session of game cards (court diagram + rules) -> tap scoreboard sheet. Bottom tabs: Games / Record. */
+:root {
+  --bg: #f4f1ee;
+  --surface: #ffffff;
+  --surface-2: #efe9e3;
+  --line: #e2dad2;
+  --fg: #1b1410;
+  --muted: #73665c;
+  --accent: #d9692c;
+  --accent-ink: #ffffff;
+  --accent-soft: #f8e1d2;
+  --court: #f3dcc1;
+  --court-line: #b9865c;
+  --you: #d9692c;
+  --them: #1b1410;
+  --good: #1b8a4d;
+  --bad: #c23b2c;
+  --f-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #14100d; --surface: #1d1814; --surface-2: #2a231d; --line: #352c25; --fg: #f4ece4; --muted: #a8988b; --accent: #f08a4b; --accent-ink: #1b1410; --accent-soft: #3d2618;
+    --court: #3a2a1c; --court-line: #a77850; --you: #f08a4b; --them: #f4ece4; --good: #4fd18b; --bad: #ff7a69; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #14100d; --surface: #1d1814; --surface-2: #2a231d; --line: #352c25; --fg: #f4ece4; --muted: #a8988b; --accent: #f08a4b; --accent-ink: #1b1410; --accent-soft: #3d2618;
+  --court: #3a2a1c; --court-line: #a77850; --you: #f08a4b; --them: #f4ece4; --good: #4fd18b; --bad: #ff7a69; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 var(--f-body); -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 620px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 calc(96px + env(safe-area-inset-bottom, 0px)); }
+header.top { padding-block: 16px 6px; }
+header.top h1 { margin: 0; font-family: var(--f-display); font-weight: 800; font-size: 34px; line-height: 1; text-transform: uppercase; letter-spacing: .01em; }
+header.top h1 span { color: var(--accent); }
+header.top p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.view { display: grid; gap: 14px; margin-top: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; min-width: 0; }
+h2, h3 { margin: 0; font-family: var(--f-display); font-weight: 700; text-wrap: balance; }
+h2 { font-size: 22px; text-transform: uppercase; letter-spacing: .02em; }
+h3 { font-size: 21px; }
+.muted { color: var(--muted); } .small { font-size: 13px; } .num { font-variant-numeric: tabular-nums; }
+.label { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 14px 0 7px; }
+.label:first-child { margin-top: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 8px 13px; font-size: 14px; font-weight: 600; color: var(--fg); }
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.btn { border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 11px 16px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.wide { width: 100%; padding: 14px; font-size: 16px; }
+.btn.ghost { background: none; border-color: transparent; color: var(--accent); padding: 6px 8px; }
+input[type=text] { width: 100%; border: 1px solid var(--line); background: var(--surface-2); border-radius: 10px; padding: 10px 12px; font-size: 16px; }
+.sess-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.game { padding: 0; overflow: hidden; }
+.game .g-top { padding: 14px 16px 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.game .role { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.game .mins { font-family: var(--f-display); font-size: 18px; font-weight: 700; white-space: nowrap; }
+.game .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.game .tag { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
+.court { margin: 12px 16px 0; border-radius: 14px; overflow: hidden; background: var(--court); }
+.court svg { display: block; width: 100%; height: auto; }
+.court .lines { fill: none; stroke: var(--court-line); stroke-width: 2; }
+.court text { font: 700 11px var(--f-body); }
+.g-body { padding: 12px 16px 16px; display: grid; gap: 10px; }
+.g-body ul { margin: 0; padding-left: 18px; display: grid; gap: 5px; }
+.score-line { background: var(--accent-soft); border-radius: 12px; padding: 10px 12px; font-size: 14px; }
+.score-line b { display: block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin-bottom: 2px; }
+.why { font-size: 14px; color: var(--muted); margin: 0; }
+details.more summary { cursor: pointer; font-weight: 600; color: var(--accent); font-size: 14px; }
+details.more div { display: grid; gap: 6px; margin-top: 8px; font-size: 14px; }
+details.more div p { margin: 0; }
+.g-actions { display: flex; gap: 8px; }
+.g-actions .btn { flex: 1; }
+.result { font-size: 13px; font-weight: 700; padding: 6px 10px; border-radius: 8px; }
+.result.w { background: color-mix(in srgb, var(--good) 18%, transparent); color: var(--good); }
+.result.l { background: color-mix(in srgb, var(--bad) 16%, transparent); color: var(--bad); }
+.principles { margin: 0; padding-left: 18px; display: grid; gap: 8px; font-size: 14px; }
+/* scoreboard */
+dialog.board { border: 0; padding: 0; width: 100%; max-width: 620px; height: 100%; max-height: 100%; margin: 0 auto; background: var(--bg); color: var(--fg); }
+dialog.board::backdrop { background: rgba(0, 0, 0, .6); }
+.board-in { height: 100%; display: grid; grid-template-rows: auto 1fr auto; padding: calc(12px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); gap: 12px; }
+.board-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.board-head h3 { font-size: 22px; }
+.sides { display: grid; grid-template-rows: 1fr 1fr; gap: 10px; min-height: 0; }
+.side { border-radius: 20px; padding: 14px; display: grid; grid-template-rows: auto 1fr auto; text-align: center; min-height: 0; }
+.side.you { background: var(--you); color: #fff; }
+.side.them { background: var(--surface); border: 1px solid var(--line); }
+.side .who { font-weight: 700; font-size: 15px; letter-spacing: .04em; text-transform: uppercase; }
+.side .pts { font-family: var(--f-display); font-weight: 800; font-size: clamp(64px, 18vh, 120px); line-height: 1; display: grid; place-items: center; }
+.side .adds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.side .adds button { border: 0; border-radius: 12px; padding: 12px 0; font-weight: 800; font-size: 18px; background: rgba(255, 255, 255, .22); color: inherit; }
+.side.them .adds button { background: var(--surface-2); }
+.board-foot { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; }
+.win-banner { text-align: center; font-family: var(--f-display); font-size: 26px; font-weight: 800; text-transform: uppercase; }
+/* record */
+.rec-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.rec-row:first-child { border-top: 0; }
+.rec-row small { display: block; color: var(--muted); font-size: 12px; }
+.bars { display: grid; gap: 10px; }
+.bar-row { display: grid; grid-template-columns: 120px 1fr 64px; gap: 10px; align-items: center; font-size: 13px; }
+.bar-row .track { height: 9px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
+.bar-row .fill { height: 100%; border-radius: 6px; background: var(--accent); }
+.bar-row .v { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+.big3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.big3 div { background: var(--surface-2); border-radius: 12px; padding: 10px; }
+.big3 b { display: block; font-family: var(--f-display); font-size: 26px; }
+.big3 small { font-size: 12px; color: var(--muted); }
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr; padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+.tab { display: grid; justify-items: center; gap: 2px; padding: 6px; font-size: 12px; font-weight: 600; color: var(--muted); text-decoration: none; }
+.tab svg { width: 22px; height: 22px; }
+.tab[aria-current="page"] { color: var(--accent); }
+.toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 9px 14px; border-radius: 99px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 30; max-width: calc(100% - 32px); text-align: center; }
+.toast.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top"><h1>Court<span>Lab</span></h1><p>Small-sided games for you and a partner</p></header>
+
+  <section class="view" id="v-games">
+    <div class="card" id="setup">
+      <div class="label">Who's with you</div>
+      <div class="chips" data-set="partners"><button type="button" class="chip" data-v="1">1 partner</button><button type="button" class="chip" data-v="2">2 partners</button></div>
+      <div class="label">Your partner is</div>
+      <div class="chips" data-set="level"><button type="button" class="chip" data-v="better">Better than me</button><button type="button" class="chip" data-v="same">About the same</button><button type="button" class="chip" data-v="weaker">Not as good</button></div>
+      <div class="label">Work on (pick up to 3)</div>
+      <div class="chips" data-set="focus" data-multi="1"></div>
+      <div class="label">Time</div>
+      <div class="chips" data-set="time"><button type="button" class="chip" data-v="20">20 min</button><button type="button" class="chip" data-v="30">30 min</button><button type="button" class="chip" data-v="45">45 min</button><button type="button" class="chip" data-v="60">60 min</button></div>
+      <div class="label">Where</div>
+      <div class="chips" data-set="court"><button type="button" class="chip" data-v="half">Half court</button><button type="button" class="chip" data-v="full">Full gym</button><button type="button" class="chip" data-v="driveway">Driveway hoop</button></div>
+      <div class="label">Partner's name</div>
+      <input type="text" id="pname" placeholder="Partner" maxlength="20" autocomplete="off">
+      <button class="btn primary wide" id="build" type="button" style="margin-top:16px">Build my session</button>
+    </div>
+    <div id="session"></div>
+    <div class="card">
+      <h3>How these games work</h3>
+      <ul class="principles" style="margin-top:10px">
+        <li><b>A live defender beats cones.</b> Every rep has a real read, so the move you learn is the one that works in a game.</li>
+        <li><b>The rules teach the skill.</b> Want more paint touches? Make paint finishes worth more. Want quicker decisions? Shrink the dribbles or the clock.</li>
+        <li><b>Always keep score.</b> Competing makes the reps game speed and shows you what is actually working.</li>
+        <li><b>Short and intense.</b> Games to 5 or 7 with quick rotations. Quality over volume.</li>
+        <li><b>Even it out.</b> If one player is better, give the other a scoring bonus so every game stays close.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="view" id="v-record" hidden>
+    <div class="card"><h2>Record</h2><div class="big3" id="rec-big" style="margin-top:12px"></div></div>
+    <div class="card"><h3>Win % by skill</h3><p class="muted small" style="margin:4px 0 10px">The skills you lose most are the ones to build next.</p><div class="bars" id="rec-skill"></div></div>
+    <div class="card"><h3>Recent games</h3><div id="rec-list" style="margin-top:8px"></div></div>
+  </section>
+</div>
+
+<nav class="tabs" aria-label="Sections">
+  <a class="tab" href="#games" data-tab="games"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>Games</a>
+  <a class="tab" href="#record" data-tab="record"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20h16M7 16v-5M12 16V6M17 16v-8"/></svg>Record</a>
+</nav>
+
+<dialog class="board" id="board" aria-labelledby="b-title"><div class="board-in">
+  <div class="board-head"><div><h3 id="b-title">Game</h3><div class="muted small" id="b-goal"></div></div><button type="button" class="btn" id="b-close">Close</button></div>
+  <div class="sides">
+    <div class="side them"><div class="who" id="b-them-name">Partner</div><div class="pts num" id="b-them">0</div><div class="adds" data-side="them"><button type="button" data-add="1">+1</button><button type="button" data-add="2">+2</button><button type="button" data-add="3">+3</button></div></div>
+    <div class="side you"><div class="who">You</div><div class="pts num" id="b-you">0</div><div class="adds" data-side="you"><button type="button" data-add="1">+1</button><button type="button" data-add="2">+2</button><button type="button" data-add="3">+3</button></div></div>
+  </div>
+  <div><div class="win-banner" id="b-win" hidden></div><div class="board-foot"><button type="button" class="btn" id="b-undo">Undo</button><button type="button" class="btn primary" id="b-save">Save result</button></div></div>
+</div></dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const rd = (k, d) => { try { return JSON.parse(localStorage.getItem('cl:' + k)) ?? d; } catch { return d; } };
+const wr = (k, v) => { try { localStorage.setItem('cl:' + k, JSON.stringify(v)); } catch {} };
+let toastT; function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2400); }
+function rng(seed) { let s = seed >>> 0 || 1; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+const pick = (r, a) => a[Math.floor(r() * a.length)];
+
+const FOCUS = [['finishing', 'Finishing'], ['pullup', 'Shooting off the dribble'], ['catchshoot', 'Catch & shoot'], ['handles', 'Handles under pressure'], ['decisions', 'Decisions'], ['defense', 'Defense'], ['post', 'Post moves'], ['conditioning', 'Conditioning']];
+const FOCUS_NAME = Object.fromEntries(FOCUS);
+
+// ===================== Court diagram =====================
+const POS = { rim: [150, 34], blockL: [116, 62], blockR: [184, 62], elbowL: [118, 120], elbowR: [182, 120], ft: [150, 120], paint: [150, 82], top: [150, 196], slotL: [92, 176], slotR: [208, 176], wingL: [52, 132], wingR: [248, 132], cornerL: [24, 40], cornerR: [276, 40], half: [150, 268], baseline: [96, 12] };
+function courtSvg(setup) {
+  const P = (k) => POS[k];
+  let g = `<rect width="300" height="280" fill="var(--court)"/><g class="lines"><line x1="6" y1="10" x2="294" y2="10"/><rect x="108" y="10" width="84" height="110"/><circle cx="150" cy="120" r="30"/><path d="M14 10v34a136 136 0 0 0 272 0V10"/><line x1="134" y1="22" x2="166" y2="22"/><circle cx="150" cy="30" r="7"/><line x1="6" y1="276" x2="294" y2="276"/></g>`;
+  for (const z of setup.zones || []) {
+    if (z === 'paint') g += `<rect x="108" y="10" width="84" height="110" fill="var(--accent)" opacity=".16"/>`;
+    if (z === 'box') g += `<rect x="112" y="150" width="76" height="76" rx="6" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="6 5"/>`;
+    if (z === 'lane') g += `<rect x="108" y="120" width="84" height="150" fill="var(--accent)" opacity=".12"/>`;
+  }
+  const arrow = (a, b, kind) => {
+    const [x1, y1] = P(a), [x2, y2] = P(b), dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+    const sx = x1 + ux * 15, sy = y1 + uy * 15, ex = x2 - ux * 16, ey = y2 - uy * 16;
+    const col = kind === 'dribble' || kind === 'drive' ? 'var(--you)' : 'var(--them)';
+    const dash = kind === 'pass' ? ' stroke-dasharray="6 5"' : kind === 'run' ? ' stroke-dasharray="2 5"' : '';
+    let path = `M${sx},${sy}L${ex},${ey}`;
+    if (kind === 'dribble') { const n = Math.max(3, Math.round(L / 18)); path = `M${sx},${sy}`; for (let i = 1; i <= n; i++) { const t = i / n, mx = sx + (ex - sx) * t, my = sy + (ey - sy) * t, o = (i % 2 ? 5 : -5); path += `L${mx - uy * o},${my + ux * o}`; } }
+    const ah = `M${ex - ux * 9 - uy * 5},${ey - uy * 9 + ux * 5}L${ex},${ey}L${ex - ux * 9 + uy * 5},${ey - uy * 9 - ux * 5}`;
+    return `<path d="${path}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"${dash}/><path d="${ah}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  };
+  for (const [a, b, k] of setup.arrows || []) g += arrow(a, b, k);
+  const dot = (k, label, fill, ink) => { const [x, y] = P(k); return `<circle cx="${x}" cy="${y}" r="13" fill="${fill}" stroke="var(--court)" stroke-width="2"/><text x="${x}" y="${y + 4}" text-anchor="middle" fill="${ink}">${label}</text>`; };
+  if (setup.p2) g += dot(setup.p2, 'P2', 'var(--them)', 'var(--court)');
+  g += dot(setup.partner, 'P', 'var(--them)', 'var(--court)') + dot(setup.you, 'Y', 'var(--you)', '#fff');
+  const bk = setup.ball === 'partner' ? setup.partner : setup.you, [bx, by] = P(bk);
+  g += `<circle cx="${bx + 11}" cy="${by - 10}" r="5.5" fill="#e07a2e" stroke="#5a2a0c" stroke-width="1.5"/>`;
+  return `<svg viewBox="0 0 300 280" role="img" aria-label="${esc(setup.alt || 'Court setup')}">${g}</svg>`;
+}
+
+// ===================== Games =====================
+// Each template takes the session context and a random source and returns a fully written game.
+const hc = (c) => (c.level === 'better' ? `${c.pname} is better, so you score +1 extra on every make.` : c.level === 'weaker' ? `${c.pname} gets +1 extra on every make to keep it close.` : '');
+const GAMES = [
+  { id: 'closeout', name: 'Closeout Reads', role: 'core', focus: ['decisions', 'catchshoot', 'pullup'], intensity: 3, players: 1,
+    make: (c, r) => { const d = pick(r, [1, 2, 2, 3]), t = pick(r, [7, 9]), side = pick(r, ['R', 'L']);
+      return { setup: { you: 'wing' + side, partner: 'paint', ball: 'partner', arrows: [['partner', 'wing' + side, 'pass'], ['paint', 'elbow' + side, 'run']], alt: 'Partner passes from the paint and closes out on you at the wing' },
+        rules: [`${c.pname} passes from the paint and sprints a closeout.`, `You get ${d} dribble${d > 1 ? 's' : ''} max. Shoot if they're short, drive if they fly by.`, 'One possession each, then switch roles.', hc(c)], score: 'Make = 1 · Three = 2 · Off-hand finish = 2', target: t,
+        why: 'You learn to read the closeout feet in under a second: the exact decision you get 20 times a game as a guard.', harder: 'One dribble max, or the closeout starts from the elbow.', easier: 'Defender must close out with hands down.', tip: `${c.pname}: close out hard with a high hand. Never jog.` }; } },
+  { id: 'trigger', name: 'Quick Trigger', role: 'core', focus: ['decisions', 'handles', 'finishing'], intensity: 3, players: 1,
+    make: (c, r) => { const d = pick(r, [3, 4]), t = pick(r, [5, 7]);
+      return { setup: { you: 'slotR', partner: 'elbowR', ball: 'you', arrows: [['slotR', 'blockR', 'dribble']], alt: 'You start at the slot with the ball, partner guarding' },
+        rules: [`${c.pname} checks you the ball in triple threat.`, 'You must make your first move within 1 second. No holding, no jab-jab-jab.', `${d} dribbles to score.`, hc(c)], score: 'Make = 1 · Paint finish = 2 · Stop = 1 for defense', target: t,
+        why: 'Real defenders never give you time. This trains attacking before the defense is set.', harder: 'First move must be a drive, not a shot.', easier: '2 seconds to move.', tip: `${c.pname}: count "one" out loud after the check.` }; } },
+  { id: 'budget', name: 'Dribble Budget', role: 'core', focus: ['pullup', 'handles'], intensity: 3, players: 1,
+    make: (c, r) => { const d = pick(r, [2, 3, 4]), t = pick(r, [9, 11]);
+      return { setup: { you: 'top', partner: 'ft', ball: 'you', arrows: [['top', 'slotL', 'dribble']], alt: 'Live 1v1 from the top of the key' },
+        rules: ['Live 1v1 from the top of the key.', `You only get ${d} dribbles. Use them to create a pull-up or step-back.`, 'Alternate possessions.', hc(c)], score: 'Layup = 1 · Pull-up or step-back = 2 · Three = 3', target: t,
+        why: 'Jumpers off the bounce pay the most, so you hunt them, and the small budget forces efficient moves instead of dancing.', harder: 'Pull-ups only count going left.', easier: 'Add one dribble.', tip: `${c.pname}: crowd them and make every dribble count.` }; } },
+  { id: 'painttouch', name: 'Paint Touch', role: 'core', focus: ['finishing', 'decisions'], intensity: 3, players: 1,
+    make: (c, r) => { const t = pick(r, [7, 9]), side = pick(r, ['R', 'L']);
+      return { setup: { you: 'wing' + side, partner: 'elbow' + side, ball: 'you', arrows: [['wing' + side, 'paint', 'dribble']], zones: ['paint'], alt: 'Drive must touch the paint before any shot counts' },
+        rules: [`Live 1v1 from the ${side === 'R' ? 'right' : 'left'} wing.`, 'Your foot must touch the paint before any shot counts.', 'If the paint is walled off, pull it back out and re-attack.', hc(c)], score: 'Paint finish = 2 · Jumper after a paint touch = 1 · And-one called = 3', target: t,
+        why: 'Stops you from settling. Getting two feet in the paint breaks every defense and is where fouls come from.', harder: 'Only finishes outside the restricted spot, like floaters, count.', easier: 'Elbow touch counts as paint.', tip: `${c.pname}: wall up at the rim, don't reach.` }; } },
+  { id: 'offhand', name: 'Off-Hand World', role: 'core', focus: ['finishing', 'handles'], intensity: 2, players: 1,
+    make: (c, r) => { const t = pick(r, [7, 9]);
+      return { setup: { you: 'wingL', partner: 'elbowL', ball: 'you', arrows: [['wingL', 'blockL', 'dribble']], alt: 'Attack from the left wing, partner shading your strong hand' },
+        rules: ['Live 1v1 from the wing on your weak side.', `${c.pname} shades your strong hand the whole time.`, 'Strong-hand layups count zero. Only off-hand finishes and pull-ups count.', hc(c)], score: 'Off-hand finish = 2 · Pull-up = 1 · Stop = 1 for defense', target: t,
+        why: 'Defenders take away your strong hand in varsity games. This makes your weak hand a real weapon instead of a weakness.', harder: 'Off-hand finishes only, no jumpers.', easier: 'Strong-hand finishes count 1.', tip: `${c.pname}: stay on their strong hand, make them go weak.` }; } },
+  { id: 'shotclock', name: 'Shot Clock 5', role: 'core', focus: ['decisions', 'pullup', 'conditioning'], intensity: 3, players: 1,
+    make: (c, r) => { const t = pick(r, [7, 9]), clock = pick(r, [5, 6]);
+      return { setup: { you: 'top', partner: 'ft', ball: 'you', arrows: [['top', 'elbowR', 'dribble']], alt: 'Live 1v1 from the top with a short shot clock' },
+        rules: [`${clock}-second shot clock. ${c.pname} counts it out loud.`, 'Live 1v1 from the top, alternate possessions.', 'Shot clock violation = point for the defense.', hc(c)], score: 'Make = 1 · Three = 2 · Violation = 1 for defense', target: t,
+        why: 'End-of-clock pressure teaches you to get to your best move fast instead of over-dribbling.', harder: '4-second clock.', easier: '7-second clock.', tip: `${c.pname}: count loud and pressure the ball.` }; } },
+  { id: 'headstart', name: 'Head Start', role: 'core', focus: ['defense', 'finishing', 'conditioning'], intensity: 3, players: 1, courts: ['half', 'full'],
+    make: (c, r) => { const t = pick(r, [5, 7]);
+      return { setup: { you: 'half', partner: 'baseline', ball: 'you', arrows: [['half', 'paint', 'dribble'], ['baseline', 'ft', 'run']], alt: 'You attack from half court while partner recovers from the baseline' },
+        rules: [`You start at half court with the ball. ${c.pname} starts on the baseline.`, `On "go," ${c.pname} touches the baseline and sprints back. Score before they recover.`, 'Then switch: you defend from behind.', hc(c)], score: 'Make = 1 · Stop from behind = 2 for defense', target: t,
+        why: 'Trains attacking an advantage before it disappears, and hustle defense from a bad spot. Both happen every transition.', harder: 'Defender starts at the free-throw line.', easier: 'Defender touches the baseline twice.', tip: `${c.pname}: sprint, don't foul from behind.` }; } },
+  { id: 'boxout', name: 'Box-Out War', role: 'core', focus: ['defense', 'post', 'conditioning'], intensity: 3, players: 1,
+    make: (c, r) => { const t = pick(r, [7, 10]);
+      return { setup: { you: 'elbowR', partner: 'wingR', ball: 'partner', arrows: [['wingR', 'rim', 'pass'], ['elbowR', 'blockR', 'run']], alt: 'Partner shoots from the wing, you box out' },
+        rules: [`${c.pname} shoots from the wing. You find them and box out.`, 'Rebound is live: whoever gets it scores the point.', 'Swap shooter and boxer after 5 shots.', hc(c)], score: 'Defensive board = 1 · Offensive board = 1 for them · 3 boards in a row = +1 bonus', target: t,
+        why: 'Guards who rebound play more minutes. Contact, positioning and finishing the possession.', harder: 'Offensive rebounder can put it back for 2.', easier: 'Shooter waits a count before crashing.', tip: `${c.pname}: crash every shot hard.` }; } },
+  { id: 'lane', name: 'Lane Defense', role: 'core', focus: ['defense'], intensity: 3, players: 1,
+    make: (c, r) => { const d = pick(r, [3, 4]), t = pick(r, [7, 9]);
+      return { setup: { you: 'ft', partner: 'top', ball: 'partner', arrows: [['top', 'slotL', 'dribble']], zones: ['lane'], alt: 'Partner attacks you inside a narrow lane' },
+        rules: [`${c.pname} attacks you inside the lane, from elbow to elbow out to half court.`, `They get ${d} dribbles to score.`, 'Slides only. No crossing your feet, no reaching.', hc(c)], score: 'Stop = 1 · Drawn charge or clean deflection = 2 · Their make = 1 for them', target: t,
+        why: 'A narrow lane makes you win with feet and angles. That is how you guard varsity guards without fouling.', harder: 'Hands behind your back.', easier: 'Offense gets 2 dribbles.', tip: `${c.pname}: change speeds, try to get them to reach.` }; } },
+  { id: 'pickpocket', name: 'Pickpocket', role: 'core', focus: ['handles'], intensity: 2, players: 1,
+    make: (c, r) => { const sec = pick(r, [15, 20]), t = pick(r, [8, 10]);
+      return { setup: { you: 'top', partner: 'slotR', ball: 'you', zones: ['box'], alt: 'Protect your dribble inside a small box while partner tries to steal' },
+        rules: [`Stay inside a small box, about 8 by 8 feet, for ${sec} seconds.`, `${c.pname} tries to deflect or steal. Keep it alive with pounds, crosses, retreats and body shields.`, 'Switch after every round.', hc(c)], score: 'Survive the round = 2 · Each deflection = 1 for them · Lost ball = 2 for them', target: t,
+        why: 'Ball security under real hands. Way closer to a game than stationary handles.', harder: 'Weak hand only, or a smaller box.', easier: 'Bigger box.', tip: `${c.pname}: active hands, but no fouling.` }; } },
+  { id: 'contest', name: 'Beat the Contest', role: 'warm', focus: ['catchshoot', 'shooting'], intensity: 1, players: 1,
+    make: (c, r) => { const t = pick(r, [10, 12]);
+      return { setup: { you: 'cornerR', partner: 'blockR', ball: 'partner', arrows: [['blockR', 'cornerR', 'pass']], alt: 'Partner passes and contests your catch-and-shoot' },
+        rules: [`${c.pname} rebounds, passes and runs out to contest every shot. No blocking, just a high hand.`, 'Move spots: corner, wing, top, wing, corner.', 'Shoot within 1 second of the catch.'], score: 'Your make = 1 for you · Your miss = 1 for them', target: t,
+        why: 'Warm-up shots at game speed, against a hand, on a quick catch.', harder: 'Shoot off one dribble each time.', easier: 'Partner contests from farther away.', tip: `${c.pname}: hands up every time.` }; } },
+  { id: 'deflect', name: 'Deflection Hunt', role: 'warm', focus: ['defense', 'handles'], intensity: 1, players: 1,
+    make: (c, r) => { const sec = pick(r, [30, 45]);
+      return { setup: { you: 'paint', partner: 'ft', ball: 'partner', zones: ['paint'], alt: 'Partner dribbles in the paint while you hunt deflections' },
+        rules: [`${c.pname} dribbles anywhere in the paint for ${sec} seconds.`, 'You count every clean deflection.', 'Switch roles. 3 rounds each.'], score: 'Most deflections after 3 rounds wins', target: 3,
+        why: 'Wakes up your hands and feet. Active hands win you minutes.', harder: 'Must stay in a stance the whole time.', easier: '20-second rounds.', tip: `${c.pname}: keep it moving, both hands.` }; } },
+  { id: 'post', name: 'Two-Dribble Post', role: 'core', focus: ['post', 'finishing'], intensity: 2, players: 1,
+    make: (c, r) => { const t = pick(r, [7, 9]);
+      return { setup: { you: 'blockR', partner: 'paint', ball: 'you', arrows: [['blockR', 'rim', 'drive']], alt: 'Back to the basket on the block, partner behind you' },
+        rules: [`Start on the block, back to the basket. ${c.pname} is behind you.`, 'Two dribbles max. Use drop steps, spins, up-and-unders, hooks.', 'Guards get posted up all the time. Win it.', hc(c)], score: 'Hook or drop-step finish = 2 · Other make = 1', target: t,
+        why: 'Smaller guards get switched onto in the post. Footwork plus touch wins those.', harder: 'One dribble.', easier: 'Defender plays behind, no fronting.', tip: `${c.pname}: lean on them, make them work.` }; } },
+  { id: 'twoonone', name: '2-on-1 Reads', role: 'core', focus: ['decisions', 'finishing'], intensity: 3, players: 2,
+    make: (c, r) => { const t = pick(r, [7, 9]);
+      return { setup: { you: 'top', partner: 'ft', p2: 'wingR', ball: 'you', arrows: [['top', 'elbowL', 'dribble'], ['top', 'wingR', 'pass']], alt: 'You and P2 on offense against your partner' },
+        rules: ['You and P2 attack, the third player defends.', 'Make the defender commit, then hit the open player or finish.', 'Rotate: scorer goes to defense.'], score: 'Layup = 2 · Assist to a layup = 3 · Stop = 2 for defense', target: t,
+        why: 'Teaches you to draw two and make the simple read: the most important decision for a guard.', harder: 'Only one dribble before you pass.', easier: 'Defender must start at the rim.', tip: 'Defender: fake at the ball, recover to the pass.' }; } },
+  { id: 'ftgauntlet', name: 'Free Throw Gauntlet', role: 'finish', focus: ['pressure'], intensity: 1, players: 1,
+    make: (c, r) => { const t = pick(r, [5, 7]);
+      return { setup: { you: 'ft', partner: 'blockL', ball: 'you', alt: 'Free throws with your partner talking' },
+        rules: [`Take turns shooting 2 free throws. ${c.pname} talks the whole time.`, 'Miss both = 3 down-and-backs (or 10 push-ups on a driveway).', 'First to make the target wins.'], score: 'Each make = 1', target: t,
+        why: 'Free throws when you are tired and someone is in your ear. That is exactly how they feel in a close game.', harder: 'Must make both to score.', easier: 'Rest 10 seconds before shooting.', tip: `${c.pname}: talk, clap, be annoying.` }; } },
+  { id: 'nextbucket', name: 'Next Bucket Wins', role: 'finish', focus: ['pressure', 'decisions'], intensity: 3, players: 1,
+    make: (c, r) => ({ setup: { you: 'top', partner: 'ft', ball: 'you', arrows: [['top', 'rim', 'dribble']], alt: 'Sudden death 1v1 from the top' },
+      rules: ['Sprint a down-and-back first, then go straight into a live 1v1 from the top.', 'Sudden death: next bucket wins the round.', 'Best of 5 rounds. Loser of each round starts on offense next.'], score: 'Win a round = 1', target: 3,
+      why: 'Game-winning possession reps while tired. You find out which move you trust.', harder: 'No threes.', easier: 'Skip the sprint.', tip: `${c.pname}: play it like the season is on the line.` }) },
+];
+
+// ===================== Session builder =====================
+let opts = rd('opts', { partners: '1', level: 'same', focus: ['decisions', 'finishing'], time: '30', court: 'half', pname: '' });
+let session = rd('session', null);
+function eligible(g, o) { return g.players <= Number(o.partners) && (!g.courts || g.courts.includes(o.court)); }
+function buildSession(seed) {
+  const o = { ...opts }, r = rng(seed), T = Number(o.time), c = { ...o, pname: o.pname || 'Partner' };
+  const focus = o.focus.length ? o.focus : ['decisions'];
+  const scoreG = (g) => g.focus.filter((f) => focus.includes(f)).length + r() * 0.5;
+  const pool = GAMES.filter((g) => eligible(g, o));
+  const warm = pool.filter((g) => g.role === 'warm').sort((a, b) => scoreG(b) - scoreG(a))[0];
+  const fin = pick(r, pool.filter((g) => g.role === 'finish'));
+  const coreN = Math.max(1, Math.min(5, Math.round((T - 10) / 8)));
+  const cores = pool.filter((g) => g.role === 'core').map((g) => ({ g, s: scoreG(g) })).sort((a, b) => b.s - a.s).slice(0, coreN).map((x) => x.g);
+  const coreMins = Math.max(5, Math.round((T - 10) / cores.length));
+  const games = [[warm, 'Warm-up', 5], ...cores.map((g) => [g, 'Main game', coreMins]), [fin, 'Finisher', 5]].map(([g, role, mins], i) => ({ uid: `${seed}-${i}`, id: g.id, name: g.name, roleLabel: role, mins, focus: g.focus, ...g.make(c, rng(seed + i * 97)), result: null }));
+  session = { seed, at: Date.now(), opts: o, games }; wr('session', session);
+}
+function swapGame(i) {
+  const o = session.opts, c = { ...o, pname: o.pname || 'Partner' }, cur = session.games[i], used = new Set(session.games.map((g) => g.id));
+  const role = cur.roleLabel === 'Warm-up' ? 'warm' : cur.roleLabel === 'Finisher' ? 'finish' : 'core';
+  const pool = GAMES.filter((g) => eligible(g, o) && g.role === role && !used.has(g.id));
+  if (!pool.length) return toast('No other game fits these settings');
+  const r = rng(Date.now() % 100000), focus = o.focus;
+  const g = pool.map((x) => ({ x, s: x.focus.filter((f) => focus.includes(f)).length + r() })).sort((a, b) => b.s - a.s)[0].x;
+  session.games[i] = { uid: `${Date.now()}-${i}`, id: g.id, name: g.name, roleLabel: cur.roleLabel, mins: cur.mins, focus: g.focus, ...g.make(c, rng(Date.now() % 99991)), result: null };
+  wr('session', session); renderSession(); toast(`Swapped in ${g.name}`);
+}
+
+// ===================== Render =====================
+function renderSetup() {
+  $('[data-set="focus"]').innerHTML = FOCUS.map(([k, l]) => `<button type="button" class="chip" data-v="${k}">${l}</button>`).join('');
+  for (const grp of $$('#setup [data-set]')) {
+    const key = grp.dataset.set;
+    for (const b of $$('.chip', grp)) b.setAttribute('aria-pressed', String(key === 'focus' ? opts.focus.includes(b.dataset.v) : String(opts[key]) === b.dataset.v));
+  }
+  $('#pname').value = opts.pname || '';
+}
+function renderSession() {
+  const el = $('#session');
+  if (!session) { el.innerHTML = ''; return; }
+  const total = session.games.reduce((a, g) => a + g.mins, 0), pn = session.opts.pname || 'Partner';
+  el.innerHTML = `<div class="sess-head"><h2>Your session</h2><span class="muted small num">${session.games.length} games · ${total} min</span></div>` +
+    session.games.map((g, i) => `<article class="card game" style="margin-top:12px">
+      <div class="g-top"><div style="min-width:0"><div class="role">${i + 1}. ${g.roleLabel}</div><h3>${esc(g.name)}</h3><div class="tags">${g.focus.filter((f) => FOCUS_NAME[f]).map((f) => `<span class="tag">${FOCUS_NAME[f]}</span>`).join('')}</div></div><div class="mins num">${g.mins} min</div></div>
+      <div class="court">${courtSvg(g.setup)}</div>
+      <div class="g-body">
+        <ul>${g.rules.filter(Boolean).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+        <div class="score-line"><b>Scoring · first to ${g.target}</b>${esc(g.score)}</div>
+        <p class="why">${esc(g.why)}</p>
+        <details class="more"><summary>Make it harder or easier</summary><div><p><b>Harder:</b> ${esc(g.harder)}</p><p><b>Easier:</b> ${esc(g.easier)}</p><p class="muted">${esc(g.tip)}</p>${session.opts.partners === '2' && !g.p2 ? '<p class="muted">3 players: winner stays on, loser rotates out with the third player.</p>' : ''}</div></details>
+        <div class="g-actions">${g.result ? `<span class="result ${g.result.you > g.result.them ? 'w' : 'l'}">${g.result.you > g.result.them ? 'Won' : 'Lost'} ${g.result.you}-${g.result.them}</span>` : ''}<button type="button" class="btn" data-swap="${i}">Swap game</button><button type="button" class="btn primary" data-play="${i}">${g.result ? 'Play again' : 'Play'}</button></div>
+      </div></article>`).join('') +
+    `<button type="button" class="btn wide" id="reroll" style="margin-top:12px">Build a different session</button>`;
+}
+
+// ===================== Scoreboard =====================
+let live = null;
+function openBoard(i) {
+  const g = session.games[i]; live = { i, you: 0, them: 0, log: [] };
+  $('#b-title').textContent = g.name; $('#b-goal').textContent = `First to ${g.target} · ${g.score}`;
+  $('#b-them-name').textContent = session.opts.pname || 'Partner';
+  renderBoard(); $('#board').showModal();
+}
+function renderBoard() {
+  const g = session.games[live.i];
+  $('#b-you').textContent = live.you; $('#b-them').textContent = live.them;
+  const done = Math.max(live.you, live.them) >= g.target;
+  const win = $('#b-win'); win.hidden = !done;
+  if (done) win.textContent = live.you > live.them ? `You win ${live.you}-${live.them}` : `${session.opts.pname || 'Partner'} wins ${live.them}-${live.you}`;
+  $('#b-save').textContent = done ? 'Save result' : 'End and save';
+}
+$('#board').addEventListener('click', (e) => {
+  const add = e.target.closest('[data-add]');
+  if (add) { const side = add.closest('[data-side]').dataset.side; live[side] += Number(add.dataset.add); live.log.push([side, Number(add.dataset.add)]); renderBoard(); if (navigator.vibrate) navigator.vibrate(15); }
+});
+$('#b-undo').addEventListener('click', () => { const l = live.log.pop(); if (l) { live[l[0]] -= l[1]; renderBoard(); } });
+$('#b-close').addEventListener('click', () => $('#board').close());
+$('#b-save').addEventListener('click', () => {
+  if (!live.you && !live.them) { $('#board').close(); return; }
+  const g = session.games[live.i]; g.result = { you: live.you, them: live.them };
+  const hist = rd('history', []); hist.unshift({ at: Date.now(), id: g.id, name: g.name, focus: g.focus, you: live.you, them: live.them, partner: session.opts.pname || 'Partner' });
+  wr('history', hist.slice(0, 300)); wr('session', session);
+  $('#board').close(); renderSession(); toast(live.you > live.them ? 'Win saved' : live.you === live.them ? 'Tie saved' : 'Saved. Run it back.');
+});
+
+// ===================== Record =====================
+function renderRecord() {
+  const h = rd('history', []), w = h.filter((x) => x.you > x.them).length, l = h.filter((x) => x.you < x.them).length;
+  $('#rec-big').innerHTML = `<div><b class="num">${w}-${l}</b><small>record</small></div><div><b class="num">${h.length ? Math.round((w / h.length) * 100) : 0}%</b><small>win rate</small></div><div><b class="num">${h.length}</b><small>games played</small></div>`;
+  const by = {};
+  for (const x of h) for (const f of x.focus) { if (!FOCUS_NAME[f]) continue; by[f] ??= { w: 0, n: 0 }; by[f].n++; if (x.you > x.them) by[f].w++; }
+  const rows = Object.entries(by).sort((a, b) => a[1].w / a[1].n - b[1].w / b[1].n);
+  $('#rec-skill').innerHTML = rows.length ? rows.map(([f, v]) => `<div class="bar-row"><span>${FOCUS_NAME[f]}</span><div class="track"><div class="fill" style="width:${(v.w / v.n) * 100}%"></div></div><span class="v">${Math.round((v.w / v.n) * 100)}% · ${v.n}</span></div>`).join('') : '<p class="muted small" style="margin:0">Play a few games and save the score to see this.</p>';
+  $('#rec-list').innerHTML = h.length ? h.slice(0, 30).map((x) => `<div class="rec-row"><span>${esc(x.name)}<small>vs ${esc(x.partner)} · ${new Date(x.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</small></span><span class="result ${x.you > x.them ? 'w' : 'l'} num">${x.you > x.them ? 'W' : x.you < x.them ? 'L' : 'T'} ${x.you}-${x.them}</span></div>`).join('') : '<p class="muted small" style="margin:0">No games saved yet.</p>';
+}
+
+// ===================== Wiring =====================
+$('#setup').addEventListener('click', (e) => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  const key = b.closest('[data-set]').dataset.set, v = b.dataset.v;
+  if (key === 'focus') { opts.focus = opts.focus.includes(v) ? opts.focus.filter((x) => x !== v) : [...opts.focus, v].slice(-3); }
+  else opts[key] = v;
+  wr('opts', opts); renderSetup();
+});
+$('#pname').addEventListener('input', (e) => { opts.pname = e.target.value.trim(); wr('opts', opts); });
+$('#build').addEventListener('click', () => { buildSession(Date.now() % 1000000); renderSession(); $('#session').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+$('#session').addEventListener('click', (e) => {
+  const p = e.target.closest('[data-play]'); if (p) return openBoard(Number(p.dataset.play));
+  const s = e.target.closest('[data-swap]'); if (s) return swapGame(Number(s.dataset.swap));
+  if (e.target.closest('#reroll')) { buildSession(Date.now() % 1000000); renderSession(); toast('New session built'); }
+});
+function route() {
+  const v = location.hash === '#record' ? 'record' : 'games';
+  $('#v-games').hidden = v !== 'games'; $('#v-record').hidden = v !== 'record';
+  $$('.tab').forEach((t) => { if (t.dataset.tab === v) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
+  if (v === 'record') renderRecord();
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', route);
+renderSetup(); renderSession(); route();
+</script>
+
+</body>
+</html>
