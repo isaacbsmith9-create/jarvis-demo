@@ -464,6 +464,22 @@ dialog.nv { max-height: 94vh; padding-top: 0; }
 .nv-kv { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; font-variant-numeric: tabular-nums; }
 .nv-kv b.good { color: var(--accent); } .nv-kv b.bad { color: var(--over); }
 .nut-row td .bar { margin-top: 5px; height: 5px; }
+.mring { display: grid; justify-items: center; gap: 4px; text-align: center; min-width: 0; }
+.mring svg { width: min(100%, 104px); height: auto; display: block; }
+.mring .rv { font-family: var(--f-display); font-weight: 700; font-size: 19px; fill: var(--fg); }
+.mring .rg { font-size: 10.5px; fill: var(--muted); font-family: var(--f-body); }
+.mring small { font-size: 12px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); }
+.mring .left { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.mring .left.over { color: var(--over); font-weight: 600; }
+.donuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+.donut { border: 0; background: none; padding: 0; display: grid; justify-items: center; gap: 8px; cursor: pointer; color: inherit; min-width: 0; text-align: left; }
+.donut svg { width: min(100%, 150px); height: auto; display: block; }
+.donut .dv { font-family: var(--f-display); font-weight: 700; font-size: 19px; fill: var(--fg); }
+.donut .dl { font-size: 9.5px; fill: var(--muted); font-family: var(--f-body); }
+.donut ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; width: 100%; font-size: 12.5px; }
+.donut li { display: grid; grid-template-columns: 12px 1fr auto; gap: 6px; align-items: center; }
+.donut li i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+.donut li b { font-variant-numeric: tabular-nums; }
 .section-label { font-family: var(--f-body); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 12px 4px -4px; }
 details.fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; cursor: pointer; }
 details.fold > summary::-webkit-details-marker { display: none; }
@@ -516,6 +532,11 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
       <div class="macros" id="macro-bars"></div>
       <button type="button" class="nv-open" id="nv-open"><svg class="mini-pie" id="mini-pie" viewBox="0 0 36 36" aria-hidden="true"></svg><span>Nutrition</span><span class="muted small" style="flex:none">Calories · Nutrients · Macros ›</span></button>
       <p class="adjust-note" id="adjust-note" hidden></p>
+    </div>
+
+    <div class="card" id="donut-card" hidden>
+      <div class="row-between"><h3>Today's split</h3><span class="muted small">Tap for full nutrition</span></div>
+      <div class="donuts" id="donuts"></div>
     </div>
 
     <div class="card" id="timing-card" hidden></div>
@@ -1272,13 +1293,19 @@ function renderToday() {
   $('#eq-food').textContent = tot.calories.toLocaleString();
   $('#eq-left').textContent = left.toLocaleString();
   $('#macro-bars').innerHTML = [['Protein', tot.protein, t.protein, 'var(--protein)'], ['Carbs', tot.carbs, t.carbs, 'var(--carbs)'], ['Fat', tot.fat, t.fat, 'var(--fat)']]
-    .map(([n, have, goal, c]) => `<div class="macro"><small>${n}</small><b>${Math.round(have)}</b><span class="muted small"> / ${goal}g</span>
-      <div class="bar"><div class="bar-fill" style="width:${Math.min(100, (have / goal) * 100)}%;background:${c}"></div></div></div>`).join('');
+    .map(([n, have, goal, c]) => { const pct = goal ? have / goal : 0, C = 2 * Math.PI * 34, left = Math.round(goal - have);
+      return `<button type="button" class="mring" data-open-nv="macros" style="border:0;background:none;padding:0;cursor:pointer;color:inherit" aria-label="${n}: ${Math.round(have)} of ${goal} grams">
+        <svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="34" fill="none" stroke="var(--surface-2)" stroke-width="9"/>
+        <circle cx="42" cy="42" r="34" fill="none" stroke="${c}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(Math.min(1, pct) * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 42 42)"${pct > 0 ? '' : ' opacity="0"'}/>
+        ${pct > 1 ? `<circle cx="42" cy="42" r="34" fill="none" stroke="var(--over)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(Math.min(1, pct - 1) * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 42 42)"/>` : ''}
+        <text x="42" y="44" text-anchor="middle" class="rv">${Math.round(have)}</text><text x="42" y="58" text-anchor="middle" class="rg">/ ${goal}g</text></svg>
+        <small>${n}</small><span class="left${left < 0 ? ' over' : ''}">${left >= 0 ? `${left}g left` : `${-left}g over`}</span></button>`; }).join('');
 
   renderMicroBars($('#micro-bars'), tot, microTargets(t));
   renderFavs();
   renderBreakdown(t);
   renderMiniPie(tot);
+  renderDonuts(t);
   renderExtras(t, tot);
   checkBadges();
   $('#micro-note').textContent = tot.missing ? `${tot.missing} item${tot.missing === 1 ? ' has' : 's have'} no nutrient data` : '';
@@ -3999,6 +4026,36 @@ $('#nv').addEventListener('click', (e) => {
 $('#nv-mode').addEventListener('change', (e) => { nvMode = e.target.value; renderNv(); });
 $('#nv-prev').addEventListener('click', () => { nvDate = shiftIso(nvDate, nvMode === 'week' ? -7 : -1); renderNv(); });
 $('#nv-next').addEventListener('click', () => { const n = shiftIso(nvDate, nvMode === 'week' ? 7 : 1); nvDate = n > todayIso() ? todayIso() : n; renderNv(); });
+
+
+// ===================== Diary donuts: calories by meal + macro split =====================
+function donutSvg(parts, top, bottom) {
+  const tot = parts.reduce((a, p) => a + p.v, 0), r = 50, C = 2 * Math.PI * r;
+  let off = 0, arcs = '';
+  const live = parts.filter((p) => p.v > 0), gap = live.length > 1 ? 2.5 : 0;
+  for (const p of live) {
+    const len = (p.v / tot) * C;
+    arcs += `<circle cx="60" cy="60" r="${r}" fill="none" stroke="${p.c}" stroke-width="12" stroke-dasharray="${Math.max(0.1, len - gap).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 60 60)"/>`;
+    off += len;
+  }
+  return `<svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="12"/>${arcs}
+    <text x="60" y="60" text-anchor="middle" class="dv">${top}</text><text x="60" y="76" text-anchor="middle" class="dl">${bottom}</text></svg>`;
+}
+function renderDonuts(t) {
+  const card = $('#donut-card'), d = dayDoc(day) || blankDay(), all = entriesOf(day);
+  if (!all.length) { card.hidden = true; return; }
+  card.hidden = false;
+  const meals = MEALS.map(([k, l]) => ({ n: l, v: totals(d[k] || []).calories, c: `var(--m-${k})` }));
+  const kcal = meals.reduce((a, m) => a + m.v, 0), tot = totals(all);
+  const mac = [['Carbs', tot.carbs * 4, 'var(--carbs)', tot.carbs], ['Fat', tot.fat * 9, 'var(--fat)', tot.fat], ['Protein', tot.protein * 4, 'var(--protein)', tot.protein]].map(([n, v, c, g]) => ({ n, v, c, g }));
+  const mk = mac.reduce((a, m) => a + m.v, 0) || 1, pct = (v, s) => (s ? Math.round((v / s) * 100) : 0);
+  const list = (parts, sum, fmt) => `<ul>${parts.filter((p) => p.v > 0).map((p) => `<li><i style="--c:${p.c}"></i><span>${p.n}</span><b>${fmt(p)}</b></li>`).join('')}</ul>`;
+  $('#donuts').innerHTML = `<button type="button" class="donut" data-open-nv="calories" aria-label="Calories by meal: ${meals.filter((m) => m.v).map((m) => `${m.n} ${pct(m.v, kcal)}%`).join(', ')}">
+      ${donutSvg(meals, kcal.toLocaleString(), 'kcal by meal')}${list(meals, kcal, (p) => `${pct(p.v, kcal)}%`)}</button>
+    <button type="button" class="donut" data-open-nv="macros" aria-label="Macro split: ${mac.map((m) => `${m.n} ${pct(m.v, mk)}%`).join(', ')}">
+      ${donutSvg(mac, pct(mac[2].v, mk) + '%', 'from protein')}${list(mac, mk, (p) => `${pct(p.v, mk)}% · ${Math.round(p.g)}g`)}</button>`;
+}
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-open-nv]'); if (b && !b.closest('#nv')) openNv(b.dataset.openNv); });
 
 // ===================== Coach tabs =====================
 const COACH_TAB_KEY = 'macrolens-coach-tab';
