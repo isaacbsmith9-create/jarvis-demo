@@ -1,8 +1,9 @@
 // App shell: hash router, tab bar, re-render on data changes, quick add, theme, offline.
 import { $, $$ } from './util.js';
-import { onChange } from './store.js';
+import { onChange, connectCloud, inClaude } from './store.js';
 import { on, sheet, icon, hideTip, go, applyTheme } from './ui.js';
 import { resetCache } from './insights.js';
+import { initAI } from './ai.js';
 import * as Today from './view.today.js';
 import * as Food from './view.food.js';
 import * as Train from './view.train.js';
@@ -15,7 +16,7 @@ const TABS = ['today', 'food', 'train', 'plan', 'progress'];
 let current = null;
 
 function parse() {
-  const [tab = 'today', ...rest] = location.hash.replace(/^#\/?/, '').split('/').map(decodeURIComponent);
+  const [tab = 'today', ...rest] = location.hash.replace(/^#\/?/, '').split(/[-/]/).map(decodeURIComponent);
   return { tab: VIEWS[tab] ? tab : 'today', rest };
 }
 export function render(keepScroll = false) {
@@ -71,7 +72,7 @@ on({
   qaCheckin() { closeQa(); Train.openCheckin(); },
   qaTask() { closeQa(); Plan.openTask(); },
   qaWeek() { closeQa(); Plan.openWbItem(); },
-  qaTimer() { closeQa(); go('#plan/time'); },
+  qaTimer() { closeQa(); go('#plan-time'); },
   qaWeight() { closeQa(); Progress.openWeight(); },
   go(el) { go(el.dataset.href); },
   back(el) { if (history.length > 1 && el.dataset.soft !== '1') history.back(); else location.hash = el.dataset.href || '#today'; },
@@ -83,7 +84,9 @@ applyTheme(savedTheme());
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme(savedTheme()));
 
 // ---------- offline ----------
-if ('serviceWorker' in navigator && location.protocol === 'https:') addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+if ('serviceWorker' in navigator && location.protocol === 'https:' && !inClaude() && /github\.io$/.test(location.hostname)) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 
 if (!location.hash) history.replaceState(null, '', '#today');
 render();
+connectCloud(); // inside Claude: load and sync with your Claude account
+initAI().then((ok) => { if (ok) render(true); }); // inside Claude: photo scan in Add food

@@ -48,14 +48,14 @@ export function render() {
   <div class="card"><div class="card-head"><h3>Sleep</h3><span class="num b">${sl != null ? r1(sl) + ' h' : '–'} <span class="xs muted">avg</span></span></div><div class="chart" id="p-sleep"></div></div>
   <div class="card"><div class="card-head"><h3>Readiness</h3></div><div class="chart" id="p-ready"></div></div>
 
-  <div class="sh"><h2>Time</h2><button class="link" data-act="go" data-href="#plan/time">Tracker</button></div>
+  <div class="sh"><h2>Time</h2><button class="link" data-act="go" data-href="#plan-time">Tracker</button></div>
   <div class="card"><div class="card-head"><h3>Where your hours go</h3></div><div class="chart" id="p-time"></div></div>
   <div class="card"><div class="card-head"><div><h3>Phone vs. training</h3><div class="sub">minutes per day, dashed line is your phone goal</div></div></div><div class="chart" id="p-phone"></div></div>
 
-  <div class="sh"><h2>School</h2><button class="link" data-act="go" data-href="#plan/week">Week</button></div>
+  <div class="sh"><h2>School</h2><button class="link" data-act="go" data-href="#plan-week">Week</button></div>
   <div class="card"><div class="card-head"><h3>Homework &amp; study</h3></div><div class="chart" id="p-hw"></div></div>
   <div class="card"><div class="card-head"><h3>Tasks finished</h3></div><div class="chart" id="p-tasks"></div></div>
-  <div class="card"><div class="card-head"><h3>Spanish</h3><button class="btn ghost sm" data-act="go" data-href="#more/spanish">Practice</button></div><div class="chart" id="p-span"></div></div>
+  <div class="card"><div class="card-head"><h3>Spanish</h3><button class="btn ghost sm" data-act="go" data-href="#more-spanish">Practice</button></div><div class="chart" id="p-span"></div></div>
 
   <div class="sh"><h2>Body</h2><button class="link" data-act="logWeight">Log weight</button></div>
   <div class="card"><div class="card-head"><h3>Weight</h3><span class="num b">${last ? `${last.lb} lb` : '–'}${c.goalW ? ` <span class="xs muted">goal ${c.goalW.lb} lb</span>` : ''}</span></div><div class="chart" id="p-weight"></div>
