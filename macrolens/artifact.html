@@ -410,6 +410,41 @@ label.check input { width: auto; }
 .topf .nm small { color: var(--muted); font-size: 12px; margin-left: 4px; }
 .topf .v { font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; }
 .topf .bar { grid-column: 1 / -1; margin-top: 2px; height: 6px; }
+.nv-open { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; margin-top: 12px; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); font-weight: 600; cursor: pointer; text-align: left; }
+.nv-open .mini-pie { width: 28px; height: 28px; flex: none; }
+.nv-open span { flex: 1; }
+dialog.nv { max-height: 94vh; padding-top: 0; }
+.nv-top { position: sticky; top: 0; z-index: 2; background: var(--surface); padding-top: 14px; margin: 0 -4px; padding-inline: 4px; }
+.nv-tabs { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--line); margin-top: 6px; }
+.nv-tabs button { border: 0; background: none; padding: 11px 0 9px; font-weight: 600; font-size: 15px; color: var(--muted); border-bottom: 3px solid transparent; cursor: pointer; }
+.nv-tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nv-nav { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; border-bottom: 1px solid var(--line); }
+.nv-nav button.arrow { border: 0; background: none; height: 54px; font-size: 22px; color: var(--muted); cursor: pointer; }
+.nv-nav button.arrow:disabled { opacity: .25; cursor: default; }
+.nv-nav .mid { text-align: center; border-inline: 1px solid var(--line); padding: 6px 0; }
+.nv-nav select { border: 0; background: none; padding: 0; width: auto; color: var(--muted); font-size: 13px; text-align: center; cursor: pointer; }
+.nv-nav b { display: block; font-size: 16px; }
+.nv-body { padding-top: 14px; display: grid; gap: 14px; }
+.pie-wrap { display: grid; justify-items: center; padding: 4px 0; }
+.pie-wrap svg { width: min(220px, 62vw); height: auto; display: block; }
+.pie-wrap text { font: 700 13px var(--f-body); fill: #fff; }
+.nv-table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+.nv-table th { font-size: 12px; font-weight: 600; color: var(--muted); text-align: right; padding: 4px 6px; }
+.nv-table td { padding: 11px 6px; border-top: 1px solid var(--line); text-align: right; }
+.nv-table th:first-child, .nv-table td:first-child { text-align: left; padding-left: 0; }
+.nv-table td.goal { color: var(--accent); }
+.nv-table td.over { color: var(--over); font-weight: 600; }
+.nv-table .sw { display: inline-block; width: 13px; height: 13px; border-radius: 3px; margin-right: 9px; vertical-align: -2px; background: var(--c); }
+.nv-table tr.total td { font-weight: 700; }
+.nv-banner { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; font-weight: 600; font-size: 14px; }
+.nv-foods .row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.nv-foods .row:first-child { border-top: 0; }
+.nv-foods .row small { display: block; font-size: 12px; color: var(--muted); }
+.nv-bars svg { width: 100%; height: auto; display: block; }
+.nv-bars text { fill: var(--muted); font: 11px var(--f-body); }
+.nv-kv { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; font-variant-numeric: tabular-nums; }
+.nv-kv b.good { color: var(--accent); } .nv-kv b.bad { color: var(--over); }
+.nut-row td .bar { margin-top: 5px; height: 5px; }
 .section-label { font-family: var(--f-body); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 12px 4px -4px; }
 details.fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; cursor: pointer; }
 details.fold > summary::-webkit-details-marker { display: none; }
@@ -460,6 +495,7 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
         </div>
       </div>
       <div class="macros" id="macro-bars"></div>
+      <button type="button" class="nv-open" id="nv-open"><svg class="mini-pie" id="mini-pie" viewBox="0 0 36 36" aria-hidden="true"></svg><span>Nutrition</span><span class="muted small" style="flex:none">Calories · Nutrients · Macros ›</span></button>
       <p class="adjust-note" id="adjust-note" hidden></p>
     </div>
 
@@ -889,6 +925,18 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
   </div>
 </dialog>
 
+<!-- NUTRITION -->
+<dialog id="nv" class="sheet nv" aria-labelledby="nv-title">
+  <div class="nv-top">
+    <div class="sheet-head" style="margin-bottom:0"><strong id="nv-title">Nutrition</strong><button class="icon-btn" data-close aria-label="Close">✕</button></div>
+    <div class="nv-tabs" role="tablist"><button type="button" role="tab" data-nv-tab="calories">Calories</button><button type="button" role="tab" data-nv-tab="nutrients">Nutrients</button><button type="button" role="tab" data-nv-tab="macros">Macros</button></div>
+    <div class="nv-nav"><button type="button" class="arrow" id="nv-prev" aria-label="Earlier">‹</button>
+      <div class="mid"><select id="nv-mode" aria-label="View"><option value="day">Day View</option><option value="week">Week View</option></select><b id="nv-when">Today</b></div>
+      <button type="button" class="arrow" id="nv-next" aria-label="Later">›</button></div>
+  </div>
+  <div class="nv-body" id="nv-body"></div>
+</dialog>
+
 <!-- RECIPE BUILDER -->
 <dialog id="recipe-dialog" class="sheet">
   <div class="sheet-head"><strong>Recipe builder</strong><button class="icon-btn" data-close aria-label="Close">✕</button></div>
@@ -1211,6 +1259,7 @@ function renderToday() {
   renderMicroBars($('#micro-bars'), tot, microTargets(t));
   renderFavs();
   renderBreakdown(t);
+  renderMiniPie(tot);
   renderExtras(t, tot);
   checkBadges();
   $('#micro-note').textContent = tot.missing ? `${tot.missing} item${tot.missing === 1 ? ' has' : 's have'} no nutrient data` : '';
@@ -3810,6 +3859,127 @@ $('#breakdown').addEventListener('click', (e) => {
   if (r) bdRange = r.dataset.bdRange; else if (m) bdMacro = m.dataset.bdMacro; else return;
   renderBreakdown(targets(day));
 });
+
+
+// ===================== Nutrition screen (Calories · Nutrients · Macros, Day or Week) =====================
+let nvTab = 'calories', nvMode = 'day', nvDate = todayIso(), nvFoodMacro = 'carbs';
+const MACRO_ROWS = [['carbs', 'Carbohydrates', 4, 'var(--carbs)'], ['fat', 'Fat', 9, 'var(--fat)'], ['protein', 'Protein', 4, 'var(--protein)']];
+function pieSvg(parts, { size = 220, labels = true, ring = false } = {}) {
+  const tot = parts.reduce((a, p) => a + p.v, 0), r = size / 2, c = r;
+  if (!tot) return `<svg viewBox="0 0 ${size} ${size}" role="img" aria-label="No data"><circle cx="${c}" cy="${c}" r="${r - 2}" fill="var(--surface-2)"/></svg>`;
+  let a0 = -Math.PI / 2, out = '';
+  const live = parts.filter((p) => p.v > 0);
+  for (const p of live) {
+    const a1 = a0 + (p.v / tot) * Math.PI * 2, large = a1 - a0 > Math.PI ? 1 : 0;
+    const x0 = c + (r - 2) * Math.cos(a0), y0 = c + (r - 2) * Math.sin(a0), x1 = c + (r - 2) * Math.cos(a1), y1 = c + (r - 2) * Math.sin(a1);
+    out += live.length === 1 ? `<circle cx="${c}" cy="${c}" r="${r - 2}" fill="${p.c}"/>` : `<path d="M${c},${c}L${x0.toFixed(2)},${y0.toFixed(2)}A${r - 2},${r - 2} 0 ${large} 1 ${x1.toFixed(2)},${y1.toFixed(2)}Z" fill="${p.c}" stroke="var(--surface)" stroke-width="${size > 60 ? 2 : 1}" stroke-linejoin="round"/>`;
+    const pct = Math.round((p.v / tot) * 100);
+    if (labels && pct >= 6) { const m = (a0 + a1) / 2, lr = (r - 2) * 0.62; out += `<text x="${(c + lr * Math.cos(m)).toFixed(1)}" y="${(c + lr * Math.sin(m) + 4.5).toFixed(1)}" text-anchor="middle"${p.t ? ` style="fill:${p.t}"` : ''}>${pct}%</text>`; }
+    a0 = a1;
+  }
+  if (ring) out += `<circle cx="${c}" cy="${c}" r="${r * 0.45}" fill="var(--surface-2)"/>`;
+  return `<svg viewBox="0 0 ${size} ${size}" role="img" aria-label="${esc(live.map((p) => `${p.n} ${Math.round((p.v / tot) * 100)}%`).join(', '))}">${out}</svg>`;
+}
+function renderMiniPie(tot) {
+  $('#mini-pie').innerHTML = pieSvg(MACRO_ROWS.map(([k, n, kc, c]) => ({ n, v: (tot[k] || 0) * kc, c })), { size: 36, labels: false }).replace(/^<svg[^>]*>|<\/svg>$/g, '');
+}
+function nvDates() {
+  if (nvMode === 'day') return [nvDate];
+  const mon = shiftIso(nvDate, -((new Date(nvDate + 'T12:00:00').getDay() + 6) % 7));
+  return Array.from({ length: 7 }, (_, i) => shiftIso(mon, i));
+}
+// Totals for the shown day, or the average over logged days of the week.
+function nvAgg() {
+  const dates = nvDates(), logged = dates.filter((d) => d <= todayIso() && entriesOf(d).length), n = Math.max(1, logged.length);
+  const meals = MEALS.map(([k, l]) => ({ k, l, kcal: logged.reduce((a, d) => a + totals(dayDoc(d)?.[k] || []).calories, 0) / n }));
+  const all = logged.flatMap((d) => MEALS.flatMap(([k, l]) => (dayDoc(d)?.[k] || []).map((e) => ({ e, meal: l }))));
+  const tot = totals(all.map((x) => x.e)), avg = {};
+  for (const k of ['calories', 'protein', 'carbs', 'fat', ...MICRO_KEYS]) avg[k] = (tot[k] || 0) / n;
+  const foods = new Map();
+  for (const { e, meal } of all) { const v = scale(e, e.servings ?? 1), f = foods.get(e.name) || { name: e.name, meals: new Set(), n: 0, calories: 0, protein: 0, carbs: 0, fat: 0 }; f.meals.add(meal); f.n++; for (const k of ['calories', 'protein', 'carbs', 'fat']) f[k] += v[k] / n; foods.set(e.name, f); }
+  const t = targets(nvMode === 'day' ? nvDate : logged[logged.length - 1] || nvDate);
+  return { dates, logged, n, meals, avg, foods: [...foods.values()], t, missing: tot.missing };
+}
+function foodsList(foods, key, unit, n = 5) {
+  const top = foods.filter((f) => f[key] > 0.4).sort((a, b) => b[key] - a[key]).slice(0, n);
+  return top.length ? `<div class="nv-foods">${top.map((f) => `<div class="row"><span>${esc(f.name)}<small>${[...f.meals].join(', ')}${f.n > 1 && nvMode === 'week' ? ` · ${f.n}×` : ''}</small></span><b class="num">${key === 'calories' ? Math.round(f[key]).toLocaleString() : Math.round(f[key])} ${unit}</b></div>`).join('')}</div>` : '<p class="muted small" style="margin:0">Nothing logged yet.</p>';
+}
+function weekBars(a) {
+  const W = 340, H = 190, L = 40, R = 8, T = 12, B = 30, iw = W - L - R, ih = H - T - B;
+  const vals = a.dates.map((d) => (d <= todayIso() ? totals(entriesOf(d)).calories : 0));
+  const goals = a.dates.map((d) => targets(d).calories), avgV = a.logged.length ? Math.round(a.logged.reduce((s, d) => s + totals(entriesOf(d)).calories, 0) / a.logged.length) : 0;
+  const max = Math.max(...vals, ...goals, avgV) * 1.1 || 1, step = max > 4000 ? 1000 : 500, top = Math.ceil(max / step) * step;
+  const y = (v) => T + ih - (v / top) * ih, slot = iw / 8, bw = slot * 0.58;
+  let g = '';
+  for (let v = 0; v <= top; v += step) g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v.toLocaleString()}</text>`;
+  a.dates.forEach((d, i) => {
+    const x = L + slot * i + (slot - bw) / 2, v = vals[i], dd = new Date(d + 'T12:00:00');
+    if (v) g += `<rect x="${x}" y="${y(v)}" width="${bw}" height="${T + ih - y(v)}" rx="3" fill="${v > goals[i] * 1.05 ? 'var(--over)' : 'var(--accent)'}"><title>${dd.toLocaleDateString(undefined, { weekday: 'short' })}: ${v.toLocaleString()} kcal</title></rect>`;
+    g += `<text x="${x + bw / 2}" y="${H - 16}" text-anchor="middle">${dd.toLocaleDateString(undefined, { weekday: 'narrow' })}</text><text x="${x + bw / 2}" y="${H - 3}" text-anchor="middle">${dd.getDate()}</text>`;
+  });
+  const xa = L + slot * 7 + (slot - bw) / 2;
+  if (avgV) g += `<rect x="${xa}" y="${y(avgV)}" width="${bw}" height="${T + ih - y(avgV)}" rx="3" fill="var(--muted)" opacity=".45"/>`;
+  g += `<text x="${xa + bw / 2}" y="${H - 9}" text-anchor="middle">Avg</text>`;
+  g += `<path d="${goals.map((gv, i) => `${i ? 'L' : 'M'}${L + slot * i},${y(gv)}H${L + slot * (i + 1)}`).join('')}" fill="none" stroke="var(--fg)" stroke-width="2"/>`;
+  return `<div class="nv-bars"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Calories each day this week with your goal line">${g}</svg></div>`;
+}
+function renderNv() {
+  const a = nvAgg(), t = a.t, body = $('#nv-body'), week = nvMode === 'week';
+  $$('.nv-tabs button').forEach((b) => { const on = b.dataset.nvTab === nvTab; b.classList.toggle('active', on); b.setAttribute('aria-selected', String(on)); });
+  $('#nv-mode').value = nvMode;
+  const diff = Math.round((new Date(todayIso() + 'T12:00:00') - new Date(nvDate + 'T12:00:00')) / 864e5);
+  $('#nv-when').textContent = week ? `${new Date(a.dates[0] + 'T12:00:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric' })} – ${new Date(a.dates[6] + 'T12:00:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}`
+    : diff === 0 ? 'Today' : diff === 1 ? 'Yesterday' : new Date(nvDate + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+  $('#nv-next').disabled = week ? a.dates[6] >= todayIso() : nvDate >= todayIso();
+  const avgNote = week ? `<p class="muted small" style="margin:0">Daily averages over the ${a.logged.length} day${a.logged.length === 1 ? '' : 's'} you logged this week.</p>` : '';
+  if (!a.logged.length) { body.innerHTML = `<p class="muted" style="text-align:center;padding:30px 0">Nothing logged ${week ? 'this week' : 'on this day'} yet.</p>`; return; }
+
+  if (nvTab === 'calories') {
+    const parts = a.meals.map((m) => ({ n: m.l, v: m.kcal, c: `var(--m-${m.k})` })), total = a.meals.reduce((s, m) => s + m.kcal, 0);
+    const left = t.calories - total;
+    let html = week ? weekBars(a) : '';
+    if (week) {
+      const under = a.logged.reduce((s, d) => s + (targets(d).calories - totals(entriesOf(d)).calories), 0);
+      html += `<div><div class="nv-kv"><span>Calories ${under >= 0 ? 'under' : 'over'} weekly goal</span><b class="num ${under >= 0 ? 'good' : 'bad'}">${Math.abs(Math.round(under)).toLocaleString()}</b></div><div class="nv-kv"><span>Daily average</span><b class="num">${Math.round(total).toLocaleString()}</b></div><div class="nv-kv"><span>Goal</span><b class="num">${t.calories.toLocaleString()}</b></div></div>`;
+    }
+    html += `<div class="pie-wrap">${pieSvg(parts)}</div>
+      <table class="nv-table"><thead><tr><th></th><th>Calories</th><th>Share</th></tr></thead><tbody>
+      ${a.meals.map((m) => `<tr><td><span class="sw" style="--c:var(--m-${m.k})"></span>${m.l}</td><td>${Math.round(m.kcal).toLocaleString()}</td><td>${total ? Math.round((m.kcal / total) * 100) : 0}%</td></tr>`).join('')}
+      </tbody></table>
+      ${week ? '' : `<div><div class="nv-kv"><span>Total calories</span><b class="num">${Math.round(total).toLocaleString()}</b></div><div class="nv-kv"><span>Goal</span><b class="num" style="color:var(--accent)">${t.calories.toLocaleString()}</b></div><div class="nv-kv"><span>${left >= 0 ? 'Remaining' : 'Over'}</span><b class="num ${left >= 0 ? 'good' : 'bad'}">${Math.abs(Math.round(left)).toLocaleString()}</b></div></div>`}
+      <div class="nv-banner">Foods highest in calories</div>${foodsList(a.foods, 'calories', 'kcal')}${avgNote}`;
+    body.innerHTML = html;
+  } else if (nvTab === 'nutrients') {
+    const mt = microTargets(t);
+    const rows = [['Calories', a.avg.calories, t.calories, '', 'goal'], ['Protein', a.avg.protein, t.protein, 'g', 'goal'], ['Carbohydrates', a.avg.carbs, t.carbs, 'g', 'goal'], ['Fiber', a.avg.fiber, mt.fiber, 'g', 'goal'],
+      ['Added sugar', a.avg.sugar, mt.sugar, 'g', 'limit'], ['Fat', a.avg.fat, t.fat, 'g', 'goal'], ['Sodium', a.avg.sodium, mt.sodium, 'mg', 'limit'], ['Iron', a.avg.iron, mt.iron, 'mg', 'goal'], ['Calcium', a.avg.calcium, mt.calcium, 'mg', 'goal']];
+    const f = (v, u) => (u === 'mg' || u === '' ? Math.round(v).toLocaleString() : r1(v));
+    body.innerHTML = `<table class="nv-table"><thead><tr><th></th><th>Total</th><th>Goal</th><th>Left</th></tr></thead><tbody>
+      ${rows.map(([n, v, g, u, kind]) => { const left = g - v, over = kind === 'limit' ? v > g : false;
+        return `<tr class="nut-row"><td>${n}${kind === 'limit' ? ' <span class="muted small">(max)</span>' : ''}<div class="bar"><div class="bar-fill" style="width:${Math.min(100, g ? (v / g) * 100 : 0)}%;background:${over ? 'var(--over)' : 'var(--accent)'}"></div></div></td><td>${f(v, u)}${u ? ' ' + u : ''}</td><td class="goal">${f(g, u)}</td><td class="${left < 0 ? 'over' : ''}">${left >= 0 ? f(left, u) : '−' + f(Math.abs(left), u)}</td></tr>`; }).join('')}
+      </tbody></table>${a.missing ? `<p class="muted small" style="margin:0">${a.missing} logged item${a.missing === 1 ? ' has' : 's have'} no fiber, sugar, sodium, iron or calcium data, so those totals read low.</p>` : ''}${avgNote}`;
+  } else {
+    const kc = MACRO_ROWS.map(([k, n, m, c]) => ({ k, n, g: a.avg[k], v: a.avg[k] * m, c })), sum = kc.reduce((s, x) => s + x.v, 0);
+    const tk = MACRO_ROWS.reduce((s, [k, , m]) => s + t[k] * m, 0);
+    const opts = MACRO_ROWS.map(([k, n]) => `<button type="button" class="chip-btn${k === nvFoodMacro ? ' active' : ''}" data-nv-food="${k}" style="padding:5px 10px;font-size:12px">${n === 'Carbohydrates' ? 'Carbs' : n}</button>`).join('');
+    body.innerHTML = `<div class="pie-wrap">${pieSvg(kc.map((x) => ({ n: x.n, v: x.v, c: x.c, t: x.k === 'carbs' ? '#14120a' : null })))}</div>
+      <table class="nv-table"><thead><tr><th></th><th>Total</th><th>Goal</th></tr></thead><tbody>
+      ${kc.map((x) => { const tg = MACRO_ROWS.find((r) => r[0] === x.k); const goalPct = tk ? Math.round(((t[x.k] * tg[2]) / tk) * 100) : 0; const pct = sum ? Math.round((x.v / sum) * 100) : 0;
+        return `<tr><td><span class="sw" style="--c:${x.c}"></span>${x.n} <span class="muted">(${Math.round(x.g)}g)</span></td><td>${pct}%</td><td class="goal">${goalPct}%</td></tr>`; }).join('')}
+      </tbody></table>
+      <div class="nv-banner" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span>Foods highest in ${MACRO_ROWS.find((r) => r[0] === nvFoodMacro)[1].toLowerCase()}</span><span class="bd-tabs">${opts}</span></div>
+      ${foodsList(a.foods, nvFoodMacro, 'g', 6)}${avgNote}`;
+  }
+}
+function openNv(tab) { nvTab = tab || nvTab; nvDate = day; renderNv(); $('#nv').showModal(); }
+$('#nv-open').addEventListener('click', () => openNv('calories'));
+$('#nv').addEventListener('click', (e) => {
+  const tb = e.target.closest('[data-nv-tab]'); if (tb) { nvTab = tb.dataset.nvTab; return renderNv(); }
+  const fm = e.target.closest('[data-nv-food]'); if (fm) { nvFoodMacro = fm.dataset.nvFood; return renderNv(); }
+});
+$('#nv-mode').addEventListener('change', (e) => { nvMode = e.target.value; renderNv(); });
+$('#nv-prev').addEventListener('click', () => { nvDate = shiftIso(nvDate, nvMode === 'week' ? -7 : -1); renderNv(); });
+$('#nv-next').addEventListener('click', () => { const n = shiftIso(nvDate, nvMode === 'week' ? 7 : 1); nvDate = n > todayIso() ? todayIso() : n; renderNv(); });
 
 // ===================== Coach tabs =====================
 const COACH_TAB_KEY = 'macrolens-coach-tab';
