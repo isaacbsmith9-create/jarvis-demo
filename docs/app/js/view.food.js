@@ -2,6 +2,8 @@
 import { esc, todayIso, shiftIso, relDay, shortDate, dayLabel, clamp, r1, fmtNum, avg, haptic, $, $$ } from './util.js';
 import * as ml from './ml.js';
 import { on, sheet, sheetOf, toast, icon, ring, donut, bar, barChart, confirmTap, go, profileBtn } from './ui.js';
+import { ai, scanFood, aiError } from './ai.js';
+import { inClaude } from './store.js';
 
 let fday = todayIso();
 let lastToday = todayIso();
@@ -46,7 +48,7 @@ export function render(rest) {
     ${t.rest ? `<div class="note" style="margin-top:12px">Rest day: 30% fewer carbs, same protein.</div>` : ''}
     <div style="height:14px"></div>
     ${macroRings(t, tot)}
-    <button class="btn tinted block" style="margin-top:14px" data-act="go" data-href="#food/nutrition">${icon('chart')} Nutrition</button>
+    <button class="btn tinted block" style="margin-top:14px" data-act="go" data-href="#food-nutrition">${icon('chart')} Nutrition</button>
   </div>
 
   <div class="card">
@@ -63,7 +65,7 @@ export function render(rest) {
 function macroRings(t, tot) {
   return `<div class="mrings">${[['Protein', tot.protein, t.protein, 'var(--protein)'], ['Carbs', tot.carbs, t.carbs, 'var(--carbs)'], ['Fat', tot.fat, t.fat, 'var(--fat)']].map(([n, have, goal, c]) => {
     const l = Math.round(goal - have);
-    return `<button type="button" class="mring" data-act="go" data-href="#food/nutrition/macros" aria-label="${n}: ${Math.round(have)} of ${goal} grams">
+    return `<button type="button" class="mring" data-act="go" data-href="#food-nutrition-macros" aria-label="${n}: ${Math.round(have)} of ${goal} grams">
       ${ring({ pct: goal ? have / goal : 0, size: 88, stroke: 9, color: c, center: `<b class="num">${Math.round(have)}</b><span>/${goal}g</span>` })}
       <small>${n}</small><span class="left${l < 0 ? ' over' : ''}">${l >= 0 ? `${l}g left` : `${-l}g over`}</span></button>`;
   }).join('')}</div>`;
@@ -110,7 +112,7 @@ on({ waterSheet(el) { ml.addWater(todayIso(), Number(el.dataset.oz)); haptic(); 
 // ===================== add food sheet =====================
 let addCtx = { iso: todayIso(), meal: 'snacks', pane: 'search', q: '' };
 export function openAdd(meal = ml.defaultMeal(), iso = todayIso()) {
-  addCtx = { iso, meal, pane: 'search', q: '' };
+  addCtx = { iso, meal, pane: ai.ready ? 'scan' : 'search', q: '', scan: { images: [], urls: [], text: '', busy: false, items: null, sel: new Set(), note: '' } };
   const s = sheet({ title: `Add to ${ml.mealLabel(meal)}`, left: { label: 'Close', close: true }, body: addBody,
     onMount: (api) => { if (matchMedia('(hover: hover)').matches) setTimeout(() => $('#food-q', api.el)?.focus(), 80); } });
   s.el.dataset.add = '1';
@@ -118,8 +120,8 @@ export function openAdd(meal = ml.defaultMeal(), iso = todayIso()) {
 function addBody() {
   const p = addCtx.pane;
   return `<div class="chips" style="margin-bottom:12px">${ml.MEALS.map(([k, l]) => `<button type="button" class="chip" data-act="addMeal" data-meal="${k}" aria-pressed="${addCtx.meal === k}"><i style="--c:${MEAL_COLORS[k]}"></i>${l}</button>`).join('')}</div>
-    <div class="seg" role="group" aria-label="Add by" style="margin-bottom:12px">${[['search', 'Search'], ['quick', 'Quick add'], ['barcode', 'Barcode']].map(([k, l]) => `<button type="button" data-act="addPane" data-pane="${k}" aria-pressed="${p === k}">${l}</button>`).join('')}</div>
-    <div id="add-pane">${p === 'search' ? searchPane() : p === 'quick' ? quickPane() : barcodePane()}</div>`;
+    <div class="seg" role="group" aria-label="Add by" style="margin-bottom:12px">${[...(ai.ready ? [['scan', 'Scan']] : []), ['search', 'Search'], ['quick', 'Quick add'], ['barcode', 'Barcode']].map(([k, l]) => `<button type="button" data-act="addPane" data-pane="${k}" aria-pressed="${p === k}">${l}</button>`).join('')}</div>
+    <div id="add-pane">${p === 'scan' ? scanPane() : p === 'search' ? searchPane() : p === 'quick' ? quickPane() : barcodePane()}</div>`;
 }
 function searchPane() {
   return `<label class="search"><span class="sr">Search foods</span>${icon('search')}<input class="input" id="food-q" type="search" placeholder="Search ${ml.FOODS.length}+ foods, your foods and meals" autocomplete="off" value="${esc(addCtx.q)}" data-input="foodSearch"></label>
@@ -142,6 +144,24 @@ function quickPane() {
       <div class="fields3" style="margin-top:10px"><label class="field"><span>Fiber g</span><input class="input" name="fiber" inputmode="decimal"></label><label class="field"><span>Sugar g</span><input class="input" name="sugar" inputmode="decimal"></label><label class="field"><span>Sodium mg</span><input class="input" name="sodium" inputmode="decimal"></label></div></details>
     <label class="row-sb" style="padding:4px 2px"><span>Save to my foods</span><span class="switch"><input type="checkbox" name="save" checked><span></span></span></label>
     <button class="btn primary block">Add to ${esc(ml.mealLabel(addCtx.meal))}</button></form>`;
+}
+function scanPane() {
+  const sc = addCtx.scan;
+  if (sc.items) {
+    const tot = ml.totals(sc.items.filter((_, i) => sc.sel.has(i)));
+    return `${sc.urls.length ? `<div class="row-g" style="margin-bottom:10px">${sc.urls.map((u) => `<img src="${u}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:12px">`).join('')}</div>` : ''}
+      ${sc.items.length ? `<div class="list">${sc.items.map((f, i) => `<div class="li"><button type="button" class="check${sc.sel.has(i) ? ' on' : ''}" data-act="scanSel" data-i="${i}" aria-label="Include ${esc(f.name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+        <span class="tx"><div class="t1">${esc(f.name)}${f.confidence === 'low' ? ' <span class="pill warn">check</span>' : ''}</div><div class="t2">${esc(f.serving)} · P ${Math.round(f.protein)} · C ${Math.round(f.carbs)} · F ${Math.round(f.fat)}</div></span><span class="val num">${fmtNum(f.calories)}</span></div>`).join('')}</div>` : '<div class="card empty">No food found. Try another photo or describe it.</div>'}
+      ${sc.note ? `<p class="sm muted" style="margin:8px 4px">${esc(sc.note)}</p>` : ''}
+      <div class="stack-sm" style="margin-top:12px">${sc.items.length ? `<button class="btn primary block" data-act="scanAdd" ${sc.sel.size ? '' : 'disabled'}>Add ${sc.sel.size} item${sc.sel.size === 1 ? '' : 's'} · ${fmtNum(tot.calories)} cal</button>` : ''}<button class="btn block" data-act="scanReset">Scan something else</button></div>`;
+  }
+  return `<div class="stack">
+    <label class="btn tinted block" style="position:relative;min-height:120px;flex-direction:column;gap:8px;border-radius:18px">${icon('food')}<span>${sc.urls.length ? `${sc.urls.length} photo${sc.urls.length === 1 ? '' : 's'} ready · tap to add more` : 'Take or choose a photo'}</span>
+      <input type="file" accept="image/*" multiple data-change="scanPhoto" style="position:absolute;inset:0;opacity:0" aria-label="Food photo"></label>
+    ${sc.urls.length ? `<div class="row-g">${sc.urls.map((u) => `<img src="${u}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:12px">`).join('')}</div>` : ''}
+    <label class="field"><span>Or describe it (optional with a photo)</span><textarea class="input" style="min-height:70px" placeholder="e.g. half a Chipotle chicken bowl, extra rice" data-input="scanText">${esc(sc.text)}</textarea></label>
+    <button class="btn primary block" data-act="scanGo" ${sc.busy ? 'disabled' : ''}>${sc.busy ? 'Looking at your food… (10-30 s)' : 'Estimate nutrition'}</button>
+    <p class="xs muted" style="margin:0">AI estimates. Check portions before adding.</p></div>`;
 }
 function barcodePane() {
   return `<form class="stack" data-submit="barcode">
@@ -174,6 +194,7 @@ on({
     const code = String(new FormData(form).get('code') || '').replace(/\D/g, ''), st = $('#bc-status');
     if (code.length < 8 || code.length > 14) { st.textContent = 'Barcodes are 8 to 14 digits.'; return; }
     st.textContent = 'Looking it up…';
+    if (inClaude() && !ml.core().barcodes?.[code]) { st.textContent = 'Barcode lookup only works in the website version of Baseline. Snap the Nutrition Facts label in Scan instead.'; return; }
     try { const f = await ml.fetchBarcode(code); if (!f) { st.textContent = `Barcode ${code} isn't in the database yet. Use Quick add with the numbers from the label.`; return; } st.textContent = ''; openFoodDetail(f); }
     catch { st.textContent = navigator.onLine ? 'Lookup failed. Try again in a second.' : "You're offline. Use Quick add for now."; }
   },
@@ -182,6 +203,29 @@ on({
     try { const det = new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] }), r = await det.detect(await createImageBitmap(file));
       if (r[0]?.rawValue) { const inp = $('input[name="code"]', el.closest('form')); inp.value = r[0].rawValue; el.closest('form').requestSubmit(); } else st.textContent = "Couldn't read a barcode in that photo. Type the numbers instead."; }
     catch { st.textContent = "Couldn't read that photo. Type the numbers instead."; }
+  },
+});
+const refreshPane = () => { const el = $('#add-pane'); if (el) el.innerHTML = addCtx.pane === 'scan' ? scanPane() : el.innerHTML; };
+on({
+  scanPhoto(el) {
+    const sc = addCtx.scan;
+    for (const f of [...(el.files || [])].slice(0, 4 - sc.images.length)) { sc.images.push(f); sc.urls.push(URL.createObjectURL(f)); }
+    refreshPane();
+  },
+  scanText(el) { addCtx.scan.text = el.value; },
+  async scanGo() {
+    const sc = addCtx.scan; if (!sc.images.length && !sc.text.trim()) return toast('Add a photo or describe the food');
+    sc.busy = true; refreshPane();
+    try { const r = await scanFood({ images: sc.images, text: sc.text.trim(), profile: ml.core().profile }); sc.items = r.items; sc.note = r.note; sc.sel = new Set(r.items.map((_, i) => i)); }
+    catch (e) { toast(aiError(e)); }
+    sc.busy = false; refreshPane();
+  },
+  scanSel(el) { const sc = addCtx.scan, i = Number(el.dataset.i); if (sc.sel.has(i)) sc.sel.delete(i); else sc.sel.add(i); haptic(); refreshPane(); },
+  scanReset() { addCtx.scan = { images: [], urls: [], text: '', busy: false, items: null, sel: new Set(), note: '' }; refreshPane(); },
+  scanAdd() {
+    const sc = addCtx.scan, picked = sc.items.filter((_, i) => sc.sel.has(i)); if (!picked.length) return;
+    ml.snapshot(addCtx.iso); for (const f of picked) ml.addEntry(addCtx.iso, addCtx.meal, f, 1);
+    const tot = ml.totals(picked); curAddSheet()?.close(); haptic(12); toast(`Added ${picked.length} item${picked.length === 1 ? '' : 's'} · ${fmtNum(tot.calories)} cal`, () => ml.undo());
   },
 });
 function commitAdd(food, servings) {
@@ -296,7 +340,7 @@ function renderNutrition(tab) {
       ${topFoods(days, n, 'protein', 'g')}`;
   }
   return `<nav class="navbar"><button class="back" data-act="go" data-href="#food">${icon('back', 2.4)}Food</button><h2>Nutrition</h2><span class="right"></span></nav>
-    <div class="seg" style="margin-bottom:10px">${[['calories', 'Calories'], ['nutrients', 'Nutrients'], ['macros', 'Macros']].map(([k, l]) => `<button type="button" data-act="go" data-href="#food/nutrition/${k}" aria-pressed="${tab === k}">${l}</button>`).join('')}</div>
+    <div class="seg" style="margin-bottom:10px">${[['calories', 'Calories'], ['nutrients', 'Nutrients'], ['macros', 'Macros']].map(([k, l]) => `<button type="button" data-act="go" data-href="#food-nutrition-${k}" aria-pressed="${tab === k}">${l}</button>`).join('')}</div>
     <div class="row-sb" style="margin:0 2px 12px"><span class="sm muted">${nvMode === 'day' ? esc(relDay(fday) + ' · ' + shortDate(fday)) : `${shortDate(days[0])} – ${shortDate(days[6])} · avg of ${logged.length} logged day${logged.length === 1 ? '' : 's'}`}</span>
       <div class="seg" style="width:140px">${[['day', 'Day'], ['week', 'Week']].map(([k, l]) => `<button type="button" data-act="nvMode" data-m="${k}" aria-pressed="${nvMode === k}">${l}</button>`).join('')}</div></div>
     ${body}`;

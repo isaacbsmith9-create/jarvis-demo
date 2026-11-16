@@ -73,7 +73,7 @@ async function run(scheme) {
     const w = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.body.scrollWidth));
     if (w > 390) { failures++; console.log(`✗ ${scheme} ${name}: scrollWidth ${w}`); const wide = await page.evaluate(() => [...document.querySelectorAll('body *')].filter((e) => e.getBoundingClientRect().right > 391).slice(0, 5).map((e) => e.tagName + '.' + e.className + ' ' + Math.round(e.getBoundingClientRect().right))); const over = await page.evaluate(() => [...document.querySelectorAll('body *')].filter((e) => e.clientWidth && e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).overflowX === 'visible').slice(0, 6).map((e) => e.tagName + '.' + e.className + ' ' + e.scrollWidth + '/' + e.clientWidth)); console.log('  wide:', wide, over); }
   };
-  const routes = ['today', 'food', 'food/nutrition', 'food/nutrition/nutrients', 'food/nutrition/macros', 'train', 'plan', 'plan/week', 'plan/tasks', 'plan/time', 'plan/night', 'progress', 'more', 'more/spanish'];
+  const routes = ['today', 'food', 'food-nutrition', 'food-nutrition-nutrients', 'food-nutrition-macros', 'train', 'plan', 'plan-week', 'plan-tasks', 'plan-time', 'plan-night', 'progress', 'more', 'more-spanish', 'more-sync'];
   await page.goto(base + '#today');
   for (const r of routes) { await page.evaluate((h) => { location.hash = h; }, '#' + r); await page.waitForTimeout(200); await check(r); await shot(r.replace(/\//g, '-')); }
   if (scheme === 'light') {
@@ -110,11 +110,11 @@ async function run(scheme) {
     console.log(ses?.type === 'Skill work' && ses.mins === 60 && ses.rpe === 7 ? '✓ session' : (failures++, '✗ session', ses));
     await page.click('[data-act="routine"][data-i="2"]'); await page.waitForTimeout(300); await shot('flow-breath'); await page.click('dialog [data-close]'); await page.waitForTimeout(250);
     // tasks
-    await page.evaluate(() => { location.hash = '#plan/tasks'; }); await page.waitForTimeout(150);
+    await page.evaluate(() => { location.hash = '#plan-tasks'; }); await page.waitForTimeout(150);
     await page.fill('form[data-submit="taskQuick"] input', 'Watch Curry off-ball film'); await page.press('form[data-submit="taskQuick"] input', 'Enter'); await page.waitForTimeout(150);
     console.log((await page.evaluate(() => JSON.parse(localStorage.getItem('gp:core')).tasks.some((t) => t.title === 'Watch Curry off-ball film' && t.u && t.i))) ? '✓ add task' : (failures++, '✗ add task'));
     // week item
-    await page.evaluate(() => { location.hash = '#plan/week'; }); await page.waitForTimeout(150);
+    await page.evaluate(() => { location.hash = '#plan-week'; }); await page.waitForTimeout(150);
     await page.click('[data-act="addWbItem"]'); await page.fill('#wb-title', 'English essay draft'); await page.click('dialog .sheet-body [data-act="wbSave"]'); await page.waitForTimeout(150);
     console.log((await page.evaluate(() => JSON.parse(localStorage.getItem('wb:w-2026-11-16')).items.some((i) => i.title === 'English essay draft'))) ? '✓ week item' : (failures++, '✗ week item'));
     await page.click('[data-act="wbAutofit"]'); await page.waitForTimeout(150);
@@ -122,12 +122,12 @@ async function run(scheme) {
     await page.click('[data-act="wbCheck"][data-id="r1|2026-11-16"]'); await page.waitForTimeout(100);
     console.log((await page.evaluate(() => JSON.parse(localStorage.getItem('wb:w-2026-11-16')).done['r1|2026-11-16'])) ? '✓ check weekly item' : (failures++, '✗ check weekly'));
     // timer
-    await page.evaluate(() => { location.hash = '#plan/time'; }); await page.waitForTimeout(150);
+    await page.evaluate(() => { location.hash = '#plan-time'; }); await page.waitForTimeout(150);
     await page.click('[data-act="timerCat"][data-cat="homework"]'); await page.clock.runFor(26 * 60 * 1000); await page.waitForTimeout(100); await shot('flow-timer'); await page.click('[data-act="timerStop"]'); await page.waitForTimeout(150);
     const hw = await page.evaluate(() => JSON.parse(localStorage.getItem('gp:d-2026-11-16')).entries.filter((e) => e.cat === 'homework').at(-1));
     console.log(hw?.mins >= 26 ? '✓ timer' : (failures++, '✗ timer', hw));
     // night step
-    await page.evaluate(() => { location.hash = '#plan/night'; }); await page.waitForTimeout(150);
+    await page.evaluate(() => { location.hash = '#plan-night'; }); await page.waitForTimeout(150);
     const was = await page.evaluate(() => !!JSON.parse(localStorage.getItem('gp:d-2026-11-16')).night.done.charge);
     await page.click('[data-act="nightStep"][data-id="charge"]'); await page.waitForTimeout(100);
     console.log((await page.evaluate(() => !!JSON.parse(localStorage.getItem('gp:d-2026-11-16')).night.done.charge)) !== was ? '✓ night step' : (failures++, '✗ night'));
@@ -136,7 +136,7 @@ async function run(scheme) {
     await page.click('.sh [data-act="logWeight"]'); await page.fill('#w-lb', '159.4'); await page.click('dialog .sheet-body [data-act="weightSave"]'); await page.waitForTimeout(150);
     console.log((await page.evaluate(() => JSON.parse(localStorage.getItem('ml:core')).weights.at(-1).lb)) === 159.4 ? '✓ weight' : (failures++, '✗ weight'));
     // flashcards
-    await page.evaluate(() => { location.hash = '#more/spanish'; }); await page.waitForTimeout(150);
+    await page.evaluate(() => { location.hash = '#more-spanish'; }); await page.waitForTimeout(150);
     await page.click('button.card[data-act="flip"]'); await page.waitForTimeout(100); await shot('flow-flash'); await page.click('[data-act="grade"][data-g="1"]'); await page.waitForTimeout(100);
     console.log((await page.evaluate(() => JSON.parse(localStorage.getItem('ch:core')).words.filter((w) => w.due > '2026-11-16').length)) === 2 ? '✓ flashcard' : (failures++, '✗ flashcard'));
     // quick add sheet + today
@@ -152,7 +152,7 @@ async function run(scheme) {
     await p2.clock.install({ time: NOW }); p2.on('pageerror', (e) => errors.push('fresh: ' + e.message));
     await p2.goto(base + '#today'); await p2.waitForTimeout(300); await p2.screenshot({ path: `${shots}/fresh-today.png` });
     await p2.evaluate(() => localStorage.setItem('ml:day-2026-11-16', JSON.stringify({ breakfast: [{ name: 'Local toast', serving: '1 slice', calories: 80, protein: 3, carbs: 14, fat: 1, servings: 1, addedAt: 1 }], lunch: [], dinner: [], snacks: [], water: 70 })));
-    await p2.evaluate(() => { location.hash = '#more/sync'; }); await p2.waitForTimeout(200);
+    await p2.evaluate(() => { location.hash = '#more-sync'; }); await p2.waitForTimeout(200);
     await p2.fill('#sync-code', code); await p2.click('[data-act="importCode"]'); await p2.waitForTimeout(300); await p2.screenshot({ path: `${shots}/sync.png`, fullPage: true });
     const m = await p2.evaluate(() => ({ day: JSON.parse(localStorage.getItem('ml:day-2026-11-16')), tasks: JSON.parse(localStorage.getItem('gp:core')).tasks.length, rules: JSON.parse(localStorage.getItem('wb:core')).rules.length }));
     const okMerge = m.day.breakfast.some((e) => e.name === 'Local toast') && m.day.breakfast.length > 1 && m.day.water === 70 && m.tasks > 10 && m.rules === 3;

@@ -1,6 +1,6 @@
 // More: profile, settings, Spanish flashcards, data backup, links to the original apps.
 import { esc, todayIso, fmtDur, haptic, $ } from './util.js';
-import { keys, raw, setRaw, invalidate } from './store.js';
+import { keys, raw, setRaw, invalidate, cloud, inClaude } from './store.js';
 import * as ml from './ml.js';
 import { chCore, saveChCore, chDay, dueWords, gradeWord, addWord, addSpanishSecs, spanishGoal, spanishStreak } from './insights.js';
 import { on, sheet, sheetOf, toast, icon, chev, ring, go, applyTheme } from './ui.js';
@@ -33,16 +33,18 @@ export function render(rest) {
   <div class="card tight"><div class="seg">${[['system', 'Automatic'], ['light', 'Light'], ['dark', 'Dark']].map(([k, l]) => `<button type="button" data-act="theme" data-t="${k}" aria-pressed="${theme() === k}">${l}</button>`).join('')}</div></div>
 
   <div class="sh"><h2>School</h2></div>
-  <div class="list"><button type="button" class="li" data-act="go" data-href="#more/spanish"><span class="ic" style="--ic:var(--carbs)">${icon('spanish')}</span><span class="tx"><div class="t1">Spanish</div><div class="t2">${dueWords().length} cards due · ${spanishStreak()} day streak</div></span>${chev}</button>
+  <div class="list"><button type="button" class="li" data-act="go" data-href="#more-spanish"><span class="ic" style="--ic:var(--carbs)">${icon('spanish')}</span><span class="tx"><div class="t1">Spanish</div><div class="t2">${dueWords().length} cards due · ${spanishStreak()} day streak</div></span>${chev}</button>
     <button type="button" class="li" data-act="wbSettings"><span class="ic" style="--ic:var(--c-homework)">${icon('week')}</span><span class="tx"><div class="t1">Homework auto-fit</div><div class="t2">School ends, bedtime, daily limit</div></span>${chev}</button></div>
 
   <div class="sh"><h2>Your data</h2></div>
   <div class="list">
-    <button type="button" class="li" data-act="go" data-href="#more/sync"><span class="ic" style="--ic:var(--accent)">${icon('link')}</span><span class="tx"><div class="t1">Bring in your data</div><div class="t2">From MacroLens in Claude, Safari or another phone</div></span>${chev}</button>
-    <button type="button" class="li" data-act="exportData"><span class="ic" style="--ic:var(--protein)">${icon('download')}</span><span class="tx"><div class="t1">Back up</div><div class="t2">Download everything as one file</div></span>${chev}</button>
+    <button type="button" class="li" data-act="go" data-href="#more-sync"><span class="ic" style="--ic:var(--accent)">${icon('link')}</span><span class="tx"><div class="t1">Bring in your data</div><div class="t2">From MacroLens in Claude, Safari or another phone</div></span>${chev}</button>
+    ${inClaude() ? '' : `<button type="button" class="li" data-act="exportData"><span class="ic" style="--ic:var(--protein)">${icon('download')}</span><span class="tx"><div class="t1">Back up</div><div class="t2">Download everything as one file</div></span>${chev}</button>`}
     <label class="li" style="cursor:pointer"><span class="ic" style="--ic:var(--c-work)">${icon('upload')}</span><span class="tx"><div class="t1">Restore from backup</div><div class="t2">Loads a backup file onto this phone</div></span>${chev}<input type="file" accept="application/json,.json" data-change="importData" style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>
   </div>
-  <p class="xs muted" style="margin:8px 4px 0">Everything is saved on this phone and shared with MacroLens, ReadyUp, Weekboard, Gameplan, Charla and Scoreboard on this website. Nothing is sent anywhere.</p>
+  <p class="xs muted" style="margin:8px 4px 0">${inClaude()
+    ? { synced: '<span style="color:var(--good);font-weight:600">● Synced</span> to your Claude account. Open Baseline in Claude on any device and it\'s all there.', loading: 'Syncing with your Claude account…', error: '<span style="color:var(--bad);font-weight:600">● Not synced.</span> Changes are saved here and will sync on the next save that goes through.', local: 'Saved in this browser. Sign in to Claude to sync across devices.' }[cloud.state]
+    : 'Everything is saved on this phone and shared with MacroLens, ReadyUp, Weekboard, Gameplan, Charla and Scoreboard on this website. Nothing is sent anywhere.'}</p>
 
   <div class="sh"><h2>Original apps</h2></div>
   <div class="list">${[['MacroLens', '', 'var(--cal)', 'food'], ['ReadyUp', 'recovery/', 'var(--fat)', 'heart'], ['Weekboard', 'weekboard/', 'var(--c-lift)', 'week'], ['Gameplan', 'gameplan/', 'var(--warn)', 'task'], ['Charla', 'charla/', 'var(--carbs)', 'spanish'], ['Scoreboard', 'scoreboard/', 'var(--protein)', 'chart'], ['Locker', 'locker/', 'var(--fg-2)', 'grid']]
@@ -108,7 +110,7 @@ function doImport(text) {
   const parts = Object.entries(c).filter(([k]) => names[k]).map(([k, n]) => `${names[k]} (${n})`);
   haptic(20); toast(parts.length ? `Brought in ${parts.join(', ')}` : 'Nothing new in that code');
   const ta = $('#sync-code'); if (ta) ta.value = '';
-  go('#more/sync');
+  go('#more-sync');
 }
 on({
   async pasteCode() {
@@ -149,7 +151,7 @@ function spanish() {
 }
 const tickReview = () => { if (reviewStart) { const s = Math.round((Date.now() - reviewStart) / 1000); if (s > 0) addSpanishSecs(Math.min(s, 120)); } reviewStart = Date.now(); };
 on({
-  flip() { if (!reviewStart) reviewStart = Date.now(); flipped = !flipped; haptic(); go('#more/spanish'); },
+  flip() { if (!reviewStart) reviewStart = Date.now(); flipped = !flipped; haptic(); go('#more-spanish'); },
   grade(el) {
     const w = reviewQ.shift(), got = el.dataset.g === '1'; if (!w) return;
     gradeWord(w.es, got); if (!got) reviewQ.push(w);

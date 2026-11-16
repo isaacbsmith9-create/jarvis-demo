@@ -44,7 +44,7 @@ export function render() {
 
   ${readinessCard(rs)}
 
-  ${running ? `<button type="button" class="card" data-act="go" data-href="#plan/time" style="display:flex;width:100%;align-items:center;gap:12px;border:0;text-align:left;color:inherit;margin-top:12px;background:color-mix(in srgb, ${pd.catOf(running.cat).c} 14%, var(--surface))">
+  ${running ? `<button type="button" class="card" data-act="go" data-href="#plan-time" style="display:flex;width:100%;align-items:center;gap:12px;border:0;text-align:left;color:inherit;margin-top:12px;background:color-mix(in srgb, ${pd.catOf(running.cat).c} 14%, var(--surface))">
     <span class="ic" style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:${pd.catOf(running.cat).c};color:#fff">${icon('timer')}</span>
     <span class="grow"><div class="b">${esc(pd.catOf(running.cat).name)} timer</div><div class="sm muted">Tap to stop</div></span><span class="num b" style="font-size:20px" data-since="${running.start}">0:00:00</span></button>` : ''}
 
@@ -63,8 +63,8 @@ export function render() {
   <div class="grid2">
     ${tile('Training', trainMins ? fmtDur(trainMins) : '0m', sessions.length ? sessions.map((s) => s.type).join(', ') : 'Nothing logged', clamp(trainMins / 90), 'var(--c-practice)', '#train')}
     ${tile('Day score', `${ds.total}<small>/100</small>`, `Top 3 ${ds.topPts} · night ${ds.nightPts} · phone ${ds.phonePts}`, ds.total / 100, 'var(--accent)', '#plan')}
-    ${tile('Spanish', `${chMins}<small>/${chGoal} min</small>`, due ? `${due} card${due === 1 ? '' : 's'} due` : `${spanishStreak()} day streak`, chMins / chGoal, 'var(--carbs)', '#more/spanish')}
-    ${tile(evening ? 'Night routine' : 'Phone', evening ? `${night.done}<small>/${night.total}</small>` : fmtDur(r.by.phone || 0), evening ? 'Wind down and lock in tomorrow' : `goal ${fmtDur(r.phoneGoal)}`, evening ? (night.total ? night.done / night.total : 0) : (r.by.phone || 0) / r.phoneGoal, evening ? 'var(--c-lift)' : 'var(--c-phone)', evening ? '#plan/night' : '#plan/time')}
+    ${tile('Spanish', `${chMins}<small>/${chGoal} min</small>`, due ? `${due} card${due === 1 ? '' : 's'} due` : `${spanishStreak()} day streak`, chMins / chGoal, 'var(--carbs)', '#more-spanish')}
+    ${tile(evening ? 'Night routine' : 'Phone', evening ? `${night.done}<small>/${night.total}</small>` : fmtDur(r.by.phone || 0), evening ? 'Wind down and lock in tomorrow' : `goal ${fmtDur(r.phoneGoal)}`, evening ? (night.total ? night.done / night.total : 0) : (r.by.phone || 0) / r.phoneGoal, evening ? 'var(--c-lift)' : 'var(--c-phone)', evening ? '#plan-night' : '#plan-time')}
   </div>
   `;
 }
@@ -77,7 +77,7 @@ function syncHint() {
   if (recentFood && planning) return '';
   return `<div class="card" style="background:var(--accent-soft);margin-bottom:12px;display:grid;gap:10px">
     <div><h3>Missing your history?</h3><p class="sm" style="margin:4px 0 0;color:var(--fg-2)">${!recentFood && !planning ? 'Food you logged in MacroLens inside Claude and plans you made in Safari are' : !recentFood ? 'Food you logged in MacroLens inside Claude is' : 'Plans you made in Safari are'} saved where this app can't see them yet. Bring it over in about 30 seconds.</p></div>
-    <div class="row-g"><button class="btn primary sm" data-act="go" data-href="#more/sync">Bring in my data</button><button class="btn ghost sm" data-act="hideSyncHint">Not now</button></div></div>`;
+    <div class="row-g"><button class="btn primary sm" data-act="go" data-href="#more-sync">Bring in my data</button><button class="btn ghost sm" data-act="hideSyncHint">Not now</button></div></div>`;
 }
 function foodLine(t, tot) {
   const left = t.calories - tot.calories, pl = Math.round(t.protein - tot.protein);

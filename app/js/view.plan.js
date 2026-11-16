@@ -11,7 +11,7 @@ export function render(rest) {
   const sub = SUBS.some(([k]) => k === rest[0]) ? rest[0] : 'day';
   const body = { day: dayView, week: weekView, tasks: tasksView, time: timeView, night: nightView }[sub]();
   return `<header class="lt"><div><div class="eyebrow">${esc(dayLabel(todayIso(), { weekday: 'long', month: 'short', day: 'numeric' }))}</div><h1>Plan</h1></div><div class="actions">${profileBtn()}</div></header>
-    <div class="seg" role="tablist" style="margin-bottom:16px">${SUBS.map(([k, l]) => `<button type="button" role="tab" data-act="go" data-href="#plan${k === 'day' ? '' : '/' + k}" aria-pressed="${sub === k}">${l}</button>`).join('')}</div>
+    <div class="seg" role="tablist" style="margin-bottom:16px">${SUBS.map(([k, l]) => `<button type="button" role="tab" data-act="go" data-href="#plan${k === 'day' ? '' : '-' + k}" aria-pressed="${sub === k}">${l}</button>`).join('')}</div>
     ${body}`;
 }
 
@@ -73,7 +73,7 @@ function wbRow(it, conflict) {
     <button type="button" class="check${it.done ? ' on' : ''}" data-act="wbCheck" data-id="${esc(it.id)}" data-date="${it.date}" aria-label="${it.done ? 'Mark not done' : 'Mark done'}">${checkSvg}</button></div>`;
 }
 on({
-  wbWeek(el) { const n = Number(el.dataset.n); wbMon = n ? shiftIso(wbMon, n) : mondayOf(todayIso()); go('#plan/week'); },
+  wbWeek(el) { const n = Number(el.dataset.n); wbMon = n ? shiftIso(wbMon, n) : mondayOf(todayIso()); go('#plan-week'); },
   wbCheck(el) { pd.toggleWb(el.dataset.id, el.dataset.date); haptic(); },
   wbAutofit() { const r = pd.autoFit(wbMon); toast(r.placed ? `Scheduled ${r.placed}.${r.stuck ? ` ${r.stuck} didn't fit before the due date.` : ''}` : `Couldn't fit anything${r.stuck ? ' before the due dates' : ''}. Raise the daily homework limit or add it to a day.`); },
   addWbItem(el) { openWbItem({ date: el.dataset.date || (wbMon === mondayOf(todayIso()) ? todayIso() : wbMon) }); },
