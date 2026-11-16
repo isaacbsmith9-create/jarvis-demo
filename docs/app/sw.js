@@ -1,7 +1,7 @@
 // Offline support: precache the app shell, serve it cache-first, refresh it in the background.
 // VERSION and FILES are filled in by tools/build-app.mjs.
-const VERSION = '89cd48cb7a';
-const FILES = ["./","./app.css","./icons/apple-touch-icon.png","./icons/icon-192.png","./icons/icon-512.png","./icons/icon-maskable-512.png","./icons/icon.svg","./index.html","./js/foods.js","./js/insights.js","./js/main.js","./js/ml.js","./js/plan.data.js","./js/ru.js","./js/store.js","./js/ui.js","./js/util.js","./js/view.food.js","./js/view.more.js","./js/view.plan.js","./js/view.progress.js","./js/view.today.js","./js/view.train.js"];
+const VERSION = '376ac96dda';
+const FILES = ["./","./app.css","./icons/apple-touch-icon.png","./icons/icon-192.png","./icons/icon-512.png","./icons/icon-maskable-512.png","./icons/icon.svg","./index.html","./js/foods.js","./js/insights.js","./js/main.js","./js/ml.js","./js/plan.data.js","./js/ru.js","./js/store.js","./js/sync.js","./js/ui.js","./js/util.js","./js/view.food.js","./js/view.more.js","./js/view.plan.js","./js/view.progress.js","./js/view.today.js","./js/view.train.js"];
 const CACHE = 'baseline-' + VERSION;
 
 self.addEventListener('install', (e) => {

@@ -146,6 +146,18 @@ async function run(scheme) {
     // Data still readable by the original apps' key layout
     const keysOk = await page.evaluate(() => ['ml:core', 'ru:core', 'wb:core', 'gp:core', 'ch:core', 'mlw:today'].every((k) => localStorage.getItem(k)));
     console.log(keysOk ? '✓ shared keys intact' : (failures++, '✗ keys'));
+    // Transfer: copy a code here, paste it into an empty phone (like the home-screen app), data merges in.
+    const code = await page.evaluate(async () => (await import('./js/sync.js')).exportCode());
+    const ctx2 = await browser.newContext({ ...devices['iPhone 13'], timezoneId: 'America/Chicago' }), p2 = await ctx2.newPage();
+    await p2.clock.install({ time: NOW }); p2.on('pageerror', (e) => errors.push('fresh: ' + e.message));
+    await p2.goto(base + '#today'); await p2.waitForTimeout(300); await p2.screenshot({ path: `${shots}/fresh-today.png` });
+    await p2.evaluate(() => localStorage.setItem('ml:day-2026-11-16', JSON.stringify({ breakfast: [{ name: 'Local toast', serving: '1 slice', calories: 80, protein: 3, carbs: 14, fat: 1, servings: 1, addedAt: 1 }], lunch: [], dinner: [], snacks: [], water: 70 })));
+    await p2.evaluate(() => { location.hash = '#more/sync'; }); await p2.waitForTimeout(200);
+    await p2.fill('#sync-code', code); await p2.click('[data-act="importCode"]'); await p2.waitForTimeout(300); await p2.screenshot({ path: `${shots}/sync.png`, fullPage: true });
+    const m = await p2.evaluate(() => ({ day: JSON.parse(localStorage.getItem('ml:day-2026-11-16')), tasks: JSON.parse(localStorage.getItem('gp:core')).tasks.length, rules: JSON.parse(localStorage.getItem('wb:core')).rules.length }));
+    const okMerge = m.day.breakfast.some((e) => e.name === 'Local toast') && m.day.breakfast.length > 1 && m.day.water === 70 && m.tasks > 10 && m.rules === 3;
+    console.log(okMerge ? '✓ transfer code merges into an empty/partial phone' : (failures++, '✗ transfer', JSON.stringify(m).slice(0, 300)));
+    await ctx2.close();
   }
   if (errors.length) { failures += errors.length; console.log(`✗ ${scheme} errors:\n  ` + errors.join('\n  ')); } else console.log(`✓ ${scheme}: no page errors, ${routes.length} screens`);
   await ctx.close();

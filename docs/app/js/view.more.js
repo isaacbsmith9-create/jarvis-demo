@@ -5,6 +5,7 @@ import * as ml from './ml.js';
 import { chCore, saveChCore, chDay, dueWords, gradeWord, addWord, addSpanishSecs, spanishGoal, spanishStreak } from './insights.js';
 import { on, sheet, sheetOf, toast, icon, chev, ring, go, applyTheme } from './ui.js';
 import { openProfile } from './view.food.js';
+import { exportCode, decode, importBundle, inventory, isHomeScreen } from './sync.js';
 
 const SITE = 'https://isaacbsmith9-create.github.io/jarvis-demo/';
 const theme = () => { try { return localStorage.getItem('bl:theme') || 'system'; } catch { return 'system'; } };
@@ -12,6 +13,7 @@ const name = () => { try { return localStorage.getItem('bl:name') || ''; } catch
 
 export function render(rest) {
   if (rest[0] === 'spanish') return spanish();
+  if (rest[0] === 'sync') return syncView();
   const c = ml.core(), t = ml.targets(todayIso()), n = name();
   return `<nav class="navbar"><button class="back" data-act="back" data-href="#today">${icon('back', 2.4)}Back</button><h2>Profile</h2><span class="right"></span></nav>
   <div style="display:grid;justify-items:center;gap:8px;padding:8px 0 20px">
@@ -36,6 +38,7 @@ export function render(rest) {
 
   <div class="sh"><h2>Your data</h2></div>
   <div class="list">
+    <button type="button" class="li" data-act="go" data-href="#more/sync"><span class="ic" style="--ic:var(--accent)">${icon('link')}</span><span class="tx"><div class="t1">Bring in your data</div><div class="t2">From MacroLens in Claude, Safari or another phone</div></span>${chev}</button>
     <button type="button" class="li" data-act="exportData"><span class="ic" style="--ic:var(--protein)">${icon('download')}</span><span class="tx"><div class="t1">Back up</div><div class="t2">Download everything as one file</div></span>${chev}</button>
     <label class="li" style="cursor:pointer"><span class="ic" style="--ic:var(--c-work)">${icon('upload')}</span><span class="tx"><div class="t1">Restore from backup</div><div class="t2">Loads a backup file onto this phone</div></span>${chev}<input type="file" accept="application/json,.json" data-change="importData" style="position:absolute;inset:0;opacity:0;cursor:pointer"></label>
   </div>
@@ -71,6 +74,52 @@ on({
       invalidate(); toast(`Restored ${n} items`); go('#today');
     } catch { toast("That file isn't a Baseline backup"); }
     el.value = '';
+  },
+});
+
+// ===================== Bring in your data =====================
+function syncView() {
+  const inv = inventory(), home = isHomeScreen();
+  return `<nav class="navbar"><button class="back" data-act="back" data-href="#more">${icon('back', 2.4)}Back</button><h2>Bring in your data</h2><span class="right"></span></nav>
+  <div class="sh" style="margin-top:4px"><h2>On this ${home ? 'home-screen app' : 'browser'} now</h2></div>
+  <div class="list">${inv.map(([n2, v]) => `<div class="li" style="min-height:46px"><span class="tx"><div class="t1">${n2}</div></span><span class="val${v ? ' num' : ''}" style="${v ? '' : 'color:var(--faint)'}">${v || 'nothing yet'}</span></div>`).join('')}</div>
+
+  <div class="sh"><h2>Paste a transfer code</h2></div>
+  <div class="card stack">
+    <button class="btn primary block" data-act="pasteCode">${icon('copy')} Paste code</button>
+    <textarea class="input" id="sync-code" placeholder="Or long-press here and Paste" style="min-height:70px;font-size:13px" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+    <button class="btn tinted block" data-act="importCode">Bring it in</button>
+    <p class="xs muted" style="margin:0">Bringing data in adds to what's here. It never deletes anything.</p>
+  </div>
+
+  <div class="sh"><h2>Where to get a code</h2></div>
+  <div class="list">
+    <div class="li" style="align-items:flex-start"><span class="ic" style="--ic:var(--cal)">${icon('food')}</span><span class="tx"><div class="t1">MacroLens in Claude</div><div class="t2" style="color:var(--fg-2)">Your food log with AI photo scans is saved in your Claude account. Open MacroLens in Claude → <b>You</b> tab → <b>Copy for Baseline</b>, then come back and tap Paste code.</div></span></div>
+    <div class="li" style="align-items:flex-start"><span class="ic" style="--ic:var(--c-lift)">${icon('plan')}</span><span class="tx"><div class="t1">Apps you used in Safari</div><div class="t2" style="color:var(--fg-2)">On iPhone, a home-screen app can't see Safari's storage. Open <b>isaacbsmith9-create.github.io/jarvis-demo/app</b> in Safari → Profile → Bring in your data → <b>Copy everything</b>, then open Baseline from your home screen and tap Paste code.</div></span></div>
+  </div>
+
+  <div class="sh"><h2>Send from here</h2></div>
+  <div class="card stack"><button class="btn block" data-act="copyCode">${icon('copy')} Copy everything on this ${home ? 'app' : 'browser'}</button>
+    <p class="xs muted" style="margin:0">Makes a code with everything from Baseline, MacroLens, ReadyUp, Weekboard, Gameplan and Charla here. Paste it into Baseline anywhere else.</p></div>`;
+}
+function doImport(text) {
+  let b; try { b = decode(text); } catch { return toast("That's not a Baseline transfer code. Copy it again and paste the whole thing."); }
+  const c = importBundle(b), names = { ml: 'MacroLens', ru: 'ReadyUp', gp: 'Gameplan', wb: 'Weekboard', ch: 'Charla' };
+  const parts = Object.entries(c).filter(([k]) => names[k]).map(([k, n]) => `${names[k]} (${n})`);
+  haptic(20); toast(parts.length ? `Brought in ${parts.join(', ')}` : 'Nothing new in that code');
+  const ta = $('#sync-code'); if (ta) ta.value = '';
+  go('#more/sync');
+}
+on({
+  async pasteCode() {
+    try { const t = await navigator.clipboard.readText(); if (!t) return toast('Your clipboard is empty. Copy the code first.'); doImport(t); }
+    catch { toast('Long-press the box below and tap Paste'); $('#sync-code')?.focus(); }
+  },
+  importCode() { const t = $('#sync-code')?.value || ''; if (!t.trim()) return toast('Paste the code in the box first'); doImport(t); },
+  async copyCode() {
+    const code = exportCode();
+    try { await navigator.clipboard.writeText(code); toast('Copied. Now open Baseline where you want it and tap Paste code.'); }
+    catch { const ta = $('#sync-code'); if (ta) { ta.value = code; ta.select(); } toast('Select all in the box and copy'); }
   },
 });
 
