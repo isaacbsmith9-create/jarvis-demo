@@ -21,6 +21,7 @@ export function render() {
 
   return `
   <header class="lt"><div><div class="eyebrow">${esc(longDate(iso))}</div><h1>${esc(greeting())}</h1></div><div class="actions">${profileBtn()}</div></header>
+  ${syncHint()}
 
   <button type="button" class="card" data-act="go" data-href="#food" style="display:block;width:100%;text-align:left;border:0;color:inherit">
     <div class="hero">
@@ -67,6 +68,17 @@ export function render() {
   </div>
   `;
 }
+// Shown until the phone has history from the other apps (or it's dismissed).
+function syncHint() {
+  let hidden = false; try { hidden = localStorage.getItem('bl:syncHint') === 'off'; } catch {}
+  if (hidden) return '';
+  const recentFood = Array.from({ length: 7 }, (_, i) => shiftIso(todayIso(), -i)).some((d) => ml.entriesOf(d).length);
+  const planning = pd.gpCore().tasks.length || pd.wbCore().rules.length;
+  if (recentFood && planning) return '';
+  return `<div class="card" style="background:var(--accent-soft);margin-bottom:12px;display:grid;gap:10px">
+    <div><h3>Missing your history?</h3><p class="sm" style="margin:4px 0 0;color:var(--fg-2)">${!recentFood && !planning ? 'Food you logged in MacroLens inside Claude and plans you made in Safari are' : !recentFood ? 'Food you logged in MacroLens inside Claude is' : 'Plans you made in Safari are'} saved where this app can't see them yet. Bring it over in about 30 seconds.</p></div>
+    <div class="row-g"><button class="btn primary sm" data-act="go" data-href="#more/sync">Bring in my data</button><button class="btn ghost sm" data-act="hideSyncHint">Not now</button></div></div>`;
+}
 function foodLine(t, tot) {
   const left = t.calories - tot.calories, pl = Math.round(t.protein - tot.protein);
   if (!tot.calories) return 'Nothing logged yet today. Tap + to log breakfast.';
@@ -102,6 +114,7 @@ function tile(label, big, sub, pct, color, href) {
 import { on, toast } from './ui.js';
 import { haptic } from './util.js';
 on({
+  hideSyncHint() { try { localStorage.setItem('bl:syncHint', 'off'); } catch {} dispatchEvent(new HashChangeEvent('hashchange')); },
   todayWater() { const v = ml.addWater(todayIso(), 16); haptic(); toast(`${v} oz of water today`); },
   agendaCheck(el) {
     const iso = todayIso(); haptic();

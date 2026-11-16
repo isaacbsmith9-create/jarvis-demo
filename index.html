@@ -480,32 +480,6 @@ dialog.nv { max-height: 94vh; padding-top: 0; }
 .donut li { display: grid; grid-template-columns: 12px 1fr auto; gap: 6px; align-items: center; }
 .donut li i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
 .donut li b { font-variant-numeric: tabular-nums; }
-.gp { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; font: 700 11px/1 var(--f-display); margin-right: 8px; vertical-align: 1px; flex: none; }
-.gp.A { background: var(--accent); color: var(--accent-ink); }
-.gp.B { background: var(--accent-soft); color: var(--fg); }
-.gp.C { background: color-mix(in srgb, var(--carbs) 35%, transparent); color: var(--fg); }
-.gp.D, .gp.F { background: color-mix(in srgb, var(--over) 30%, transparent); color: var(--fg); }
-.gp.big { width: 30px; height: 30px; border-radius: 9px; font-size: 16px; margin: 0; }
-.ex-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); width: 100%; background: none; border-left: 0; border-right: 0; border-bottom: 0; text-align: left; cursor: pointer; }
-.ex-row:first-of-type { border-top: 0; }
-.ex-row small { display: block; color: var(--muted); font-size: 12px; }
-.ex-row b { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ex-types { display: grid; grid-template-columns: repeat(auto-fill, minmax(98px, 1fr)); gap: 6px; }
-.ex-types button.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-.ex-est { background: var(--surface-2); border-radius: 12px; padding: 12px; text-align: center; }
-.ex-est b { font-family: var(--f-display); font-size: 28px; display: block; }
-.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
-.cal-grid .dow { font-size: 11px; color: var(--muted); text-align: center; font-weight: 600; }
-.cal-day { aspect-ratio: 1; border-radius: 9px; border: 0; background: var(--surface-2); display: grid; place-items: center; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--muted); cursor: pointer; max-width: 100%; padding: 0; position: relative; }
-.cal-day.g { background: var(--accent); color: var(--accent-ink); }
-.cal-day.y { background: color-mix(in srgb, var(--carbs) 45%, transparent); color: var(--fg); }
-.cal-day.r { background: color-mix(in srgb, var(--over) 35%, transparent); color: var(--fg); }
-.cal-day.none { background: transparent; border: 1px dashed var(--line); }
-.cal-day.future { opacity: .35; cursor: default; }
-.cal-day.today { outline: 2px solid var(--fg); outline-offset: 1px; }
-.cal-key { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); margin-top: 10px; }
-.cal-key span { display: inline-flex; align-items: center; gap: 6px; }
-.cal-key i { width: 12px; height: 12px; border-radius: 4px; }
 .section-label { font-family: var(--f-body); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 12px 4px -4px; }
 details.fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; cursor: pointer; }
 details.fold > summary::-webkit-details-marker { display: none; }
@@ -550,8 +524,7 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
           <div class="ring-center"><span class="big num" id="cal-left">0</span><span class="muted small" id="cal-left-label">kcal left</span></div>
         </div>
         <div class="equation">
-          <div class="eq-row"><span class="muted" id="eq-goal-l">Goal</span><b id="eq-goal">0</b></div>
-          <div class="eq-row" id="eq-ex-row" hidden><span class="muted">Exercise</span><b id="eq-ex" style="color:var(--accent)">0</b></div>
+          <div class="eq-row"><span class="muted">Goal</span><b id="eq-goal">0</b></div>
           <div class="eq-row"><span class="muted">Food</span><b id="eq-food">0</b></div>
           <div class="eq-row"><span class="muted">Remaining</span><b id="eq-left">0</b></div>
         </div>
@@ -562,7 +535,7 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
     </div>
 
     <div class="card" id="donut-card" hidden>
-      <div class="row-between"><h3>Today's split</h3><span class="muted small" id="day-grade">Tap for full nutrition</span></div>
+      <div class="row-between"><h3>Today's split</h3><span class="muted small">Tap for full nutrition</span></div>
       <div class="donuts" id="donuts"></div>
     </div>
 
@@ -574,8 +547,6 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
     </div>
 
     <div id="meals" class="view"></div>
-
-    <div class="card" id="exercise-card"></div>
 
     <div class="card" id="breakdown"></div>
 
@@ -741,7 +712,6 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
   <!-- PROGRESS -->
   <section id="view-progress" class="view" hidden>
     <div class="stats" id="stats"></div>
-    <div class="card" id="month-card"></div>
 
     <div class="card"><h3>Calories, last 7 days</h3><div id="week-chart" class="chart"></div></div>
 
@@ -879,6 +849,8 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
     </div>
 
     <div class="card"><p class="note" id="storage-note" style="margin:0"></p></div>
+    <div class="card"><h3>Move to Baseline</h3><p class="muted small" style="margin:4px 0 10px">Copies your whole food log, targets, saved meals and weigh-ins as a code. In Baseline, go to Profile → Bring in your data → Paste code. Nothing is deleted here.</p>
+      <button class="btn primary" id="baseline-copy" type="button" style="width:100%">Copy for Baseline</button><p class="muted small" id="baseline-status" style="margin:8px 0 0"></p></div>
   </section>
 </div>
 
@@ -992,20 +964,6 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
   <div class="row-gap">
     <button class="btn danger" id="fd-delete" hidden>Remove</button>
     <button class="btn primary grow" id="fd-save">Add</button>
-  </div>
-</dialog>
-
-<!-- EXERCISE -->
-<dialog id="ex-sheet" class="sheet" aria-labelledby="ex-title">
-  <div class="sheet-head"><strong id="ex-title">Add exercise</strong><button class="icon-btn" data-close aria-label="Close">✕</button></div>
-  <div class="form">
-    <div class="ex-types" id="ex-types"></div>
-    <div class="grid2">
-      <label>Minutes<input type="number" id="ex-mins" min="5" max="480" step="5" value="60" inputmode="numeric"></label>
-      <label>How hard<select id="ex-int"><option value="light">Light</option><option value="moderate" selected>Moderate</option><option value="hard">Hard</option></select></label>
-    </div>
-    <div class="ex-est"><b class="num" id="ex-kcal">0</b><span class="muted small" id="ex-note">calories burned (estimate)</span></div>
-    <button class="btn primary" id="ex-add" type="button">Add exercise</button>
   </div>
 </dialog>
 
@@ -1288,8 +1246,6 @@ function targets(date) {
     if (mins) t.waterOz = Math.max(t.waterOz, Math.round(Math.min(base + (sw.rate * mins) / 60, base + 140)));
   }
   if (date) smartAdjust(date, t);
-  const exK = date ? exerciseKcal(date) : 0;
-  if (exK > 0) return applyExercise(t, exK);
   // Rest days: same protein and fat, 30% fewer carbs (less glycogen to refill), calories drop to match.
   if (date && dayDoc(date)?.type === 'rest') {
     const cut = Math.round(t.carbs * 0.3);
@@ -1335,9 +1291,7 @@ function renderToday() {
   ring.classList.toggle('over', left < 0);
   $('#cal-left').textContent = Math.abs(left).toLocaleString();
   $('#cal-left-label').textContent = left < 0 ? 'kcal over' : 'kcal left';
-  $('#eq-goal').textContent = (t.exercise ? t.baseGoal : t.calories).toLocaleString();
-  $('#eq-goal-l').textContent = t.exercise ? 'Base goal' : 'Goal';
-  $('#eq-ex-row').hidden = !t.exercise; if (t.exercise) $('#eq-ex').textContent = '+' + t.exKcal.toLocaleString();
+  $('#eq-goal').textContent = t.calories.toLocaleString();
   $('#eq-food').textContent = tot.calories.toLocaleString();
   $('#eq-left').textContent = left.toLocaleString();
   $('#macro-bars').innerHTML = [['Protein', tot.protein, t.protein, 'var(--protein)'], ['Carbs', tot.carbs, t.carbs, 'var(--carbs)'], ['Fat', tot.fat, t.fat, 'var(--fat)']]
@@ -1352,8 +1306,6 @@ function renderToday() {
   renderMicroBars($('#micro-bars'), tot, microTargets(t));
   renderFavs();
   renderBreakdown(t);
-  renderExercise(t);
-  renderDayGrade();
   renderMiniPie(tot);
   renderDonuts(t);
   renderExtras(t, tot);
@@ -1368,15 +1320,14 @@ function renderToday() {
   $('#meals').innerHTML = MEALS.map(([key, label]) => {
     const items = log[key] || [];
     return `<div class="card meal">
-      <div class="meal-head"><strong>${label}${(() => { const g = gradeOf(groupScore(items)); return g ? ` <span class="gp ${g}" style="margin:0 0 0 6px" title="Meal grade ${g}">${g}</span>` : ''; })()}</strong><span class="meal-actions">
+      <div class="meal-head"><strong>${label}</strong><span class="meal-actions">
         ${items.length ? `<button class="mini" data-save-meal="${key}">Save meal</button>` : (yesterdayItems(key).length ? `<button class="mini" data-copy="${key}">Copy yesterday</button>` : '')}
         <span class="meal-kcal">${totals(items).calories} kcal</span></span></div>
       ${items.length ? (() => { const mt = totals(items); return `<div class="meal-macros small muted num" style="padding:0 16px 8px;margin-top:-4px">P ${Math.round(mt.protein)} g · C ${Math.round(mt.carbs)} g · F ${Math.round(mt.fat)} g</div>`; })() : ''}
       ${items.map((e, i) => {
         const n = scale(e, e.servings);
         const srv = e.servings === 1 ? e.serving : `${e.servings} × ${e.serving}`;
-        const gr = gradeOf(foodScore(e));
-        return `<button class="entry" data-meal="${key}" data-idx="${i}"><div><div class="entry-name">${gr ? `<span class="gp ${gr}" title="Food grade ${gr}">${gr}</span>` : ''}${esc(e.name)}${e.source === 'AI scan' ? '<span class="badge">AI</span>' : ''}</div>
+        return `<button class="entry" data-meal="${key}" data-idx="${i}"><div><div class="entry-name">${esc(e.name)}${e.source === 'AI scan' ? '<span class="badge">AI</span>' : ''}</div>
           <div class="entry-sub">${esc(srv)} · P ${n.protein} · C ${n.carbs} · F ${n.fat}</div></div><div class="entry-kcal">${n.calories}</div></button>`;
       }).join('')}
       <button class="add-row" data-add="${key}">＋ Add food</button></div>`;
@@ -1510,7 +1461,7 @@ function renderProfile() {
 let currentView = 'today';
 function render() {
   renderToday();
-  if (currentView === 'progress') { renderProgress(); renderMonth(); renderTrend(); renderBadges(); renderMeasures(); renderGoalW(); }
+  if (currentView === 'progress') { renderProgress(); renderTrend(); renderBadges(); renderMeasures(); renderGoalW(); }
   if (currentView === 'profile') { renderProfile(); renderAcc(); }
   if (currentView === 'coach') renderCoach();
 }
@@ -1608,8 +1559,7 @@ let fdCtx = null;
 function openFood(food, { meal, idx = null, servings = 1 }) {
   fdCtx = { food, meal, idx };
   $('#fd-name').textContent = food.name;
-  const gr = gradeOf(foodScore(food));
-  $('#fd-meta').textContent = `${food.serving} per serving${food.source === 'AI scan' ? ' · AI estimate' : ''}${gr ? ` · Grade ${gr}: ${gradeWhy(food)}` : ''}`;
+  $('#fd-meta').textContent = `${food.serving} per serving${food.source === 'AI scan' ? ' · AI estimate' : ''}`;
   $('#fd-servings').value = servings;
   $('#fd-delete').hidden = idx === null;
   $('#fd-save').textContent = idx === null ? 'Add to ' + mealLabel(meal) : 'Update';
@@ -2939,6 +2889,21 @@ $('#share-btn').addEventListener('click', () => {
   });
 });
 
+// ===================== Copy for Baseline =====================
+// Baseline (the all-in-one app on the website) can't read this artifact's synced storage, so this hands it a transfer code.
+$('#baseline-copy').addEventListener('click', () => {
+  const data = {};
+  for (const k of new Set([...Object.keys(cache), ...lsKeys()])) { const v = doc(k); if (v != null) data['ml:' + k] = JSON.stringify(v); }
+  const bytes = new TextEncoder().encode(JSON.stringify({ at: Date.now(), from: 'macrolens', data })); let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  const code = 'BL1:' + btoa(bin), days = Object.keys(data).filter((k) => k.startsWith('ml:day-')).length;
+  const done = () => { $('#baseline-status').textContent = `Copied ${days} day${days === 1 ? '' : 's'} of food. Open Baseline → Profile → Bring in your data → Paste code.`; toast('Copied for Baseline'); };
+  navigator.clipboard.writeText(code).then(done, () => {
+    const ta = document.createElement('textarea'); ta.value = code; ta.setAttribute('aria-label', 'Transfer code'); ta.style.cssText = 'width:100%;min-height:90px;margin-top:8px;font-size:12px';
+    $('#baseline-status').replaceChildren(ta); ta.select(); toast('Select all in the box and copy');
+  });
+});
+
 // ===================== quick add =====================
 $('#quick-form').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -3109,8 +3074,7 @@ function readyUpToday() {
 function smartAdjust(date, t) {
   const dd = dayDoc(date), notes = [], on = core().prefs?.smart !== false;
   if (dd?.type === 'rest') return;
-  if (exerciseKcal(date) > 0) { /* logged exercise sets the calories; only ReadyUp below still applies */ }
-  else if (dd?.type === 'heavy') { const add = Math.round(t.carbs * 0.25); t.carbs += add; t.calories += add * 4; notes.push(`Heavy day: +${add} g carbs`); }
+  if (dd?.type === 'heavy') { const add = Math.round(t.carbs * 0.25); t.carbs += add; t.calories += add * 4; notes.push(`Heavy day: +${add} g carbs`); }
   else if (on) {
     const pr = date === todayIso() ? practiceToday() : dd?.practice;
     if (pr && Number(pr.mins) >= 150) { const add = Math.round(t.carbs * 0.15); t.carbs += add; t.calories += add * 4; notes.push(`${fmtDur(pr.mins)} practice: +${add} g carbs`); }
@@ -4109,139 +4073,6 @@ function renderDonuts(t) {
       ${donutSvg(mac, pct(mac[2].v, mk) + '%', 'from protein')}${list(mac, mk, (p) => `${pct(p.v, mk)}% · ${Math.round(p.g)}g`)}</button>`;
 }
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-open-nv]'); if (b && !b.closest('#nv')) openNv(b.dataset.openNv); });
-
-
-// ===================== Exercise (MyFitnessPal-style: base goal + exercise) =====================
-// Burn = MET x body weight (kg) x hours, scaled by effort. Values from the Compendium of Physical Activities.
-const EX_TYPES = [
-  ['practice', 'Practice', 6.5], ['game', 'Game', 8], ['lift', 'Lifting', 5], ['skill', 'Skill workout', 5.5], ['shooting', 'Shooting', 4.5],
-  ['conditioning', 'Conditioning', 9], ['run', 'Running', 9.8], ['walk', 'Walking', 3.5], ['bike', 'Biking', 7], ['other', 'Other', 5],
-];
-const EX_INT = { light: 0.8, moderate: 1, hard: 1.2 };
-const exKg = () => (core().profile?.weightLb ?? 150) * 0.4536;
-const exBurn = (type, mins, int) => Math.round((EX_TYPES.find((x) => x[0] === type)?.[2] ?? 5) * (EX_INT[int] ?? 1) * exKg() * (Number(mins) / 60));
-const exerciseKcal = (date) => (dayDoc(date)?.exercise || []).reduce((a, x) => a + (Number(x.kcal) || 0), 0);
-function applyExercise(t, ex) {
-  // Your normal goal assumes your activity level. With exercise logged, start from everyday life (light) and add what you burned.
-  const p = core().profile, f = ACTIVITY[p?.activity]?.factor ?? 1.55, delta = GOALS[p?.goal]?.delta ?? 0;
-  const base = Math.round(((t.calories - delta) * (Math.min(1.375, f) / f) + delta) / 10) * 10;
-  const cal = base + ex, diff = cal - t.calories;
-  return { ...t, calories: cal, carbs: Math.max(100, Math.round(t.carbs + diff / 4)), baseGoal: base, exKcal: ex, exercise: true };
-}
-let exType = 'practice';
-function exSuggest() {
-  // A practice you already planned (Weekboard / Coach) or logged in ReadyUp that is not logged here yet.
-  const d = dayDoc(day), logged = (d?.exercise || []).length;
-  if (logged || d?.type === 'rest') return null;
-  const pr = day === todayIso() ? practiceToday() : d?.practice;
-  if (pr) return { type: 'practice', mins: Number(pr.mins) || 120, int: 'moderate', label: `${pr.title || 'Practice'} · ${fmtDur(pr.mins)}` };
-  const ru = readLS('ru:day-' + day)?.sessions?.[0];
-  if (ru?.mins) return { type: /lift/i.test(ru.type) ? 'lift' : /game/i.test(ru.type) ? 'game' : 'practice', mins: Number(ru.mins), int: (ru.rpe || 5) >= 8 ? 'hard' : (ru.rpe || 5) <= 3 ? 'light' : 'moderate', label: `${ru.type || 'Session'} from ReadyUp · ${fmtDur(ru.mins)}` };
-  return null;
-}
-function renderExercise(t) {
-  const el = $('#exercise-card'), list = dayDoc(day)?.exercise || [], total = exerciseKcal(day), sug = exSuggest();
-  el.innerHTML = `<div class="row-between"><h3>Exercise</h3><span class="muted small num">${total ? `${total.toLocaleString()} kcal burned` : 'Adds to your calorie goal'}</span></div>
-    ${list.length ? `<div style="margin-top:6px">${list.map((x, i) => `<button type="button" class="ex-row" data-ex-del="${i}"><span>${esc(x.name)}<small>${fmtDur(x.mins)} · ${x.int}</small></span><b>${x.kcal.toLocaleString()} kcal</b></button>`).join('')}</div>` : ''}
-    ${sug ? `<button type="button" class="nv-open" id="ex-sug" style="margin-top:10px"><span>＋ Log ${esc(sug.label)}</span><b class="num" style="flex:none">≈ ${exBurn(sug.type, sug.mins, sug.int).toLocaleString()} kcal</b></button>` : ''}
-    <button class="add-row" type="button" id="ex-open" style="padding-inline:0">＋ Add exercise</button>
-    ${t.exercise ? `<p class="muted small" style="margin:4px 0 0">Today's goal: ${t.baseGoal.toLocaleString()} base + ${t.exKcal.toLocaleString()} exercise = ${t.calories.toLocaleString()} kcal. Extra calories go to carbs to refuel.</p>` : ''}`;
-}
-function addExercise(type, mins, int) {
-  mins = Math.round(Number(mins)); if (!(mins >= 5 && mins <= 480)) return toast('Minutes must be 5 to 480');
-  markUndo(day);
-  const d = dayDoc(day, true), name = EX_TYPES.find((x) => x[0] === type)?.[1] || 'Exercise';
-  d.exercise = [...(d.exercise || []), { id: 'x' + Date.now(), type, name, mins, int, kcal: exBurn(type, mins, int), addedAt: Date.now() }];
-  if (d.type === 'rest' && ['practice', 'game', 'conditioning', 'lift'].includes(type)) d.type = 'training';
-  persist('day-' + day); render();
-  toast(`Added ${name}: ${exBurn(type, mins, int).toLocaleString()} kcal burned`);
-}
-function syncExSheet() {
-  $('#ex-types').innerHTML = EX_TYPES.map(([k, l]) => `<button type="button" class="chip-btn${k === exType ? ' active' : ''}" data-ex-type="${k}">${l}</button>`).join('');
-  $('#ex-kcal').textContent = exBurn(exType, $('#ex-mins').value || 0, $('#ex-int').value).toLocaleString();
-}
-$('#exercise-card').addEventListener('click', (e) => {
-  if (e.target.closest('#ex-open')) { exType = 'practice'; $('#ex-mins').value = 60; $('#ex-int').value = 'moderate'; syncExSheet(); return $('#ex-sheet').showModal(); }
-  if (e.target.closest('#ex-sug')) { const s2 = exSuggest(); if (s2) addExercise(s2.type, s2.mins, s2.int); return; }
-  const del = e.target.closest('[data-ex-del]');
-  if (del) {
-    if (del.dataset.confirm !== '1') { del.dataset.confirm = '1'; const b = del.querySelector('b'); b.dataset.was = b.textContent; b.textContent = 'Tap to remove'; setTimeout(() => { if (del.isConnected) { del.dataset.confirm = ''; b.textContent = b.dataset.was; } }, 2500); return; }
-    markUndo(day); const d = dayDoc(day); d.exercise.splice(Number(del.dataset.exDel), 1); persist('day-' + day); render(); toast('Removed');
-  }
-});
-$('#ex-types').addEventListener('click', (e) => { const b = e.target.closest('[data-ex-type]'); if (b) { exType = b.dataset.exType; if (exType === 'practice' || exType === 'game') $('#ex-mins').value = exType === 'game' ? 90 : 120; syncExSheet(); } });
-$('#ex-mins').addEventListener('input', syncExSheet);
-$('#ex-int').addEventListener('change', syncExSheet);
-$('#ex-add').addEventListener('click', () => { addExercise(exType, $('#ex-mins').value, $('#ex-int').value); $('#ex-sheet').close(); });
-
-// ===================== Food grades (A-F) =====================
-// Points per 100 kcal: protein and fiber earn, added sugar and sodium cost, very fatty foods lose one.
-function foodScore(f) {
-  const n = scale(f, 1); if (!n.calories || n.calories < 15) return null;
-  const per = (x) => ((x || 0) / n.calories) * 100;
-  let s = 0; const p = per(n.protein);
-  s += p >= 10 ? 4 : p >= 8 ? 3 : p >= 5 ? 2 : p >= 3 ? 1 : 0;
-  if (n.fiber != null) { const fb = per(n.fiber); s += fb >= 4 ? 3 : fb >= 2 ? 2 : fb >= 1 ? 1 : 0; }
-  if (n.sugar != null) { const sg = per(n.sugar); s -= sg >= 10 ? 3 : sg >= 5 ? 2 : sg >= 2.5 ? 1 : 0; }
-  if (n.sodium != null) { const so = per(n.sodium); s -= so >= 500 ? 2 : so >= 200 ? 1 : 0; }
-  if ((n.fat * 9) / n.calories > 0.55) s -= 1;
-  return s;
-}
-const gradeOf = (s) => (s == null ? null : s >= 4 ? 'A' : s >= 2 ? 'B' : s >= 1 ? 'C' : s >= 0 ? 'D' : 'F');
-function groupScore(items) {
-  let w = 0, sum = 0;
-  for (const e of items) { const sc = foodScore(e); if (sc == null) continue; const k = scale(e, e.servings ?? 1).calories; w += k; sum += sc * k; }
-  return w ? Math.round(sum / w) : null;
-}
-function gradeWhy(f) {
-  const n = scale(f, 1), per = (x) => ((x || 0) / Math.max(1, n.calories)) * 100, why = [];
-  if (per(n.protein) >= 8) why.push('lots of protein for its calories'); else if (per(n.protein) < 3) why.push('little protein');
-  if (n.fiber != null && per(n.fiber) >= 2) why.push('good fiber');
-  if (n.sugar != null && per(n.sugar) >= 5) why.push('high added sugar');
-  if (n.sodium != null && per(n.sodium) >= 200) why.push('salty');
-  if ((n.fat * 9) / Math.max(1, n.calories) > 0.55) why.push('mostly fat');
-  return why.slice(0, 2).join(', ') || 'balanced';
-}
-function renderDayGrade() {
-  const g = gradeOf(groupScore(entriesOf(day))), el = $('#day-grade');
-  if (el) el.innerHTML = g ? `Day grade <span class="gp ${g}" style="margin:0 0 0 4px">${g}</span>` : 'Tap for full nutrition';
-}
-
-// ===================== Month calendar (Progress) =====================
-let calMonth = todayIso().slice(0, 7);
-function dayStatus(iso) {
-  if (iso > todayIso()) return 'future';
-  const items = entriesOf(iso); if (!items.length) return 'none';
-  const t = targets(iso), tot = totals(items);
-  const calOk = Math.abs(tot.calories - t.calories) <= t.calories * 0.1, proOk = tot.protein >= t.protein * 0.95;
-  return calOk && proOk ? 'g' : calOk || proOk ? 'y' : 'r';
-}
-function renderMonth() {
-  const el = $('#month-card'), [y, m] = calMonth.split('-').map(Number), first = new Date(y, m - 1, 1), days = new Date(y, m, 0).getDate();
-  const lead = (first.getDay() + 6) % 7, today = todayIso();
-  const cells = [], stats = { g: 0, y: 0, r: 0, logged: 0, protein: 0 };
-  for (let i = 0; i < lead; i++) cells.push('<span></span>');
-  for (let d = 1; d <= days; d++) {
-    const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`, st = dayStatus(iso);
-    if (['g', 'y', 'r'].includes(st)) { stats[st]++; stats.logged++; if (totals(entriesOf(iso)).protein >= targets(iso).protein * 0.95) stats.protein++; }
-    const label = { g: 'hit calories and protein', y: 'hit one of the two', r: 'missed both', none: 'nothing logged', future: '' }[st];
-    cells.push(`<button type="button" class="cal-day ${st}${iso === today ? ' today' : ''}" data-cal-day="${iso}"${st === 'future' ? ' disabled' : ''} aria-label="${new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}${label ? ': ' + label : ''}">${d}</button>`);
-  }
-  const isNow = calMonth >= today.slice(0, 7);
-  el.innerHTML = `<div class="row-between" style="margin-bottom:10px"><button class="icon-btn" type="button" data-cal-nav="-1" aria-label="Previous month">‹</button>
-      <h3>${first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</h3>
-      <button class="icon-btn" type="button" data-cal-nav="1" aria-label="Next month"${isNow ? ' disabled' : ''}>›</button></div>
-    <div class="cal-grid">${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d2) => `<span class="dow">${d2}</span>`).join('')}${cells.join('')}</div>
-    <div class="cal-key"><span><i style="background:var(--accent)"></i>Hit calories + protein</span><span><i style="background:color-mix(in srgb, var(--carbs) 45%, transparent)"></i>Hit one</span><span><i style="background:color-mix(in srgb, var(--over) 35%, transparent)"></i>Missed both</span></div>
-    <div class="trend-stats" style="margin:12px 0 0"><div><b>${stats.logged}</b><small>days logged</small></div><div><b>${stats.g}</b><small>on target</small></div><div><b>${stats.protein}</b><small>hit protein</small></div></div>
-    <p class="muted small" style="margin:8px 0 0">Tap a day to open it in your diary.</p>`;
-}
-$('#month-card').addEventListener('click', (e) => {
-  const nav = e.target.closest('[data-cal-nav]');
-  if (nav) { const [y, m] = calMonth.split('-').map(Number), d = new Date(y, m - 1 + Number(nav.dataset.calNav), 1); calMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; return renderMonth(); }
-  const b = e.target.closest('[data-cal-day]'); if (!b || b.disabled) return;
-  day = b.dataset.calDay; showView('today');
-});
 
 // ===================== Coach tabs =====================
 const COACH_TAB_KEY = 'macrolens-coach-tab';
