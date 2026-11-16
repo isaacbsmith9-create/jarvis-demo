@@ -24,6 +24,7 @@
   --f-display: "Space Grotesk", "Inter", system-ui, sans-serif;
   --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --radius: 18px;
+  --m-breakfast: #eb6834; --m-lunch: #1baf7a; --m-dinner: #6250d6; --m-snacks: #e87ba4;
   --shadow: rgba(20, 30, 24, .05);
 }
 @media (prefers-color-scheme: dark) {
@@ -32,6 +33,7 @@
     --fg: #ecf1ed; --muted: #8e9a93; --accent: #3ccf94; --accent-ink: #052618; --accent-soft: #173a2b;
     --protein: #6aa7f5; --carbs: #f2bd3d; --fat: #f07ab3; --water: #4cc3ef; --over: #fb8a4c; --danger: #f07a7a;
     --scrim: rgba(0, 0, 0, .6); --shadow: rgba(0, 0, 0, .25);
+    --m-breakfast: #d95926; --m-lunch: #199e70; --m-dinner: #9085e9; --m-snacks: #d55181;
     color-scheme: dark;
   }
 }
@@ -40,6 +42,7 @@
   --fg: #ecf1ed; --muted: #8e9a93; --accent: #3ccf94; --accent-ink: #052618; --accent-soft: #173a2b;
   --protein: #6aa7f5; --carbs: #f2bd3d; --fat: #f07ab3; --water: #4cc3ef; --over: #fb8a4c; --danger: #f07a7a;
   --scrim: rgba(0, 0, 0, .6); --shadow: rgba(0, 0, 0, .25);
+  --m-breakfast: #d95926; --m-lunch: #199e70; --m-dinner: #9085e9; --m-snacks: #d55181;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -378,6 +381,35 @@ label.check input { width: auto; }
 .fix-list .btn { padding: 6px 12px; font-size: 13px; }
 .caf-row { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 4px 0; }
 .hydro-fold { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+.bd-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.bd-lead { margin: 10px 0 2px; font-size: 14px; }
+.bd-sec { margin-top: 16px; }
+.bd-h { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.src-row { margin-bottom: 12px; }
+.src-row .row-between { font-size: 14px; margin-bottom: 5px; flex-wrap: nowrap; }
+.stack { display: flex; gap: 2px; height: 26px; border-radius: 7px; overflow: hidden; background: var(--surface-2); }
+.stack div { display: grid; place-items: center; min-width: 0; color: #fff; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; overflow: hidden; white-space: nowrap; }
+.meal-key { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); }
+.meal-key span, .bd-meal b { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; }
+.bd-meal { border-top: 1px solid var(--line); padding: 12px 0; display: grid; gap: 8px; }
+.bd-meal:first-of-type { border-top: 0; padding-top: 0; }
+.bd-meal .row-between { flex-wrap: nowrap; font-size: 14px; }
+.mstats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.mstats div { background: var(--surface-2); border-radius: 10px; padding: 7px 8px; }
+.mstats b { display: block; font-family: var(--f-display); font-size: 17px; font-variant-numeric: tabular-nums; }
+.mstats small { font-size: 11px; color: var(--muted); }
+.msplit { display: flex; gap: 2px; height: 8px; border-radius: 5px; overflow: hidden; }
+.msplit-l { font-size: 12px; color: var(--muted); }
+.bd-note { font-size: 13px; margin: 0; padding-left: 10px; border-left: 3px solid var(--line); }
+.bd-note.good { border-color: var(--accent); }
+.bd-note.warn { border-color: var(--over); }
+.topf { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.topf:first-child { border-top: 0; }
+.topf .nm { overflow-wrap: anywhere; }
+.topf .nm small { color: var(--muted); font-size: 12px; margin-left: 4px; }
+.topf .v { font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; }
+.topf .bar { grid-column: 1 / -1; margin-top: 2px; height: 6px; }
 .section-label { font-family: var(--f-body); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 12px 4px -4px; }
 details.fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; cursor: pointer; }
 details.fold > summary::-webkit-details-marker { display: none; }
@@ -439,6 +471,8 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
     </div>
 
     <div id="meals" class="view"></div>
+
+    <div class="card" id="breakdown"></div>
 
     <div class="card">
       <div class="row-between">
@@ -1176,6 +1210,7 @@ function renderToday() {
 
   renderMicroBars($('#micro-bars'), tot, microTargets(t));
   renderFavs();
+  renderBreakdown(t);
   renderExtras(t, tot);
   checkBadges();
   $('#micro-note').textContent = tot.missing ? `${tot.missing} item${tot.missing === 1 ? ' has' : 's have'} no nutrient data` : '';
@@ -1191,6 +1226,7 @@ function renderToday() {
       <div class="meal-head"><strong>${label}</strong><span class="meal-actions">
         ${items.length ? `<button class="mini" data-save-meal="${key}">Save meal</button>` : (yesterdayItems(key).length ? `<button class="mini" data-copy="${key}">Copy yesterday</button>` : '')}
         <span class="meal-kcal">${totals(items).calories} kcal</span></span></div>
+      ${items.length ? (() => { const mt = totals(items); return `<div class="meal-macros small muted num" style="padding:0 16px 8px;margin-top:-4px">P ${Math.round(mt.protein)} g · C ${Math.round(mt.carbs)} g · F ${Math.round(mt.fat)} g</div>`; })() : ''}
       ${items.map((e, i) => {
         const n = scale(e, e.servings);
         const srv = e.servings === 1 ? e.serving : `${e.servings} × ${e.serving}`;
@@ -3689,6 +3725,90 @@ $('#fix-card').addEventListener('click', (e) => {
   const fx = dayDoc(todayIso())?.fix, m = fx?.meals[Number(b.dataset.fixLog)]; if (!m) return;
   m.logged = true; persist('day-' + todayIso());
   logOption({ title: m.title, items: m.items.map((it) => ({ ...it })) }, b, m.slot);
+});
+
+
+// ===================== Meal breakdown =====================
+// Where every calorie and gram of protein, carbs and fat comes from: by meal, and by food.
+let bdRange = 'day', bdMacro = 'protein';
+const BD_MACROS = [['calories', 'Calories', 'kcal'], ['protein', 'Protein', 'g'], ['carbs', 'Carbs', 'g'], ['fat', 'Fat', 'g']];
+const mealColor = (k) => `var(--m-${k})`;
+const fmtV = (k, v) => (k === 'calories' ? Math.round(v).toLocaleString() : Math.round(v));
+function breakdownData() {
+  const dates = bdRange === 'day' ? [day] : lastNDays(7).filter((d) => entriesOf(d).length);
+  const n = Math.max(1, dates.length);
+  const meals = MEALS.map(([k, l]) => {
+    const items = dates.flatMap((d) => (dayDoc(d)?.[k] || []));
+    const t = totals(items);
+    return { k, l, items, t: { calories: t.calories / n, protein: t.protein / n, carbs: t.carbs / n, fat: t.fat / n } };
+  });
+  const sum = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  for (const m of meals) for (const k in sum) sum[k] += m.t[k];
+  // Foods: grouped by name, so the 7-day view shows your usual big hitters.
+  const foods = new Map();
+  for (const m of meals) for (const e of m.items) {
+    const v = scale(e, e.servings ?? 1), key = e.name;
+    const f = foods.get(key) || { name: e.name, meals: new Set(), calories: 0, protein: 0, carbs: 0, fat: 0, n: 0 };
+    f.meals.add(m.l); f.n++; for (const k of ['calories', 'protein', 'carbs', 'fat']) f[k] += v[k] / n;
+    foods.set(key, f);
+  }
+  return { dates, n, meals, sum, foods: [...foods.values()] };
+}
+function mealNotes(m, sum, t) {
+  const notes = [], kc = m.t.calories, pc = m.t.protein * 4, cc = m.t.carbs * 4, fc = m.t.fat * 9, mk = pc + cc + fc || 1;
+  const hit = typeof proteinHitG === 'function' ? proteinHitG() : 25;
+  if (m.k !== 'snacks' && kc >= 250 && m.t.protein < hit) notes.push(['warn', `Only ${Math.round(m.t.protein)} g protein for ${Math.round(kc)} kcal. Add eggs, Greek yogurt, milk or meat to get it past ${hit} g.`]);
+  else if (m.t.protein >= hit + 5) notes.push(['good', `Strong protein: ${Math.round(m.t.protein)} g, ${Math.round((m.t.protein / Math.max(1, sum.protein)) * 100)}% of your day.`]);
+  if (kc >= 200 && fc / mk > 0.42) notes.push(['warn', `Heavy on fat: ${Math.round((fc / mk) * 100)}% of this meal's calories. Fried food, cheese and sauces add up fast.`]);
+  else if (kc >= 200 && cc / mk > 0.65 && m.t.protein < 15) notes.push(['warn', `Mostly carbs (${Math.round((cc / mk) * 100)}%) with little protein. Pair it with a protein.`]);
+  if (sum.calories > 0 && kc / Math.max(t.calories, sum.calories) > 0.42) notes.push(['', `Your biggest meal: ${Math.round((kc / sum.calories) * 100)}% of today's calories.`]);
+  if (m.k === 'snacks' && sum.calories > 0 && kc / sum.calories > 0.3) notes.push(['warn', `Snacks are ${Math.round((kc / sum.calories) * 100)}% of your calories. Turn one snack into a real meal.`]);
+  return notes.slice(0, 2);
+}
+function renderBreakdown(t) {
+  const el = $('#breakdown'), d = breakdownData(), logged = d.meals.filter((m) => m.items.length);
+  const tabs = `<div class="row-between"><h3>Meal breakdown</h3><div class="bd-tabs"><button type="button" class="chip-btn${bdRange === 'day' ? ' active' : ''}" data-bd-range="day">${day === todayIso() ? 'Today' : 'This day'}</button><button type="button" class="chip-btn${bdRange === 'week' ? ' active' : ''}" data-bd-range="week">7-day avg</button></div></div>`;
+  if (!logged.length) { el.innerHTML = tabs + `<p class="muted small" style="margin:10px 0 0">${bdRange === 'day' ? 'Log a meal and this shows where every calorie and gram of protein, carbs and fat comes from.' : 'Log food on a few days to see which meals usually carry your macros.'}</p>`; return; }
+  const per = bdRange === 'week' ? ' a day' : '';
+  // Lead line: the meal doing the most for protein, and the weakest main meal.
+  const byP = [...logged].sort((a, b) => b.t.protein - a.t.protein), top = byP[0];
+  const mains = logged.filter((m) => m.k !== 'snacks'), weak = mains.length > 1 ? [...mains].sort((a, b) => a.t.protein - b.t.protein)[0] : null;
+  const left = Math.round(t.protein - d.sum.protein);
+  let lead = `<b>${top.l}</b> gives you the most protein: ${Math.round(top.t.protein)} g, ${Math.round((top.t.protein / Math.max(1, d.sum.protein)) * 100)}%${bdRange === 'week' ? ' on average' : ' of today'}.`;
+  if (weak && weak !== top && weak.t.protein < 25) lead += ` <b>${weak.l}</b> is your weakest at ${Math.round(weak.t.protein)} g.`;
+  if (bdRange === 'day' && day === todayIso() && left > 10) lead += ` You still need ${left} g, about ${Math.max(1, Math.round(left / 30))} meal${Math.round(left / 30) > 1 ? 's' : ''} of 30 g.`;
+  // 1. Where each macro comes from
+  const src = BD_MACROS.map(([k, label, unit]) => {
+    const total = d.sum[k], goal = k === 'calories' ? t.calories : t[k];
+    const segs = logged.map((m) => { const share = total ? m.t[k] / total : 0; return share > 0 ? `<div style="flex:${m.t[k]};background:${mealColor(m.k)}" title="${m.l}: ${fmtV(k, m.t[k])} ${unit} (${Math.round(share * 100)}%)">${share >= 0.14 ? Math.round(share * 100) + '%' : ''}</div>` : ''; }).join('');
+    return `<div class="src-row"><div class="row-between"><span>${label}</span><span class="num"><b>${fmtV(k, total)}</b> <span class="muted">of ${fmtV(k, goal)} ${unit}${per}</span></span></div><div class="stack" role="img" aria-label="${label} by meal: ${logged.map((m) => `${m.l} ${fmtV(k, m.t[k])} ${unit}`).join(', ')}">${segs}</div></div>`;
+  }).join('');
+  const key = `<div class="meal-key">${logged.map((m) => `<span><i class="dot" style="--c:${mealColor(m.k)}"></i>${m.l}</span>`).join('')}</div>`;
+  // 2. Meal by meal
+  const meals = logged.map((m) => {
+    const pc = m.t.protein * 4, cc = m.t.carbs * 4, fc = m.t.fat * 9, mk = pc + cc + fc || 1, pctDay = d.sum.calories ? Math.round((m.t.calories / d.sum.calories) * 100) : 0;
+    const share = (k) => (d.sum[k] ? Math.round((m.t[k] / d.sum[k]) * 100) : 0);
+    return `<div class="bd-meal"><div class="row-between"><b><i class="dot" style="--c:${mealColor(m.k)}"></i>${m.l}</b><span class="num muted small">${fmtV('calories', m.t.calories)} kcal${per} · ${pctDay}% of the day</span></div>
+      <div class="mstats"><div><b>${Math.round(m.t.protein)} g</b><small>protein · ${share('protein')}%</small></div><div><b>${Math.round(m.t.carbs)} g</b><small>carbs · ${share('carbs')}%</small></div><div><b>${Math.round(m.t.fat)} g</b><small>fat · ${share('fat')}%</small></div></div>
+      <div><div class="msplit" aria-hidden="true"><div style="flex:${pc};background:var(--protein)"></div><div style="flex:${cc};background:var(--carbs)"></div><div style="flex:${fc};background:var(--fat)"></div></div>
+      <div class="msplit-l num" style="margin-top:4px">This meal's calories: ${Math.round((pc / mk) * 100)}% protein · ${Math.round((cc / mk) * 100)}% carbs · ${Math.round((fc / mk) * 100)}% fat</div></div>
+      ${mealNotes(m, d.sum, t).map(([c, txt]) => `<p class="bd-note ${c}">${txt}</p>`).join('')}</div>`;
+  }).join('');
+  // 3. Top sources for one macro
+  const unit = BD_MACROS.find(([k]) => k === bdMacro)[2], tot = d.sum[bdMacro] || 1;
+  const foods = d.foods.filter((f) => f[bdMacro] > 0.4).sort((a, b) => b[bdMacro] - a[bdMacro]).slice(0, 6);
+  const topList = foods.length ? foods.map((f) => `<div class="topf"><span class="nm">${esc(f.name)}<small>${[...f.meals].join(', ')}${bdRange === 'week' && f.n > 1 ? ` · ${f.n}×` : ''}</small></span><span class="v">${fmtV(bdMacro, f[bdMacro])} ${unit} <span class="muted small">${Math.round((f[bdMacro] / tot) * 100)}%</span></span><div class="bar"><div class="bar-fill" style="width:${(f[bdMacro] / foods[0][bdMacro]) * 100}%;background:${bdMacro === 'calories' ? 'var(--accent)' : `var(--${bdMacro})`}"></div></div></div>`).join('')
+    : '<p class="muted small" style="margin:0">None of your foods have this macro.</p>';
+  el.innerHTML = tabs + `<p class="bd-lead">${lead}</p>
+    <div class="bd-sec"><div class="bd-h">Where it comes from</div>${src}${key}</div>
+    <div class="bd-sec"><div class="bd-h">Meal by meal</div>${meals}</div>
+    <div class="bd-sec"><div class="row-between" style="margin-bottom:8px"><div class="bd-h" style="margin:0">Top sources</div><div class="bd-tabs">${BD_MACROS.map(([k, l]) => `<button type="button" class="chip-btn${k === bdMacro ? ' active' : ''}" data-bd-macro="${k}" style="padding:5px 10px;font-size:12px">${l}</button>`).join('')}</div></div>${topList}</div>
+    ${bdRange === 'week' ? `<p class="muted small" style="margin:10px 0 0">Averages over the ${d.n} day${d.n === 1 ? '' : 's'} you logged in the last week.</p>` : ''}`;
+}
+$('#breakdown').addEventListener('click', (e) => {
+  const r = e.target.closest('[data-bd-range]'), m = e.target.closest('[data-bd-macro]');
+  if (r) bdRange = r.dataset.bdRange; else if (m) bdMacro = m.dataset.bdMacro; else return;
+  renderBreakdown(targets(day));
 });
 
 // ===================== Coach tabs =====================
