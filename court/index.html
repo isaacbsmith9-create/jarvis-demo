@@ -209,7 +209,8 @@ const FOCUS_NAME = Object.fromEntries(FOCUS);
 // ===================== Court diagram =====================
 const POS = { rim: [150, 34], blockL: [116, 62], blockR: [184, 62], elbowL: [118, 120], elbowR: [182, 120], ft: [150, 120], paint: [150, 82], top: [150, 196], slotL: [92, 176], slotR: [208, 176], wingL: [52, 132], wingR: [248, 132], cornerL: [24, 40], cornerR: [276, 40], half: [150, 268], baseline: [96, 12] };
 function courtSvg(setup) {
-  const P = (k) => POS[k];
+  // Arrows can name a spot on the court, or 'you' / 'partner' for wherever that player starts.
+  const P = (k) => POS[k === 'you' ? setup.you : k === 'partner' ? setup.partner : k] || POS.top;
   let g = `<rect width="300" height="280" fill="var(--court)"/><g class="lines"><line x1="6" y1="10" x2="294" y2="10"/><rect x="108" y="10" width="84" height="110"/><circle cx="150" cy="120" r="30"/><path d="M14 10v34a136 136 0 0 0 272 0V10"/><line x1="134" y1="22" x2="166" y2="22"/><circle cx="150" cy="30" r="7"/><line x1="6" y1="276" x2="294" y2="276"/></g>`;
   for (const z of setup.zones || []) {
     if (z === 'paint') g += `<rect x="108" y="10" width="84" height="110" fill="var(--accent)" opacity=".16"/>`;
