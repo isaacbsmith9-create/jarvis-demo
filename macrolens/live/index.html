@@ -6,15 +6,15 @@
 <style>
 /* Layout: one phone-width column, sticky day header, fixed tab bar with a raised scan button. */
 :root {
-  --bg: #f2f4f1;
+  --bg: #eef2fb;
   --surface: #ffffff;
-  --surface-2: #eaede8;
-  --line: #dde2db;
-  --fg: #141a16;
-  --muted: #66706a;
-  --accent: #0f8a5f;
+  --surface-2: #e6ebf7;
+  --line: #d5ddef;
+  --fg: #0b1330;
+  --muted: #5b6687;
+  --accent: #2563eb;
   --accent-ink: #ffffff;
-  --accent-soft: #d9efe5;
+  --accent-soft: #dbe6ff;
   --protein: #3b7dd8;
   --carbs: #d99a12;
   --fat: #d2508f;
@@ -26,24 +26,27 @@
   --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --radius: 18px;
   --m-breakfast: #eb6834; --m-lunch: #1baf7a; --m-dinner: #6250d6; --m-snacks: #e87ba4;
-  --shadow: rgba(20, 30, 24, .05);
+  --shadow: rgba(20, 30, 70, .06);
+  --good: #16a34a; --purple: #7c3aed; --glow: rgba(37, 99, 235, .2);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0e1210; --surface: #171c19; --surface-2: #212823; --line: #2c342f;
-    --fg: #ecf1ed; --muted: #8e9a93; --accent: #3ccf94; --accent-ink: #052618; --accent-soft: #173a2b;
-    --protein: #6aa7f5; --carbs: #f2bd3d; --fat: #f07ab3; --water: #4cc3ef; --over: #fb8a4c; --danger: #f07a7a;
-    --scrim: rgba(0, 0, 0, .6); --shadow: rgba(0, 0, 0, .25);
-    --m-breakfast: #d95926; --m-lunch: #199e70; --m-dinner: #9085e9; --m-snacks: #d55181;
+    --bg: #060a17; --surface: #0d1430; --surface-2: #161f42; --line: #222d57;
+    --fg: #eef2ff; --muted: #8e9ac4; --accent: #3d8bff; --accent-ink: #ffffff; --accent-soft: #14295c;
+    --protein: #4da3ff; --carbs: #ffc23d; --fat: #c77dff; --water: #33d1ff; --over: #ff8a4c; --danger: #ff6b7a;
+    --scrim: rgba(2, 4, 14, .72); --shadow: rgba(0, 0, 0, .45);
+    --m-breakfast: #ff8a4c; --m-lunch: #2fd68a; --m-dinner: #8f7bff; --m-snacks: #ff6fb1;
+    --good: #2fd68a; --purple: #8b5cff; --glow: rgba(61, 139, 255, .35);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0e1210; --surface: #171c19; --surface-2: #212823; --line: #2c342f;
-  --fg: #ecf1ed; --muted: #8e9a93; --accent: #3ccf94; --accent-ink: #052618; --accent-soft: #173a2b;
-  --protein: #6aa7f5; --carbs: #f2bd3d; --fat: #f07ab3; --water: #4cc3ef; --over: #fb8a4c; --danger: #f07a7a;
-  --scrim: rgba(0, 0, 0, .6); --shadow: rgba(0, 0, 0, .25);
-  --m-breakfast: #d95926; --m-lunch: #199e70; --m-dinner: #9085e9; --m-snacks: #d55181;
+  --bg: #060a17; --surface: #0d1430; --surface-2: #161f42; --line: #222d57;
+  --fg: #eef2ff; --muted: #8e9ac4; --accent: #3d8bff; --accent-ink: #ffffff; --accent-soft: #14295c;
+  --protein: #4da3ff; --carbs: #ffc23d; --fat: #c77dff; --water: #33d1ff; --over: #ff8a4c; --danger: #ff6b7a;
+  --scrim: rgba(2, 4, 14, .72); --shadow: rgba(0, 0, 0, .45);
+  --m-breakfast: #ff8a4c; --m-lunch: #2fd68a; --m-dinner: #8f7bff; --m-snacks: #ff6fb1;
+  --good: #2fd68a; --purple: #8b5cff; --glow: rgba(61, 139, 255, .35);
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -148,7 +151,7 @@ h3 { font-size: 17px; font-weight: 600; letter-spacing: -.2px; }
 .tab.active { color: var(--fg); }
 .scan-fab .fab-disc {
   width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; margin-top: -28px;
-  background: var(--accent); color: var(--accent-ink); box-shadow: 0 6px 18px rgba(15, 138, 95, .35);
+  background: var(--accent); color: var(--accent-ink); box-shadow: 0 8px 24px var(--glow);
 }
 .scan-fab .fab-disc svg { width: 26px; height: 26px; }
 
@@ -590,6 +593,47 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
 .meal-head strong { letter-spacing: -.2px; }
 .summary { padding: 18px; }
 @media (prefers-reduced-motion: reduce) { *, *::before { transition: none !important; animation-duration: 0s !important; } }
+/* Weekly athlete report */
+.wr-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; }
+.wr-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.wr-live { font: 600 11px var(--f-body); color: var(--muted); }
+.wr-hero { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; margin: 14px 0 6px; }
+.wr-tier { font: 700 22px var(--f-display); letter-spacing: -.01em; background: linear-gradient(90deg, var(--fg), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.wr-d { display: inline-block; font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 2px; }
+.wr-d.up { color: var(--good, var(--accent)); } .wr-d.down { color: var(--over); }
+.wr-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.wr-kpi { background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; display: grid; gap: 1px; min-width: 0; }
+.wr-kpi small { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.wr-kpi b { font: 700 22px var(--f-display); }
+.wr-kpi span { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.wr-kpi .wr-d { font-size: 11px; }
+.wr-chart { margin-top: 14px; }
+.wr-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; margin-top: 14px; }
+.wr-cols h4 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--good, var(--accent)); }
+.wr-cols div:last-child h4 { color: var(--over); }
+.wr-cols ul, .wr-ai ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; }
+.wr-compare { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.wr-compare summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+.wr-table { margin-top: 8px; display: grid; gap: 2px; font-size: 12px; }
+.wr-tr { display: grid; grid-template-columns: 1.1fr .8fr 1fr 1fr .8fr 1fr; gap: 4px; padding: 6px 8px; border-radius: 8px; }
+.wr-tr span:not(:first-child) { text-align: right; }
+.wr-tr.on { background: var(--accent-soft); font-weight: 600; }
+.wr-th { color: var(--muted); font-weight: 600; }
+.wr-ai { margin-top: 14px; padding: 12px; border-radius: 14px; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, transparent), color-mix(in srgb, var(--purple, var(--accent)) 14%, transparent)); border: 1px solid var(--line); }
+.wr-ai:empty { display: none; }
+
+/* ===== Sports-tech look (navy, electric blue, purple glow) ===== */
+:root[data-theme="dark"] body, :root:not([data-theme="light"]) body { background: radial-gradient(1200px 520px at 50% -180px, rgba(84, 70, 255, .22), transparent 70%), radial-gradient(900px 600px at 110% 30%, rgba(61, 139, 255, .10), transparent 60%), var(--bg); background-attachment: fixed; }
+:root[data-theme="dark"] .card, :root:not([data-theme="light"]) .card { background: linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, 0) 40%), var(--surface); border-color: rgba(120, 140, 255, .16); box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 12px 30px -18px rgba(0, 0, 0, .8); }
+.btn.primary { background: linear-gradient(135deg, var(--accent), var(--purple)); box-shadow: 0 8px 22px -8px var(--glow); }
+.scan-fab .fab-disc { background: linear-gradient(135deg, var(--accent), var(--purple)); color: #fff; }
+.subnav button.active { background: linear-gradient(135deg, var(--accent), var(--purple)); color: #fff; border-color: transparent; }
+:root[data-theme="dark"] .tabbar, :root:not([data-theme="light"]) .tabbar { background: rgba(9, 14, 34, .82); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); border-top-color: rgba(120, 140, 255, .14); }
+.tab.active { color: var(--accent); }
+:root[data-theme="dark"] .tab.active svg, :root:not([data-theme="light"]) .tab.active svg { filter: drop-shadow(0 0 6px var(--glow)); }
+.sched-check.on, .sched-tag.next { background: var(--good); border-color: var(--good); color: #04130b; }
+.sched-pill { background: linear-gradient(135deg, rgba(61, 139, 255, .22), rgba(139, 92, 255, .22)); }
+h2, h3 { letter-spacing: -.01em; }
 </style>
 
 <div class="wrap">
@@ -831,6 +875,7 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
 
   <!-- PROGRESS -->
   <section id="view-progress" class="view" hidden>
+    <div class="card wr" id="wr-card"></div>
     <div class="stats" id="stats"></div>
     <div class="card" id="dna-card"></div>
     <div class="card" id="month-card"></div>
@@ -1672,7 +1717,7 @@ function renderProfile() {
 let currentView = 'today';
 function render() {
   renderToday();
-  if (currentView === 'progress') { renderProgress(); renderMonth(); monthExtras(); renderProgressExtras(); renderDnaCard(); renderTrend(); renderBadges(); renderMeasures(); renderGoalW(); }
+  if (currentView === 'progress') { renderWeekly(); renderProgress(); renderMonth(); monthExtras(); renderProgressExtras(); renderDnaCard(); renderTrend(); renderBadges(); renderMeasures(); renderGoalW(); }
   if (currentView === 'profile') { renderProfile(); renderAcc(); }
   if (currentView === 'coach') renderCoach();
 }
@@ -2542,7 +2587,7 @@ function applyTheme(choice) {
   $$('#theme-pick button').forEach((b) => { const on = b.dataset.themeOpt === (choice || 'system'); b.classList.toggle('active', on); b.setAttribute('aria-checked', String(on)); });
 }
 let themeChoice = 'system';
-try { themeChoice = localStorage.getItem(THEME_KEY) || 'system'; } catch {}
+themeChoice = 'dark'; try { themeChoice = localStorage.getItem(THEME_KEY) || 'dark'; } catch {}
 applyTheme(themeChoice);
 $$('#theme-pick button').forEach((b) => b.addEventListener('click', () => {
   themeChoice = b.dataset.themeOpt;
@@ -5601,6 +5646,122 @@ Reply with only JSON: {"slots":[{"id":"...","title":"Turkey wrap and an apple","
     } catch (err) { toast(AI_ERRORS?.[err?.code] || 'Coach could not plan right now. Try again.'); }
     schedBusy = false; return renderSched();
   }
+});
+
+// ===================== Weekly athlete report =====================
+// Monday-Sunday report built from the diary, exercise log, consistency habits and recovery fuel scores (same math as
+// the rest of the app), compared with earlier weeks. Optional AI observations are saved per week in core.weekly.
+let wrWeek = null; // Monday ISO of the week being shown
+const wrMonday = (iso) => shiftIso(iso, -((new Date(iso + 'T12:00:00').getDay() + 6) % 7));
+function weekStats(mon) {
+  const today = todayIso(), days = Array.from({ length: 7 }, (_, i) => shiftIso(mon, i)).filter((d) => d <= today);
+  // Today isn't over, so it only counts toward averages when it's the only day logged so far.
+  let logged = days.filter((d) => entriesOf(d).length); if (logged.length > 1) logged = logged.filter((d) => d !== today);
+  const tot = logged.map((d) => totals(entriesOf(d))), tg = logged.map((d) => targets(d));
+  const avg = (f) => (logged.length ? tot.reduce((a, t, i) => a + f(t, i), 0) / logged.length : null);
+  const waterHit = days.filter((d) => (dayDoc(d)?.water || 0) >= targets(d).waterOz * 0.9).length;
+  const waterAvg = days.length ? days.reduce((a, d) => a + (dayDoc(d)?.water || 0), 0) / days.length : 0;
+  const ex = days.flatMap((d) => exList(d).map((x) => ({ ...x, date: d })));
+  const wins = days.flatMap((d) => exWindows(d).filter((w) => d !== today || w.en + 150 <= nowMin()).map((w) => ({ d, w })));
+  const post = wins.filter(({ d, w }) => postFueled(d, w)).length, pre = wins.filter(({ d, w }) => preFueled(d, w)).length;
+  const cons = days.map((d) => consistency(d));
+  const consVals = cons.map((v) => v ?? 0).sort((a, b) => a - b); if (consVals.length >= 4) consVals.shift(); // forgiving: worst day dropped
+  const rec = days.map((d) => recoveryScore(d)?.score ?? null).filter((v) => v != null);
+  const sleep = days.map((d) => readLS('ru:day-' + d)?.checkin?.sleepH ?? null);
+  const proteinHit = logged.filter((d, i) => tot[i].protein >= tg[i].protein * 0.95).length;
+  return { mon, days, logged: logged.length, n: days.length,
+    kcal: avg((t) => t.calories), p: avg((t) => t.protein), c: avg((t) => t.carbs), f: avg((t) => t.fat), fiber: avg((t) => t.fiber),
+    kcalT: avg((t, i) => tg[i].calories), pT: avg((t, i) => tg[i].protein), proteinHit,
+    waterHit, waterAvg, workouts: ex.length, workMins: ex.reduce((a, x) => a + (Number(x.mins) || 0), 0), sessions: wins.length, post, pre,
+    cons: consVals.length ? Math.round(consVals.reduce((a, b) => a + b, 0) / consVals.length) : null, consDays: cons,
+    rec: rec.length ? Math.round(rec.reduce((a, b) => a + b, 0) / rec.length) : null,
+    sleep, sleepAvg: sleep.filter((v) => v != null).length ? sleep.filter((v) => v != null).reduce((a, b) => a + b, 0) / sleep.filter((v) => v != null).length : null,
+    cal: days.map((d) => totals(entriesOf(d)).calories), calGoal: days.map((d) => targets(d).calories), pro: days.map((d) => totals(entriesOf(d)).protein), proGoal: days.map((d) => targets(d).protein) };
+}
+function wrNotes(s, prev) {
+  const good = [], fix = [], d = (a, b) => (a != null && b != null ? a - b : null);
+  if (s.logged >= Math.min(6, s.n)) good.push(`Logged food ${s.logged} of ${s.n} days. That's what makes every number here real.`);
+  else fix.push(`Food logged on ${s.logged} of ${s.n} days. Missing days hide what's really happening; even a rough log helps.`);
+  if (s.p != null && s.pT) (s.p >= s.pT * 0.95 ? good : fix).push(s.p >= s.pT * 0.95 ? `Protein averaged ${Math.round(s.p)} g a day, on target (${Math.round(s.pT)} g).` : `Protein averaged ${Math.round(s.p)} g, ${Math.round(s.pT - s.p)} g a day under your ${Math.round(s.pT)} g target. Add a protein snack after practice.`);
+  if (s.kcal != null && s.kcalT) { const r = s.kcal / s.kcalT; if (r < 0.85) fix.push(`Calories averaged ${Math.round(s.kcal).toLocaleString()}, about ${Math.round((1 - r) * 100)}% under target. Under-eating on training days drains energy and recovery.`); else if (r <= 1.1) good.push(`Calories averaged ${Math.round(s.kcal).toLocaleString()}, right around your target.`); }
+  (s.waterHit >= Math.ceil(s.n * 0.7) ? good : fix).push(s.waterHit >= Math.ceil(s.n * 0.7) ? `Hit your water goal ${s.waterHit} of ${s.n} days.` : `Water goal hit on only ${s.waterHit} of ${s.n} days (avg ${Math.round(s.waterAvg)} oz). Carry a bottle to class and practice.`);
+  if (s.sessions) (s.post / s.sessions >= 0.75 ? good : fix).push(s.post / s.sessions >= 0.75 ? `Refueled after ${s.post} of ${s.sessions} sessions.` : `Refueled within 2 hours after only ${s.post} of ${s.sessions} sessions. Keep a recovery snack in your bag.`);
+  if (prev) {
+    const dp = d(s.p, prev.p), dc = d(s.cons, prev.cons), dw = s.waterHit - prev.waterHit;
+    if (dp != null && Math.abs(dp) >= 8) (dp > 0 ? good : fix).push(`Protein ${dp > 0 ? 'up' : 'down'} ${Math.abs(Math.round(dp))} g a day from last week.`);
+    if (dc != null && Math.abs(dc) >= 8) (dc > 0 ? good : fix).push(`Consistency ${dc > 0 ? 'up' : 'down'} ${Math.abs(dc)} points from last week.`);
+    if (Math.abs(dw) >= 2) (dw > 0 ? good : fix).push(`${Math.abs(dw)} ${dw > 0 ? 'more' : 'fewer'} water-goal days than last week.`);
+  }
+  return { good: good.slice(0, 5), fix: fix.slice(0, 4) };
+}
+const wrDelta = (now, prev, unit = '', digits = 0) => {
+  if (now == null || prev == null) return '';
+  const dv = Math.round((now - prev) * 10 ** digits) / 10 ** digits; if (!dv) return '<span class="wr-d">same as last week</span>';
+  const u = Math.abs(dv) === 1 ? unit.replace(/s$/, '') : unit;
+  return `<span class="wr-d ${dv > 0 ? 'up' : 'down'}">${dv > 0 ? '▲' : '▼'} ${Math.abs(dv).toLocaleString()}${u}</span>`;
+};
+function wrRing(v, size = 112) {
+  const r = (size - 14) / 2, C = 2 * Math.PI * r, p = Math.max(0, Math.min(1, (v ?? 0) / 100));
+  return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" role="img" aria-label="Consistency ${v ?? 0}"><defs><linearGradient id="wrg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--purple, var(--accent))"/></linearGradient></defs>
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="12"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="url(#wrg)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(C * p).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 ${size / 2} ${size / 2})"/>
+    <text x="50%" y="48%" text-anchor="middle" dominant-baseline="middle" style="font:700 30px var(--f-display);fill:var(--fg)">${v ?? '–'}</text><text x="50%" y="68%" text-anchor="middle" style="font:600 11px var(--f-body);fill:var(--muted)">of 100</text></svg>`;
+}
+function renderWeekly() {
+  const el = $('#wr-card'); if (!el) return;
+  const thisMon = wrMonday(todayIso()); wrWeek ||= thisMon;
+  const s = weekStats(wrWeek), prev = weekStats(shiftIso(wrWeek, -7)), hasPrev = prev.logged > 0;
+  const end = shiftIso(wrWeek, 6), fmtD = (iso) => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const notes = wrNotes(s, hasPrev ? prev : null), ai = core().weekly?.[wrWeek], labels = Array.from({ length: 7 }, (_, i) => dayLetter(shiftIso(wrWeek, i)));
+  const pad7 = (a) => [...a, ...Array(7 - a.length).fill(0)];
+  const hist = Array.from({ length: 6 }, (_, i) => weekStats(shiftIso(wrWeek, -7 * (5 - i))));
+  const kpi = (label, val, sub, delta) => `<div class="wr-kpi"><small>${label}</small><b class="num">${val}</b><span>${sub}</span>${delta || ''}</div>`;
+  const tier = s.cons == null ? '' : s.cons >= 85 ? 'Elite week' : s.cons >= 70 ? 'Strong week' : s.cons >= 50 ? 'Building' : 'Reset week';
+  el.innerHTML = `<div class="wr-head"><button class="icon-btn" type="button" data-wr-nav="-7" aria-label="Previous week">‹</button>
+      <div style="text-align:center"><div class="wr-eyebrow">Weekly athlete report</div><h3>${fmtD(wrWeek)} – ${fmtD(end)}${wrWeek === thisMon ? ' <span class="wr-live">so far</span>' : ''}</h3></div>
+      <button class="icon-btn" type="button" data-wr-nav="7" aria-label="Next week"${wrWeek >= thisMon ? ' disabled' : ''}>›</button></div>
+    ${!s.logged ? `<p class="muted small" style="text-align:center;margin:14px 0 4px">Nothing logged this week yet. Log food and workouts and your report builds itself.</p>` : `
+    <div class="wr-hero">${wrRing(s.cons)}<div><div class="wr-tier">${tier}</div>${hasPrev ? wrDelta(s.cons, prev.cons, ' pts') : '<span class="wr-d">first week tracked</span>'}
+      <p class="small" style="margin:6px 0 0">Consistency score · recovery fuel ${s.rec ?? '–'}/100 · ${s.logged}/${s.n} days counted${s.days.includes(todayIso()) && s.logged < s.days.filter((d) => entriesOf(d).length).length ? ' (today counts tomorrow)' : ''}</p></div></div>
+    <div class="wr-kpis">
+      ${kpi('Avg calories', s.kcal != null ? Math.round(s.kcal).toLocaleString() : '–', `goal ${Math.round(s.kcalT || 0).toLocaleString()}`, hasPrev ? wrDelta(s.kcal, prev.kcal) : '')}
+      ${kpi('Avg protein', s.p != null ? Math.round(s.p) + ' g' : '–', `hit ${s.proteinHit}/${s.logged} days`, hasPrev ? wrDelta(s.p, prev.p, ' g') : '')}
+      ${kpi('Carbs · fat', s.c != null ? `${Math.round(s.c)} · ${Math.round(s.f)}` : '–', 'g per day', '')}
+      ${kpi('Hydration', `${s.waterHit}/${s.n}`, `days at goal · ${Math.round(s.waterAvg)} oz avg`, hasPrev ? wrDelta(s.waterHit, prev.waterHit, ' days') : '')}
+      ${kpi('Workouts', s.workouts, `${fmtDur(s.workMins)} total`, hasPrev ? wrDelta(s.workMins / 60, prev.workMins / 60, ' h', 1) : '')}
+      ${kpi('Refueled', s.sessions ? `${s.post}/${s.sessions}` : '–', s.sessions ? `after sessions · ${s.pre}/${s.sessions} before` : 'no timed sessions', '')}
+    </div>
+    <div class="wr-chart"><div class="row-between"><b>Calories</b><span class="muted small">dashes = goal</span></div><div class="chart">${miniBars(pad7(s.cal), { goals: pad7(s.calGoal), labels, color: (v, i) => (v >= s.calGoal[i] * 0.9 ? 'var(--accent)' : 'var(--purple, var(--carbs))'), fmt: (v) => (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v), H: 120 })}</div></div>
+    <div class="wr-chart"><div class="row-between"><b>Protein</b><span class="muted small">g · dashes = goal</span></div><div class="chart">${miniBars(pad7(s.pro), { goals: pad7(s.proGoal), labels, color: (v, i) => (v >= s.proGoal[i] * 0.95 ? 'var(--good, var(--accent))' : 'var(--protein)'), H: 120 })}</div></div>
+    ${s.sleepAvg != null ? `<div class="wr-chart"><div class="row-between"><b>Sleep</b><span class="muted small">${s.sleepAvg.toFixed(1)} h avg from ReadyUp</span></div><div class="chart">${miniBars(pad7(s.sleep.map((v) => v ?? 0)), { labels, max: 10, color: (v) => (v >= 8 ? 'var(--good, var(--accent))' : v >= 7 ? 'var(--carbs)' : 'var(--over)'), fmt: (v) => v.toFixed(1), H: 110 })}</div></div>` : ''}
+    <div class="wr-cols"><div><h4>Going well</h4><ul>${notes.good.map((x) => `<li>${esc(x)}</li>`).join('') || '<li class="muted">Log a few more days to see trends.</li>'}</ul></div>
+      <div><h4>Needs attention</h4><ul class="wr-fix">${notes.fix.map((x) => `<li>${esc(x)}</li>`).join('') || '<li class="muted">Nothing stands out. Keep it rolling.</li>'}</ul></div></div>
+    <details class="wr-compare"><summary>Compare with earlier weeks</summary>
+      <div class="wr-table"><div class="wr-tr wr-th"><span>Week</span><span>Cons.</span><span>Kcal</span><span>Protein</span><span>Water</span><span>Train</span></div>
+      ${hist.map((h) => `<div class="wr-tr${h.mon === wrWeek ? ' on' : ''}"><span>${fmtD(h.mon)}</span><span class="num">${h.cons ?? '–'}</span><span class="num">${h.kcal != null ? Math.round(h.kcal).toLocaleString() : '–'}</span><span class="num">${h.p != null ? Math.round(h.p) + 'g' : '–'}</span><span class="num">${h.waterHit}/${h.n}</span><span class="num">${h.workMins ? fmtDur(h.workMins) : '–'}</span></div>`).join('')}</div>
+      <div class="chart" style="margin-top:8px">${miniBars(hist.map((h) => h.cons ?? 0), { labels: hist.map((h) => fmtD(h.mon).replace(/^\w+ /, '')), max: 100, color: (v, i) => (i === 5 ? 'var(--accent)' : 'var(--surface-2)'), H: 100 })}</div></details>
+    <div class="wr-ai">${ai ? `<div class="wr-eyebrow">Coach observations · ${esc(new Date(ai.at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))}</div><p style="margin:4px 0 6px">${esc(ai.summary)}</p><ul>${ai.points.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>${ai.focus ? `<p class="small" style="margin:6px 0 0"><b>Next week's focus:</b> ${esc(ai.focus)}</p>` : ''}` : ''}
+      ${aiReady() ? `<button type="button" class="btn${ai ? '' : ' primary'}" data-wr-ai="1" style="width:100%;margin-top:${ai ? 10 : 0}px">${ai ? 'Refresh Coach observations' : 'Get Coach observations'}</button>` : ''}</div>`}`;
+}
+$('#wr-card').addEventListener('click', async (e) => {
+  const nav = e.target.closest('[data-wr-nav]');
+  if (nav) { const thisMon = wrMonday(todayIso()); wrWeek = shiftIso(wrWeek || thisMon, Number(nav.dataset.wrNav)); if (wrWeek > thisMon) wrWeek = thisMon; return renderWeekly(); }
+  const b = e.target.closest('[data-wr-ai]'); if (!b) return;
+  if (!aiReady()) return toast('Open MacroLens in Claude to use Coach');
+  const s = weekStats(wrWeek), prev = weekStats(shiftIso(wrWeek, -7));
+  b.disabled = true; b.textContent = 'Coach is reading your week…';
+  const schema = { type: 'object', additionalProperties: false, required: ['summary', 'points', 'focus'], properties: { summary: { type: 'string' }, points: { type: 'array', items: { type: 'string' } }, focus: { type: 'string' } } };
+  const pick = (x) => ({ days_logged: x.logged, days_in_week: x.n, avg_calories: x.kcal && Math.round(x.kcal), calorie_target: x.kcalT && Math.round(x.kcalT), avg_protein_g: x.p && Math.round(x.p), protein_target_g: x.pT && Math.round(x.pT), avg_carbs_g: x.c && Math.round(x.c), avg_fat_g: x.f && Math.round(x.f), water_goal_days: x.waterHit, avg_water_oz: Math.round(x.waterAvg), workouts: x.workouts, workout_minutes: x.workMins, sessions_refueled_after: `${x.post}/${x.sessions}`, sessions_fueled_before: `${x.pre}/${x.sessions}`, consistency_score: x.cons, recovery_fuel_score: x.rec, avg_sleep_h: x.sleepAvg && Math.round(x.sleepAvg * 10) / 10, daily_calories: x.cal, daily_protein: x.pro.map(Math.round) });
+  const prompt = `You are a sports dietitian writing a short weekly review for a high school athlete.\n${athleteLine()}
+This week: ${JSON.stringify(pick(s))}
+Previous week: ${prev.logged ? JSON.stringify(pick(prev)) : 'no data'}
+Write: a 2-sentence summary; 3-5 specific observations that cite the numbers (compare to last week when there is data); one concrete focus for next week. Only describe what the data shows: these are patterns, not proof of cause. Note missing days instead of treating them as zero intake. Encouraging, plain language for a teenager, no diagnoses, never push eating less.
+Reply with only JSON: {"summary":"...","points":["..."],"focus":"..."}`;
+  try {
+    const r = await askJson(prompt, schema);
+    core().weekly = { ...(core().weekly || {}), [wrWeek]: { at: Date.now(), summary: String(r.summary || ''), points: (r.points || []).slice(0, 5).map(String), focus: String(r.focus || '') } };
+    persist('core'); toast('Coach observations added');
+  } catch (err) { toast(AI_ERRORS?.[err?.code] || 'Coach could not read your week right now.'); }
+  renderWeekly();
 });
 
 // ===================== Coach tabs =====================
