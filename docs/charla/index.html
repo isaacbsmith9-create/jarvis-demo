@@ -122,7 +122,11 @@ input:focus, select:focus { border-color: var(--accent); }
 .icon-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; cursor: pointer; }
 .icon-btn svg { width: 20px; height: 20px; }
 .icon-btn.send { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
-.icon-btn.listening { background: var(--fix); color: #fff; border-color: transparent; }
+.icon-btn.listening { background: var(--fix); color: #fff; border-color: transparent; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--fix) 30%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .icon-btn.listening { animation: none; } }
+.mic-help { background: var(--sun-soft); border-radius: 12px; padding: 8px 12px; font-size: 13px; display: grid; gap: 6px; }
+.mic-help .row { gap: 6px; }
 
 /* summary + words */
 .summary .score { font-family: var(--f-display); font-size: 40px; font-weight: 800; color: var(--accent); line-height: 1; }
@@ -215,6 +219,12 @@ input:focus, select:focus { border-color: var(--accent); }
       <div class="row-between"><span class="muted small" id="key-status"></span><button type="button" class="chip" id="key-remove" hidden>Remove key</button></div>
     </form>
     <div class="card">
+      <h3>Microphone</h3>
+      <p class="small" style="margin:0" id="mic-status"></p>
+      <div class="row"><button type="button" class="btn" id="mic-test">Test my mic</button><button type="button" class="btn" id="mic-perm" hidden>Microphone settings</button></div>
+      <p class="small" id="mic-test-out" style="margin:0"></p>
+    </div>
+    <div class="card">
       <h3>How it works</h3>
       <ul class="small" style="margin:0;padding-left:18px;display:grid;gap:4px">
         <li>Your partner talks at your class level, about one topic, and asks you questions back.</li>
@@ -229,10 +239,11 @@ input:focus, select:focus { border-color: var(--accent); }
 
 <div class="composer" id="composer" hidden>
   <div class="composer-inner">
+    <div class="mic-help" id="mic-help" hidden></div>
     <div class="suggest" id="suggest"></div>
     <form class="compose-row" id="compose">
-      <button type="button" class="icon-btn" id="mic" aria-label="Speak in Spanish" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
-      <input id="say" placeholder="Escribe en español…" autocomplete="off" aria-label="Your message">
+      <button type="button" class="icon-btn" id="mic" aria-label="Speak in Spanish"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+      <input id="say" lang="es" placeholder="Escribe o habla en español…" autocomplete="off" aria-label="Your message">
       <button class="icon-btn send" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
     </form>
   </div>
@@ -470,23 +481,94 @@ function speak(text) {
   }
   toast('Audio is not available here');
 }
+// Speaking works three ways, best first:
+// 1. Inside Claude (Chrome or the Claude desktop app): Claude's own dictation.
+// 2. On the website in Chrome, Edge or Safari: the browser's speech recognition.
+// 3. Anywhere else (Claude phone app, Firefox, iPhone home-screen app): the keyboard's own mic key.
+const inClaude = !!window.claude?.use;
+let dictLang = null; // the language Claude dictation accepted
 function setMic(on) { micOn = on; $('#mic').classList.toggle('listening', on); $('#mic').setAttribute('aria-label', on ? 'Stop listening' : 'Speak in Spanish'); }
 function stopMic() { if (!micOn) return; if (dictation) dictation.stop().catch(() => {}); else webSR?.stop(); setMic(false); }
+function micHelp(html) { const h = $('#mic-help'); if (!html) { h.hidden = true; h.innerHTML = ''; return; } h.innerHTML = html; h.hidden = false; }
+const isApple = /iPhone|iPad|Macintosh/.test(navigator.userAgent) && 'ontouchend' in document;
+const KEYBOARD_TIP = isApple
+  ? 'Use your keyboard\'s mic instead: tap the box, then tap 🎤 on the keyboard. For Spanish, hold 🌐 and pick Español first (add it in Settings › General › Keyboard › Keyboards).'
+  : 'Use your keyboard\'s mic instead: tap the box, then tap 🎤 on the keyboard (on Gboard, long-press the space bar to switch to Español).';
+function micMode() { return dictation ? 'claude' : !inClaude && SR ? 'browser' : 'keyboard'; }
+function micStatusText() {
+  const m = micMode();
+  if (m === 'claude') return 'Voice is on: tap the mic while you\'re talking with Sofía. The first time, Claude asks to use your microphone.';
+  if (m === 'browser') return 'Voice is on: tap the mic and speak Spanish. The first time, your browser asks for the microphone.';
+  return (inClaude ? 'Claude can\'t use the microphone in this view (it works in Chrome on a computer or Chromebook, and in the Claude desktop app). ' : 'This browser can\'t turn speech into text here. ') + KEYBOARD_TIP;
+}
+function insertText(text) { $('#say').value = [micBase, text].filter(Boolean).join(' ').replace(/\s+/g, ' ').trimStart(); }
+const SR_ERRORS = {
+  'not-allowed': 'The microphone is blocked for this site. Tap the lock (or aA) next to the address, set Microphone to Allow, then reload.',
+  'service-not-allowed': 'This browser view doesn\'t allow speech typing (this happens in iPhone home-screen apps). Open the site in Safari or Chrome, or: ' + KEYBOARD_TIP,
+  'audio-capture': 'No microphone found. Check that nothing else is using it.',
+  network: 'Speech typing needs internet. Check your connection and try again.',
+  'language-not-supported': 'This browser can\'t do Spanish speech typing. ' + KEYBOARD_TIP,
+  'no-speech': 'Didn\'t hear anything. Tap the mic and talk a little louder.',
+};
+async function openMicSettings() {
+  const perms = await claude.use('permissions').catch(() => null);
+  if (perms?.manage) { try { await perms.manage(); return; } catch {} }
+  toast('Open this page\'s menu in Claude › Permissions › turn on Dictation');
+}
+function startClaudeDictation() {
+  const lang = dictLang ?? core().settings.accent; // "es-MX" or "es-ES", then plain "es"
+  micHelp('');
+  dictation.start({ language: lang }).then(() => { dictLang = lang; }).catch((e) => {
+    setMic(false);
+    const c = e?.code;
+    if (c === 'unavailable' && lang !== 'es') { dictLang = 'es'; toast('Switching to general Spanish. Tap the mic again.'); return; }
+    if (c === 'unavailable') { dictation = null; micHelp(`Spanish voice typing isn't available on this account. ${esc(KEYBOARD_TIP)}`); return; }
+    if (c === 'not_granted') { micHelp('Claude isn\'t allowed to use your mic for Charla. <button type="button" class="chip" data-mic-perm>Turn it on</button>'); return; }
+    if (c === 'dismissed') return toast('Tap the mic again and choose Allow.');
+    if (c === 'rate_limited') return toast('Voice is busy. Try again in a few seconds.');
+    if (c === 'stopped') return;
+    toast('The microphone had a problem. Try again, or type.');
+  });
+  setMic(true);
+}
+function startBrowserSR() {
+  micHelp('');
+  webSR = new SR(); webSR.lang = core().settings.accent; webSR.interimResults = true; webSR.continuous = true; webSR.maxAlternatives = 1;
+  webSR.onresult = (ev) => { let t = ''; for (const r of ev.results) t += r[0].transcript; insertText(t); };
+  webSR.onerror = (ev) => { setMic(false); const m = SR_ERRORS[ev.error]; if (ev.error === 'aborted') return; if (m) micHelp(esc(m)); else toast('Speech typing stopped. Try again, or type.'); };
+  webSR.onend = () => { setMic(false); micBase = $('#say').value.trim(); };
+  try { webSR.start(); setMic(true); } catch { setMic(false); toast('Couldn\'t start the mic. Try again.'); }
+}
 $('#mic').addEventListener('click', () => {
   if (micOn) return stopMic();
   micBase = $('#say').value.trim();
-  if (dictation) {
-    dictation.start({ language: core().settings.accent.slice(0, 2) }).catch((e) => { setMic(false); if (e?.code === 'not_granted' || e?.code === 'unavailable') { $('#mic').hidden = true; toast('Voice is off here. Type instead.'); } });
-    setMic(true); return;
-  }
-  if (SR) {
-    webSR = new SR(); webSR.lang = core().settings.accent; webSR.interimResults = true; webSR.continuous = false;
-    webSR.onresult = (ev) => { let t = ''; for (const r of ev.results) t += r[0].transcript; $('#say').value = [micBase, t].filter(Boolean).join(' '); };
-    webSR.onerror = (ev) => { setMic(false); if (ev.error === 'not-allowed') toast('Allow the microphone to speak your answers.'); };
-    webSR.onend = () => setMic(false);
-    try { webSR.start(); setMic(true); } catch { setMic(false); }
-  }
+  const m = micMode();
+  if (m === 'claude') return startClaudeDictation();
+  if (m === 'browser') return startBrowserSR();
+  micHelp(esc(micStatusText()));
+  $('#say').focus();
 });
+document.addEventListener('click', (e) => { if (e.target.closest('[data-mic-perm]')) openMicSettings(); });
+$('#mic-perm').addEventListener('click', openMicSettings);
+$('#mic-test').addEventListener('click', () => {
+  const out = $('#mic-test-out'), m = micMode();
+  if (m === 'keyboard') { out.textContent = micStatusText(); return; }
+  out.textContent = 'Listening… say "Hola, me llamo…"';
+  if (m === 'claude') {
+    let heard = '';
+    const offP = dictation.onPartial(({ text }) => { if (text) out.textContent = '…' + text; });
+    const offF = dictation.onFinal(({ text }) => { heard += text; out.textContent = '✓ Heard: ' + heard.trim(); });
+    dictation.start({ language: dictLang ?? core().settings.accent }).then(() => setTimeout(() => dictation.stop().catch(() => {}).finally(() => { offP(); offF(); if (!heard) out.textContent = 'Didn\'t catch anything. Tap Test and talk right away.'; }), 4000))
+      .catch((e) => { offP(); offF(); out.textContent = e?.code === 'not_granted' ? 'Blocked. Tap Microphone settings and turn on Dictation.' : e?.code === 'unavailable' ? 'Spanish voice typing isn\'t available here. ' + KEYBOARD_TIP : 'The mic had a problem: ' + (e?.code || 'unknown'); $('#mic-perm').hidden = e?.code !== 'not_granted'; });
+    return;
+  }
+  const t = new SR(); t.lang = core().settings.accent; t.interimResults = true;
+  t.onresult = (ev) => { let x = ''; for (const r of ev.results) x += r[0].transcript; out.textContent = '✓ Heard: ' + x; };
+  t.onerror = (ev) => { out.textContent = SR_ERRORS[ev.error] || 'The mic had a problem: ' + ev.error; };
+  t.onend = () => { if (out.textContent.startsWith('Listening')) out.textContent = 'Didn\'t catch anything. Tap Test and talk right away.'; };
+  try { t.start(); setTimeout(() => t.stop(), 5000); } catch { out.textContent = 'Couldn\'t start the mic.'; }
+});
+function renderMic() { $('#mic-status').textContent = micStatusText(); }
 
 // ===================== words + spaced review =====================
 const BOX_DAYS = [0, 1, 3, 7, 14, 30]; // box 1..5 -> days until next review
@@ -529,7 +611,7 @@ function renderBadge() { const n = dueWords().length; $('#due-badge').hidden = !
 $('#add-word').addEventListener('submit', (e) => { e.preventDefault(); const es = $('#aw-es').value.trim(), en = $('#aw-en').value.trim(); if (!es || !en) return toast('Add both the Spanish and the English'); addWords([{ es, en }]); $('#aw-es').value = ''; $('#aw-en').value = ''; reviewQ = []; renderReview(); renderWordList(); });
 
 // ===================== You =====================
-function renderMe() { const s = core().settings; $('#st-goal').value = String(s.goal); $('#st-accent').value = s.accent; $('#st-rate').value = String(s.rate); $('#st-autoplay').checked = !!s.autoplay; $('#st-english').checked = !!s.english; }
+function renderMe() { renderMic(); const s = core().settings; $('#st-goal').value = String(s.goal); $('#st-accent').value = s.accent; $('#st-rate').value = String(s.rate); $('#st-autoplay').checked = !!s.autoplay; $('#st-english').checked = !!s.english; }
 $('#settings').addEventListener('submit', (e) => { e.preventDefault(); core().settings = { goal: Number($('#st-goal').value), accent: $('#st-accent').value, rate: Number($('#st-rate').value), autoplay: $('#st-autoplay').checked, english: $('#st-english').checked }; persist('core'); toast('Guardado. Saved.'); });
 function applyKey() { $('#key-status').textContent = ownKey ? `Key saved (ends in ${ownKey.slice(-4)}).` : 'No key saved.'; $('#key-remove').hidden = !ownKey; }
 $('#key-card').addEventListener('submit', (e) => { e.preventDefault(); const k = $('#api-key').value.trim(); if (!/^sk-ant-[\w-]{20,}$/.test(k)) return toast('That does not look like a Claude API key'); ownKey = k; try { localStorage.setItem(KEY_STORE, k); } catch {} $('#api-key').value = ''; applyKey(); toast('Key saved'); });
@@ -551,12 +633,12 @@ setSync('local'); render();
     const [s, t, d] = await Promise.all([claude.use('sample'), claude.use('tts'), claude.use('dictation')]);
     aiSample = s; tts = t; dictation = d;
     if (d) {
-      d.onPartial(({ text }) => { $('#say').value = [micBase, text].filter(Boolean).join(' '); });
-      d.onFinal(({ text }) => { micBase = [micBase, text].filter(Boolean).join(' ').trim(); $('#say').value = micBase; });
-      d.onState(({ state }) => { if (state === 'idle') setMic(false); });
+      d.onPartial(({ text }) => { if (micOn) insertText(text); });
+      d.onFinal(({ text }) => { micBase = (micBase + text).replace(/\s+/g, ' ').trimStart(); $('#say').value = micBase; });
+      d.onState(({ state, reason }) => { setMic(state !== 'idle'); if (state === 'idle' && reason === 'upstream_error') toast('The microphone had a problem. Try again, or type.'); });
     }
   } else { $('#key-card').hidden = false; try { ownKey = localStorage.getItem(KEY_STORE) || null; } catch {} applyKey(); }
-  $('#mic').hidden = !(dictation || SR);
+  if (view === 'me') renderMic();
   if (!aiReady()) $('#start-status').textContent = window.claude?.use ? 'AI is not available in this view.' : 'Add your Claude API key on the You tab to practice.';
 })();
 connectStore();
