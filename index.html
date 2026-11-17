@@ -506,6 +506,9 @@ dialog.nv { max-height: 94vh; padding-top: 0; }
 .cal-key { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); margin-top: 10px; }
 .cal-key span { display: inline-flex; align-items: center; gap: 6px; }
 .cal-key i { width: 12px; height: 12px; border-radius: 4px; }
+.db-head { padding: 14px 4px 6px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); list-style: none; display: flex; justify-content: space-between; gap: 8px; }
+.db-btn .entry-name { color: var(--accent); }
+.brand { color: var(--muted); font-weight: 400; }
 .section-label { font-family: var(--f-body); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 12px 4px -4px; }
 details.fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; cursor: pointer; }
 details.fold > summary::-webkit-details-marker { display: none; }
@@ -879,8 +882,6 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
     </div>
 
     <div class="card"><p class="note" id="storage-note" style="margin:0"></p></div>
-    <div class="card"><h3>Move to Baseline</h3><p class="muted small" style="margin:4px 0 10px">Copies your whole food log, targets, saved meals and weigh-ins as a code. In Baseline, go to Profile → Bring in your data → Paste code. Nothing is deleted here.</p>
-      <button class="btn primary" id="baseline-copy" type="button" style="width:100%">Copy for Baseline</button><p class="muted small" id="baseline-status" style="margin:8px 0 0"></p></div>
   </section>
 </div>
 
@@ -1576,14 +1577,22 @@ function renderSearch() {
   }
   const seen = new Set();
   shownFoods = [...(c.custom || []), ...(c.recents || []), ...FOODS].filter(match).filter((f) => { const k = f.name + '|' + f.serving; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 30);
-  $('#search-label').textContent = shownFoods.length || shownMeals.length ? '' : 'No match in the food list.';
-  $('#search-results').innerHTML = shownMeals.map(mealLi).join('') + shownFoods.map(foodLi).join('') +
+  $('#search-label').textContent = shownFoods.length || shownMeals.length ? '' : 'Not in your foods yet. Search the food database below.';
+  const raw = $('#search-input').value.trim(), dbq = dbState.q === raw.toLowerCase() ? dbState : null;
+  const dbHtml = !dbq ? `<li><button data-db="1" class="db-btn"><div><div class="entry-name">Search the food database for “${esc(raw)}”</div><div class="entry-sub">Millions of foods and brands from Open Food Facts</div></div><span class="add-plus" aria-hidden="true">→</span></button></li>`
+    : dbq.loading ? `<li class="db-head"><span><span class="spinner"></span> Searching the food database…</span></li>`
+      : dbq.error ? `<li class="db-head" style="text-transform:none;letter-spacing:0;font-weight:500"><span>${esc(dbq.error)}</span></li>`
+        : `<li class="db-head"><span>Food database</span><span>${dbq.foods.length} result${dbq.foods.length === 1 ? '' : 's'}</span></li>` + (dbq.foods.length ? dbq.foods.map((f, i) => dbLi(f, i)).join('') : '<li class="db-head" style="text-transform:none;letter-spacing:0;font-weight:500"><span>No matches. Try fewer words, or a brand name.</span></li>');
+  $('#search-results').innerHTML = shownMeals.map(mealLi).join('') + shownFoods.map(foodLi).join('') + dbHtml +
     (aiReady() ? `<li><button data-ask="1"><div><div class="entry-name ask-ai">Ask AI about “${esc($('#search-input').value.trim())}”</div><div class="entry-sub">Brand-name and restaurant foods work here</div></div><span class="add-plus" aria-hidden="true">→</span></button></li>` : '');
 }
 $('#search-input').addEventListener('input', renderSearch);
+$('#search-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); const q = $('#search-input').value.trim(); if (q.length >= 2) searchDb(q); } });
 $('#search-results').addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b) return;
+  if (b.dataset.db) return searchDb($('#search-input').value.trim());
+  if (b.dataset.dbI !== undefined) return openFood(dbState.foods[Number(b.dataset.dbI)], { meal: $('#add-meal').value });
   if (b.dataset.ask) {
     $('#describe-input').value = '1 serving of ' + $('#search-input').value.trim();
     switchPane('describe');
@@ -2941,21 +2950,6 @@ $('#share-btn').addEventListener('click', () => {
   });
 });
 
-// ===================== Copy for Baseline =====================
-// Baseline (the all-in-one app on the website) can't read this artifact's synced storage, so this hands it a transfer code.
-$('#baseline-copy').addEventListener('click', () => {
-  const data = {};
-  for (const k of new Set([...Object.keys(cache), ...lsKeys()])) { const v = doc(k); if (v != null) data['ml:' + k] = JSON.stringify(v); }
-  const bytes = new TextEncoder().encode(JSON.stringify({ at: Date.now(), from: 'macrolens', data })); let bin = '';
-  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  const code = 'BL1:' + btoa(bin), days = Object.keys(data).filter((k) => k.startsWith('ml:day-')).length;
-  const done = () => { $('#baseline-status').textContent = `Copied ${days} day${days === 1 ? '' : 's'} of food. Open Baseline → Profile → Bring in your data → Paste code.`; toast('Copied for Baseline'); };
-  navigator.clipboard.writeText(code).then(done, () => {
-    const ta = document.createElement('textarea'); ta.value = code; ta.setAttribute('aria-label', 'Transfer code'); ta.style.cssText = 'width:100%;min-height:90px;margin-top:8px;font-size:12px';
-    $('#baseline-status').replaceChildren(ta); ta.select(); toast('Select all in the box and copy');
-  });
-});
-
 // ===================== quick add =====================
 $('#quick-form').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -4259,6 +4253,50 @@ $('#month-card').addEventListener('click', (e) => {
   const b = e.target.closest('[data-cal-day]'); if (!b || b.disabled) return;
   day = b.dataset.calDay; showView('today');
 });
+
+
+// ===================== Food database search (Open Food Facts) =====================
+// Free and open: millions of packaged and brand-name foods. Works on the website; inside Claude, outside requests are blocked.
+let dbState = { q: null, foods: [], loading: false, error: '' };
+const dbCache = new Map();
+function offFood(pr) {
+  const n = pr.nutriments || {}, q = Number(pr.serving_quantity) || 0;
+  const per = (k) => { const sv = n[k + '_serving']; if (sv != null && sv !== '' && q) return Number(sv); const h = n[k + '_100g']; if (h == null || h === '') return sv != null && sv !== '' ? Number(sv) : null; return q ? (Number(h) * q) / 100 : Number(h); };
+  const kcal = per('energy-kcal'); if (kcal == null || !Number.isFinite(kcal) || kcal <= 0) return null;
+  const brand = String(pr.brands || '').split(',')[0].trim(), pn = String(pr.product_name || '').trim(); if (!pn && !brand) return null;
+  const name = (brand && !pn.toLowerCase().startsWith(brand.toLowerCase()) ? `${pn || 'Product'}` : pn || brand).slice(0, 70);
+  const food = { id: 'off' + (pr.code || Math.random().toString(36).slice(2)), source: 'database', barcode: pr.code || null, brand: brand && !pn.toLowerCase().startsWith(brand.toLowerCase()) ? brand.slice(0, 40) : '',
+    name: brand && !pn.toLowerCase().startsWith(brand.toLowerCase()) ? `${brand} ${pn}`.slice(0, 80) : name, serving: q ? (pr.serving_size || `${q} g`) : '100 g',
+    calories: Math.round(kcal), protein: r1(per('proteins') || 0), carbs: r1(per('carbohydrates') || 0), fat: r1(per('fat') || 0) };
+  const mg = (v) => (v == null ? null : v * 1000);
+  const micro = { fiber: per('fiber'), sugar: per('added-sugars'), sodium: mg(per('sodium')), iron: mg(per('iron')), calcium: mg(per('calcium')) };
+  for (const [k, v] of Object.entries(micro)) if (v != null && Number.isFinite(v)) food[k] = roundMicro(k, v);
+  return food;
+}
+function dbLi(f, i) {
+  const brandTxt = f.brand ? `<span class="brand">${esc(f.brand)} · </span>` : '';
+  const name = f.brand ? f.name.slice(f.brand.length + 1) : f.name;
+  return `<li><button data-db-i="${i}"><div><div class="entry-name">${esc(name)}</div><div class="entry-sub">${brandTxt}${esc(f.serving)} · ${f.calories} kcal · P ${f.protein} · C ${f.carbs} · F ${f.fat}</div></div><span class="add-plus" aria-hidden="true">＋</span></button></li>`;
+}
+async function searchDb(q) {
+  q = String(q || '').trim(); if (q.length < 2) return;
+  const key = q.toLowerCase();
+  if (dbCache.has(key)) { dbState = { q: key, foods: dbCache.get(key), loading: false, error: '' }; return renderSearch(); }
+  dbState = { q: key, foods: [], loading: true, error: '' }; renderSearch();
+  const fields = 'code,product_name,brands,serving_size,serving_quantity,nutriments';
+  const url = (country) => `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=30&sort_by=unique_scans_n&fields=${fields}${country ? '&tagtype_0=countries&tag_contains_0=contains&tag_0=united-states' : ''}`;
+  try {
+    let j = await (await fetch(url(true))).json();
+    if (!(j.products || []).length) j = await (await fetch(url(false))).json();
+    const seen = new Set();
+    const foods = (j.products || []).map(offFood).filter(Boolean).filter((f) => { const k = f.name.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 20);
+    dbCache.set(key, foods);
+    if (dbState.q === key) dbState = { q: key, foods, loading: false, error: '' };
+  } catch {
+    if (dbState.q === key) dbState = { q: key, foods: [], loading: false, error: window.claude?.use ? 'The food database only works on the MacroLens website, not inside Claude.' : "Couldn't reach the food database. Check your connection and try again." };
+  }
+  renderSearch();
+}
 
 // ===================== Coach tabs =====================
 const COACH_TAB_KEY = 'macrolens-coach-tab';
