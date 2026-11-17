@@ -1,19 +1,22 @@
 // ===================== shell: routing, sheets, theme =====================
-const VIEWS = [['home', 'Home', 'home'], ['analytics', 'Analytics', 'chart'], ['hoops', 'Hoops', 'ball'], ['tests', 'Tests', 'trophy'], ['coach', 'Coach', 'spark']];
+const VIEWS = [['home', 'Home', 'home'], ['analytics', 'Analytics', 'chart'], ['hoops', 'Hoops', 'ball'], ['train', 'Train', 'calendar'], ['coach', 'Coach', 'spark'], ['profile', 'Profile', 'trophy', true]];
 const SUBS = {
-  analytics: [['performance', 'Performance'], ['training', 'Training'], ['body', 'Body'], ['recovery', 'Recovery'], ['nutrition', 'Nutrition'], ['correlations', 'Correlations'], ['compare', 'Compare']],
-  hoops: [['court', 'Shot chart'], ['categories', 'Shot types'], ['games', 'Games']],
-  coach: [['workout', 'Workout'], ['ask', 'Ask'], ['report', 'Weekly report'], ['fuel', 'Fuel tools']],
+  analytics: [['overview', 'Overview'], ['performance', 'Performance'], ['training', 'Training'], ['body', 'Body'], ['recovery', 'Recovery'], ['nutrition', 'Nutrition'], ['correlations', 'Correlations'], ['compare', 'Compare'], ['reports', 'Reports']],
+  hoops: [['court', 'Shot chart'], ['categories', 'Shooting'], ['handles', 'Handles'], ['finishing', 'Finishing'], ['iq', 'IQ & film'], ['games', 'Games']],
+  train: [['plan', 'Calendar'], ['today', 'Checklist'], ['load', 'Load'], ['tests', 'Tests'], ['goals', 'Goals'], ['library', 'Library'], ['history', 'History']],
+  coach: [['director', 'Director'], ['workout', 'Workout'], ['program', 'S&C program'], ['devplan', 'Dev plan'], ['ask', 'Ask'], ['report', 'Weekly evaluation'], ['fuel', 'Fuel tools']],
 };
 const state = { view: 'home', sub: {} };
 const RENDER = {};
 function parseHash() {
-  const [v, s] = (location.hash.slice(1) || 'home').split(/[-/]/);
+  let [v, s] = (location.hash.slice(1) || 'home').split(/[-/]/);
+  if (v === 'tests') { v = 'train'; s = 'tests'; }
   const view = VIEWS.some((x) => x[0] === v) ? v : 'home';
   state.view = view;
   if (s && SUBS[view]?.some((x) => x[0] === s)) state.sub[view] = s;
 }
 function go(view, sub) {
+  if (view === 'tests') { view = 'train'; sub = 'tests'; }
   const h = '#' + view + (sub ? '-' + sub : '');
   if (location.hash !== h) history.replaceState(null, '', h);
   parseHash(); render(); window.scrollTo(0, 0);

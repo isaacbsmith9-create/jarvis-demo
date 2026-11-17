@@ -20,6 +20,12 @@ const BLANK = {
   'aos-games': () => ({ games: [] }),
   'aos-body': () => ({ entries: [] }),
   'aos-coach': () => ({ workouts: [], reports: [], chat: [] }),
+  'aos-handles': () => ({ sessions: [] }),
+  'aos-finish': () => ({ sessions: [] }),
+  'aos-film': () => ({ entries: [] }),
+  'aos-goals': () => ({ goals: [] }),
+  'aos-plan': () => ({ events: [], routines: [], checks: {} }),
+  'aos-lib': () => ({ workouts: [], favs: [] }),
 };
 function doc(key) {
   if (!(key in cache)) cache[key] = lsGet(key) ?? (BLANK[key] ? BLANK[key]() : null);

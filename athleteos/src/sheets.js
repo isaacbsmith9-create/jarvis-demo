@@ -1,25 +1,27 @@
 // ===================== forms (sheets) =====================
 function openWorkoutSheet(o = {}) {
   const date = o.date || todayIso();
-  let type = o.type || 'practice', int = o.int || 'moderate', rating = 0;
+  let type = o.type || 'practice', int = o.int || 'moderate', rating = 0, rpe = 0;
   openSheet('Log a workout', `<p class="muted small" style="margin-top:-4px">Saved to the same diary as MacroLens, so your calorie targets update too.</p>
     <div class="chips" id="ws-types">${EX_TYPES.map(([k, l]) => `<button type="button" class="chip ${k === type ? 'on' : ''}" data-wt="${k}">${l}</button>`).join('')}</div>
     <div class="fields"><label class="full">Name<input id="ws-name" maxlength="40" value="${esc(o.name || '')}" placeholder="Optional"></label>
       <label>Minutes<input type="number" id="ws-mins" min="5" max="480" value="${o.mins || 60}" inputmode="numeric"></label><label>Start time<input type="time" id="ws-time"></label>
       <label>Date<input type="date" id="ws-date" value="${date}" max="${todayIso()}"></label><label>Intensity<select id="ws-int">${['light', 'moderate', 'hard'].map((k) => `<option ${k === int ? 'selected' : ''}>${k}</option>`).join('')}</select></label></div>
+    <div><p class="muted small" style="margin-bottom:6px">Session RPE: how hard was it overall? (1 easy, 10 max)</p><div class="scale" id="ws-rpe" style="flex-wrap:wrap">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => `<button type="button" data-rpe="${n}" style="flex:1 0 8%">${n}</button>`).join('')}</div></div>
     <div><p class="muted small" style="margin-bottom:6px">How did it go? (optional, used for correlations)</p><div class="scale" id="ws-rate">${[1, 2, 3, 4, 5].map((n) => `<button type="button" data-r="${n}">${n}</button>`).join('')}</div></div>
     <label>Notes<input id="ws-notes" maxlength="200" placeholder="Optional"></label>
     <p class="muted small" id="ws-kcal"></p>
     <button type="button" class="btn primary" id="ws-save">Save workout</button>`, (d) => {
-    const kc = () => { $('#ws-kcal', d).textContent = `About ${exBurn(type, $('#ws-mins', d).value, $('#ws-int', d).value).toLocaleString()} kcal burned (estimate from MacroLens's formula)`; };
+    const kc = () => { $('#ws-kcal', d).textContent = `About ${exBurn(type, $('#ws-mins', d).value, $('#ws-int', d).value).toLocaleString()} kcal burned (estimate from MacroLens's formula)${rpe ? ` · training load ${rpe * (Number($('#ws-mins', d).value) || 0)}` : ''}`; };
     kc(); ['#ws-mins', '#ws-int'].forEach((s) => $(s, d).addEventListener('input', kc));
     $('#ws-types', d).addEventListener('click', (e) => { const b = e.target.closest('[data-wt]'); if (!b) return; type = b.dataset.wt; $$('[data-wt]', d).forEach((x) => x.classList.toggle('on', x === b)); kc(); });
+    $('#ws-rpe', d).addEventListener('click', (e) => { const b = e.target.closest('[data-rpe]'); if (!b) return; rpe = rpe === Number(b.dataset.rpe) ? 0 : Number(b.dataset.rpe); $$('[data-rpe]', d).forEach((x) => x.classList.toggle('on', Number(x.dataset.rpe) === rpe)); kc(); });
     $('#ws-rate', d).addEventListener('click', (e) => { const b = e.target.closest('[data-r]'); if (!b) return; rating = rating === Number(b.dataset.r) ? 0 : Number(b.dataset.r); $$('[data-r]', d).forEach((x) => x.classList.toggle('on', Number(x.dataset.r) === rating)); });
     $('#ws-save', d).addEventListener('click', () => {
       const mins = Math.round(Number($('#ws-mins', d).value)); if (!(mins >= 5 && mins <= 480)) return toast('Minutes must be 5 to 480');
       const dt = $('#ws-date', d).value || todayIso(), name = $('#ws-name', d).value.trim() || EX_TYPES.find((x) => x[0] === type)[1];
-      addWorkout(dt, { type, name: name.slice(0, 40), mins, int: $('#ws-int', d).value, time: $('#ws-time', d).value || null, notes: $('#ws-notes', d).value.trim().slice(0, 200), rating: rating || null, source: 'athlete-os' });
-      o.after?.(); closeSheet(); toast(`Logged ${name}`); refresh();
+      addWorkout(dt, { type, name: name.slice(0, 40), mins, int: $('#ws-int', d).value, time: $('#ws-time', d).value || null, notes: $('#ws-notes', d).value.trim().slice(0, 200), rating: rating || null, rpe: rpe || null, workoutId: o.workoutId || null, source: 'athlete-os' });
+      o.after?.(); const fr = checkAchievements(); if (fr.length) setTimeout(() => toast(`Achievement unlocked: ${fr.join(', ')}`), 2700); closeSheet(); toast(`Logged ${name}`); refresh();
     });
   });
 }
@@ -37,12 +39,13 @@ ACTIONS['plan-practice'] = () => {
 };
 ACTIONS.checkin = () => {
   const date = todayIso(), f = recoveryInputs(date);
-  const st = { energy: f.energy, sore: f.sore };
+  const st = { energy: f.energy, sore: f.sore, fatigue: dayDoc(date)?.feel?.fatigue ?? null };
   const scale = (k, lo, hi) => `<div class="scale" data-scale="${k}">${[1, 2, 3, 4, 5].map((n) => `<button type="button" data-n="${n}" class="${st[k] === n ? 'on' : ''}">${n}</button>`).join('')}</div><div class="row-between tiny muted" style="margin-top:3px"><span>${lo}</span><span>${hi}</span></div>`;
   openSheet('Morning check-in', `<p class="muted small" style="margin-top:-4px">20 seconds. Fill what you know; skip the rest. Shared with MacroLens.</p>
     <label>Sleep last night (hours)<input type="number" id="ci-sleep" min="0" max="16" step="0.25" value="${f.sleepH ?? ''}" inputmode="decimal" placeholder="e.g. 8.5"></label>
     <div><p class="muted small" style="margin-bottom:6px">Energy</p>${scale('energy', 'Drained', 'Great')}</div>
     <div><p class="muted small" style="margin-bottom:6px">Muscle soreness</p>${scale('sore', 'None', 'Very sore')}</div>
+    <div><p class="muted small" style="margin-bottom:6px">Fatigue</p>${scale('fatigue', 'Fresh', 'Exhausted')}</div>
     <details><summary class="muted small" style="cursor:pointer">From a watch (optional)</summary><div class="fields" style="margin-top:8px"><label>Resting HR (bpm)<input type="number" id="ci-rhr" min="30" max="120" value="${dayDoc(date)?.feel?.rhr ?? ''}" inputmode="numeric"></label><label>HRV (ms)<input type="number" id="ci-hrv" min="5" max="250" value="${dayDoc(date)?.feel?.hrv ?? ''}" inputmode="numeric"></label></div></details>
     <button type="button" class="btn primary" id="ci-save">Save check-in</button>`, (d) => {
     d.addEventListener('click', (e) => { const b = e.target.closest('[data-scale] [data-n]'); if (!b) return; const k = b.parentElement.dataset.scale, n = Number(b.dataset.n); st[k] = st[k] === n ? null : n; $$('button', b.parentElement).forEach((x) => x.classList.toggle('on', Number(x.dataset.n) === st[k])); });
@@ -50,7 +53,7 @@ ACTIONS.checkin = () => {
       const num = (s, lo, hi) => { const v = $(s, d).value; if (v === '') return null; const n = Number(v); return n >= lo && n <= hi ? n : NaN; };
       const sleepH = num('#ci-sleep', 0, 16), rhr = num('#ci-rhr', 30, 120), hrv = num('#ci-hrv', 5, 250);
       if ([sleepH, rhr, hrv].some((x) => Number.isNaN(x))) return toast('Check the numbers: sleep 0-16 h, resting HR 30-120, HRV 5-250');
-      setFeel(date, { sleepH, energy: st.energy, sore: st.sore, rhr, hrv });
+      setFeel(date, { sleepH, energy: st.energy, sore: st.sore, fatigue: st.fatigue, rhr, hrv });
       closeSheet(); const rs = recoveryScore(date); toast(rs ? `Recovery ${rs.score}/100` : 'Check-in saved. Add one more input for a score.'); refresh();
     });
   });

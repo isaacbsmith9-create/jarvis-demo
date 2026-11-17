@@ -72,6 +72,7 @@ function liveSession(el) {
       <div class="row" style="margin-top:8px;flex-wrap:nowrap"><input type="number" id="b-m" min="0" max="500" placeholder="Made" inputmode="numeric"><input type="number" id="b-a" min="1" max="500" placeholder="Attempts" inputmode="numeric"><button type="button" class="btn sm" data-shot="batch">Add</button></div></details>
     <div class="hr"></div>
     <div class="fields"><label>Minutes (to log the workout)<input type="number" id="live-mins" min="5" max="300" value="${live.mins || 45}"></label><label>Note<input id="live-note" maxlength="120" placeholder="Optional" value="${esc(live.note || '')}"></label>
+      <label class="check full"><input type="checkbox" id="live-move" ${live.move ? 'checked' : ''}> Movement shooting (relocating, coming off screens)</label>
       <label class="check full"><input type="checkbox" id="live-ex" ${live.noEx ? '' : 'checked'}> Also log it as a Shooting workout (training volume and MacroLens calories)</label></div>
     <button type="button" class="btn primary block" data-shot="finish" style="margin-top:12px" ${t.a ? '' : 'disabled'}>Finish and save session</button>
   </section>`;
@@ -87,7 +88,7 @@ document.addEventListener('click', (e) => {
   else if (k === 'discard') return confirmSheet('Discard this session? Nothing will be saved.', 'Discard', () => { live = null; try { localStorage.removeItem(liveKey); } catch {} refresh(); });
   else if (k === 'finish') {
     const mins = Math.round(Number($('#live-mins').value) || 0), note = $('#live-note').value.trim(), logEx = $('#live-ex').checked;
-    const s = { id: live.id, date: live.date, at: live.at, style: live.style, spots: live.spots, note: note.slice(0, 120) };
+    const s = { id: live.id, date: live.date, at: live.at, style: live.style, spots: live.spots, note: note.slice(0, 120), move: !!live.move, streak: longestStreak(live.log) };
     doc('aos-shots').sessions = [...(doc('aos-shots').sessions || []), s]; persist('aos-shots'); mirrorCourtLab();
     const t = sessionTotals(s);
     if (logEx && mins >= 5) addWorkout(s.date, { type: s.style === 'game' ? 'game' : 'shooting', name: 'Shooting', mins, int: 'moderate', notes: `${t.m}/${t.a} (${pctTxt(t.pct)})`, source: 'athlete-os' });
@@ -98,7 +99,7 @@ document.addEventListener('click', (e) => {
   }
   saveLive(); refresh();
 });
-document.addEventListener('change', (e) => { if (!live) return; if (e.target.id === 'live-mins') { live.mins = Number(e.target.value); saveLive(); } if (e.target.id === 'live-note') { live.note = e.target.value; saveLive(); } if (e.target.id === 'live-ex') { live.noEx = !e.target.checked; saveLive(); } });
+document.addEventListener('change', (e) => { if (!live) return; if (e.target.id === 'live-mins') { live.mins = Number(e.target.value); saveLive(); } if (e.target.id === 'live-note') { live.note = e.target.value; saveLive(); } if (e.target.id === 'live-ex') { live.noEx = !e.target.checked; saveLive(); } if (e.target.id === 'live-move') { live.move = e.target.checked; saveLive(); } });
 // Best session % at 25+ attempts counts as a shooting record.
 function checkShootingPRs(s) {
   const t = sessionTotals(s); if (t.a < 25) return;

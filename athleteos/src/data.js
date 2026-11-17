@@ -120,9 +120,9 @@ function setFeel(date, patch) {
 // better: which direction is an improvement. Each test can hold any number of dated results.
 const TESTS = [
   ['sprint10', '10-yard sprint', 's', 'lower', 'Speed'], ['sprint20', '20-yard sprint', 's', 'lower', 'Speed'], ['sprint40', '40-yard sprint', 's', 'lower', 'Speed'],
-  ['lane', 'Lane agility', 's', 'lower', 'Speed'], ['shuttle', '5-10-5 shuttle', 's', 'lower', 'Speed'],
+  ['lane', 'Lane agility', 's', 'lower', 'Speed'], ['shuttle', 'Pro agility (5-10-5)', 's', 'lower', 'Speed'],
   ['vert', 'Vertical jump', 'in', 'higher', 'Jumping'], ['standvert', 'Standing vertical', 'in', 'higher', 'Jumping'], ['appvert', 'Approach vertical', 'in', 'higher', 'Jumping'], ['broad', 'Broad jump', 'in', 'higher', 'Jumping'],
-  ['bench', 'Bench press', 'lb', 'higher', 'Strength'], ['squat', 'Squat', 'lb', 'higher', 'Strength'], ['deadlift', 'Deadlift', 'lb', 'higher', 'Strength'], ['pullups', 'Pull-ups (max reps)', 'reps', 'higher', 'Strength'],
+  ['bench', 'Bench press', 'lb', 'higher', 'Strength'], ['squat', 'Squat', 'lb', 'higher', 'Strength'], ['deadlift', 'Deadlift', 'lb', 'higher', 'Strength'], ['pullups', 'Pull-ups (max reps)', 'reps', 'higher', 'Strength'], ['pushups', 'Push-ups (max reps)', 'reps', 'higher', 'Strength'],
   ['ft', 'Free throws (made of 50)', 'made', 'higher', 'Basketball'], ['three', '3-pt test (made of 50)', 'made', 'higher', 'Basketball'], ['spotup', 'Spot-up shooting (made of 100)', 'made', 'higher', 'Basketball'],
   ['handles', 'Ball-handling circuit', 's', 'lower', 'Basketball'], ['beep', 'Beep test level', 'level', 'higher', 'Conditioning'], ['mile', 'Mile run', 's', 'lower', 'Conditioning'], ['suicides', 'Suicides (4 in a row)', 's', 'lower', 'Conditioning'],
 ].map(([id, name, unit, better, group]) => ({ id, name, unit, better, group }));

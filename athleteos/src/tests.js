@@ -13,6 +13,7 @@ RENDER.tests = (el) => {
   <section class="card" id="test-detail" ${sel && testById(sel) ? '' : 'hidden'}></section>
   ${groups.map(([g, ts]) => `<section class="card"><div class="card-head"><h3>${g}</h3></div><div class="pr-grid">${ts.map((t) => { const pr = prOf(t.id), rs = resultsOf(t.id); const imp = rs.length >= 2 ? improvePct(t, rs[0].value, pr.value) : null; return `<button type="button" class="pr ${sel === t.id ? 'on' : ''}" data-pick-test="${t.id}"><small>${esc(t.name)}</small>${pr ? `<b>${esc(fmtVal(t, pr.value))}</b><span class="row" style="gap:6px">${imp != null ? deltaPill(imp) : ''}<span class="tiny muted">${rs.length} result${rs.length === 1 ? '' : 's'}</span></span>` : '<span class="none">Not tested</span>'}</button>`; }).join('')}</div></section>`).join('')}`;
   if (sel && testById(sel)) testDetail($('#test-detail'), sel);
+  testsOverview(el);
 };
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-pick-test]'); if (!b) return; setUi('test', ui('test') === b.dataset.pickTest ? null : b.dataset.pickTest); refresh(); if (ui('test')) $('#test-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 function testDetail(el, id) {
@@ -29,8 +30,10 @@ function testDetail(el, id) {
     ${rs.length >= 2 ? `<div class="chart-top" style="margin-top:12px"><span class="muted small">Progression</span>${seg('testRange', RANGES, r)}</div><div class="chart" id="test-chart"></div>` : '<p class="notice" style="margin-top:12px">Log this test again in a few weeks to see your progression graph.</p>'}
     <details style="margin-top:12px" ${rs.length <= 6 ? 'open' : ''}><summary class="muted small" style="cursor:pointer">Testing history (${rs.length})</summary><div class="list">${[...rs].reverse().map((x) => `<div class="li"><div><div class="t">${esc(fmtVal(t, x.value))}${x === pr ? ' 🏆' : ''}</div><div class="s">${esc(fmtDL(x.date))}${x.note ? ' · ' + esc(x.note) : ''}</div></div><div class="row"><button type="button" class="chip" data-act="add-test" data-rid="${x.id}">Edit</button><button type="button" class="chip" data-act="del-test" data-rid="${x.id}">Delete</button></div></div>`).join('')}</div></details>`
     : emptyState('No results yet', `Log your first ${t.name.toLowerCase()} to set the bar.`, 'trophy')}
+    ${testExtras(t, rs, pr)}
     ${t.custom ? `<button type="button" class="btn sm danger" data-act="del-custom" data-tid="${id}" style="margin-top:10px">Delete this custom test</button>` : ''}`;
-  if (rs.length >= 2 && pts.length) drawLine($('#test-chart'), pts, { fmt: (v) => fmtVal(t, v), label: t.name, tick: t.unit === 's' && pts.some((p) => p.v >= 60) ? (v) => fmtVal(t, v) : null });
+  const pj = projectTest(id), tg = doc('aos-tests').targets?.[id];
+  if (rs.length >= 2 && pts.length) drawLine($('#test-chart'), pts, { fmt: (v) => fmtVal(t, v), label: t.name, tick: t.unit === 's' && pts.some((p) => p.v >= 60) ? (v) => fmtVal(t, v) : null, goal: tg?.value ?? null, goalLabel: 'Target', proj: pj && ui('showProj', '1') === '1' ? [{ date: pj.end, v: pj.value }] : null });
 }
 /** Accepts 4.52, "1:05.3" or "5:30" for time tests. */
 function parseTestValue(t, s) {
@@ -102,4 +105,47 @@ function celebrate(title, value, sub) {
   const close = () => box.remove();
   box.addEventListener('click', (e) => { if (e.target === box || e.target.closest('button')) close(); });
   $('button', box).focus();
+}
+
+// ----- Edition 2: targets, next test dates, leaderboards, comparisons, projections -----
+function testExtras(t, rs, pr) {
+  const T = doc('aos-tests'), tg = T.targets?.[t.id], next = T.next?.[t.id], pj = projectTest(t.id);
+  const prog = tg && rs.length ? clamp(t.better === 'lower' ? ((rs[0].value - pr.value) / Math.max(0.0001, rs[0].value - tg.value)) * 100 : ((pr.value - rs[0].value) / Math.max(0.0001, tg.value - rs[0].value)) * 100, 0, 100) : null;
+  const top = [...rs].sort((a, b) => (t.better === 'lower' ? a.value - b.value : b.value - a.value)).slice(0, 5);
+  return `<div class="grid two" style="margin-top:12px">
+    <div class="notice"><div class="row-between"><b style="color:var(--fg)">Target and next test</b><button type="button" class="chip" data-act="test-target" data-tid="${t.id}">Set</button></div>
+      ${tg ? `<p class="small" style="margin-top:6px">Target <b>${esc(fmtVal(t, tg.value))}</b>${tg.date ? ' by ' + esc(fmtD(tg.date)) : ''} · ${prog == null ? '' : Math.round(prog) + '% of the way'}</p>${prog != null ? hbar(prog, 'var(--good)') : ''}` : '<p class="small" style="margin-top:6px">No target yet.</p>'}
+      <p class="small" style="margin-top:6px">${next ? `Next test: <b>${esc(fmtDL(next))}</b>${next < todayIso() ? ' (overdue)' : ` (in ${daysBetween(todayIso(), next)} days)`} · on your calendar` : 'No next test date. Re-testing every 4-6 weeks shows real progress.'}</p></div>
+    <div class="notice"><b style="color:var(--fg)">Projection</b> <label class="check tiny" style="display:inline-flex;margin-left:6px"><input type="checkbox" data-proj ${ui('showProj', '1') === '1' ? 'checked' : ''}> show on chart</label>
+      <p class="small" style="margin-top:6px">${pj ? `At your current trend: <b>${esc(fmtVal(t, pj.value))}</b> by ${esc(fmtD(pj.end))} (${pj.improving ? 'improving' : 'not improving'} ${esc(fmtVal(t, Math.abs(pj.perMonth)))} per month)${tg && pj.hitDate ? `. You'd reach your target around ${esc(fmtD(pj.hitDate))}.` : ''} This is a straight-line trend from your results, not a guarantee.` : 'Needs 3+ results to project a trend.'}</p></div>
+  </div>
+  ${top.length >= 2 ? `<h4 style="margin:14px 0 6px">Personal leaderboard</h4><div class="list">${top.map((r, i) => `<div class="li"><span class="small">${['🥇', '🥈', '🥉', '4.', '5.'][i]} ${esc(fmtDL(r.date))}${r.note ? ' · ' + esc(r.note) : ''}</span><b class="v">${esc(fmtVal(t, r.value))}</b></div>`).join('')}</div>` : ''}`;
+}
+document.addEventListener('change', (e) => { if (e.target.matches('[data-proj]')) { setUi('showProj', e.target.checked ? '1' : '0'); refresh(); } });
+ACTIONS['test-target'] = (b) => {
+  const t = testById(b.dataset.tid), T = doc('aos-tests'), tg = T.targets?.[t.id] || {};
+  openSheet(`${t.name}: target`, `<div class="fields"><label>Target (${esc(t.unit)})<input id="tt-v" inputmode="decimal" value="${tg.value ?? ''}"></label><label>By date<input type="date" id="tt-d" value="${tg.date || ''}"></label><label class="full">Next test date (adds a calendar reminder)<input type="date" id="tt-n" value="${T.next?.[t.id] || shiftIso(todayIso(), 28)}"></label></div>
+    <label class="check"><input type="checkbox" id="tt-g"> Also create a goal for this target</label><button type="button" class="btn primary" id="tt-save">Save</button>`, (d) => {
+    $('#tt-save', d).addEventListener('click', () => {
+      const raw = $('#tt-v', d).value, v = raw === '' ? null : parseTestValue(t, raw);
+      if (raw !== '' && !(v > 0)) return toast('Enter a number above 0');
+      T.targets = { ...(T.targets || {}) }; if (v == null) delete T.targets[t.id]; else T.targets[t.id] = { value: r2(v), date: $('#tt-d', d).value || null };
+      T.next = { ...(T.next || {}) }; if ($('#tt-n', d).value) T.next[t.id] = $('#tt-n', d).value; else delete T.next[t.id];
+      persist('aos-tests');
+      if (v != null && $('#tt-g', d).checked) { const pr = prOf(t.id); doc('aos-goals').goals = [...goals(), { id: uid('goal'), title: `${t.name}: ${fmtVal(t, v)}`, horizon: 'season', date: $('#tt-d', d).value || null, source: 'test:' + t.id, start: pr?.value ?? v, target: r2(v), unit: t.unit, better: t.better, milestones: [], created: Date.now(), history: [] }]; persist('aos-goals'); }
+      closeSheet(); toast('Saved'); refresh();
+    });
+  });
+};
+function testsOverview(el) {
+  const T = doc('aos-tests'), tested = allTests().filter((t) => resultsOf(t.id).length >= 2);
+  const upcoming = Object.entries(T.next || {}).map(([id, d]) => ({ t: testById(id), d })).filter((x) => x.t).sort((a, b) => a.d.localeCompare(b.d));
+  const due = allTests().filter((t) => { const rs = resultsOf(t.id); return rs.length && !T.next?.[t.id] && daysBetween(rs[rs.length - 1].date, todayIso()) >= 42; });
+  const hero = $('.hero', el); if (!hero) return;
+  hero.insertAdjacentHTML('afterend', `<div class="grid two">
+    <section class="card"><div class="card-head"><div><h3>Testing comparison</h3><span class="sub">% improvement from first result to best</span></div></div>${tested.length ? '<div class="chart" id="t-cmp"></div>' : emptyState('Needs repeat tests', 'Test the same thing twice to compare improvement across tests.', 'trophy')}</section>
+    <section class="card"><div class="card-head"><div><h3>Testing schedule</h3><span class="sub">Next test dates also show on your calendar</span></div></div>
+      ${upcoming.length ? `<div class="list">${upcoming.map(({ t, d }) => `<button type="button" class="li li-btn" data-pick-test="${t.id}"><div><div class="t">${esc(t.name)}</div><div class="s">${esc(fmtDL(d))}</div></div><span class="band ${d < todayIso() ? 'lo' : daysBetween(todayIso(), d) <= 3 ? 'mid' : 'hi'}">${d < todayIso() ? 'Overdue' : d === todayIso() ? 'Today' : `In ${daysBetween(todayIso(), d)}d`}</span></button>`).join('')}</div>` : '<p class="muted small">No tests scheduled. Open a test and tap "Set" to pick a target and a next test date.</p>'}
+      ${due.length ? `<p class="notice warn" style="margin-top:10px">Due for a re-test (6+ weeks): ${due.map((t) => esc(t.name)).join(', ')}</p>` : ''}</section></div>`);
+  if (tested.length) drawBars($('#t-cmp'), tested.map((t) => { const rs = resultsOf(t.id), p = improvePct(t, rs[0].value, prOf(t.id).value); return { label: t.name.split(' ')[0].slice(0, 7), full: t.name, segs: [{ v: Math.max(0, r1(p)), color: p > 0 ? 'var(--good)' : 'var(--oth)' }], tip: `${r1(p)}% (${fmtVal(t, rs[0].value)} → ${fmtVal(t, prOf(t.id).value)})` }; }), { fmt: (v) => v + '%', tick: (v) => v + '%', h: 170 });
 }

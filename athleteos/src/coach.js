@@ -59,7 +59,7 @@ function ruleFocus() {
 ACTIONS.focus = async (b) => {
   b.disabled = true; $('#focus-out').innerHTML = '<p class="muted small">Coach is reading your logs…</p>';
   try {
-    const r = await askAI(`${AI_RULES}\n\nSnapshot:\n${JSON.stringify(snapshot(14))}\n\nGive today's single most important focus. Return JSON {"headline": string (max 12 words), "actions": [2-3 short specific actions for today], "basedOn": string (which recorded data you used; mention anything important that is missing)}.`);
+    const r = await askAI(`${AI_RULES}\n\nSnapshot:\n${JSON.stringify(fullSnapshot(14))}\n\nGive today's single most important focus. Return JSON {"headline": string (max 12 words), "actions": [2-3 short specific actions for today], "basedOn": string (which recorded data you used; mention anything important that is missing)}.`);
     const c = doc('aos-coach'); c.focus = { date: todayIso(), headline: String(r.headline || ''), actions: (r.actions || []).map(String).slice(0, 4), basedOn: String(r.basedOn || '') }; persist('aos-coach');
     $('#focus-out').innerHTML = focusHtml(c.focus);
   } catch (e) { $('#focus-out').innerHTML = `<p class="small down">${esc(aiError(e))}</p>`; }
@@ -106,7 +106,7 @@ ACTIONS['gen-workout'] = async (b) => {
   const note = $('#w-note')?.value.trim() || '';
   b.disabled = true; b.textContent = 'Building your workout…';
   try {
-    const r = await askAI(`${AI_RULES}\n\nSnapshot:\n${JSON.stringify(snapshot(21))}\n\nBuild one ${mins}-minute ${int} ${FOCUSES.find((x) => x[0] === f)[1]} workout. Equipment available: ${eq.map((k) => EQUIP.find((x) => x[0] === k)?.[1]).join(', ')}. Athlete note: ${note || 'none'}.
+    const r = await askAI(`${AI_RULES}\n\nSnapshot:\n${JSON.stringify(fullSnapshot(21))}\n\nBuild one ${mins}-minute ${int} ${FOCUSES.find((x) => x[0] === f)[1]} workout. Equipment available: ${eq.map((k) => EQUIP.find((x) => x[0] === k)?.[1]).join(', ')}. Athlete note: ${note || 'none'}.
 Adjust for today's recovery score and the last 7 days of training load if recorded (if recovery is low or soreness high, scale volume down and say so). Target weak zones/shot types or tests from the data when relevant. Blocks must add up to about ${mins} minutes including warm-up and cool-down. Use safe, age-appropriate loading (RPE or % of tested max only if a max exists).
 Return JSON {"title": string, "summary": string (1-2 sentences), "blocks": [{"name": string, "mins": number, "items": [{"name": string, "dose": string (sets x reps, makes, or time), "rest": string, "cue": string (one coaching cue)}]}], "why": string (why this fits your data; say what data was missing)}.`);
     showWorkout({ title: String(r.title || 'Workout'), summary: String(r.summary || ''), blocks: Array.isArray(r.blocks) ? r.blocks.slice(0, 8) : [], why: String(r.why || ''), mins, intensity: int, focus: f, source: 'ai', date: todayIso() });
@@ -158,8 +158,8 @@ async function ask(q) {
   const c = doc('aos-coach'); c.chat = [...(c.chat || []), { role: 'user', content: q.slice(0, 400) }];
   const box = $('#chat'); box.insertAdjacentHTML('beforeend', `<div class="msg me">${esc(q)}</div><div class="msg ai" id="pending">…</div>`); box.scrollTop = box.scrollHeight; $('#ask-in').value = '';
   const hist = c.chat.slice(-10);
-  const msgs = [{ role: 'user', content: `${AI_RULES}\nAnswer in plain text, under 180 words, with specific numbers from the snapshot and 1-3 concrete next steps. If the data can't answer the question, say exactly what to log.\n\nSnapshot:\n${JSON.stringify(snapshot(42))}\n\nQuestion: ${hist[0].content}` }, ...hist.slice(1)];
-  if (msgs.length > 1) msgs[0].content = `${AI_RULES}\nAnswer in plain text, under 180 words, with specific numbers and 1-3 next steps.\n\nSnapshot:\n${JSON.stringify(snapshot(42))}\n\nConversation follows.\n\n${hist[0].content}`;
+  const msgs = [{ role: 'user', content: `${AI_RULES}\nAnswer in plain text, under 180 words, with specific numbers from the snapshot and 1-3 concrete next steps. If the data can't answer the question, say exactly what to log.\n\nSnapshot:\n${JSON.stringify(fullSnapshot(42))}\n\nQuestion: ${hist[0].content}` }, ...hist.slice(1)];
+  if (msgs.length > 1) msgs[0].content = `${AI_RULES}\nAnswer in plain text, under 180 words, with specific numbers and 1-3 next steps.\n\nSnapshot:\n${JSON.stringify(fullSnapshot(42))}\n\nConversation follows.\n\n${hist[0].content}`;
   try {
     const r = await askAI(msgs, false, { onText: ({ text }) => { const p = $('#pending'); if (p) p.textContent = text; } });
     c.chat.push({ role: 'assistant', content: r.text }); c.chat = c.chat.slice(-30); persist('aos-coach');
@@ -175,7 +175,7 @@ COACH.report = (el) => {
   const mon = ui('repWeek', weeks[0]), w = weekStats(mon), lw = weekStats(shiftIso(mon, -7)), saved = (doc('aos-coach').reports || []).find((r) => r.mon === mon);
   const row = (l, a, b, u = '', lower = false, pts = false) => `<span>${l}</span><b>${a == null ? '—' : a.toLocaleString() + u}</b><span class="muted">${b == null ? '—' : b.toLocaleString() + u}</span>${pts && a != null && b != null ? deltaPill(a - b, lower, ' pts') : deltaPill(pctChange(a, b), lower)}`;
   el.innerHTML = `<section class="card">
-    <div class="card-head"><div><h3>Weekly athlete report</h3><span class="sub">Week of ${esc(fmtD(mon))}${mon === weeks[0] ? ' (so far)' : ''} vs the week before</span></div><select id="rep-week" style="max-width:200px" aria-label="Week">${weeks.map((m, i) => `<option value="${m}" ${m === mon ? 'selected' : ''}>${i === 0 ? 'This week' : i === 1 ? 'Last week' : 'Week of ' + fmtD(m)}</option>`).join('')}</select></div>
+    <div class="card-head"><div><h3>Weekly evaluation</h3><span class="sub">Week of ${esc(fmtD(mon))}${mon === weeks[0] ? ' (so far)' : ''} vs the week before</span></div><select id="rep-week" style="max-width:200px" aria-label="Week">${weeks.map((m, i) => `<option value="${m}" ${m === mon ? 'selected' : ''}>${i === 0 ? 'This week' : i === 1 ? 'Last week' : 'Week of ' + fmtD(m)}</option>`).join('')}</select></div>
     <div class="rings" style="margin-bottom:14px">
       ${ring(w.active, Number(aos().profile?.weeklyDays) || 5, { label: 'Active days', sub: `${w.active} of ${Number(aos().profile?.weeklyDays) || 5}`, center: `<b>${w.active}</b>` })}
       ${ring(w.protHit, w.foodDays || 1, { color: 'var(--protein)', label: 'Protein goal', sub: w.foodDays ? `${w.protHit} of ${w.foodDays} logged days` : 'no food logged', center: `<b>${w.foodDays ? Math.round((w.protHit / w.foodDays) * 100) + '%' : '—'}</b>` })}
@@ -201,7 +201,7 @@ const reportHtml = (r) => `<div class="ai-out">${r.grade ? `<p><span class="big"
 ACTIONS['gen-report'] = async (b) => {
   const mon = ui('repWeek', mondayOf(todayIso())); b.disabled = true; $('#rep-out').innerHTML = '<p class="muted small">Coach is reviewing your week…</p>';
   try {
-    const snap = snapshot(21); snap.reportWeek = weekStats(mon); snap.weekBefore = weekStats(shiftIso(mon, -7)); snap.reportWeek.prs = snap.reportWeek.prs.map((p) => ({ test: p.t.name, value: p.r.value, prev: p.prev })); snap.weekBefore.prs = snap.weekBefore.prs.length;
+    const snap = fullSnapshot(21); snap.reportWeek = weekStats(mon); snap.weekBefore = weekStats(shiftIso(mon, -7)); snap.reportWeek.prs = snap.reportWeek.prs.map((p) => ({ test: p.t.name, value: p.r.value, prev: p.prev })); snap.weekBefore.prs = snap.weekBefore.prs.length;
     const r = await askAI(`${AI_RULES}\n\nSnapshot:\n${JSON.stringify(snap)}\n\nWrite the weekly report for the week starting ${mon} (reportWeek) compared with weekBefore. Return JSON {"grade": "A|B|C|D" (effort and consistency only, never body weight), "headline": string (one sentence), ${REP_SECTIONS.map(([k]) => `"${k}": [1-3 short bullet strings]`).join(', ')}, "missing": string (what wasn't logged that would make this more accurate)}. Use real numbers. Empty array if a section has no data.`);
     const rep = { mon, date: todayIso(), grade: String(r.grade || '').slice(0, 2), headline: String(r.headline || ''), missing: String(r.missing || '') };
     for (const [k] of REP_SECTIONS) rep[k] = (Array.isArray(r[k]) ? r[k] : []).map(String).slice(0, 4);

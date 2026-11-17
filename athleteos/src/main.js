@@ -1,9 +1,9 @@
 // ===================== boot =====================
-$('#tabbar').innerHTML = `<div class="tabbar-inner">${VIEWS.map(([k, l, i]) => `<button type="button" class="tab" data-view="${k}">${ICONS[i]}${l}</button>`).join('')}</div>`;
+$('#tabbar').innerHTML = `<div class="tabbar-inner">${VIEWS.filter((v) => !v[3]).map(([k, l, i]) => `<button type="button" class="tab" data-view="${k}">${ICONS[i]}${l}</button>`).join('')}</div>`;
 $('#tabbar').addEventListener('click', (e) => { const t = e.target.closest('.tab'); if (t) go(t.dataset.view); });
 $('#brand-mark').innerHTML = ICONS.logo;
 $('#btn-apps').innerHTML = ICONS.grid;
-$('#btn-settings').innerHTML = ICONS.gear;
+$('#btn-settings').innerHTML = ICONS.user;
 parseHash();
 mirrorCourtLab();
 render();

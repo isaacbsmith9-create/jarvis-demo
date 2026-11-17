@@ -42,9 +42,10 @@ function drawLine(el, pts, o = {}) {
   if (!pts.length) { el.innerHTML = ''; return; }
   const fmt = o.fmt || ((v) => nf(v, 1));
   const color = o.color || 'var(--accent)';
-  const t0 = parseIso(pts[0].date).getTime(), t1 = parseIso(pts[pts.length - 1].date).getTime();
+  const allP = o.proj ? [...pts, ...o.proj] : pts;
+  const t0 = parseIso(allP[0].date).getTime(), t1 = parseIso(allP[allP.length - 1].date).getTime();
   const xs = (d) => (t1 === t0 ? (L + W - R) / 2 : L + ((parseIso(d).getTime() - t0) / (t1 - t0)) * (W - L - R));
-  let lo = Math.min(...pts.map((p) => p.v)), hi = Math.max(...pts.map((p) => p.v));
+  let lo = Math.min(...allP.map((p) => p.v)), hi = Math.max(...allP.map((p) => p.v));
   if (o.goal != null) { lo = Math.min(lo, o.goal); hi = Math.max(hi, o.goal); }
   if (o.yMin != null) lo = Math.min(lo, o.yMin);
   if (o.yMax != null) hi = Math.max(hi, o.yMax);
@@ -59,6 +60,7 @@ function drawLine(el, pts, o = {}) {
   const area = P.length > 1 ? `${line}L${P[P.length - 1][0]},${base}L${P[0][0]},${base}Z` : '';
   // date labels: up to 5, evenly spaced, no duplicates
   const nL = Math.min(5, pts.length), labs = [];
+  const projLab = o.proj?.length ? o.proj[o.proj.length - 1] : null;
   for (let i = 0; i < nL; i++) { const k = nL === 1 ? 0 : Math.round((i * (pts.length - 1)) / (nL - 1)); if (!labs.includes(k)) labs.push(k); }
   const bands = (o.bands || []).map(([a, b, c]) => { const y1 = ys(Math.min(b, hi)), y2 = ys(Math.max(a, lo)); return y2 > y1 ? `<rect x="${L}" y="${r1(y1)}" width="${W - L - R}" height="${r1(y2 - y1)}" fill="${c}" opacity=".09"/>` : ''; }).join('');
   const last = P[P.length - 1];
@@ -68,10 +70,11 @@ function drawLine(el, pts, o = {}) {
     ${bands}
     <g class="grid">${ticks.map((v) => `<line x1="${L}" x2="${W - R}" y1="${r1(ys(v))}" y2="${r1(ys(v))}"/>`).join('')}</g>
     <g class="axis">${ticks.map((v) => `<text x="${L - 6}" y="${r1(ys(v)) + 3.5}" text-anchor="end">${esc(o.tick ? o.tick(v) : nf(v, tickDec(ticks)))}</text>`).join('')}
-    ${labs.map((k) => `<text x="${P[k][0]}" y="${H - 6}" text-anchor="${k === 0 && labs.length > 1 ? 'start' : k === pts.length - 1 && labs.length > 1 ? 'end' : 'middle'}">${esc(fmtD(pts[k].date))}</text>`).join('')}</g>
+    ${projLab ? `<text x="${r1(xs(projLab.date))}" y="${H - 6}" text-anchor="end" fill="var(--purple)">${esc(fmtD(projLab.date))}</text>` : ''}${labs.map((k) => `<text x="${P[k][0]}" y="${H - 6}" text-anchor="${k === 0 && labs.length > 1 ? 'start' : k === pts.length - 1 && labs.length > 1 ? 'end' : 'middle'}">${esc(fmtD(pts[k].date))}</text>`).join('')}</g>
     ${o.goal != null ? `<line x1="${L}" x2="${W - R}" y1="${r1(ys(o.goal))}" y2="${r1(ys(o.goal))}" stroke="var(--good)" stroke-dasharray="5 4" stroke-width="1.4"/><text x="${W - R}" y="${r1(ys(o.goal)) - 5}" text-anchor="end" fill="var(--good)" font-size="10.5" font-weight="600">${esc(o.goalLabel || 'Goal')}</text>` : ''}
     ${area ? `<path d="${area}" fill="url(#${id})"/>` : ''}
     ${P.length > 1 ? `<path d="${line}" fill="none" stroke="${color}" stroke-width="5" opacity=".35" filter="url(#${id}f)"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2.6" stroke-linecap="round"/>` : ''}
+    ${o.proj ? `<path d="M${P[P.length - 1][0]},${P[P.length - 1][1]}${o.proj.map((q) => `L${r1(xs(q.date))},${r1(ys(q.v))}`).join('')}" fill="none" stroke="var(--purple)" stroke-width="2.2" stroke-dasharray="6 5"/>${o.proj.map((q) => `<circle cx="${r1(xs(q.date))}" cy="${r1(ys(q.v))}" r="4" fill="var(--surface)" stroke="var(--purple)" stroke-width="2"/><circle class="hit" cx="${r1(xs(q.date))}" cy="${r1(ys(q.v))}" r="12" fill="transparent" data-tip="${esc('Projected ' + fmt(q.v))}|${esc(fmtDL(q.date))}"/>`).join('')}` : ''}
     ${P.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${pts.length > 40 ? 2 : 3.2}" fill="var(--surface)" stroke="${color}" stroke-width="2"/>`).join('')}
     <circle cx="${last[0]}" cy="${last[1]}" r="9" fill="${color}" opacity=".22"/><circle cx="${last[0]}" cy="${last[1]}" r="5" fill="${color}" stroke="var(--surface)" stroke-width="2"/>
     ${P.map(([x, y], i) => `<circle class="hit" cx="${x}" cy="${y}" r="13" fill="transparent" data-tip="${esc(pts[i].tip || fmt(pts[i].v))}|${esc(fmtDL(pts[i].date))}"/>`).join('')}
@@ -237,3 +240,44 @@ function deltaPill(pct, lowerBetter = false, suffix = '%') {
   const good = lowerBetter ? pct < 0 : pct > 0, z = Math.abs(pct) < 0.5;
   return `<span class="delta-pill ${z ? 'flat' : good ? 'up' : 'down'}">${z ? '→' : pct > 0 ? '▲' : '▼'} ${Math.abs(pct) < 10 ? r1(Math.abs(pct)) : Math.round(Math.abs(pct))}${suffix}</span>`;
 }
+
+/** Radar chart. items: [{label, v (0-100) or null, v2 (comparison) }]. Missing values sit at the center, dotted. */
+function radar(items, o = {}) {
+  const S = o.size || 300, c = S / 2, Rr = S / 2 - 46, n = items.length;
+  const pt = (i, v) => { const a = -Math.PI / 2 + (i / n) * Math.PI * 2; return [c + Math.cos(a) * Rr * (v / 100), c + Math.sin(a) * Rr * (v / 100)]; };
+  const ring = (f) => items.map((_, i) => pt(i, f * 100).join(',')).join(' ');
+  const poly = (k) => items.map((it, i) => pt(i, it[k] ?? 0).join(',')).join(' ');
+  const id = 'rd' + ++gradN;
+  return `<svg viewBox="-46 -4 ${S + 92} ${S + 8}" width="100%" style="max-width:${S + 92}px;display:block;margin:0 auto" role="img" aria-label="${esc(o.label || 'Radar chart')}">
+    <defs><radialGradient id="${id}"><stop offset="0" stop-color="var(--accent)" stop-opacity=".55"/><stop offset="1" stop-color="var(--purple)" stop-opacity=".35"/></radialGradient></defs>
+    ${[0.25, 0.5, 0.75, 1].map((f) => `<polygon points="${ring(f)}" fill="none" stroke="var(--line)" stroke-width="1"/>`).join('')}
+    ${items.map((_, i) => { const [x, y] = pt(i, 100); return `<line x1="${c}" y1="${c}" x2="${x}" y2="${y}" stroke="var(--line)"/>`; }).join('')}
+    ${o.compare ? `<polygon points="${poly('v2')}" fill="none" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="4 4"/>` : ''}
+    <polygon points="${poly('v')}" fill="url(#${id})" stroke="var(--accent)" stroke-width="2.4" style="filter:drop-shadow(0 0 6px var(--glow))"/>
+    ${items.map((it, i) => { const [x, y] = pt(i, it.v ?? 0); return it.v == null ? '' : `<circle cx="${x}" cy="${y}" r="4" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>`; }).join('')}
+    ${items.map((it, i) => { const [x, y] = pt(i, 122), anc = Math.abs(x - c) < 8 ? 'middle' : x > c ? 'start' : 'end'; return `<text x="${x}" y="${y}" text-anchor="${anc}" font-size="11" font-weight="600" fill="${it.v == null ? 'var(--muted)' : 'var(--fg)'}">${esc(it.label)}</text><text x="${x}" y="${y + 13}" text-anchor="${anc}" font-size="11.5" font-weight="700" fill="${it.v == null ? 'var(--muted)' : 'var(--accent)'}">${it.v == null ? '—' : it.v}</text>`; }).join('')}
+  </svg>`;
+}
+/** Bars (left axis) with a 0-100 line on the right axis: training load vs readiness. */
+function drawCombo(el, days, o = {}) {
+  if (!el) return;
+  const W = widthOf(el), H = o.h || 220, L = 40, Rm = 34, T = 14, B = 24;
+  let hi = Math.max(1, ...days.map((d) => d.bar)); const ticks = niceTicks(0, hi, 4); hi = ticks[ticks.length - 1];
+  const slot = (W - L - Rm) / days.length, bw = Math.max(3, Math.min(22, slot * 0.6));
+  const ys = (v) => T + (1 - v / hi) * (H - T - B), yr = (v) => T + (1 - v / 100) * (H - T - B), xc = (i) => L + slot * i + slot / 2;
+  const line = days.map((d, i) => (d.line == null ? null : [r1(xc(i)), r1(yr(d.line))])).filter(Boolean);
+  const every = Math.ceil(days.length / 7);
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(o.label || 'Load and readiness')}">
+    <g class="grid">${ticks.map((v) => `<line x1="${L}" x2="${W - Rm}" y1="${r1(ys(v))}" y2="${r1(ys(v))}"/>`).join('')}</g>
+    <g class="axis">${ticks.map((v) => `<text x="${L - 6}" y="${r1(ys(v)) + 3.5}" text-anchor="end">${nf(v)}</text>`).join('')}
+    ${[0, 50, 100].map((v) => `<text x="${W - Rm + 6}" y="${r1(yr(v)) + 3.5}" fill="var(--good)">${v}</text>`).join('')}
+    ${days.map((d, i) => (i % every === 0 || i === days.length - 1 ? `<text x="${r1(xc(i))}" y="${H - 6}" text-anchor="middle">${esc(d.label)}</text>` : '')).join('')}</g>
+    ${days.map((d, i) => { const h = H - B - ys(d.bar); return d.bar ? `<rect x="${r1(xc(i) - bw / 2)}" y="${r1(ys(d.bar))}" width="${r1(bw)}" height="${r1(h)}" rx="${Math.min(5, bw / 2)}" fill="${d.color || 'var(--accent)'}" opacity=".9"/>` : ''; }).join('')}
+    ${line.length > 1 ? `<path d="${smoothPath(line)}" fill="none" stroke="var(--good)" stroke-width="2.6"/>` : ''}
+    ${line.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.2" fill="var(--surface)" stroke="var(--good)" stroke-width="2"/>`).join('')}
+    ${days.map((d, i) => d.mark ? `<text x="${r1(xc(i))}" y="${T + 4}" text-anchor="middle" font-size="12">${d.mark}</text>` : '').join('')}
+    ${days.map((d, i) => `<rect class="hit" x="${r1(L + slot * i)}" y="${T}" width="${r1(slot)}" height="${H - T - B}" fill="transparent" data-tip="${esc(d.tip)}|${esc(d.full)}"/>`).join('')}
+  </svg>`;
+}
+/** Horizontal progress bar row (HTML). */
+const hbar = (pct, color = '') => `<div class="bar"><i style="width:${clamp(pct, 0, 100)}%${color ? ';background:' + color : ''}"></i></div>`;
