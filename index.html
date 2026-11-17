@@ -220,10 +220,10 @@ label.check input { width: auto; }
 .micro .row-between { font-size: 13px; flex-wrap: nowrap; }
 .micro.over .num { color: var(--over); font-weight: 600; }
 .micro-line { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.practice-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; align-items: end; margin: 12px 0 4px; }
+.practice-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-items: end; margin: 12px 0 4px; }
 .practice-row label { min-width: 0; }
 .practice-row input, .practice-row select { min-width: 0; width: 100%; }
-@media (max-width: 380px) { .practice-row { grid-template-columns: 1fr 1fr; } .practice-row .btn { grid-column: 1 / -1; } }
+.practice-row .btn { grid-column: 1 / -1; }
 .timeline { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 0; }
 .timeline li { display: grid; grid-template-columns: 64px 18px 1fr; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); }
 .timeline li:first-child { border-top: 0; }
@@ -509,6 +509,54 @@ dialog.nv { max-height: 94vh; padding-top: 0; }
 .db-head { padding: 14px 4px 6px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); list-style: none; display: flex; justify-content: space-between; gap: 8px; }
 .db-btn .entry-name { color: var(--accent); }
 .brand { color: var(--muted); font-weight: 400; }
+.water-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 8px; }
+.water-row input { width: 76px; padding: 6px 8px; }
+.elec-line { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; margin-top: 10px; }
+.el-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.el-row > span:first-child { min-width: 0; }
+.el-row small, .mr-part small, .mr-mini small { display: block; color: var(--muted); font-size: 12px; font-weight: 400; }
+.mr-mini { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+.mr-mini > span { min-width: 0; }
+.mr-opt { border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-bottom: 10px; background: var(--surface); }
+.mr-part { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 7px 0; }
+.mr-part > span:first-child, .mr-part label span { min-width: 0; }
+.stepper { display: inline-flex; align-items: center; gap: 6px; flex: none; }
+.stepper button { width: 30px; height: 30px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface-2); cursor: pointer; font-size: 15px; line-height: 1; color: inherit; }
+.stepper b { min-width: 26px; text-align: center; }
+.filter-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 8px; scrollbar-width: none; }
+.filter-row .chip-btn { flex: none; }
+.seg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 3px; background: var(--surface-2); border-radius: 12px; margin-bottom: 10px; }
+.seg2.three { grid-template-columns: 1fr 1fr 1fr; }
+.seg2 button { border: 0; background: none; border-radius: 9px; padding: 7px 4px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--muted); }
+.seg2 button.active { background: var(--surface); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.score-row { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.score-ring { display: grid; justify-items: center; gap: 2px; flex: none; }
+.score-ring svg { width: 68px; height: 68px; }
+.score-ring .rv { font-family: var(--f-display); font-size: 18px; font-weight: 700; fill: var(--fg); }
+.score-ring small { font-size: 11px; color: var(--muted); }
+.score-side { display: grid; gap: 3px; min-width: 0; }
+.sc-h { margin: 16px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.sc-list { margin: 0; padding-left: 18px; font-size: 14px; display: grid; gap: 4px; }
+.habit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 13px; }
+.habit-grid span { background: var(--surface-2); border-radius: 10px; padding: 7px 9px; color: var(--muted); }
+.habit-grid span.ok { color: var(--fg); background: var(--accent-soft); }
+.alert { border-radius: 14px; padding: 12px; background: var(--surface-2); border-left: 4px solid var(--protein); }
+.alert + .alert { margin-top: 10px; }
+.alert.warn { border-left-color: var(--carbs); }
+#alert-card { padding: 10px; }
+.words-box { border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-top: 10px; }
+table.cmp { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+table.cmp th, table.cmp td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+table.cmp th { font-size: 12px; color: var(--muted); font-weight: 600; }
+.rm-item > button { display: flex; width: 100%; justify-content: space-between; gap: 10px; align-items: center; padding: 11px 4px; border: 0; border-bottom: 1px solid var(--line); background: none; cursor: pointer; text-align: left; color: inherit; }
+.rm-item > button > div { min-width: 0; }
+.rm-item.open { background: var(--surface-2); border-radius: 12px; }
+.rm-item.open > button { border-bottom: 0; padding-inline: 10px; }
+.rm-custom { padding: 0 10px 12px; }
+.rm-mods { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; font-size: 13px; }
+@media (max-width: 380px) { .rm-mods { grid-template-columns: 1fr; } }
+.t-check { margin-top: 6px; }
+.icon-btn.star { font-size: 20px; color: var(--carbs); }
 .section-label { font-family: var(--f-body); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 12px 4px -4px; }
 details.fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; cursor: pointer; }
 details.fold > summary::-webkit-details-marker { display: none; }
@@ -561,8 +609,11 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
       </div>
       <div class="macros" id="macro-bars"></div>
       <button type="button" class="nv-open" id="nv-open"><svg class="mini-pie" id="mini-pie" viewBox="0 0 36 36" aria-hidden="true"></svg><span>Nutrition</span><span class="muted small" style="flex:none">Calories · Nutrients · Macros ›</span></button>
+      <button type="button" class="nv-open" data-mr="" style="margin-top:8px"><span>⚡ What fits my macros?</span><span class="muted small" style="flex:none">Macro Rescue ›</span></button>
       <p class="adjust-note" id="adjust-note" hidden></p>
     </div>
+
+    <div class="card" id="alert-card" hidden role="status"></div>
 
     <div class="card" id="donut-card" hidden>
       <div class="row-between"><h3>Today's split</h3><span class="muted small" id="day-grade">Tap for full nutrition</span></div>
@@ -580,22 +631,36 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
 
     <div class="card" id="exercise-card"></div>
 
+    <div class="card" id="post-card" hidden></div>
+
     <div class="card" id="breakdown"></div>
 
-    <div class="card">
-      <div class="row-between">
-        <div><h3 style="display:inline">Water</h3> <span class="muted num" id="water-text"></span></div>
-        <div class="row-gap">
-          <button class="chip" data-water="-8">−8 oz</button>
-          <button class="chip primary" data-water="8">+8 oz</button>
-          <button class="chip primary" data-water="16">+16 oz</button>
-        </div>
+    <div class="card" id="water-card">
+      <div class="row-between"><div><h3 style="display:inline">Hydration</h3> <span class="muted num" id="water-text"></span></div><span class="muted small num" id="water-pct"></span></div>
+      <div class="bar" style="margin-top:8px"><div class="bar-fill" id="water-bar" style="background:var(--water)"></div></div>
+      <div class="water-row">
+        <button type="button" class="chip" data-water="-8" aria-label="Remove 8 oz">−8</button>
+        <button type="button" class="chip primary" data-water="8">+8 oz</button>
+        <button type="button" class="chip primary" data-water="16">+16 oz</button>
+        <button type="button" class="chip primary" id="water-bottle" data-water="24">+24 oz bottle</button>
+        <input type="number" id="water-custom" min="1" max="128" placeholder="oz" inputmode="numeric" aria-label="Custom ounces"><button type="button" class="chip" id="water-custom-add">Add</button>
       </div>
-      <div class="bar"><div class="bar-fill" id="water-bar" style="background:var(--water)"></div></div>
+      <div class="chips" id="water-log"></div>
+      <div class="elec-line" id="elec-line"></div>
+      <p class="muted small" id="elec-note" style="margin:6px 0 0"></p>
+      <button type="button" class="nv-open" id="elec-open"><span>＋ Sports drink / electrolytes</span><span class="muted small" style="flex:none">›</span></button>
       <div id="hydro-plan"></div>
+      <details class="fold-inline" style="margin-top:10px"><summary class="muted small" style="cursor:pointer">Water goal and reminders</summary>
+        <div class="grid2" style="margin-top:8px"><label>Daily goal (oz)<input type="number" id="wg-goal" min="32" max="300" placeholder="auto"></label><label>My bottle (oz)<input type="number" id="wg-bottle" min="4" max="64" placeholder="24"></label></div>
+        <label class="check" style="margin-top:8px"><input type="checkbox" id="wg-rem"> Remind me in the app when I'm behind on water</label>
+        <p class="muted small" id="wg-note" style="margin:6px 0"></p>
+        <button type="button" class="btn" id="wg-save">Save</button>
+      </details>
     </div>
 
     <h2 class="section-label">How today is going</h2>
+
+    <div class="card" id="scores-card" hidden></div>
 
     <div class="card" id="ontrack-card" hidden></div>
 
@@ -621,7 +686,9 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
       <div class="row-between"><h3>Today's fuel plan</h3><span class="muted small num" id="coach-left"></span></div>
       <form id="practice-form" class="practice-row">
         <label>Practice or game starts<input type="time" id="pr-start" required></label>
-        <label>How long<select id="pr-mins"><option value="60">1 hr</option><option value="90">1.5 hr</option><option value="120" selected>2 hr</option><option value="150">2.5 hr</option><option value="180">3 hr</option></select></label>
+        <label>Type<select id="pr-type"><option value="practice">Practice</option><option value="game">Game</option><option value="shooting">Shooting</option><option value="lift">Lifting</option><option value="conditioning">Conditioning</option><option value="endurance">Long run / ride</option></select></label>
+        <label>Effort<select id="pr-int"><option value="light">Light</option><option value="moderate" selected>Moderate</option><option value="hard">Intense</option></select></label>
+        <label>How long<select id="pr-mins"><option value="60">1 hr</option><option value="90">1.5 hr</option><option value="120" selected>2 hr</option><option value="150">2.5 hr</option><option value="180">3 hr</option><option value="30">30 min</option><option value="45">45 min</option></select></label>
         <button class="btn">Set</button>
       </form>
       <ol class="timeline" id="timeline"></ol>
@@ -745,6 +812,12 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
   <section id="view-progress" class="view" hidden>
     <div class="stats" id="stats"></div>
     <div class="card" id="month-card"></div>
+
+    <h2 class="section-label">Training & recovery</h2>
+    <div class="card" id="prog-scores"></div>
+    <div class="card" id="prog-train"></div>
+    <div class="card" id="prog-perf"></div>
+    <div class="card" id="prog-hydro"></div>
 
     <div class="card"><h3>Calories, last 7 days</h3><div id="week-chart" class="chart"></div></div>
 
@@ -955,10 +1028,15 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
       <button class="btn primary grow" id="describe-btn">Estimate with AI</button>
     </div>
     <p class="muted small" id="describe-status" style="margin:0"></p>
+    <p class="muted small" id="describe-hint" style="margin:0"></p>
+    <div id="words-out"></div>
   </div>
 
   <div class="pane" data-pane="eatout" hidden>
     <div id="usuals"></div>
+    <div class="seg2" id="eat-seg" role="group" aria-label="Eat out mode"><button type="button" data-eat="menus" class="active">Menus</button><button type="button" data-eat="ai">AI order</button></div>
+    <div id="menu-pane"></div>
+    <div id="ai-order" class="form" hidden>
     <p class="muted small" style="margin:0">Pick where you're eating, or snap any menu. Coach builds the best order for what you have left today.</p>
     <div class="chips" id="chain-chips"></div>
     <input type="text" id="chain-input" placeholder="Or type any restaurant: Raising Cane's, Panda Express…">
@@ -967,6 +1045,7 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
     <button class="btn primary" id="chain-btn">Build my order</button>
     <p class="muted small" id="chain-status" style="margin:0"></p>
     <div id="chain-out" class="coach-out"></div>
+    </div>
   </div>
 
   <div class="pane" data-pane="quick" hidden>
@@ -989,7 +1068,7 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
 
 <!-- FOOD DETAIL -->
 <dialog id="food-dialog" class="sheet">
-  <div class="sheet-head"><strong id="fd-name"></strong><button class="icon-btn" data-close aria-label="Close">✕</button></div>
+  <div class="sheet-head"><strong id="fd-name"></strong><span class="row-gap" style="flex:none"><button type="button" class="icon-btn star" id="fd-fav" aria-label="Star this food" aria-pressed="false">☆</button><button class="icon-btn" data-close aria-label="Close">✕</button></span></div>
   <p class="muted small" id="fd-meta" style="margin:0 0 12px"></p>
   <div class="tiles" id="fd-macros" style="margin-bottom:8px"></div>
   <p class="micro-line" id="fd-micros" style="margin:0 0 14px"></p>
@@ -1005,13 +1084,61 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
   <div class="sheet-head"><strong id="ex-title">Add exercise</strong><button class="icon-btn" data-close aria-label="Close">✕</button></div>
   <div class="form">
     <div class="ex-types" id="ex-types"></div>
+    <label id="ex-name-wrap" hidden>Workout name<input type="text" id="ex-name" maxlength="40" placeholder="Agility ladder, swim, yoga…"></label>
     <div class="grid2">
+      <label>Started at<input type="time" id="ex-time"></label>
       <label>Minutes<input type="number" id="ex-mins" min="5" max="480" step="5" value="60" inputmode="numeric"></label>
-      <label>How hard<select id="ex-int"><option value="light">Light</option><option value="moderate" selected>Moderate</option><option value="hard">Hard</option></select></label>
     </div>
-    <div class="ex-est"><b class="num" id="ex-kcal">0</b><span class="muted small" id="ex-note">calories burned (estimate)</span></div>
-    <button class="btn primary" id="ex-add" type="button">Add exercise</button>
+    <label>Effort<select id="ex-int"><option value="light">Light</option><option value="moderate" selected>Moderate</option><option value="hard">Intense</option></select></label>
+    <div class="ex-est"><b class="num" id="ex-kcal">0</b><span class="muted small" id="ex-note">calories burned · estimate, real burn varies</span></div>
+    <div><span class="small">How did it go?</span><div class="row-gap" id="ex-rate" style="margin-top:6px;align-items:center"></div></div>
+    <label>Notes<input type="text" id="ex-notes" maxlength="300" placeholder="Optional: legs felt heavy, shot 62%…"></label>
+    <div class="row-gap"><button class="btn danger" id="ex-del" type="button" hidden>Delete</button><button class="btn primary grow" id="ex-add" type="button">Log workout</button></div>
   </div>
+</dialog>
+
+<!-- MACRO RESCUE -->
+<dialog id="mr-sheet" class="sheet" aria-labelledby="mr-title">
+  <div class="sheet-head"><strong id="mr-title">What fits? · Macro Rescue</strong><button class="icon-btn" data-close aria-label="Close">✕</button></div>
+  <div class="seg2 three" id="mr-size" role="group" aria-label="How much"><button type="button" data-size="snack">Snack</button><button type="button" data-size="meal">Next meal</button><button type="button" data-size="rest">Rest of day</button></div>
+  <div class="filter-row" id="mr-filters" role="group" aria-label="Filter"><button type="button" class="chip-btn" data-filter="balanced">Balanced</button><button type="button" class="chip-btn" data-filter="protein">High protein</button><button type="button" class="chip-btn" data-filter="carb">High carb</button><button type="button" class="chip-btn" data-filter="quick">Quick snack</button><button type="button" class="chip-btn" data-filter="budget">Budget</button><button type="button" class="chip-btn" data-filter="prep">Minimal prep</button><button type="button" class="chip-btn" data-filter="home">Foods at home</button></div>
+  <p class="small" id="mr-target" style="margin:0 0 10px"></p>
+  <label style="margin-bottom:10px">Log to<select id="mr-meal"><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snacks">Snacks</option></select></label>
+  <div id="mr-list"></div>
+  <p class="muted small" style="margin:4px 0 8px">Built from your foods, favorites and the food list. Amounts are adjustable. Nutrition is from each food's entry.</p>
+  <button type="button" class="btn" id="mr-ai" hidden style="width:100%">Ask Coach (AI) for more ideas</button>
+</dialog>
+
+<!-- ELECTROLYTES -->
+<dialog id="el-sheet" class="sheet" aria-labelledby="el-title">
+  <div class="sheet-head"><strong id="el-title">Sports drinks & electrolytes</strong><button class="icon-btn" data-close aria-label="Close">✕</button></div>
+  <p class="muted small" style="margin:0 0 6px">Typical label values per bottle or stick. Flavors differ a little, so save your own below if yours is different. The ounces count toward water.</p>
+  <div id="el-list"></div>
+  <details id="el-new" style="margin-top:10px"><summary class="small" style="cursor:pointer;font-weight:600">＋ Save my own drink</summary>
+    <form id="el-form" class="form" style="margin-top:8px">
+      <label>Name<input id="elf-name" maxlength="50" required placeholder="Team electrolyte mix"></label>
+      <div class="grid2"><label>Size (oz)<input id="elf-oz" type="number" min="1" max="64" required></label><label>Calories<input id="elf-kcal" type="number" min="0" value="0"></label>
+      <label>Carbs (g)<input id="elf-carbs" type="number" min="0" step="0.1" value="0"></label><label>Sodium (mg)<input id="elf-na" type="number" min="0" value="0"></label>
+      <label>Potassium (mg)<input id="elf-k" type="number" min="0" value="0"></label><label>Magnesium (mg)<input id="elf-mg" type="number" min="0" value="0"></label></div>
+      <button class="btn primary">Save drink</button>
+    </form>
+  </details>
+  <button type="button" class="btn" id="el-scan" hidden style="width:100%;margin-top:10px">Scan a nutrition label (AI)</button>
+  <details style="margin-top:12px"><summary class="small" style="cursor:pointer;font-weight:600">What electrolytes do (and how much you need)</summary>
+    <div class="small" style="display:grid;gap:6px;margin-top:8px">
+      <p style="margin:0"><b>Sodium</b> is the main one you lose in sweat, roughly 460 to 1,150 mg per liter, and it varies a lot from person to person. It helps you hold on to the water you drink.</p>
+      <p style="margin:0"><b>Potassium</b> and <b>magnesium</b> help muscles and nerves work. Fruit, potatoes, milk, yogurt, beans and nuts cover them for most athletes.</p>
+      <p style="margin:0"><b>When a sports drink helps:</b> sessions over 60 to 90 minutes, hot gyms, two-a-days, or if you are a salty sweater (white streaks on your shirt). For shorter workouts, water and normal meals are enough.</p>
+      <p style="margin:0"><b>Don't stack them:</b> one drink or mix per session is plenty. Skip electrolyte pills or high-dose magnesium and potassium supplements unless a doctor or dietitian tells you to.</p>
+      <p class="muted" style="margin:0">Educational info, not medical advice.</p>
+    </div>
+  </details>
+</dialog>
+
+<!-- SCORES -->
+<dialog id="score-sheet" class="sheet" aria-labelledby="sc-title">
+  <div class="sheet-head"><strong id="sc-title">Your scores</strong><button class="icon-btn" data-close aria-label="Close">✕</button></div>
+  <div id="sc-body"></div>
 </dialog>
 
 <!-- NUTRITION -->
@@ -1104,7 +1231,7 @@ const MICROS = [
   { k: 'calcium', label: 'Calcium', unit: 'mg', kind: 'goal' },
 ];
 const MICRO_KEYS = MICROS.map((m) => m.k);
-const roundMicro = (k, v) => (k === 'sodium' || k === 'calcium' ? Math.round(v) : r1(v));
+const roundMicro = (k, v) => (['sodium', 'calcium', 'potassium', 'magnesium'].includes(k) ? Math.round(v) : r1(v));
 const hasMicros = (f) => MICRO_KEYS.some((k) => f[k] != null);
 function scale(f, s = 1) {
   s = Number(s) || 0;
@@ -1282,6 +1409,7 @@ function targets(date) {
   const base = c.targets ?? { calories: 2800, protein: 140, carbs: 390, fat: 84, waterOz: 100 };
   const o = c.overrides || {};
   const t = { ...base, ...Object.fromEntries(Object.entries(o).filter(([, v]) => v > 0)) };
+  if (Number(c.prefs?.waterGoal) >= 32) t.waterOz = Number(c.prefs.waterGoal);
   // Practice/game days with a measured sweat rate: water goal = baseline + what that session's sweat costs.
   const sw = c.sweat, dd = date ? dayDoc(date) : null;
   if (sw?.rate && date && dd?.type !== 'rest') {
@@ -1362,6 +1490,7 @@ function renderToday() {
   renderMiniPie(tot);
   renderDonuts(t);
   renderExtras(t, tot);
+  renderHydration(t); renderPostCard(); renderAlerts(); renderScoresCard(); syncDescribe();
   checkBadges();
   $('#micro-note').textContent = tot.missing ? `${tot.missing} item${tot.missing === 1 ? ' has' : 's have'} no nutrient data` : '';
 
@@ -1374,14 +1503,14 @@ function renderToday() {
     const items = log[key] || [];
     return `<div class="card meal">
       <div class="meal-head"><strong>${label}${(() => { const g = gradeOf(groupScore(items)); return g ? ` <span class="gp ${g}" style="margin:0 0 0 6px" title="Meal grade ${g}">${g}</span>` : ''; })()}</strong><span class="meal-actions">
-        ${items.length ? `<button class="mini" data-save-meal="${key}">Save meal</button>` : (yesterdayItems(key).length ? `<button class="mini" data-copy="${key}">Copy yesterday</button>` : '')}
+        ${items.length ? `<button class="mini" data-save-meal="${key}">Save meal</button>` : ((() => { const us = usualFor(key); return us ? `<button class="mini" data-usual="${key}" title="${esc(us.name)}">＋ Usual · ${us.kcal} kcal</button>` : ''; })() || (yesterdayItems(key).length ? `<button class="mini" data-copy="${key}">Copy yesterday</button>` : ''))}
         <span class="meal-kcal">${totals(items).calories} kcal</span></span></div>
       ${items.length ? (() => { const mt = totals(items); return `<div class="meal-macros small muted num" style="padding:0 16px 8px;margin-top:-4px">P ${Math.round(mt.protein)} g · C ${Math.round(mt.carbs)} g · F ${Math.round(mt.fat)} g</div>`; })() : ''}
       ${items.map((e, i) => {
         const n = scale(e, e.servings);
         const srv = e.servings === 1 ? e.serving : `${e.servings} × ${e.serving}`;
         const gr = gradeOf(foodScore(e));
-        return `<button class="entry" data-meal="${key}" data-idx="${i}"><div><div class="entry-name">${gr ? `<span class="gp ${gr}" title="Food grade ${gr}">${gr}</span>` : ''}${esc(e.name)}${e.source === 'AI scan' ? '<span class="badge">AI</span>' : ''}</div>
+        return `<button class="entry" data-meal="${key}" data-idx="${i}"><div><div class="entry-name">${gr ? `<span class="gp ${gr}" title="Food grade ${gr}">${gr}</span>` : ''}${esc(e.name)}${e.source === 'AI scan' ? '<span class="badge">AI</span>' : e.estimate ? '<span class="badge">≈ EST</span>' : ''}</div>
           <div class="entry-sub">${esc(srv)} · P ${n.protein} · C ${n.carbs} · F ${n.fat}</div></div><div class="entry-kcal">${n.calories}</div></button>`;
       }).join('')}
       <button class="add-row" data-add="${key}">＋ Add food</button></div>`;
@@ -1515,7 +1644,7 @@ function renderProfile() {
 let currentView = 'today';
 function render() {
   renderToday();
-  if (currentView === 'progress') { renderProgress(); renderMonth(); renderTrend(); renderBadges(); renderMeasures(); renderGoalW(); }
+  if (currentView === 'progress') { renderProgress(); renderMonth(); monthExtras(); renderProgressExtras(); renderTrend(); renderBadges(); renderMeasures(); renderGoalW(); }
   if (currentView === 'profile') { renderProfile(); renderAcc(); }
   if (currentView === 'coach') renderCoach();
 }
@@ -1550,7 +1679,7 @@ function openAdd(meal, pane) {
 function switchPane(name) {
   $$('#add-tabs button').forEach((b) => b.classList.toggle('active', b.dataset.pane === name));
   $$('.pane').forEach((p) => (p.hidden = p.dataset.pane !== name));
-  if (name === 'eatout') { renderUsuals(); renderMenuThumbs(); }
+  if (name === 'eatout') { renderUsuals(); renderMenuThumbs(); renderMenus(); }
   if (name === 'search') { renderSearch(); setTimeout(() => $('#search-input').focus(), 60); }
 }
 function mealLi(m, i) {
@@ -1561,7 +1690,7 @@ function mealLi(m, i) {
 }
 let shownMeals = [];
 function foodLi(f, i) {
-  return `<li><button data-i="${i}"><div><div class="entry-name">${esc(f.name)}</div>
+  return `<li><button data-i="${i}"><div><div class="entry-name">${isFav(f) ? '<span style="color:var(--carbs)">★</span> ' : ''}${esc(f.name)}</div>
     <div class="entry-sub">${esc(f.serving)} · ${f.calories} kcal · P ${f.protein} · C ${f.carbs} · F ${f.fat}</div></div><span class="add-plus" aria-hidden="true">＋</span></button></li>`;
 }
 let shownFoods = [];
@@ -1572,8 +1701,9 @@ function renderSearch() {
   const match = (f) => words.every((w) => f.name.toLowerCase().includes(w));
   shownMeals = (c.meals || []).filter((m) => !words.length || match(m));
   if (!q) {
-    shownFoods = [...(c.custom || []), ...(c.recents || [])];
-    $('#search-label').textContent = shownFoods.length || shownMeals.length ? 'Your saved meals, foods and recent items' : `Search ${FOODS.length} common foods, or describe anything with AI.`;
+    const sk = new Set();
+    shownFoods = [...(c.favs || []), ...(c.custom || []), ...(c.recents || [])].filter((f) => { const k = favKey(f); if (sk.has(k)) return false; sk.add(k); return true; });
+    $('#search-label').textContent = shownFoods.length || shownMeals.length ? `${(c.favs || []).length ? 'Starred first, then your' : 'Your'} saved meals, foods and recent items` : `Search ${FOODS.length} common foods, or describe anything with AI.`;
     $('#search-results').innerHTML = shownMeals.map(mealLi).join('') + shownFoods.map(foodLi).join('');
     return;
   }
@@ -1622,8 +1752,9 @@ function openFood(food, { meal, idx = null, servings = 1 }) {
   fdCtx = { food, meal, idx };
   $('#fd-name').textContent = food.name;
   const gr = gradeOf(foodScore(food));
-  $('#fd-meta').textContent = `${food.serving} per serving${food.source === 'AI scan' ? ' · AI estimate' : ''}${gr ? ` · Grade ${gr}: ${gradeWhy(food)}` : ''}`;
+  $('#fd-meta').textContent = `${food.serving} per serving${food.source === 'AI scan' ? ' · AI estimate' : food.estimate ? ' · ≈ restaurant estimate' : ''}${gr ? ` · Grade ${gr}: ${gradeWhy(food)}` : ''}`;
   $('#fd-servings').value = servings;
+  $('#fd-fav').textContent = isFav(food) ? '★' : '☆'; $('#fd-fav').setAttribute('aria-pressed', String(isFav(food)));
   $('#fd-delete').hidden = idx === null;
   $('#fd-save').textContent = idx === null ? 'Add to ' + mealLabel(meal) : 'Update';
   updateFd();
@@ -1804,7 +1935,7 @@ async function runAI(prompt, images, careful, statusEl, btn, busyText) {
 function hideAI(msg) {
   aiSample = null;
   $('#ai-status').textContent = msg; $('#describe-status').textContent = msg;
-  $('#analyze-btn').disabled = true; $('#describe-btn').disabled = true;
+  $('#analyze-btn').disabled = true; syncDescribe();
 }
 
 // ----- photos (several angles) -----
@@ -2002,20 +2133,6 @@ function practiceToday() {
   return d?.practice || (d?.type === 'rest' ? null : weekboardPractice(todayIso()));
 }
 
-/** Sports-nutrition timing around one session (ACSM / AND / DC position stand ranges, kept practical). */
-function fuelPlan(pr, t) {
-  const kg = (core().profile?.weightLb ?? 150) * 0.4536;
-  const start = toMin(pr.start), end = start + Number(pr.mins);
-  const carbsMeal = Math.round(kg * 1), carbsRecover = Math.round(kg * 1);
-  const steps = [
-    { at: start - 180, title: 'Pre-practice meal', body: `A normal meal with about ${carbsMeal} g carbs and 25-35 g protein. Keep fat and fiber moderate so it digests. Example: chicken and rice bowl, pasta with meat sauce, or a turkey sandwich with fruit.` },
-    { at: start - 45, title: 'Top-off snack', body: '30-45 g of quick carbs, low in fat, fiber and protein. Example: a banana and a granola bar, pretzels, or applesauce. Drink 8-16 oz of water.' },
-    { at: start, title: `Practice (${Number(pr.mins) / 60} hr)`, body: Number(pr.mins) >= 75 ? 'Sip water every 15-20 minutes. Past an hour, or when it is hot, add a sports drink for carbs and sodium.' : 'Sip water every 15-20 minutes.' },
-    { at: end + 30, title: 'Recovery', body: `Within an hour: 25-35 g protein plus about ${carbsRecover} g carbs. Example: chocolate milk and a turkey sandwich, or Greek yogurt with granola and fruit. Drink 16-24 oz of fluid.` },
-    { at: Math.max(end + 180, 21 * 60), title: 'Before bed', body: '30-40 g of slow protein helps overnight muscle repair. Example: cottage cheese or Greek yogurt.' },
-  ];
-  return steps.map((st) => ({ ...st, at: Math.max(0, Math.min(23 * 60 + 59, st.at)) }));
-}
 function renderCoach() {
   renderReport(core().report);
   renderSweat();
@@ -2030,7 +2147,7 @@ function renderCoach() {
   const left = { kcal: t.calories - tot.calories, p: Math.round(t.protein - tot.protein), c: Math.round(t.carbs - tot.carbs) };
   $('#coach-left').textContent = `Left today: ${left.kcal.toLocaleString()} kcal · P ${left.p}g · C ${left.c}g`;
   const pr = practiceToday() || core().practice;
-  if (pr && !$('#pr-start').value) { $('#pr-start').value = pr.start; $('#pr-mins').value = String(pr.mins); }
+  if (pr && !$('#pr-start').value) { $('#pr-start').value = pr.start; if (![...$('#pr-mins').options].some((o) => o.value === String(pr.mins))) $('#pr-mins').add(new Option(fmtDur(pr.mins), String(pr.mins))); $('#pr-mins').value = String(pr.mins); $('#pr-type').value = pr.type || 'practice'; $('#pr-int').value = pr.int || 'moderate'; }
   if (!$('#pr-mins').value) $('#pr-mins').value = '120';
   const tl = $('#timeline');
   if (dayDoc(today)?.type === 'rest') {
@@ -2046,15 +2163,14 @@ function renderCoach() {
   const steps = fuelPlan(practiceToday(), t);
   tl.innerHTML = steps.map((st, i) => {
     const next = steps[i + 1]?.at ?? 24 * 60;
-    const isEat = !st.title.startsWith('Practice');
-    const done = isEat && logged.some((m) => m >= st.at - 75 && m <= st.at + 75);
+    const done = !st.session && fuelStepDone(st, logged);
     const cls = done ? 'done' : now >= st.at && now < next ? 'now' : now >= next ? 'past' : '';
-    return `<li class="${cls}"><span class="t-time">${fmtMin(st.at)}</span><span class="t-dot" aria-hidden="true"></span><div><div class="t-title">${st.title}${done ? ' ✓' : cls === 'now' ? ' (now)' : ''}</div><div class="t-body">${st.body}</div></div></li>`;
+    return `<li class="${cls}"><span class="t-time">${fmtMin(st.at)}</span><span class="t-dot" aria-hidden="true"></span><div><div class="t-title">${st.title}${done ? ' ✓' : cls === 'now' ? ' (now)' : ''}</div><div class="t-body">${st.body}</div>${st.session ? '' : `<button type="button" class="mini t-check" data-fuel-done="${esc(st.title)}">${done ? 'Undo' : 'Mark done'}</button>`}</div></li>`;
   }).join('');
 }
 $('#practice-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  const pr = { start: $('#pr-start').value, mins: Number($('#pr-mins').value) };
+  const pr = { start: $('#pr-start').value, mins: Number($('#pr-mins').value), type: $('#pr-type').value, int: $('#pr-int').value };
   if (!pr.start) return toast('Pick a start time');
   const d = dayDoc(todayIso(), true);
   d.practice = pr; if (d.type === 'rest') d.type = 'training';
@@ -2505,7 +2621,7 @@ function todaysSteps() {
   const g = core().game;
   if (g && g.date === today) out.push(...gameDaySteps(g).map((s) => ({ ...s, src: 'game' })));
   else if (g && Math.round((new Date(g.date + 'T12:00:00') - new Date(today + 'T12:00:00')) / 864e5) === 1) out.push(...nightBeforePlan(toMin(g.start)).map((s) => ({ ...s, src: 'night' })));
-  if (!out.length && practiceToday() && dayDoc(today)?.type !== 'rest') out.push(...fuelPlan(practiceToday(), targets(today)).map((s) => ({ ...s, eat: !s.title.startsWith('Practice') })));
+  if (!out.length && practiceToday() && dayDoc(today)?.type !== 'rest') out.push(...fuelPlan(practiceToday(), targets(today)));
   return out.filter((s) => s.eat);
 }
 function checkReminders() {
@@ -2519,6 +2635,15 @@ function checkReminders() {
       done.push('ontrack'); try { sessionStorage.setItem(remindedKey(), JSON.stringify(done)); } catch {}
       $('#reminder-title').textContent = '3 PM check: you are behind';
       $('#reminder-body').textContent = `About ${Math.max(0, bk).toLocaleString()} kcal and ${Math.max(0, bp)} g protein behind pace. Open the Diary for your dinner numbers.`;
+      $('#reminder').hidden = false; return;
+    }
+  }
+  if (nm >= 10 * 60 && nm < 21 * 60 && core().prefs?.waterRem !== false && entriesOf(td).length) {
+    const wt = targets(td).waterOz, have = dayDoc(td)?.water || 0, should = Math.round(wt * Math.min(1, (nm - 420) / 780)), last = Number(localStorage.getItem('ml-water-rem') || 0);
+    if (should - have >= 24 && Date.now() - last > 2 * 3600e3) {
+      try { localStorage.setItem('ml-water-rem', String(Date.now())); } catch {}
+      $('#reminder-title').textContent = 'Water check';
+      $('#reminder-body').textContent = `You're about ${should - have} oz behind pace (${have} of ${wt} oz). Drink a bottle now.`;
       $('#reminder').hidden = false; return;
     }
   }
@@ -2560,7 +2685,7 @@ async function saveCalendar(filename, text) {
 }
 $('#cal-practice').addEventListener('click', () => {
   const pr = practiceToday(); if (!pr) return;
-  const steps = fuelPlan(pr, targets(todayIso())).filter((s) => !s.title.startsWith('Practice'));
+  const steps = fuelPlan(pr, targets(todayIso())).filter((s) => !s.session);
   saveCalendar(`macrolens-fuel-${todayIso()}.ics`, icsFor(todayIso(), steps, 'practice'));
 });
 $('#cal-game').addEventListener('click', () => {
@@ -2700,7 +2825,7 @@ function setMic(on) {
 }
 function micFinished() {
   setMic(false);
-  if ($('#describe-input').value.trim() && aiReady()) $('#describe-btn').click();
+  if ($('#describe-input').value.trim()) $('#describe-btn').click();
 }
 function enableMic() { $('#mic-btn').hidden = false; }
 $('#mic-btn').addEventListener('click', () => {
@@ -3008,11 +3133,6 @@ $$('#daytype button').forEach((b) => b.addEventListener('click', () => {
   persist('day-' + day); renderToday();
   toast(d.type === 'rest' ? 'Rest day: 30% fewer carbs today' : d.type === 'heavy' ? 'Heavy day: 25% more carbs today' : 'Practice / game day: full targets');
 }));
-$$('[data-water]').forEach((b) => b.addEventListener('click', () => {
-  const d = dayDoc(day, true);
-  d.water = Math.max(0, (d.water || 0) + Number(b.dataset.water));
-  persist('day-' + day); renderToday();
-}));
 function shiftDay(n) {
   const d = new Date(day + 'T12:00:00'); d.setDate(d.getDate() + n);
   if (isoDate(d) > todayIso()) return;
@@ -3076,8 +3196,8 @@ function applyKeyState() {
   $('#key-status').textContent = ownKey ? `Key saved (ends in ${ownKey.slice(-4)}). AI scanning is on.` : 'No key saved. AI scanning is off.';
   $('#key-remove').hidden = !ownKey;
   $('#ai-status').textContent = ownKey ? '' : msg;
-  $('#describe-status').textContent = ownKey ? '' : msg;
-  $('#describe-btn').disabled = !ownKey;
+  $('#describe-status').textContent = '';
+  syncDescribe();
   $('#analyze-btn').disabled = !(photos.length && ownKey);
   renderToday();
 }
@@ -3406,7 +3526,7 @@ async function fetchOFF(code) {
   const food = { id: 'bc' + code, source: 'barcode', barcode: code, name, serving: pr.serving_size || (q ? `${q} g` : '100 g'),
     calories: Math.round(kcal), protein: r1(per('proteins') || 0), carbs: r1(per('carbohydrates') || 0), fat: r1(per('fat') || 0) };
   const mg = (v) => (v == null ? null : v * 1000);
-  const micro = { fiber: per('fiber'), sugar: per('added-sugars'), sodium: mg(per('sodium')), iron: mg(per('iron')), calcium: mg(per('calcium')) };
+  const micro = { fiber: per('fiber'), sugar: per('added-sugars'), sodium: mg(per('sodium')), iron: mg(per('iron')), calcium: mg(per('calcium')), potassium: mg(per('potassium')), magnesium: mg(per('magnesium')) };
   for (const [k, v] of Object.entries(micro)) if (v != null && Number.isFinite(v)) food[k] = roundMicro(k, v);
   return food;
 }
@@ -4170,9 +4290,9 @@ function exSuggest() {
 function renderExercise(t) {
   const el = $('#exercise-card'), list = dayDoc(day)?.exercise || [], total = exerciseKcal(day), sug = exSuggest();
   el.innerHTML = `<div class="row-between"><h3>Exercise</h3><span class="muted small num">${total ? `${total.toLocaleString()} kcal burned` : 'Adds to your calorie goal'}</span></div>
-    ${list.length ? `<div style="margin-top:6px">${list.map((x, i) => `<button type="button" class="ex-row" data-ex-del="${i}"><span>${esc(x.name)}<small>${fmtDur(x.mins)} · ${x.int}</small></span><b>${x.kcal.toLocaleString()} kcal</b></button>`).join('')}</div>` : ''}
+    ${list.length ? `<div style="margin-top:6px">${list.map((x, i) => `<button type="button" class="ex-row" data-ex-edit="${i}"><span>${esc(x.name)}${x.rating ? ` <span class="muted">${'★'.repeat(x.rating)}</span>` : ''}<small>${x.time ? fmtMin(toMin(x.time)) + ' · ' : ''}${fmtDur(x.mins)} · ${x.int === 'hard' ? 'intense' : x.int}${x.notes ? ' · ' + esc(x.notes.slice(0, 30)) : ''}</small></span><b>≈ ${x.kcal.toLocaleString()} kcal</b></button>`).join('')}</div>` : ''}
     ${sug ? `<button type="button" class="nv-open" id="ex-sug" style="margin-top:10px"><span>＋ Log ${esc(sug.label)}</span><b class="num" style="flex:none">≈ ${exBurn(sug.type, sug.mins, sug.int).toLocaleString()} kcal</b></button>` : ''}
-    <button class="add-row" type="button" id="ex-open" style="padding-inline:0">＋ Add exercise</button>
+    <button class="add-row" type="button" id="ex-open" style="padding-inline:0">＋ Log a workout</button>
     ${t.exercise ? `<p class="muted small" style="margin:4px 0 0">Today's goal: ${t.baseGoal.toLocaleString()} base + ${t.exKcal.toLocaleString()} exercise = ${t.calories.toLocaleString()} kcal. Extra calories go to carbs to refuel.</p>` : ''}`;
 }
 function addExercise(type, mins, int) {
@@ -4188,19 +4308,6 @@ function syncExSheet() {
   $('#ex-types').innerHTML = EX_TYPES.map(([k, l]) => `<button type="button" class="chip-btn${k === exType ? ' active' : ''}" data-ex-type="${k}">${l}</button>`).join('');
   $('#ex-kcal').textContent = exBurn(exType, $('#ex-mins').value || 0, $('#ex-int').value).toLocaleString();
 }
-$('#exercise-card').addEventListener('click', (e) => {
-  if (e.target.closest('#ex-open')) { exType = 'practice'; $('#ex-mins').value = 60; $('#ex-int').value = 'moderate'; syncExSheet(); return $('#ex-sheet').showModal(); }
-  if (e.target.closest('#ex-sug')) { const s2 = exSuggest(); if (s2) addExercise(s2.type, s2.mins, s2.int); return; }
-  const del = e.target.closest('[data-ex-del]');
-  if (del) {
-    if (del.dataset.confirm !== '1') { del.dataset.confirm = '1'; const b = del.querySelector('b'); b.dataset.was = b.textContent; b.textContent = 'Tap to remove'; setTimeout(() => { if (del.isConnected) { del.dataset.confirm = ''; b.textContent = b.dataset.was; } }, 2500); return; }
-    markUndo(day); const d = dayDoc(day); d.exercise.splice(Number(del.dataset.exDel), 1); persist('day-' + day); render(); toast('Removed');
-  }
-});
-$('#ex-types').addEventListener('click', (e) => { const b = e.target.closest('[data-ex-type]'); if (b) { exType = b.dataset.exType; if (exType === 'practice' || exType === 'game') $('#ex-mins').value = exType === 'game' ? 90 : 120; syncExSheet(); } });
-$('#ex-mins').addEventListener('input', syncExSheet);
-$('#ex-int').addEventListener('change', syncExSheet);
-$('#ex-add').addEventListener('click', () => { addExercise(exType, $('#ex-mins').value, $('#ex-int').value); $('#ex-sheet').close(); });
 
 // ===================== Food grades (A-F) =====================
 // Points per 100 kcal: protein and fiber earn, added sugar and sodium cost, very fatty foods lose one.
@@ -4240,6 +4347,7 @@ let calMonth = todayIso().slice(0, 7);
 function dayStatus(iso) {
   if (iso > todayIso()) return 'future';
   const items = entriesOf(iso); if (!items.length) return 'none';
+  if (calMode === 'cons') { const cs = consistency(iso); return cs >= 75 ? 'g' : cs >= 50 ? 'y' : 'r'; }
   const t = targets(iso), tot = totals(items);
   const calOk = Math.abs(tot.calories - t.calories) <= t.calories * 0.1, proOk = tot.protein >= t.protein * 0.95;
   return calOk && proOk ? 'g' : calOk || proOk ? 'y' : 'r';
@@ -4266,7 +4374,7 @@ function renderMonth() {
 }
 $('#month-card').addEventListener('click', (e) => {
   const nav = e.target.closest('[data-cal-nav]');
-  if (nav) { const [y, m] = calMonth.split('-').map(Number), d = new Date(y, m - 1 + Number(nav.dataset.calNav), 1); calMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; return renderMonth(); }
+  if (nav) { const [y, m] = calMonth.split('-').map(Number), d = new Date(y, m - 1 + Number(nav.dataset.calNav), 1); calMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; renderMonth(); return monthExtras(); }
   const b = e.target.closest('[data-cal-day]'); if (!b || b.disabled) return;
   day = b.dataset.calDay; showView('today');
 });
@@ -4286,7 +4394,7 @@ function offFood(pr) {
     name: brand && !pn.toLowerCase().startsWith(brand.toLowerCase()) ? `${brand} ${pn}`.slice(0, 80) : name, serving: q ? (pr.serving_size || `${q} g`) : '100 g',
     calories: Math.round(kcal), protein: r1(per('proteins') || 0), carbs: r1(per('carbohydrates') || 0), fat: r1(per('fat') || 0) };
   const mg = (v) => (v == null ? null : v * 1000);
-  const micro = { fiber: per('fiber'), sugar: per('added-sugars'), sodium: mg(per('sodium')), iron: mg(per('iron')), calcium: mg(per('calcium')) };
+  const micro = { fiber: per('fiber'), sugar: per('added-sugars'), sodium: mg(per('sodium')), iron: mg(per('iron')), calcium: mg(per('calcium')), potassium: mg(per('potassium')), magnesium: mg(per('magnesium')) };
   for (const [k, v] of Object.entries(micro)) if (v != null && Number.isFinite(v)) food[k] = roundMicro(k, v);
   return food;
 }
@@ -4314,6 +4422,738 @@ async function searchDb(q) {
   }
   renderSearch();
 }
+
+// ===================== Athlete platform: shared helpers =====================
+// Every feature below reads the same diary, workouts and water log, so logging anything updates all of them.
+const kgW = () => (core().profile?.weightLb ?? 150) * 0.4536;
+const exList = (date) => dayDoc(date)?.exercise || [];
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+/** Workouts as minute-of-day windows. With no start time, assume it ended when it was logged. */
+function exWindows(date) {
+  return exList(date).map((x) => { const st = x.time ? toMin(x.time) : Math.max(0, addedMin({ addedAt: x.addedAt }) - Number(x.mins)); return { ...x, st, en: st + Number(x.mins) }; });
+}
+/** Food logged in a window (minutes of the day), by when each item was logged. */
+function eatenBetween(date, a, b) {
+  const t = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  for (const e of entriesOf(date)) { if (!e.addedAt) continue; const m = addedMin(e); if (m >= a && m <= b) { const n = scale(e, e.servings ?? 1); for (const k in t) t[k] += n[k]; } }
+  return t;
+}
+const preFueled = (date, w) => eatenBetween(date, w.st - 240, w.st - 15).calories >= 150 || (dayDoc(date)?.fuelDone || []).some((x) => /meal|snack/i.test(x));
+const postFueled = (date, w) => eatenBetween(date, w.en - 10, w.en + 150).protein >= 20;
+/** Real meals and snacks (150+ kcal). Snacks less than an hour apart count as one. */
+function feedingCount(date) {
+  const d = dayDoc(date); if (!d) return 0;
+  let n = MEALS.slice(0, 3).filter(([k]) => totals(d[k] || []).calories >= 150).length;
+  const sn = [...(d.snacks || [])].sort((a, b) => (a.addedAt || 0) - (b.addedAt || 0)); let g = null;
+  for (const e of sn) { const k = scale(e, e.servings ?? 1).calories; if (g && (e.addedAt || 0) - g.last < 3600000) { g.k += k; g.last = e.addedAt || 0; } else { if (g && g.k >= 150) n++; g = { k, last: e.addedAt || 0 }; } }
+  if (g && g.k >= 150) n++;
+  return n;
+}
+function miniBars(vals, { goals = null, color = 'var(--accent)', fmt = (v) => Math.round(v), labels = [], max: mx = 0, H = 130 } = {}) {
+  const W = 320, L = 6, B = 20, T = 14, n = vals.length, slot = (W - L * 2) / n, bw = slot * 0.62;
+  const max = Math.max(1, mx, ...vals, ...(goals || []).filter(Boolean)) * 1.12, y = (v) => T + (H - T - B) * (1 - v / max);
+  let s = '';
+  vals.forEach((v, i) => {
+    const x = L + slot * i + (slot - bw) / 2, c = typeof color === 'function' ? color(v, i) : color;
+    s += v > 0 ? `<rect x="${x.toFixed(1)}" y="${y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(2, H - B - y(v)).toFixed(1)}" rx="3" fill="${c}"/>` : `<rect x="${x.toFixed(1)}" y="${H - B - 2}" width="${bw.toFixed(1)}" height="2" rx="1" fill="var(--surface-2)"/>`;
+    if (goals?.[i]) s += `<line x1="${(x - 2).toFixed(1)}" x2="${(x + bw + 2).toFixed(1)}" y1="${y(goals[i]).toFixed(1)}" y2="${y(goals[i]).toFixed(1)}" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 2"/>`;
+    if (labels[i]) s += `<text x="${(x + bw / 2).toFixed(1)}" y="${H - 5}" text-anchor="middle">${labels[i]}</text>`;
+    if (v > 0 && n <= 8) s += `<text x="${(x + bw / 2).toFixed(1)}" y="${(y(v) - 4).toFixed(1)}" text-anchor="middle">${fmt(v)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">${s}</svg>`;
+}
+const dayLetter = (iso) => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 2);
+const pace = (date) => (date === todayIso() ? Math.max(0.2, Math.min(1, (nowMin() - 420) / 840)) : 1);
+
+// ===================== Hydration: water log + electrolytes =====================
+function addWater(oz, kind = 'water', label = '') {
+  oz = Math.round(Number(oz)); if (!oz || Math.abs(oz) > 128) return toast('Enter 1 to 128 oz');
+  markUndo(day);
+  const d = dayDoc(day, true);
+  d.water = Math.max(0, (d.water || 0) + oz);
+  if (oz > 0) d.waterLog = [...(d.waterLog || []), { at: Date.now(), oz, kind, label }].slice(-80);
+  persist('day-' + day); render();
+}
+function elecOf(date) {
+  let na = 0, k = 0, mg = 0;
+  for (const e of entriesOf(date)) { const s = e.servings ?? 1; na += (e.sodium || 0) * s; k += (e.potassium || 0) * s; mg += (e.magnesium || 0) * s; }
+  return { na: Math.round(na), k: Math.round(k), mg: Math.round(mg) };
+}
+// Typical label values per bottle or stick (flavors differ a little). Edit or save your own if yours is different.
+const ELEC_PRESETS = [
+  { name: 'Gatorade Thirst Quencher', oz: 20, kcal: 140, carbs: 36, sugar: 34, na: 270, k: 75, mg: 0 },
+  { name: 'Gatorade Zero', oz: 20, kcal: 10, carbs: 2, sugar: 0, na: 270, k: 75, mg: 0 },
+  { name: 'Liquid I.V. stick in 16 oz water', oz: 16, kcal: 45, carbs: 11, sugar: 11, na: 500, k: 370, mg: 0 },
+  { name: 'LMNT stick in 16 oz water', oz: 16, kcal: 10, carbs: 2, sugar: 0, na: 1000, k: 200, mg: 60 },
+  { name: 'Pedialyte Classic', oz: 12, kcal: 35, carbs: 9, sugar: 9, na: 370, k: 280, mg: 0 },
+  { name: 'Propel Electrolyte Water', oz: 17, kcal: 0, carbs: 0, sugar: 0, na: 230, k: 60, mg: 0 },
+  { name: 'BodyArmor SuperDrink', oz: 16, kcal: 120, carbs: 30, sugar: 28, na: 30, k: 700, mg: 0 },
+  { name: 'Coconut water', oz: 11, kcal: 60, carbs: 15, sugar: 0, na: 60, k: 470, mg: 20 },
+  { name: 'Chocolate milk (1 cup)', oz: 8, kcal: 190, carbs: 26, sugar: 12, na: 150, k: 420, mg: 35, protein: 8, fat: 5 },
+];
+const elecAll = () => [...(core().elecProducts || []).map((p, i) => ({ ...p, mine: i })), ...ELEC_PRESETS];
+function logElec(p) {
+  const meal = day === todayIso() ? defaultMeal() : 'snacks';
+  addEntry({ id: 'el' + Date.now(), source: 'drink', name: p.name, serving: `${p.oz} oz`, calories: Math.round(p.kcal) || 0, protein: r1(p.protein || 0), carbs: r1(p.carbs || 0), fat: r1(p.fat || 0), sugar: r1(p.sugar || 0), sodium: Math.round(p.na || 0), potassium: Math.round(p.k || 0), magnesium: Math.round(p.mg || 0) }, meal, 1);
+  const d = dayDoc(day, true); d.water = (d.water || 0) + Math.round(p.oz);
+  d.waterLog = [...(d.waterLog || []), { at: Date.now(), oz: Math.round(p.oz), kind: 'drink', label: p.name }].slice(-80);
+  persist('day-' + day); render();
+  toast(`Logged ${p.name}: ${p.oz} oz counted as water, ${p.na} mg sodium`);
+}
+function sweatSodium(date) {
+  const sw = core().sweat; if (!sw?.rate) return null;
+  const mins = exList(date).filter((x) => !['walk', 'lift', 'shooting'].includes(x.type)).reduce((a, x) => a + Number(x.mins), 0); if (!mins) return null;
+  const liters = sw.rate * (mins / 60) * 0.0296;
+  return { lo: Math.round((liters * 460) / 50) * 50, hi: Math.round((liters * 1150) / 50) * 50, liters: r1(liters) };
+}
+function renderHydration(t) {
+  const d = dayDoc(day) || {}, water = d.water || 0, el = elecOf(day), bottle = Number(core().prefs?.bottleOz) || 24;
+  const b = $('#water-bottle'); b.textContent = `+${bottle} oz bottle`; b.dataset.water = bottle;
+  const pct = Math.round((water / t.waterOz) * 100);
+  $('#water-pct').textContent = pct >= 100 ? 'Goal hit' : `${pct}%`;
+  $('#elec-line').innerHTML = `<span>Sodium <b class="num">${el.na.toLocaleString()}</b> mg</span><span>Potassium <b class="num">${el.k.toLocaleString()}</b> mg</span><span>Magnesium <b class="num">${el.mg}</b> mg</span>`;
+  const ss = sweatSodium(day);
+  $('#elec-note').textContent = ss ? `Estimate: today's training cost about ${ss.liters} L of sweat and ${ss.lo.toLocaleString()}–${ss.hi.toLocaleString()} mg of sodium (sweat varies a lot by person).` : 'Potassium and magnesium only count foods that list them (drinks below, database foods, saved products).';
+  const log = (d.waterLog || []).slice(-4).reverse();
+  $('#water-log').innerHTML = log.length ? log.map((w) => `<span class="chip" style="cursor:default">${new Date(w.at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })} · ${w.oz} oz${w.kind === 'drink' ? ' ' + esc(w.label.split(' ')[0]) : ''}</span>`).join('') : '';
+  const pf = core().prefs || {};
+  if (document.activeElement?.id !== 'wg-goal') $('#wg-goal').value = pf.waterGoal || '';
+  if (document.activeElement?.id !== 'wg-bottle') $('#wg-bottle').value = pf.bottleOz || '';
+  $('#wg-rem').checked = pf.waterRem !== false;
+  $('#wg-note').textContent = `Today's goal: ${t.waterOz} oz.${pf.waterGoal ? ' Your own goal' : ' Starts at about half your body weight in oz'}${core().sweat?.rate ? ', plus your sweat test on training days.' : '. Do a sweat test in Coach to size training days.'}`;
+}
+function renderElecSheet() {
+  $('#el-list').innerHTML = elecAll().map((p, i) => `<div class="el-row"><span><b>${esc(p.name)}</b>${p.mine != null ? '<span class="badge">MINE</span>' : ''}<small>${p.oz} oz · ${p.kcal} kcal · ${p.carbs || 0} g carbs · Na ${p.na} · K ${p.k}${p.mg ? ' · Mg ' + p.mg : ''} mg</small></span><span class="row-gap" style="flex:none">${p.mine != null ? `<button type="button" class="mini" data-el-del="${p.mine}" aria-label="Delete ${esc(p.name)}">✕</button>` : ''}<button type="button" class="btn" data-el-log="${i}">Log</button></span></div>`).join('');
+  $('#el-scan').hidden = !photosReady();
+}
+
+// ===================== Workouts: log, edit, rate =====================
+let exEdit = null, exRating = 0;
+function hhmm(m) { m = Math.max(0, Math.min(1439, Math.round(m))); return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; }
+function openExSheet(i = null, preset = null) {
+  const x = i != null ? exList(day)[i] : null; exEdit = i;
+  exType = x?.type || preset?.type || 'practice'; exRating = x?.rating || 0;
+  $('#ex-title').textContent = x ? 'Edit workout' : 'Log a workout';
+  $('#ex-mins').value = x?.mins || preset?.mins || 60; $('#ex-int').value = x?.int || preset?.int || 'moderate';
+  $('#ex-time').value = x?.time || preset?.time || (day === todayIso() ? hhmm(nowMin() - Number($('#ex-mins').value)) : '16:00');
+  $('#ex-name').value = x?.type === 'other' ? x.name : ''; $('#ex-notes').value = x?.notes || '';
+  $('#ex-add').textContent = x ? 'Save changes' : 'Log workout'; $('#ex-del').hidden = !x; $('#ex-del').dataset.confirm = ''; $('#ex-del').textContent = 'Delete';
+  $('#ex-name-wrap').hidden = exType !== 'other';
+  syncExSheet(); syncExRating(); $('#ex-sheet').showModal();
+}
+function syncExRating() { $('#ex-rate').innerHTML = [1, 2, 3, 4, 5].map((n) => `<button type="button" class="chip-btn${n === exRating ? ' active' : ''}" data-rate="${n}" aria-label="${n} of 5">${n}</button>`).join('') + `<span class="muted small">${['Optional', 'Rough', 'Below average', 'OK', 'Good', 'Great'][exRating]}</span>`; }
+function saveExercise() {
+  const mins = Math.round(Number($('#ex-mins').value)); if (!(mins >= 5 && mins <= 480)) return toast('Minutes must be 5 to 480');
+  const time = $('#ex-time').value || null, int = $('#ex-int').value;
+  if (exType === 'other' && !$('#ex-name').value.trim()) return toast('Name your workout');
+  const name = exType === 'other' ? $('#ex-name').value.trim() : EX_TYPES.find((x) => x[0] === exType)?.[1] || 'Workout';
+  markUndo(day);
+  const d = dayDoc(day, true), list = d.exercise || [], old = exEdit != null ? list[exEdit] : null;
+  const rec = { id: old?.id || 'x' + Date.now(), type: exType, name: name.slice(0, 40), mins, int, kcal: exBurn(exType, mins, int), time, notes: $('#ex-notes').value.trim().slice(0, 300), rating: exRating || null, addedAt: old?.addedAt || Date.now() };
+  if (old) list[exEdit] = rec; else list.push(rec);
+  d.exercise = list;
+  if (d.type === 'rest' && ['practice', 'game', 'conditioning', 'lift'].includes(exType)) d.type = 'training';
+  persist('day-' + day); $('#ex-sheet').close(); render();
+  toast(old ? 'Workout saved' : `Logged ${name}: about ${rec.kcal.toLocaleString()} kcal burned (estimate)`);
+}
+
+// ===================== Post-workout recovery =====================
+function recoveryNeeds(w) {
+  const kg = kgW(), hard = { light: 0.8, moderate: 1, hard: 1.2 }[w.int] || 1, mins = Number(w.mins);
+  const light = ['lift', 'shooting', 'walk', 'skill'].includes(w.type);
+  return { p: Math.max(20, Math.min(40, Math.round(kg * 0.3))), c: Math.round(kg * (light ? 0.5 : mins >= 75 ? 1.0 : 0.7) * hard), oz: core().sweat?.rate ? Math.round(core().sweat.rate * (mins / 60) * 1.25) || 16 : mins >= 75 ? 24 : 16 };
+}
+let postSugg = [];
+function renderPostCard() {
+  const el = $('#post-card'); if (day !== todayIso()) { el.hidden = true; return; }
+  const now = nowMin(), ws = exWindows(day).filter((w) => w.en <= now + 5 && now - w.en <= 240).sort((a, b) => b.en - a.en);
+  if (!ws.length) { el.hidden = true; return; }
+  const w = ws[0], need = recoveryNeeds(w), got = eatenBetween(day, w.en - 10, w.en + 150), by = w.en + 60;
+  el.hidden = false;
+  if (got.protein >= 20) { el.innerHTML = `<div class="row-between"><h3>Recovery</h3><span class="pill ok">Fueled ✓</span></div><p class="small" style="margin:6px 0 0">After ${esc(w.name.toLowerCase())}: ${Math.round(got.protein)} g protein and ${Math.round(got.carbs)} g carbs logged. Keep sipping, about ${need.oz} oz over the next couple of hours.</p>`; return; }
+  postSugg = rescueOptions({ k: need.p * 4 + need.c * 4 + 90, p: need.p, c: need.c, f: 10 }, { mode: 'recovery', filter: 'balanced' }).slice(0, 3);
+  el.innerHTML = `<div class="row-between"><h3>Recovery after ${esc(w.name.toLowerCase())}</h3><span class="pill ${now <= by ? 'ask' : 'skip'}">${now <= by ? 'eat by ' + fmtMin(by) : 'eat soon'}</span></div>
+    <p class="small" style="margin:6px 0 8px">Aim for about <b>${need.p} g protein</b> and <b>${need.c} g carbs</b> in the next hour, and <b>${need.oz} oz</b> of fluid. Estimated for a ${fmtDur(w.mins)} ${w.int === 'hard' ? 'intense' : w.int} ${esc(w.name.toLowerCase())}.</p>
+    ${postSugg.map((o, i) => `<div class="mr-mini"><span><b>${esc(o.title)}</b><small>${o.k} kcal · P ${o.p} · C ${o.c} · F ${o.f}</small></span><button type="button" class="btn" data-post-log="${i}">Log</button></div>`).join('') || '<p class="muted small" style="margin:0">Log a few foods you eat and your best recovery picks show up here.</p>'}
+    <div class="row-gap" style="margin-top:10px"><button type="button" class="btn" data-mr="recovery">More recovery ideas</button><button type="button" class="btn" data-post-water="${Math.min(32, need.oz)}">+${Math.min(32, need.oz)} oz water</button></div>`;
+}
+
+// ===================== Pre-workout plan by workout type =====================
+const PRE_TYPES = {
+  practice: { label: 'Practice', carb: 1, snack: '30-45 g', during: 'Sip water every 15-20 minutes. Past an hour, or in the heat, add a sports drink for carbs and sodium.' },
+  game: { label: 'Game', carb: 1.25, snack: '30-45 g', during: 'Drink at every timeout and between quarters. A sports drink at halftime keeps carbs topped up.' },
+  shooting: { label: 'Shooting workout', carb: 0.6, snack: '15-30 g', during: 'Water is enough for most shooting workouts.' },
+  lift: { label: 'Lift', carb: 0.7, snack: '15-30 g plus a little protein', during: 'Water between sets.' },
+  conditioning: { label: 'Conditioning', carb: 1, snack: '30-45 g', during: 'Water every 15 minutes. Past 60 minutes or in heat, a sports drink helps.' },
+  endurance: { label: 'Long run or ride', carb: 1.25, snack: '30-60 g', during: 'Past 60 minutes take 30-60 g carbs per hour (sports drink, chews, banana) and drink to thirst.' },
+};
+function fuelPlan(pr, t) {
+  const kg = kgW(), P = PRE_TYPES[pr.type] || PRE_TYPES.practice, im = { light: 0.85, moderate: 1, hard: 1.15 }[pr.int || 'moderate'];
+  const start = toMin(pr.start), mins = Number(pr.mins), end = start + mins;
+  const cMeal = Math.round(kg * P.carb * im), rec = recoveryNeeds({ type: pr.type === 'endurance' ? 'run' : pr.type || 'practice', int: pr.int || 'moderate', mins });
+  const steps = [
+    { at: start - 180, eat: true, title: `Pre-${pr.type === 'game' ? 'game' : 'workout'} meal`, body: `A normal meal with about ${cMeal} g carbs and 25-35 g protein. Keep fat and fiber moderate so it digests. Example: chicken and rice bowl, pasta with meat sauce, or a turkey sandwich with fruit.` },
+    { at: start - (pr.type === 'game' ? 60 : 45), eat: true, title: 'Top-off snack', body: `${P.snack} of quick carbs, low in fat and fiber. Example: a banana, pretzels, applesauce or a granola bar.` },
+    { at: start - 20, eat: false, drink: true, title: 'Drink up', body: '8-16 oz of water before you start, so you begin hydrated.' },
+    { at: start, eat: false, session: true, title: `${P.label} (${fmtDur(mins)})`, body: mins >= 60 ? P.during : 'Sip water as you go.' },
+    { at: end + 30, eat: true, title: 'Recovery', body: `Within an hour: about ${rec.p} g protein plus ${rec.c} g carbs, and ${rec.oz} oz of fluid. Example: chocolate milk and a turkey sandwich, or Greek yogurt with granola and fruit.` },
+    { at: Math.max(end + 180, 21 * 60), eat: true, title: 'Before bed', body: '30-40 g of slow protein helps overnight repair. Example: cottage cheese or Greek yogurt.' },
+  ];
+  return steps.map((st) => ({ ...st, at: Math.max(0, Math.min(23 * 60 + 59, st.at)) }));
+}
+function fuelStepDone(st, logged) {
+  if ((dayDoc(todayIso())?.fuelDone || []).includes(st.title)) return true;
+  return st.eat && logged.some((m) => m >= st.at - 75 && m <= st.at + 75);
+}
+
+// ===================== Macro Rescue / What fits? =====================
+const QUICK_RE = /\b(bar|banana|apple|orange|grape|berr|yogurt|milk|shake|jerky|string cheese|nut|almond|pretzel|granola|fruit|cereal|bagel|bread|cracker|rice cake|applesauce|cottage|smoothie|protein|chips|cookie|raisin|trail mix|peanut butter|toast|tortilla|deli|turkey slices|hummus|popcorn|muffin|oatmeal|juice|gatorade|pudding|cheese)/i;
+const BUDGET_RE = /\b(rice|oat|egg|bean|banana|pasta|bread|peanut butter|milk|potato|tuna|lentil|cereal|tortilla|apple|chicken thigh|ground beef|frozen|ramen|popcorn|yogurt)/i;
+const PREP_RE = /\b(grilled|baked|roast|steak|salmon|stir fry|casserole|lasagna|homemade|recipe|burrito bowl|curry|stew|soup|fried rice)/i;
+function rescuePool() {
+  const c = core(), seen = new Set(), out = [];
+  const homeKeys = new Set();
+  for (const iso of lastNDays(30)) for (const e of entriesOf(iso)) homeKeys.add(e.name.toLowerCase());
+  const favKeys = new Set((c.favs || []).map((f) => f.name.toLowerCase()));
+  const add = (f, src) => {
+    if (!f || !(f.calories > 0) || f.calories > 1400) return;
+    if (f.source === 'restaurant' || f.source === 'drink') return;
+    const k = (f.name + '|' + f.serving).toLowerCase(); if (seen.has(k)) return; seen.add(k);
+    const kc = f.calories, pd = (f.protein * 4) / kc, cd = (f.carbs * 4) / kc;
+    out.push({ f, src, pd, cd, home: src !== 'list' || homeKeys.has(f.name.toLowerCase()) || favKeys.has(f.name.toLowerCase()), quick: QUICK_RE.test(f.name) && !PREP_RE.test(f.name), budget: BUDGET_RE.test(f.name), prep: PREP_RE.test(f.name) ? 20 : QUICK_RE.test(f.name) ? 0 : 5 });
+  };
+  (c.favs || []).forEach((f) => add(f, 'fav')); (c.custom || []).forEach((f) => add(f, 'mine')); (c.recents || []).forEach((f) => add(f, 'recent'));
+  FOODS.forEach((f) => add(f, 'list'));
+  return out;
+}
+/** What is left to aim for. size: snack | meal | rest (rest of the day). */
+function rescueTarget(size, date = day) {
+  const t = targets(date), tot = totals(entriesOf(date));
+  const left = { k: t.calories - tot.calories, p: Math.max(0, t.protein - tot.protein), c: Math.max(0, t.carbs - tot.carbs), f: Math.max(0, t.fat - tot.fat) };
+  const share = size === 'snack' ? Math.min(1, 350 / Math.max(350, left.k)) : size === 'meal' ? (left.k > 1300 ? 0.55 : 1) : 1;
+  const k = Math.max(150, Math.round(left.k * share));
+  let p = Math.round(Math.max(10, left.p * share)), c = Math.round(left.c * share), f = Math.round(left.f * share);
+  // Keep the macro targets inside the calories: protein first, then shrink carbs and fat to fit.
+  p = Math.min(p, Math.round((k * 0.6) / 4));
+  const room = k * 1.05 - p * 4, cf = c * 4 + f * 9;
+  if (cf > room) { const sc = Math.max(0, room) / cf; c = Math.round(c * sc); f = Math.round(f * sc); }
+  return { k, p, c, f, left };
+}
+function soonWorkout() {
+  if (day !== todayIso()) return null;
+  const pr = practiceToday(); if (!pr) return null;
+  const mins = toMin(pr.start) - nowMin();
+  return mins >= 0 && mins <= 180 ? mins : null;
+}
+function rescueOptions(tg, { mode = 'normal', filter = 'balanced' } = {}) {
+  let pool = rescuePool();
+  if (filter === 'quick') pool = pool.filter((x) => x.quick);
+  if (filter === 'budget') pool = pool.filter((x) => x.budget);
+  if (filter === 'prep') pool = pool.filter((x) => x.prep <= 5);
+  if (filter === 'home') pool = pool.filter((x) => x.home);
+  const pre = mode === 'pre';
+  const wP = filter === 'protein' ? 3 : mode === 'recovery' ? 2 : 1.3, wC = filter === 'carb' || pre ? 2.5 : mode === 'recovery' ? 1.5 : 1, wF = pre ? 2 : 0.6;
+  const err = (n) => {
+    let e = ((n.k - tg.k) / Math.max(120, tg.k)) ** 2 * 2 + ((n.p - tg.p) / Math.max(15, tg.p)) ** 2 * wP + ((n.c - tg.c) / Math.max(20, tg.c)) ** 2 * wC;
+    if (n.f > tg.f + 5) e += ((n.f - tg.f) / Math.max(10, tg.f)) ** 2 * wF;
+    if (n.k > tg.k * 1.15) e += 2;
+    if (filter === 'protein') e -= (n.p * 4) / Math.max(1, n.k);
+    if (filter === 'carb' || pre) e -= ((n.c * 4) / Math.max(1, n.k)) * 0.8;
+    return e;
+  };
+  const sum = (parts) => { const n = { k: 0, p: 0, c: 0, f: 0 }; for (const [x, s] of parts) { n.k += x.f.calories * s; n.p += x.f.protein * s; n.c += x.f.carbs * s; n.f += x.f.fat * s; } return n; };
+  const cand = [], rank = (arr, key) => [...arr].sort((a, b) => b[key] - a[key]), pick = (x) => (x.src !== 'list' ? 0.15 : 0);
+  for (const x of pool) for (const s of [0.5, 1, 1.5, 2, 3]) { const n = sum([[x, s]]); if (n.k < 60) continue; cand.push({ parts: [[x, s]], n, e: err(n) - pick(x) }); }
+  const prot = rank(pool.filter((x) => x.pd >= 0.28), 'pd').slice(0, 22), carb = rank(pool.filter((x) => x.cd >= 0.45 && x.f.calories >= 70), 'cd').slice(0, 26);
+  for (const a of prot) for (const b of carb) { if (a === b) continue; for (const sa of [0.5, 1, 1.5, 2]) for (const sb of [0.5, 1, 1.5, 2]) { const n = sum([[a, sa], [b, sb]]); cand.push({ parts: [[a, sa], [b, sb]], n, e: err(n) + 0.12 - pick(a) / 2 - pick(b) / 2 }); } }
+  cand.sort((a, b) => a.e - b.e);
+  const out = [], used = new Set(), uses = new Map();
+  for (const o of cand) {
+    const names = o.parts.map(([x]) => x.f.name), key = [...names].sort().join('+'); if (used.has(key)) continue;
+    if (names.some((nm) => (uses.get(nm) || 0) >= 2)) continue;
+    used.add(key); names.forEach((nm) => uses.set(nm, (uses.get(nm) || 0) + 1));
+    const fmtS = (s) => (s === 1 ? '' : s === 0.5 ? '½ × ' : `${s} × `);
+    out.push({ title: o.parts.map(([x, s]) => fmtS(s) + x.f.name).join(' + '), parts: o.parts.map(([x, s]) => ({ food: x.f, s, src: x.src })), k: Math.round(o.n.k), p: Math.round(o.n.p), c: Math.round(o.n.c), f: Math.round(o.n.f), prep: Math.max(...o.parts.map(([x]) => x.prep)), home: o.parts.every(([x]) => x.home) });
+    if (out.length >= 8) break;
+  }
+  return out;
+}
+let mr = { size: 'meal', filter: 'balanced', mode: 'normal', opts: [] };
+function openRescue(mode = null) {
+  mr.mode = mode || (soonWorkout() != null ? 'pre' : 'normal');
+  if (mode === 'recovery' || mode === 'pre') mr.size = 'snack';
+  $('#mr-meal').value = day === todayIso() ? defaultMeal() : 'snacks';
+  renderRescue(); $('#mr-sheet').showModal();
+}
+function renderRescue() {
+  const tg = rescueTarget(mr.size);
+  if (mr.mode === 'recovery') { const w = exWindows(day).sort((a, b) => b.en - a.en)[0]; if (w) { const n = recoveryNeeds(w); tg.p = n.p; tg.c = n.c; tg.k = Math.max(tg.k, n.p * 4 + n.c * 4 + 90); tg.f = 10; } }
+  $$('#mr-size button').forEach((b) => b.classList.toggle('active', b.dataset.size === mr.size));
+  $$('#mr-filters button').forEach((b) => b.classList.toggle('active', b.dataset.filter === mr.filter));
+  const sw = soonWorkout(), full = tg.left.k <= 80 && mr.mode !== 'recovery';
+  $('#mr-target').innerHTML = full
+    ? `You've hit today's calories. If you're still hungry, that's fine: these are lighter, protein-first picks.`
+    : `Aiming for about <b>${tg.k.toLocaleString()} kcal</b> · P <b>${tg.p} g</b> · C <b>${tg.c} g</b> · F <b>${tg.f} g</b>${mr.mode === 'pre' && sw != null ? `. Training in ${fmtDur(sw)}, so these lean on easy carbs and less fat.` : mr.mode === 'recovery' ? '. Recovery: protein plus carbs to refill.' : '.'}`;
+  if (full) { tg.k = 200; tg.p = 20; tg.c = 15; tg.f = 5; }
+  mr.opts = rescueOptions(tg, { mode: mr.mode, filter: mr.filter });
+  $('#mr-list').innerHTML = mr.opts.length ? mr.opts.map((o, i) => `<div class="mr-opt">
+      <div class="row-between"><b>${i === 0 ? '<span class="pill ok" style="margin-right:6px">Best fit</span>' : ''}${o.parts.length > 1 ? 'Combo' : 'Single'}</b><span class="muted small">${o.prep ? `≈${o.prep} min prep` : 'no prep'}${o.home ? ' · you have it' : ''}</span></div>
+      ${o.parts.map((x, j) => `<div class="mr-part"><span>${esc(x.food.name)}<small>${esc(x.food.serving)} per serving</small></span><span class="stepper"><button type="button" data-mr-step="${i}:${j}:-0.5" aria-label="Less">−</button><b class="num">${x.s}</b><button type="button" data-mr-step="${i}:${j}:0.5" aria-label="More">＋</button></span></div>`).join('')}
+      <div class="row-between" style="margin-top:6px"><span class="small num">${o.k} kcal · P ${o.p} · C ${o.c} · F ${o.f}</span><button type="button" class="btn primary" data-mr-log="${i}">Log</button></div></div>`).join('')
+    : `<p class="muted small">Nothing in this filter yet. ${mr.filter === 'home' ? '"At home" means foods you logged in the last 30 days, saved, or starred.' : 'Try Balanced.'}</p>`;
+  $('#mr-ai').hidden = !aiReady();
+}
+function rescueTotals(o) { const n = { k: 0, p: 0, c: 0, f: 0 }; for (const x of o.parts) { n.k += x.food.calories * x.s; n.p += x.food.protein * x.s; n.c += x.food.carbs * x.s; n.f += x.food.fat * x.s; } o.k = Math.round(n.k); o.p = Math.round(n.p); o.c = Math.round(n.c); o.f = Math.round(n.f); }
+function logRescue(o, meal) {
+  for (const x of o.parts) addEntry(x.food, meal, x.s);
+  render(); toast(`Logged ${o.parts.map((x) => x.food.name).join(' + ')} to ${mealLabel(meal)}`);
+}
+
+// ===================== Usual meals =====================
+function usualFor(key, date = day) {
+  const wk = (iso) => { const g = new Date(iso + 'T12:00:00').getDay(); return g === 0 || g === 6; }, we = wk(date), counts = new Map();
+  for (let i = 1; i <= 30; i++) {
+    const iso = shiftIso(date, -i); if (wk(iso) !== we) continue;
+    const items = dayDoc(iso)?.[key] || []; if (!items.length) continue;
+    const sig = items.map((e) => e.name.toLowerCase()).sort().join('|');
+    const c = counts.get(sig) || { n: 0, items }; c.n++; counts.set(sig, c);
+  }
+  let best = null; for (const c of counts.values()) if (c.n >= 2 && (!best || c.n > best.n)) best = c;
+  if (!best) return null;
+  return { items: best.items.map(({ addedAt, ...f }) => f), n: best.n, name: best.items.length === 1 ? best.items[0].name : `${best.items[0].name} + ${best.items.length - 1} more`, kcal: totals(best.items).calories };
+}
+
+// ===================== Add from words (no AI) =====================
+const NUMW = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, twelve: 12, half: 0.5, couple: 2, few: 3, some: 1, double: 2 };
+const UNITW = new Set(['cup', 'cups', 'slice', 'slices', 'piece', 'pieces', 'bowl', 'bowls', 'glass', 'glasses', 'scoop', 'scoops', 'tbsp', 'tablespoon', 'tablespoons', 'tsp', 'serving', 'servings', 'handful', 'bottle', 'can', 'plate', 'plates', 'of', 'x', 'pc', 'pcs', 'order']);
+const SIZEW = { small: 0.75, medium: 1, regular: 1, large: 1.3, big: 1.3, jumbo: 1.6 };
+function parseWords(text) {
+  const mine = [...(core().favs || []), ...(core().custom || []), ...(core().recents || [])], pool = [...mine, ...FOODS], seenFood = new Set();
+  const chunks = String(text).toLowerCase().replace(/[.!?]/g, ',').split(/,|;|\n|\band then\b|\band\b|\bwith\b|\bplus\b|&/).map((s) => s.trim()).filter(Boolean);
+  const out = [], miss = [];
+  for (const raw of chunks) {
+    let words = raw.split(/\s+/), q = 1, size = 1;
+    const m = raw.match(/^(\d+(?:\.\d+)?|\d+\/\d+)/);
+    if (m) { q = m[1].includes('/') ? Number(m[1].split('/')[0]) / Number(m[1].split('/')[1]) : Number(m[1]); words[0] = words[0].slice(m[1].length); }
+    else if (NUMW[words[0]] != null) { q = NUMW[words[0]]; words = words.slice(1); }
+    const clean = []; for (const w of words) { if (!w) continue; if (SIZEW[w]) { size = SIZEW[w]; continue; } if (UNITW.has(w) || NUMW[w] != null || /^(i|had|ate|my|the|for|like|about|just|also)$/.test(w)) continue; clean.push(w); }
+    const phrase = clean.join(' '), toks = nameTokens(phrase); if (!toks.length) continue;
+    let best = null, bs = 0;
+    pool.forEach((f, idx) => {
+      const ft = nameTokens(f.name); if (!ft.length) return;
+      const hit = toks.filter((t) => ft.includes(t)).length; if (!hit) return;
+      const s = hit / toks.length + (hit / ft.length) * 0.5 + (f.name.toLowerCase().includes(phrase) ? 0.3 : 0) + (idx < mine.length ? 0.1 : 0);
+      if (s > bs) { bs = s; best = f; }
+    });
+    if (best && bs >= 0.75) {
+      const key = best.name + '|' + best.serving, amt = Math.max(0.25, Math.round(q * size * 4) / 4);
+      if (seenFood.has(key)) { const prev = out.find((o) => o.key === key); prev.s = Math.round((prev.s + amt) * 4) / 4; continue; }
+      seenFood.add(key); out.push({ key, food: best, s: amt, heard: raw, on: true });
+    } else miss.push(raw);
+  }
+  return { items: out, miss };
+}
+let wordsRes = null;
+function renderWords() {
+  const el = $('#words-out'); if (!wordsRes) { el.innerHTML = ''; return; }
+  const { items, miss } = wordsRes, on = items.filter((x) => x.on);
+  const tot = on.reduce((a, x) => { const n = scale(x.food, x.s); return { k: a.k + n.calories, p: a.p + n.protein }; }, { k: 0, p: 0 });
+  el.innerHTML = `<div class="words-box"><div class="row-between"><b>Matched from your words</b><span class="muted small">No AI · check amounts</span></div>
+    ${items.map((x, i) => { const n = scale(x.food, x.s); return `<div class="mr-part"><label class="check" style="flex:1;min-width:0"><input type="checkbox" data-w-on="${i}"${x.on ? ' checked' : ''}><span>${esc(x.food.name)}<small>heard “${esc(x.heard)}” · ${esc(x.food.serving)} · ${n.calories} kcal</small></span></label><span class="stepper"><button type="button" data-w-step="${i}:-0.5" aria-label="Less">−</button><b class="num">${x.s}</b><button type="button" data-w-step="${i}:0.5" aria-label="More">＋</button></span></div>`; }).join('')}
+    ${miss.length ? `<p class="muted small" style="margin:8px 0 0">Couldn't match: ${miss.map((m) => `<button type="button" class="mini" data-w-search="${esc(m)}">${esc(m)} → search</button>`).join(' ')}</p>` : ''}
+    ${items.length ? `<button type="button" class="btn primary" id="words-log" style="width:100%;margin-top:10px"${on.length ? '' : ' disabled'}>Log ${on.length} item${on.length === 1 ? '' : 's'} · ${tot.k} kcal · ${Math.round(tot.p)} g protein</button>` : '<p class="muted small" style="margin:6px 0 0">No foods matched. Try simple words like “2 eggs, toast, banana”, or use Search.</p>'}</div>`;
+}
+
+// ===================== Favorites =====================
+const favKey = (f) => (f.name + '|' + f.serving).toLowerCase();
+const isFav = (f) => (core().favs || []).some((x) => favKey(x) === favKey(f));
+function toggleFav(f) {
+  const c = core(), { servings, addedAt, ...base } = f;
+  c.favs = isFav(f) ? (c.favs || []).filter((x) => favKey(x) !== favKey(f)) : [base, ...(c.favs || [])].slice(0, 40);
+  persist('core'); return isFav(f);
+}
+
+// ===================== Scores: recovery nutrition + consistency =====================
+const REC_W = [['energy', 'Energy', 25], ['protein', 'Protein', 20], ['carbs', 'Carbs', 15], ['hydration', 'Hydration', 15], ['meals', 'Meal rhythm', 10], ['workout', 'Workout fueling', 15]];
+function recoveryScore(date) {
+  const items = entriesOf(date); if (!items.length) return null;
+  const t = targets(date), tot = totals(items), f = pace(date), water = dayDoc(date)?.water || 0;
+  const r = tot.calories / (t.calories * f);
+  const parts = {
+    energy: r >= 0.9 ? 1 : clamp01(r / 0.9) ** 1.5, // eating more than pace is never marked down
+    protein: clamp01(tot.protein / (t.protein * f * 0.95)),
+    carbs: clamp01(tot.carbs / (t.carbs * f * 0.85)),
+    hydration: clamp01(water / (t.waterOz * f * 0.9)),
+    meals: clamp01(feedingCount(date) / (date === todayIso() ? Math.max(1, Math.round(4 * f)) : 4)),
+  };
+  const now = nowMin(), ws = exWindows(date).filter((w) => date !== todayIso() || w.st <= now);
+  if (ws.length) parts.workout = ws.reduce((a, w) => a + (preFueled(date, w) ? 0.5 : 0) + (date === todayIso() && w.en + 150 > now ? 0.5 : postFueled(date, w) ? 0.5 : 0), 0) / ws.length;
+  let s = 0, wt = 0; for (const [k, , w] of REC_W) if (parts[k] != null) { s += parts[k] * w; wt += w; }
+  return { score: Math.round((s / wt) * 100), parts };
+}
+const HABITS = [['logged', 'Logged food'], ['meals', '3+ meals or snacks'], ['protein', 'Protein goal'], ['energy', 'Ate enough'], ['water', 'Water goal'], ['pre', 'Fueled before training'], ['post', 'Refueled after training']];
+function habitsOf(date) {
+  const items = entriesOf(date); if (!items.length) return null;
+  const t = targets(date), tot = totals(items), f = pace(date), d = dayDoc(date) || {};
+  const h = { logged: items.length >= 3 || MEALS.filter(([k]) => (d[k] || []).length).length >= 2, meals: feedingCount(date) >= (date === todayIso() ? Math.min(3, Math.max(1, Math.round(3 * f))) : 3), protein: tot.protein >= t.protein * f * 0.85, energy: tot.calories >= t.calories * f * 0.8, water: (d.water || 0) >= t.waterOz * f * 0.8 };
+  const ws = exWindows(date);
+  if (ws.length) { h.pre = ws.every((w) => preFueled(date, w)); const done = ws.filter((w) => date !== todayIso() || w.en + 150 <= nowMin()); if (done.length) h.post = done.every((w) => postFueled(date, w)); }
+  return h;
+}
+function consistency(date) { const h = habitsOf(date); if (!h) return null; const v = Object.values(h); return Math.round((v.filter(Boolean).length / v.length) * 100); }
+function weekConsistency(endIso = todayIso()) {
+  const vals = []; for (let i = 0; i < 7; i++) vals.push(consistency(shiftIso(endIso, -i)) ?? 0);
+  vals.sort((a, b) => a - b); vals.shift(); // forgiving: your worst day of the week doesn't count
+  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+}
+function consStreak() {
+  let n = 0, iso = todayIso(), grace = 0;
+  if ((consistency(iso) ?? 0) < 60) iso = shiftIso(iso, -1);
+  for (let i = 0; i < 400; i++) {
+    if ((consistency(iso) ?? 0) >= 60) n++;
+    else if (!grace && n > 0 && (consistency(shiftIso(iso, -1)) ?? 0) >= 60) grace = 1; // one off day doesn't break it
+    else break;
+    iso = shiftIso(iso, -1);
+  }
+  return n;
+}
+const MILESTONES = [3, 7, 14, 21, 30, 50, 75, 100];
+function scoreTips(date) {
+  const r = recoveryScore(date), h = habitsOf(date); if (!r) return { good: [], fix: [], h: {} };
+  const t = targets(date), tot = totals(entriesOf(date)), good = [], fix = [], P = r.parts, f = pace(date);
+  (P.energy >= 0.9 ? good : fix).push(P.energy >= 0.9 ? 'Ate enough to cover training' : `Eat more overall: about ${round50(Math.max(0, t.calories * f - tot.calories)).toLocaleString()} kcal behind for this point in the day`);
+  (P.protein >= 0.9 ? good : fix).push(P.protein >= 0.9 ? 'Protein on point' : `Add protein: ${Math.max(0, Math.round(t.protein * f - tot.protein))} g to go. Try Macro Rescue → High protein`);
+  (P.carbs >= 0.9 ? good : fix).push(P.carbs >= 0.9 ? 'Carbs to refill your energy' : 'More carbs (rice, pasta, bread, fruit) to refill your muscles');
+  (P.hydration >= 0.9 ? good : fix).push(P.hydration >= 0.9 ? 'Hydrated' : 'Drink more water through the day');
+  (P.meals >= 0.9 ? good : fix).push(P.meals >= 0.9 ? 'Good meal rhythm' : 'Spread food over 4 meals or snacks');
+  if (P.workout != null) (P.workout >= 0.9 ? good : fix).push(P.workout >= 0.9 ? 'Fueled before and after training' : 'Eat 1-3 hours before training and get protein within an hour after');
+  return { good, fix, h };
+}
+function scoreRing(v, label, color) {
+  const C = 2 * Math.PI * 26, p = clamp01((v ?? 0) / 100);
+  return `<div class="score-ring"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--surface-2)" stroke-width="7"/><circle cx="32" cy="32" r="26" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${(p * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 32 32)"/><text x="32" y="37" text-anchor="middle" class="rv">${v ?? '–'}</text></svg><small>${label}</small></div>`;
+}
+function renderScoresCard() {
+  const el = $('#scores-card'), r = recoveryScore(day), c = consistency(day);
+  if (!r) { el.hidden = true; return; }
+  el.hidden = false;
+  const tips = scoreTips(day), st = consStreak();
+  el.innerHTML = `<div class="row-between"><h3>${day === todayIso() ? "Today's scores" : 'Scores'}</h3><span class="muted small">${day === todayIso() ? 'so far, vs. pace' : 'full day'}</span></div>
+    <div class="score-row">${scoreRing(r.score, 'Recovery fuel', 'var(--accent)')}${scoreRing(c, 'Consistency', 'var(--protein)')}
+      <div class="score-side"><b>${tips.fix[0] ? 'Next best move' : 'Nice work'}</b><span class="small">${esc(tips.fix[0] || tips.good[0] || '')}</span>${st ? `<span class="muted small">🔥 ${st}-day consistency streak</span>` : ''}</div></div>
+    <button type="button" class="nv-open" data-score-open="1" style="margin-top:10px"><span>See the breakdown</span><span class="muted small" style="flex:none">Trends ›</span></button>`;
+}
+function openScoreSheet() {
+  const r = recoveryScore(day), c = consistency(day), tips = scoreTips(day), h = tips.h || {};
+  const days = lastNDays(30), rs = days.map((d) => recoveryScore(d)?.score ?? 0);
+  const wk = (arr, k) => { const v = arr.slice(arr.length - 7 * (k + 1), arr.length - 7 * k).filter((x) => x > 0); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null; };
+  const st = consStreak(), next = MILESTONES.find((m) => m > st), all = rs.filter((x) => x > 0);
+  $('#sc-body').innerHTML = `<div class="score-row" style="justify-content:center">${scoreRing(r?.score, 'Recovery fuel', 'var(--accent)')}${scoreRing(c, 'Consistency', 'var(--protein)')}</div>
+    <h4 class="sc-h">Recovery fuel breakdown</h4>
+    ${r ? REC_W.filter(([k]) => r.parts[k] != null).map(([k, l, w]) => `<div class="micro"><div class="row-between"><span>${l}</span><span class="muted small num">${Math.round(r.parts[k] * w)} / ${w}</span></div><div class="bar"><div class="bar-fill" style="width:${Math.round(r.parts[k] * 100)}%;background:var(--accent)"></div></div></div>`).join('') : '<p class="muted small">Log food on this day to see a score.</p>'}
+    <h4 class="sc-h">Consistency habits</h4>
+    <div class="habit-grid">${HABITS.filter(([k]) => h[k] != null).map(([k, l]) => `<span class="${h[k] ? 'ok' : ''}">${h[k] ? '✓' : '○'} ${l}</span>`).join('') || '<span>Log food to start.</span>'}</div>
+    <div class="trend-stats" style="margin:12px 0 0"><div><b>${st}</b><small>day streak</small></div><div><b>${weekConsistency()}</b><small>week score</small></div><div><b>${next ? next - st : '🏆'}</b><small>${next ? `days to ${next}` : 'all milestones'}</small></div></div>
+    ${tips.good.length ? `<h4 class="sc-h">Doing well</h4><ul class="sc-list">${tips.good.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    ${tips.fix.length ? `<h4 class="sc-h">Could improve</h4><ul class="sc-list">${tips.fix.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    <h4 class="sc-h">Last 30 days · recovery fuel</h4><div class="chart">${miniBars(rs, { labels: days.map((d, i) => (i % 5 === 4 ? new Date(d + 'T12:00:00').getDate() : '')), max: 100, H: 110 })}</div>
+    <div class="trend-stats" style="margin:4px 0 0"><div><b>${wk(rs, 0) ?? '–'}</b><small>this week</small></div><div><b>${wk(rs, 1) ?? '–'}</b><small>last week</small></div><div><b>${all.length ? Math.round(all.reduce((a, b) => a + b, 0) / all.length) : '–'}</b><small>30-day avg</small></div></div>
+    <p class="muted small" style="margin:14px 0 0"><b>What these scores are:</b> simple habit scores from what you log, compared with your targets. They are not a medical or health assessment. Workout calorie burn is an estimate, and anything you don't log can't count. If you're always tired, often sore, or losing weight without trying, talk to a parent, your doctor, or a sports dietitian.</p>`;
+  $('#score-sheet').showModal();
+}
+
+// ===================== Under-fueling alerts =====================
+function fuelAlerts() {
+  if (day !== todayIso()) return [];
+  const td = todayIso(), now = nowMin(), t = targets(td), tot = totals(entriesOf(td)), out = [], off = dayDoc(td)?.alertsOff || [];
+  const trained = exWindows(td).filter((w) => w.en <= now).reduce((a, w) => a + Number(w.mins), 0);
+  if (trained >= 60 && now >= 17 * 60 && tot.calories < t.calories * 0.5) out.push({ id: 'low-today', lvl: 'warn', title: 'Your body needs more fuel today', body: `You trained ${fmtDur(trained)} and have eaten about ${Math.round((tot.calories / t.calories) * 100)}% of today's target. A real dinner plus a snack helps you recover and play well tomorrow.`, act: 'Show me what fits' });
+  const sw = soonWorkout();
+  if (sw != null && eatenBetween(td, now - 240, now).calories < 150) out.push({ id: 'pre-empty', lvl: 'info', title: `Training in ${fmtDur(sw)}, nothing eaten lately`, body: sw > 60 ? 'Get in a meal or a solid snack with carbs now, so you have energy when it starts.' : 'Grab quick carbs now: a banana, pretzels, applesauce or a granola bar.', act: 'Quick pre-workout ideas', mode: 'pre' });
+  let low = 0, lowDays = 0;
+  for (let i = 1; i <= 7; i++) { const iso = shiftIso(td, -i), items = entriesOf(iso); if (!items.length) continue; if (!(exList(iso).length || dayDoc(iso)?.practice)) continue; lowDays++; if (totals(items).calories < targets(iso).calories * 0.7) low++; }
+  if (low >= 3) out.push({ id: 'pattern', lvl: 'warn', title: `Low fuel on ${low} training days this week`, body: `On ${low} of ${lowDays} logged training days you ate under 70% of your target. Under-fueling can slow recovery, growth and speed. ${low >= 5 ? 'Since this keeps happening, it would be smart to check in with a parent, your athletic trainer, or a sports dietitian.' : 'Try adding one extra snack on training days.'} (Days you didn't fully log can make this look worse than it is.)` });
+  let skipped = 0, seen = 0; for (let i = 1; i <= 7; i++) { const iso = shiftIso(td, -i); if (!entriesOf(iso).length) continue; seen++; if (!(dayDoc(iso)?.breakfast || []).length) skipped++; }
+  if (seen >= 4 && skipped >= 4) out.push({ id: 'breakfast', lvl: 'info', title: `Breakfast missed ${skipped} of ${seen} days`, body: 'Even something small, like Greek yogurt, a banana with peanut butter or a breakfast sandwich, makes your numbers much easier to hit.' });
+  return out.filter((a) => !off.includes(a.id)).slice(0, 2);
+}
+function renderAlerts() {
+  const el = $('#alert-card'), a = fuelAlerts();
+  el.hidden = !a.length; if (!a.length) return;
+  el.innerHTML = a.map((x) => `<div class="alert ${x.lvl}"><div class="row-between"><b>${esc(x.title)}</b><button type="button" class="icon-btn" data-alert-off="${x.id}" aria-label="Hide for today">✕</button></div><p class="small" style="margin:4px 0 0">${esc(x.body)}</p>${x.act ? `<button type="button" class="btn" style="margin-top:8px" data-mr="${x.mode || ''}">${esc(x.act)}</button>` : ''}</div>`).join('');
+}
+
+// ===================== Progress: scores, training, hydration, fuel vs performance =====================
+function renderProgressExtras() {
+  const days14 = lastNDays(14), cs = days14.map((d) => consistency(d) ?? 0), st = consStreak(), next = MILESTONES.find((m) => m > st);
+  const rs7 = lastNDays(7).map((d) => recoveryScore(d)?.score).filter((x) => x != null);
+  if (st > (core().bestStreak || 0)) { core().bestStreak = st; persist('core'); }
+  const hit = MILESTONES.filter((m) => m <= (core().bestStreak || 0));
+  $('#prog-scores').innerHTML = `<div class="row-between"><h3>Scores</h3><button type="button" class="mini" data-score-open="1">Today's breakdown</button></div>
+    <div class="trend-stats" style="margin:8px 0 6px"><div><b>${rs7.length ? Math.round(rs7.reduce((a, b) => a + b, 0) / rs7.length) : '–'}</b><small>recovery fuel, 7-day</small></div><div><b>${weekConsistency()}</b><small>consistency week</small></div><div><b>${st}</b><small>day streak${next ? ` · ${next - st} to ${next}` : ''}</small></div></div>
+    <div class="chart">${miniBars(cs, { labels: days14.map(dayLetter), max: 100, H: 110, color: (v) => (v >= 75 ? 'var(--accent)' : v >= 50 ? 'var(--carbs)' : 'var(--over)') })}</div>
+    <p class="muted small" style="margin:4px 0 0">Daily consistency: logging, meals, protein, eating enough, water, and fueling before and after training. Your worst day each week is dropped, so one off day won't wreck it.${hit.length ? ` Milestones: ${hit.map((m) => `${m}🔥`).join(' ')}` : ''}</p>`;
+
+  const d7 = lastNDays(7), mins = d7.map((d) => exList(d).reduce((a, x) => a + Number(x.mins), 0)), all = d7.flatMap((d) => exList(d));
+  const prev = lastNDays(14).slice(0, 7).reduce((a, d) => a + exList(d).reduce((s, x) => s + Number(x.mins), 0), 0), tm = mins.reduce((a, b) => a + b, 0);
+  const byType = {}; for (const x of all) byType[x.name] = (byType[x.name] || 0) + Number(x.mins);
+  const recent = lastNDays(30).reverse().flatMap((d) => exList(d).map((x) => ({ ...x, d }))).slice(0, 5);
+  $('#prog-train').innerHTML = `<div class="row-between"><h3>Training</h3><span class="muted small">last 7 days</span></div>
+    <div class="trend-stats" style="margin:8px 0 6px"><div><b>${all.length}</b><small>sessions</small></div><div><b>${fmtDur(tm)}</b><small>${prev ? `${tm >= prev ? '▲' : '▼'} ${fmtDur(Math.abs(tm - prev))} vs last wk` : 'total time'}</small></div><div><b>≈${all.reduce((a, x) => a + (x.kcal || 0), 0).toLocaleString()}</b><small>kcal burned (est.)</small></div></div>
+    ${tm ? `<div class="chart">${miniBars(mins, { labels: d7.map(dayLetter), fmt: (v) => v + 'm', H: 110 })}</div>` : '<p class="muted small">Log workouts in the Diary under Exercise to see your training load.</p>'}
+    ${Object.keys(byType).length ? `<div class="chips" style="margin-top:6px">${Object.entries(byType).sort((a, b) => b[1] - a[1]).map(([n, m]) => `<span class="chip" style="cursor:default">${esc(n)} · ${fmtDur(m)}</span>`).join('')}</div>` : ''}
+    ${recent.length ? `<div style="margin-top:8px">${recent.map((x) => `<div class="ex-row" style="cursor:default"><span>${esc(x.name)}<small>${new Date(x.d + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} · ${fmtDur(x.mins)} · ${x.int === 'hard' ? 'intense' : x.int}${x.notes ? ' · ' + esc(x.notes.slice(0, 40)) : ''}</small></span><b>${x.rating ? '★'.repeat(x.rating) : ''}</b></div>`).join('')}</div>` : ''}
+    <p class="muted small" style="margin:6px 0 0">Calorie burn is an estimate from workout type, time, effort and body weight. Real burn varies.</p>`;
+
+  const water = d7.map((d) => dayDoc(d)?.water || 0), goals = d7.map((d) => targets(d).waterOz), wdays = d7.filter((d, i) => water[i] > 0);
+  const el7 = d7.filter((d) => entriesOf(d).length).map((d) => elecOf(d));
+  $('#prog-hydro').innerHTML = `<div class="row-between"><h3>Hydration</h3><span class="muted small">last 7 days</span></div>
+    ${wdays.length ? `<div class="trend-stats" style="margin:8px 0 6px"><div><b>${Math.round(water.reduce((a, b) => a + b, 0) / wdays.length)}</b><small>avg oz a day</small></div><div><b>${water.filter((w, i) => w >= goals[i]).length}/7</b><small>days at goal</small></div><div><b>${el7.length ? Math.round(el7.reduce((a, x) => a + x.na, 0) / el7.length).toLocaleString() : '–'}</b><small>avg sodium mg</small></div></div>
+    <div class="chart">${miniBars(water, { goals, labels: d7.map(dayLetter), color: 'var(--water)', H: 120 })}</div><p class="muted small" style="margin:4px 0 0">Dashed line = that day's goal.</p>` : '<p class="muted small">Log water in the Diary to see your week here.</p>'}`;
+  renderPerf();
+}
+function renderPerf() {
+  const rows = [];
+  for (const iso of lastNDays(60)) for (const w of exWindows(iso)) if (w.rating) {
+    const pre = eatenBetween(iso, w.st - 240, w.st - 15), t = targets(iso), tot = totals(entriesOf(iso)), prevIso = shiftIso(iso, -1);
+    rows.push({ r: w.rating, preK: pre.calories, preC: pre.carbs, prot: tot.protein / t.protein, water: (dayDoc(iso)?.water || 0) / t.waterOz, prevK: entriesOf(prevIso).length ? totals(entriesOf(prevIso)).calories / targets(prevIso).calories : null, fueled: preFueled(iso, w) });
+  }
+  const el = $('#prog-perf'), hi = rows.filter((x) => x.r >= 4), lo2 = rows.filter((x) => x.r <= 2), lo = lo2.length ? lo2 : rows.filter((x) => x.r <= 3);
+  if (rows.length < 4 || !hi.length || !lo.length) {
+    el.innerHTML = `<h3>Fuel → performance</h3><p class="muted small" style="margin:6px 0 0">Rate your workouts 1 to 5 when you log them (Diary → Exercise). After a few good and a few rough ones, this compares what you ate before your best days with your worst. ${rows.length ? `${rows.length} rated so far.` : ''}</p>`; return;
+  }
+  const avg = (arr, k) => { const v = arr.map((x) => x[k]).filter((x) => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  const M = [['Ate in 4 h before', 'preK', (v) => `${Math.round(v)} kcal`], ['Carbs before', 'preC', (v) => `${Math.round(v)} g`], ['Day protein', 'prot', (v) => `${Math.round(v * 100)}%`], ['Water', 'water', (v) => `${Math.round(v * 100)}%`], ['Ate the day before', 'prevK', (v) => `${Math.round(v * 100)}%`]];
+  let bigK = null, bigD = 0;
+  for (const [l, k] of M) { const a = avg(hi, k), b = avg(lo, k); if (a == null || b == null) continue; const d = (a - b) / Math.max(k === 'preK' ? 100 : k === 'preC' ? 15 : 0.15, Math.abs(b)); if (d > bigD) { bigD = d; bigK = l; } }
+  el.innerHTML = `<div class="row-between"><h3>Fuel → performance</h3><span class="muted small">${rows.length} rated workouts</span></div>
+    <table class="cmp"><thead><tr><th></th><th>Best (4-5)</th><th>Rough (${lo2.length ? '1-2' : '1-3'})</th></tr></thead><tbody>
+    ${M.map(([l, k, f]) => { const a = avg(hi, k), b = avg(lo, k); return `<tr><td>${l}</td><td class="num">${a == null ? '–' : f(a)}</td><td class="num">${b == null ? '–' : f(b)}</td></tr>`; }).join('')}
+    <tr><td>Fueled before</td><td class="num">${Math.round((hi.filter((x) => x.fueled).length / hi.length) * 100)}%</td><td class="num">${Math.round((lo.filter((x) => x.fueled).length / lo.length) * 100)}%</td></tr></tbody></table>
+    ${bigK && bigD > 0.2 ? `<p class="small" style="margin:8px 0 0">Biggest difference: <b>${bigK.toLowerCase()}</b> was higher before your best workouts.</p>` : ''}
+    <p class="muted small" style="margin:6px 0 0">Patterns, not proof. Sleep, stress and the workout itself matter too. More ratings make this more useful.</p>`;
+}
+let calMode = 'targets';
+function monthExtras() {
+  const el = $('#month-card');
+  el.insertAdjacentHTML('afterbegin', `<div class="seg2" role="group" aria-label="Calendar colors"><button type="button" data-cal-mode="targets" class="${calMode === 'targets' ? 'active' : ''}">Targets</button><button type="button" data-cal-mode="cons" class="${calMode === 'cons' ? 'active' : ''}">Consistency</button></div>`);
+  if (calMode !== 'cons') return;
+  el.querySelector('.cal-key').innerHTML = '<span><i style="background:var(--accent)"></i>75+ habits</span><span><i style="background:color-mix(in srgb, var(--carbs) 45%, transparent)"></i>50-74</span><span><i style="background:color-mix(in srgb, var(--over) 35%, transparent)"></i>Under 50</span>';
+  const [y, m] = calMonth.split('-').map(Number), n = new Date(y, m, 0).getDate(), vals = [];
+  for (let d = 1; d <= n; d++) { const iso = `${calMonth}-${String(d).padStart(2, '0')}`; if (iso <= todayIso()) { const s = consistency(iso); if (s != null) vals.push(s); } }
+  el.querySelector('.trend-stats').innerHTML = `<div><b>${vals.length}</b><small>days logged</small></div><div><b>${vals.filter((v) => v >= 75).length}</b><small>strong days</small></div><div><b>${vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : '–'}</b><small>avg score</small></div>`;
+}
+
+// ===================== Restaurant menus (built in, no AI) =====================
+// Approximate values from each chain's published nutrition info. Recipes change: check the restaurant's site for exact numbers.
+// Each item: base [kcal, protein, carbs, fat, sodium mg] plus options [label, kcal, p, c, f, na, on by default].
+const CHIP = { tort: ['Burrito tortilla', 320, 8, 50, 9, 600], chk: ['Chicken', 180, 32, 0, 7, 310], stk: ['Steak', 150, 21, 1, 6, 330], bar: ['Barbacoa', 170, 24, 2, 7, 530], car: ['Carnitas', 210, 23, 0, 12, 450], sof: ['Sofritas', 150, 8, 9, 10, 560],
+  dbl: ['Double chicken', 180, 32, 0, 7, 310], wr: ['White rice', 210, 4, 40, 4, 350], br: ['Brown rice', 210, 4, 36, 6, 190], bb: ['Black beans', 130, 8, 22, 1.5, 210], pb: ['Pinto beans', 130, 8, 21, 1.5, 210], fv: ['Fajita veggies', 20, 1, 5, 0, 150],
+  ts: ['Tomato salsa', 25, 0, 4, 0, 550], cs: ['Corn salsa', 80, 3, 16, 1.5, 330], gs: ['Green salsa', 15, 0, 4, 0, 260], sc: ['Sour cream', 110, 2, 2, 9, 30], ch: ['Cheese', 110, 6, 1, 8, 190], gu: ['Guacamole', 230, 2, 8, 22, 370], qu: ['Queso', 120, 5, 4, 9, 250], let: ['Lettuce', 5, 0, 1, 0, 0], chips: ['Side of chips', 540, 7, 73, 25, 390] };
+const chipItem = (n, on) => ({ n, base: [0, 0, 0, 0, 0], mods: Object.entries(CHIP).map(([k, v]) => [...v, on.includes(k)]) });
+const MENUS = {
+  Chipotle: [chipItem('Chicken burrito bowl', ['chk', 'wr', 'bb', 'fv', 'ts', 'ch', 'let']), chipItem('Chicken burrito', ['tort', 'chk', 'wr', 'bb', 'ts', 'ch']), chipItem('Steak bowl', ['stk', 'br', 'pb', 'fv', 'gs', 'let']), chipItem('Double chicken bowl', ['chk', 'dbl', 'wr', 'bb', 'fv', 'ts', 'let']), chipItem('Barbacoa burrito', ['tort', 'bar', 'wr', 'pb', 'cs', 'sc', 'ch']), chipItem('Sofritas bowl', ['sof', 'br', 'bb', 'fv', 'cs', 'let'])],
+  'Chick-fil-A': [
+    { n: 'Chicken Sandwich', base: [420, 29, 41, 18, 1460], mods: [['No bun', -150, -5, -27, -2.5, -270], ['Add cheese', 60, 4, 0, 5, 180], ['Chick-fil-A sauce', 140, 0, 6, 13, 220], ['Polynesian sauce', 110, 0, 13, 6, 210]] },
+    { n: 'Grilled Chicken Sandwich', base: [390, 28, 44, 12, 770], mods: [['Add cheese', 60, 4, 0, 5, 180], ['Honey roasted BBQ', 60, 0, 5, 5, 100]] },
+    { n: 'Spicy Chicken Sandwich', base: [450, 28, 42, 19, 1640], mods: [['Add cheese', 60, 4, 0, 5, 180], ['Ranch', 140, 0, 1, 15, 250]] },
+    { n: 'Nuggets, 8 ct', base: [250, 27, 11, 11, 1000], mods: [['Chick-fil-A sauce', 140, 0, 6, 13, 220], ['Polynesian sauce', 110, 0, 13, 6, 210], ['Barbeque sauce', 45, 0, 11, 0, 180]] },
+    { n: 'Nuggets, 12 ct', base: [380, 40, 16, 17, 1500], mods: [['Chick-fil-A sauce', 140, 0, 6, 13, 220], ['Polynesian sauce', 110, 0, 13, 6, 210], ['Barbeque sauce', 45, 0, 11, 0, 180]] },
+    { n: 'Grilled Nuggets, 8 ct', base: [130, 25, 1, 3, 440], mods: [['Barbeque sauce', 45, 0, 11, 0, 180], ['Polynesian sauce', 110, 0, 13, 6, 210]] },
+    { n: 'Grilled Nuggets, 12 ct', base: [200, 38, 2, 4.5, 660], mods: [['Barbeque sauce', 45, 0, 11, 0, 180], ['Polynesian sauce', 110, 0, 13, 6, 210]] },
+    { n: 'Chick-n-Strips, 3 ct', base: [310, 29, 16, 14, 1000], mods: [['Ranch', 140, 0, 1, 15, 250], ['Barbeque sauce', 45, 0, 11, 0, 180]] },
+    { n: 'Waffle Fries, medium', base: [420, 5, 45, 24, 240], mods: [] }, { n: 'Mac & Cheese, medium', base: [450, 20, 29, 29, 1200], mods: [] },
+    { n: 'Fruit Cup, medium', base: [60, 1, 15, 0, 0], mods: [] }, { n: 'Greek Yogurt Parfait', base: [270, 13, 36, 9, 85], mods: [] }],
+  "McDonald's": [
+    { n: 'Big Mac', base: [590, 25, 46, 34, 1050], mods: [['No Mac sauce', -90, 0, -2, -9, -180], ['No cheese', -50, -3, -1, -4, -210]] },
+    { n: 'Quarter Pounder with Cheese', base: [520, 30, 42, 26, 1140], mods: [['No cheese', -100, -6, -2, -8, -420]] },
+    { n: 'Double Cheeseburger', base: [450, 25, 34, 24, 1110], mods: [['No cheese', -100, -6, -2, -8, -420]] },
+    { n: 'Cheeseburger', base: [300, 15, 32, 13, 720], mods: [['No cheese', -50, -3, -1, -4, -210]] }, { n: 'Hamburger', base: [250, 12, 31, 9, 510], mods: [] },
+    { n: 'McChicken', base: [400, 14, 39, 21, 560], mods: [['No mayo', -90, 0, 0, -10, -70]] },
+    { n: 'Chicken McNuggets, 10 pc', base: [410, 23, 25, 24, 840], mods: [['BBQ sauce', 45, 0, 11, 0, 200], ['Sweet & sour', 50, 0, 12, 0, 150]] },
+    { n: 'Chicken McNuggets, 6 pc', base: [250, 14, 15, 15, 500], mods: [['BBQ sauce', 45, 0, 11, 0, 200]] },
+    { n: 'Egg McMuffin', base: [310, 17, 30, 13, 770], mods: [] }, { n: 'Fries, medium', base: [320, 5, 43, 15, 260], mods: [] }, { n: 'Fries, small', base: [230, 3, 31, 11, 190], mods: [] }, { n: 'Apple slices', base: [15, 0, 4, 0, 0], mods: [] }],
+  'Taco Bell': [
+    { n: 'Crunchy Taco', base: [170, 8, 13, 9, 310], mods: [['Fresco style (no cheese)', -20, -1, 0, -2, -40]] }, { n: 'Soft Taco', base: [180, 9, 18, 8, 500], mods: [] }, { n: 'Chicken Soft Taco', base: [160, 12, 16, 5, 490], mods: [] },
+    { n: 'Bean Burrito', base: [350, 13, 54, 9, 1000], mods: [['Add chicken', 25, 5, 0, 1, 160]] }, { n: 'Burrito Supreme (beef)', base: [390, 16, 50, 14, 1090], mods: [['No sour cream', -20, 0, -1, -2, -5]] },
+    { n: 'Chicken Quesadilla', base: [520, 26, 37, 27, 1250], mods: [] }, { n: 'Cheesy Gordita Crunch', base: [500, 20, 41, 28, 850], mods: [] },
+    { n: 'Cantina Chicken Bowl', base: [490, 25, 46, 22, 1200], mods: [['No avocado ranch', -80, 0, -1, -8, -150]] }, { n: 'Crunchwrap Supreme', base: [530, 16, 71, 21, 1200], mods: [] }],
+};
+let rm = { r: 'Chipotle', open: null, sel: {}, qty: 1, order: [], cmp: [], tab: 'menus' };
+function rmCalc(item, sel, qty = 1) {
+  const n = [...item.base]; item.mods.forEach((m, i) => { if (sel[i]) for (let k = 0; k < 5; k++) n[k] += m[k + 1]; });
+  return { k: Math.round(n[0] * qty), p: Math.round(n[1] * qty), c: Math.round(n[2] * qty), f: Math.round(n[3] * qty), na: Math.round(n[4] * qty) };
+}
+const defSel = (item) => Object.fromEntries(item.mods.map((m, i) => [i, !!m[6]]));
+function rmFit(n) {
+  const tg = rescueTarget('meal');
+  return ((n.k - tg.k) / Math.max(150, tg.k)) ** 2 * 2 + ((n.p - tg.p) / Math.max(15, tg.p)) ** 2 * 1.4 + ((n.c - tg.c) / Math.max(20, tg.c)) ** 2 + (n.f > tg.f + 8 ? ((n.f - tg.f) / Math.max(10, tg.f)) ** 2 * 0.6 : 0);
+}
+function rmName(item, sel) {
+  const def = defSel(item), add = [], rem = [];
+  item.mods.forEach((m, i) => { if (!!sel[i] !== def[i]) (sel[i] ? add : rem).push(m[0].toLowerCase()); });
+  return item.n + (add.length ? ` + ${add.join(', ')}` : '') + (rem.length ? ` (no ${rem.join(', no ')})` : '');
+}
+function renderMenus() {
+  const box = $('#menu-pane'); if (!box) return;
+  $$('#eat-seg button').forEach((b) => b.classList.toggle('active', b.dataset.eat === rm.tab));
+  box.hidden = rm.tab !== 'menus'; $('#ai-order').hidden = rm.tab !== 'ai';
+  if (rm.tab !== 'menus') return;
+  const items = MENUS[rm.r], ranked = items.map((it, i) => ({ i, e: rmFit(rmCalc(it, defSel(it))) })).sort((a, b) => a.e - b.e);
+  const best = new Set(ranked.slice(0, 2).map((x) => x.i)), tg = rescueTarget('meal');
+  const ot = rm.order.reduce((a, o) => ({ k: a.k + o.n.k, p: a.p + o.n.p, c: a.c + o.n.c, f: a.f + o.n.f, na: a.na + o.n.na }), { k: 0, p: 0, c: 0, f: 0, na: 0 });
+  const bestCmp = rm.cmp.length ? rm.cmp.reduce((b, x, j) => (rmFit(x.n) < rmFit(rm.cmp[b].n) ? j : b), 0) : -1;
+  box.innerHTML = `<div class="chips">${Object.keys(MENUS).map((r) => `<button type="button" class="chip-btn${r === rm.r ? ' active' : ''}" data-rm-r="${esc(r)}">${esc(r)}</button>`).join('')}</div>
+    <p class="muted small" style="margin:8px 0">≈ Approximate, from each chain's published nutrition. Check the restaurant's site for exact numbers. “Fits” is ranked for this meal: about ${tg.k.toLocaleString()} kcal and ${tg.p} g protein. Somewhere else? Use <b>AI order</b> or Search.</p>
+    ${rm.order.length ? `<div class="words-box" style="margin-bottom:10px"><div class="row-between"><b>My order</b><button type="button" class="mini" data-rm-clear="1">Clear</button></div>${rm.order.map((o, i) => `<div class="mr-part"><span>${esc(o.name)}<small>${o.n.k} kcal · P ${o.n.p} · C ${o.n.c} · F ${o.n.f}</small></span><button type="button" class="mini" data-rm-del="${i}" aria-label="Remove">✕</button></div>`).join('')}
+      <div class="small num" style="margin:6px 0">Total ≈ ${ot.k.toLocaleString()} kcal · P ${ot.p} · C ${ot.c} · F ${ot.f} · Na ${ot.na.toLocaleString()} mg</div>
+      <button type="button" class="btn primary" id="rm-log" style="width:100%">Log order to ${mealLabel($('#add-meal').value)}</button></div>` : ''}
+    ${rm.cmp.length ? `<div class="words-box" style="margin-bottom:10px"><div class="row-between"><b>Compare</b><button type="button" class="mini" data-rm-cmpclear="1">Clear</button></div><div style="overflow-x:auto"><table class="cmp"><thead><tr><th></th>${rm.cmp.map((o, i) => `<th>${esc(o.name.slice(0, 28))}${i === bestCmp ? ' ⭐' : ''}</th>`).join('')}</tr></thead><tbody>${[['kcal', 'k'], ['Protein g', 'p'], ['Carbs g', 'c'], ['Fat g', 'f'], ['Sodium mg', 'na']].map(([l, k]) => `<tr><td>${l}</td>${rm.cmp.map((o) => `<td class="num">${o.n[k].toLocaleString()}</td>`).join('')}</tr>`).join('')}<tr><td></td>${rm.cmp.map((o, i) => `<td><button type="button" class="mini" data-rm-cmpadd="${i}">＋ order</button></td>`).join('')}</tr></tbody></table></div><p class="muted small" style="margin:4px 0 0">⭐ = closest to what you have left.</p></div>` : ''}
+    <div class="rm-list">${items.map((it, i) => {
+      const open = rm.open === i, sel = open ? rm.sel : defSel(it), n = rmCalc(it, sel, open ? rm.qty : 1);
+      return `<div class="rm-item${open ? ' open' : ''}"><button type="button" data-rm-open="${i}"><div><div class="entry-name">${best.has(i) ? '<span class="pill ok" style="margin-right:6px">Fits</span>' : ''}${esc(it.n)}</div><div class="entry-sub">≈ ${n.k} kcal · P ${n.p} · C ${n.c} · F ${n.f}</div></div><span class="add-plus" aria-hidden="true">${open ? '−' : '＋'}</span></button>
+        ${open ? `<div class="rm-custom">${it.mods.length ? `<div class="rm-mods">${it.mods.map((m, j) => `<label class="check"><input type="checkbox" data-rm-mod="${j}"${rm.sel[j] ? ' checked' : ''}><span>${esc(m[0])} <small class="muted">${m[1] > 0 ? '+' : ''}${m[1]} kcal</small></span></label>`).join('')}</div>` : ''}
+          <div class="row-between" style="margin:8px 0"><span class="small">How many</span><span class="stepper"><button type="button" data-rm-qty="-1" aria-label="Fewer">−</button><b class="num">${rm.qty}</b><button type="button" data-rm-qty="1" aria-label="More">＋</button></span></div>
+          <div class="small num">≈ ${n.k} kcal · P ${n.p} g · C ${n.c} g · F ${n.f} g · Na ${n.na.toLocaleString()} mg</div>
+          <div class="row-gap" style="margin-top:8px"><button type="button" class="btn primary grow" data-rm-add="1">Add to my order</button><button type="button" class="btn" data-rm-cmp="1"${rm.cmp.length >= 3 ? ' disabled' : ''}>Compare</button></div></div>` : ''}</div>`;
+    }).join('')}</div>`;
+}
+function rmCurrent() { const it = MENUS[rm.r][rm.open]; return { name: `${rm.r} ${rmName(it, rm.sel)}${rm.qty > 1 ? ` ×${rm.qty}` : ''}`, n: rmCalc(it, rm.sel, rm.qty) }; }
+function logOrder() {
+  const meal = $('#add-meal').value;
+  rm.order.forEach((o, i) => addEntry({ id: 'rs' + Date.now() + i, source: 'restaurant', estimate: true, name: o.name.slice(0, 80), serving: '1 order', calories: o.n.k, protein: o.n.p, carbs: o.n.c, fat: o.n.f, sodium: o.n.na }, meal, 1));
+  const k = rm.order.reduce((a, o) => a + o.n.k, 0), n = rm.order.length; rm.order = []; sheet.close(); render();
+  toast(`Logged ${n} restaurant item${n === 1 ? '' : 's'} (≈ ${k.toLocaleString()} kcal) to ${mealLabel(meal)}`);
+}
+
+// ===================== Athlete platform: event wiring =====================
+// Water card
+$('#water-card').addEventListener('click', (e) => {
+  const w = e.target.closest('[data-water]'); if (w) return addWater(Number(w.dataset.water));
+  if (e.target.closest('#water-custom-add')) { const v = Number($('#water-custom').value); if (!(v >= 1 && v <= 128)) return toast('Enter 1 to 128 oz'); $('#water-custom').value = ''; return addWater(v); }
+  if (e.target.closest('#elec-open')) { renderElecSheet(); return $('#el-sheet').showModal(); }
+  if (e.target.closest('#wg-save')) {
+    const g = $('#wg-goal').value.trim(), bt = $('#wg-bottle').value.trim();
+    if (g && !(Number(g) >= 32 && Number(g) <= 300)) return toast('Water goal: 32 to 300 oz, or leave blank');
+    if (bt && !(Number(bt) >= 4 && Number(bt) <= 64)) return toast('Bottle size: 4 to 64 oz');
+    core().prefs = { ...(core().prefs || {}), waterGoal: g ? Math.round(Number(g)) : null, bottleOz: bt ? Math.round(Number(bt)) : null, waterRem: $('#wg-rem').checked };
+    persist('core'); render(); toast('Water settings saved');
+  }
+});
+$('#water-custom').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('#water-custom-add').click(); } });
+// Electrolyte sheet
+$('#el-list').addEventListener('click', (e) => {
+  const lg = e.target.closest('[data-el-log]'); if (lg) { logElec(elecAll()[Number(lg.dataset.elLog)]); return $('#el-sheet').close(); }
+  const dl = e.target.closest('[data-el-del]'); if (dl) { const c = core(); c.elecProducts = (c.elecProducts || []).filter((_, i) => i !== Number(dl.dataset.elDel)); persist('core'); renderElecSheet(); toast('Removed'); }
+});
+$('#el-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const v = (id) => Number($(id).value || 0), name = $('#elf-name').value.trim();
+  if (!name) return toast('Name the drink');
+  const p = { name: name.slice(0, 50), oz: v('#elf-oz'), kcal: Math.round(v('#elf-kcal')), carbs: r1(v('#elf-carbs')), sugar: 0, na: Math.round(v('#elf-na')), k: Math.round(v('#elf-k')), mg: Math.round(v('#elf-mg')) };
+  if (!(p.oz >= 1 && p.oz <= 64)) return toast('Size must be 1 to 64 oz');
+  if ([p.kcal, p.carbs, p.na, p.k, p.mg].some((x) => x < 0 || x > 5000)) return toast('Check the numbers');
+  const c = core(); c.elecProducts = [p, ...(c.elecProducts || [])].slice(0, 20); persist('core');
+  e.target.reset(); $('#el-new').open = false; renderElecSheet(); toast(`Saved ${p.name}`);
+});
+$('#el-scan').addEventListener('click', () => { $('#el-sheet').close(); openAdd(day === todayIso() ? defaultMeal() : 'snacks', 'scan'); $('[data-mode="label"]')?.click(); });
+
+// Exercise card + sheet
+$('#exercise-card').addEventListener('click', (e) => {
+  if (e.target.closest('#ex-open')) return openExSheet();
+  if (e.target.closest('#ex-sug')) { const s2 = exSuggest(); if (s2) openExSheet(null, s2); return; }
+  const ed = e.target.closest('[data-ex-edit]'); if (ed) openExSheet(Number(ed.dataset.exEdit));
+});
+$('#ex-types').addEventListener('click', (e) => { const b = e.target.closest('[data-ex-type]'); if (!b) return; exType = b.dataset.exType; if (exEdit == null && (exType === 'practice' || exType === 'game')) $('#ex-mins').value = exType === 'game' ? 90 : 120; $('#ex-name-wrap').hidden = exType !== 'other'; syncExSheet(); });
+$('#ex-mins').addEventListener('input', syncExSheet);
+$('#ex-int').addEventListener('change', syncExSheet);
+$('#ex-rate').addEventListener('click', (e) => { const b = e.target.closest('[data-rate]'); if (!b) return; exRating = exRating === Number(b.dataset.rate) ? 0 : Number(b.dataset.rate); syncExRating(); });
+$('#ex-add').addEventListener('click', saveExercise);
+$('#ex-del').addEventListener('click', () => {
+  const b = $('#ex-del');
+  if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Tap again to delete'; return; }
+  markUndo(day); dayDoc(day).exercise.splice(exEdit, 1); persist('day-' + day); $('#ex-sheet').close(); render(); toast('Workout removed');
+});
+
+// Recovery card, alerts, scores, Macro Rescue entry points (anywhere in the diary or progress)
+document.addEventListener('click', (e) => {
+  const m = e.target.closest('[data-mr]'); if (m && !m.closest('#mr-sheet')) return openRescue(m.dataset.mr || null);
+  if (e.target.closest('[data-score-open]')) return openScoreSheet();
+  const pl = e.target.closest('[data-post-log]'); if (pl) { const o = postSugg[Number(pl.dataset.postLog)]; if (o) logRescue(o, day === todayIso() ? defaultMeal() : 'snacks'); return; }
+  const pw = e.target.closest('[data-post-water]'); if (pw) return addWater(Number(pw.dataset.postWater));
+  const ao = e.target.closest('[data-alert-off]'); if (ao) { const d = dayDoc(day, true); d.alertsOff = [...(d.alertsOff || []), ao.dataset.alertOff]; persist('day-' + day); return renderAlerts(); }
+  const cm = e.target.closest('[data-cal-mode]'); if (cm) { calMode = cm.dataset.calMode; renderMonth(); monthExtras(); }
+});
+$('#mr-size').addEventListener('click', (e) => { const b = e.target.closest('[data-size]'); if (b) { mr.size = b.dataset.size; renderRescue(); } });
+$('#mr-filters').addEventListener('click', (e) => { const b = e.target.closest('[data-filter]'); if (b) { mr.filter = b.dataset.filter; renderRescue(); } });
+$('#mr-list').addEventListener('click', (e) => {
+  const st = e.target.closest('[data-mr-step]');
+  if (st) { const [i, j, d] = st.dataset.mrStep.split(':').map(Number), o = mr.opts[i], x = o.parts[j]; x.s = Math.max(0.5, Math.min(6, x.s + d)); rescueTotals(o); const box = st.closest('.mr-opt'); box.querySelectorAll('.stepper b')[j].textContent = x.s; box.querySelector('.small.num').textContent = `${o.k} kcal · P ${o.p} · C ${o.c} · F ${o.f}`; return; }
+  const lg = e.target.closest('[data-mr-log]'); if (lg) { logRescue(mr.opts[Number(lg.dataset.mrLog)], $('#mr-meal').value); $('#mr-sheet').close(); }
+});
+$('#mr-ai').addEventListener('click', () => {
+  const tg = rescueTarget(mr.size); $('#mr-sheet').close(); showView('coach'); setCoachGroup('ask');
+  $('#chat-input').value = `What should I eat for about ${tg.k} kcal, ${tg.p} g protein, ${tg.c} g carbs?${mr.filter !== 'balanced' ? ` Filter: ${$('#mr-filters .active')?.textContent || mr.filter}.` : ''}${mr.mode === 'pre' ? ' I train soon.' : mr.mode === 'recovery' ? ' I just finished training.' : ''} Give 3 options with amounts.`;
+  $('#chat-input').focus();
+});
+
+// Usual meals on empty meal cards
+$('#meals').addEventListener('click', (e) => {
+  const u = e.target.closest('[data-usual]'); if (!u) return;
+  const key = u.dataset.usual, us = usualFor(key); if (!us) return;
+  addMealItems(us.items, key); render(); toast(`Added your usual ${mealLabel(key).toLowerCase()}: ${us.name}`);
+});
+
+// Add from words
+$('#describe-btn').addEventListener('click', (e) => {
+  if (aiReady()) return;
+  e.stopImmediatePropagation();
+  const t = $('#describe-input').value.trim(); if (!t) return toast('Type or say what you ate first');
+  wordsRes = parseWords(t); renderWords();
+}, true);
+$('#words-out').addEventListener('click', (e) => {
+  const st = e.target.closest('[data-w-step]'); if (st) { const [i, d] = st.dataset.wStep.split(':').map(Number); wordsRes.items[i].s = Math.max(0.25, Math.min(10, wordsRes.items[i].s + d)); return renderWords(); }
+  const sr = e.target.closest('[data-w-search]'); if (sr) { $('#search-input').value = sr.dataset.wSearch; return switchPane('search'); }
+  if (e.target.closest('#words-log')) {
+    const meal = $('#add-meal').value, on = wordsRes.items.filter((x) => x.on);
+    on.forEach((x) => addEntry(x.food, meal, x.s)); wordsRes = null; renderWords(); $('#describe-input').value = '';
+    sheet.close(); render(); toast(`Logged ${on.length} item${on.length === 1 ? '' : 's'} to ${mealLabel(meal)}`);
+  }
+});
+$('#words-out').addEventListener('change', (e) => { const c = e.target.closest('[data-w-on]'); if (c) { wordsRes.items[Number(c.dataset.wOn)].on = c.checked; renderWords(); } });
+function syncDescribe() {
+  const ai = aiReady();
+  $('#describe-btn').disabled = false;
+  $('#describe-btn').textContent = ai ? 'Estimate with AI' : 'Add from words';
+  $('#describe-hint').textContent = ai ? '' : 'Works without AI: matches your words to your foods and the food list. Example: “2 eggs, 2 toast, banana, glass of milk”.';
+}
+
+// Favorites in the food dialog
+$('#fd-fav').addEventListener('click', () => { const on = toggleFav(fdCtx.food); $('#fd-fav').textContent = on ? '★' : '☆'; $('#fd-fav').setAttribute('aria-pressed', String(on)); toast(on ? 'Starred: shows first in Search' : 'Removed from favorites'); });
+
+// Restaurant menus
+$('#eat-seg').addEventListener('click', (e) => { const b = e.target.closest('[data-eat]'); if (b) { rm.tab = b.dataset.eat; renderMenus(); } });
+$('#menu-pane').addEventListener('click', (e) => {
+  const r = e.target.closest('[data-rm-r]'); if (r) { rm.r = r.dataset.rmR; rm.open = null; return renderMenus(); }
+  const o = e.target.closest('[data-rm-open]'); if (o) { const i = Number(o.dataset.rmOpen); if (rm.open === i) rm.open = null; else { rm.open = i; rm.sel = defSel(MENUS[rm.r][i]); rm.qty = 1; } return renderMenus(); }
+  const q = e.target.closest('[data-rm-qty]'); if (q) { rm.qty = Math.max(1, Math.min(6, rm.qty + Number(q.dataset.rmQty))); return renderMenus(); }
+  if (e.target.closest('[data-rm-add]')) { rm.order.push(rmCurrent()); rm.open = null; toast('Added to your order'); return renderMenus(); }
+  if (e.target.closest('[data-rm-cmp]')) { if (rm.cmp.length < 3) rm.cmp.push(rmCurrent()); return renderMenus(); }
+  const ca = e.target.closest('[data-rm-cmpadd]'); if (ca) { rm.order.push(rm.cmp[Number(ca.dataset.rmCmpadd)]); toast('Added to your order'); return renderMenus(); }
+  if (e.target.closest('[data-rm-cmpclear]')) { rm.cmp = []; return renderMenus(); }
+  if (e.target.closest('[data-rm-clear]')) { rm.order = []; return renderMenus(); }
+  const dl = e.target.closest('[data-rm-del]'); if (dl) { rm.order.splice(Number(dl.dataset.rmDel), 1); return renderMenus(); }
+  if (e.target.closest('#rm-log')) logOrder();
+});
+$('#menu-pane').addEventListener('change', (e) => { const c = e.target.closest('[data-rm-mod]'); if (c) { rm.sel[Number(c.dataset.rmMod)] = c.checked; renderMenus(); } });
+
+// Pre-workout: tick a step done by hand
+$('#timeline').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-fuel-done]'); if (!b) return;
+  const d = dayDoc(todayIso(), true), t = b.dataset.fuelDone, s = new Set(d.fuelDone || []);
+  s.has(t) ? s.delete(t) : s.add(t); d.fuelDone = [...s]; persist('day-' + todayIso()); renderCoach(); render();
+});
+syncDescribe();
 
 // ===================== Coach tabs =====================
 const COACH_TAB_KEY = 'macrolens-coach-tab';
