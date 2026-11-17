@@ -161,10 +161,10 @@ function allPRs() {
 // ===================== basketball =====================
 // Court zones use the Court Lab spot ids so MacroLens's Performance DNA can read the same shooting sessions.
 const ZONES = [
-  { id: 'lay', name: 'At the rim', pts: 2, x: 250, y: 70 }, { id: 'lbm', name: 'L baseline', pts: 2, x: 120, y: 75 }, { id: 'rbm', name: 'R baseline', pts: 2, x: 380, y: 75 },
-  { id: 'le', name: 'L elbow', pts: 2, x: 170, y: 190 }, { id: 'ft', name: 'Free throw', pts: 1, x: 250, y: 200 }, { id: 're', name: 'R elbow', pts: 2, x: 330, y: 190 },
-  { id: 'lc3', name: 'L corner 3', pts: 3, x: 40, y: 60 }, { id: 'lw3', name: 'L wing 3', pts: 3, x: 85, y: 245 }, { id: 'top3', name: 'Top 3', pts: 3, x: 250, y: 320 },
-  { id: 'rw3', name: 'R wing 3', pts: 3, x: 415, y: 245 }, { id: 'rc3', name: 'R corner 3', pts: 3, x: 460, y: 60 },
+  { id: 'lay', name: 'At the rim', pts: 2, x: 250, y: 105 }, { id: 'lbm', name: 'L baseline', pts: 2, x: 110, y: 70 }, { id: 'rbm', name: 'R baseline', pts: 2, x: 390, y: 70 },
+  { id: 'le', name: 'L elbow', pts: 2, x: 118, y: 200 }, { id: 'ft', name: 'Free throw', pts: 1, x: 250, y: 236 }, { id: 're', name: 'R elbow', pts: 2, x: 382, y: 200 },
+  { id: 'lc3', name: 'L corner 3', pts: 3, x: 20, y: 82 }, { id: 'lw3', name: 'L wing 3', pts: 3, x: 72, y: 300 }, { id: 'top3', name: 'Top 3', pts: 3, x: 250, y: 335 },
+  { id: 'rw3', name: 'R wing 3', pts: 3, x: 428, y: 300 }, { id: 'rc3', name: 'R corner 3', pts: 3, x: 480, y: 82 },
 ];
 const SHOT_CATS = [['cs3', 'Catch-and-shoot 3s'], ['otd3', 'Off-the-dribble 3s'], ['corner3', 'Corner 3s'], ['mid', 'Midrange pull-ups'], ['ftc', 'Free throws'], ['fin', 'Finishing'], ['float', 'Floaters']];
 const shotSessions = () => [...(doc('aos-shots').sessions || [])].sort((a, b) => a.date.localeCompare(b.date) || (a.at || 0) - (b.at || 0));

@@ -1,0 +1,32 @@
+<title>Athlete OS</title>
+<meta name="description" content="Athlete performance headquarters: analytics, basketball shot charts, testing and PRs, recovery, nutrition from MacroLens, and AI coaching.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/*CSS*/
+</style>
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand"><span class="mark" id="brand-mark"></span><span>Athlete<i>OS</i></span></div>
+    <div class="top-actions">
+      <span class="sync" id="sync" data-s="local">This device</span>
+      <a class="fuel-link" data-ml href="macrolens.html">MacroLens</a>
+      <button type="button" class="icon-btn" id="btn-apps" data-act="apps" aria-label="Your apps"></button>
+      <button type="button" class="icon-btn" id="btn-settings" data-act="settings" aria-label="Profile and settings"></button>
+    </div>
+  </header>
+  <main>
+    <section id="view-home" class="view"></section>
+    <section id="view-analytics" class="view" hidden></section>
+    <section id="view-hoops" class="view" hidden></section>
+    <section id="view-tests" class="view" hidden></section>
+    <section id="view-coach" class="view" hidden></section>
+  </main>
+</div>
+<nav class="tabbar" id="tabbar" aria-label="Main"></nav>
+<dialog class="sheet" id="sheet" aria-label="Form"></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+/*JS*/
+</script>

@@ -2,6 +2,7 @@
 // Every chart is drawn as SVG at the container's real width (so text stays crisp), from live data, and redrawn on change.
 // Tooltips: any element with data-tip="Title|Detail" inside a .chart shows a bubble when tapped or hovered.
 let gradN = 0;
+const tickDec = (ticks) => { const st = Math.abs((ticks[1] ?? ticks[0] + 1) - ticks[0]) || 1; return Math.max(0, Math.min(3, -Math.floor(Math.log10(st) + 1e-9))); };
 const nf = (v, d = 0) => (v == null ? '—' : Number(v).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: 0 }));
 function niceTicks(lo, hi, n = 4) {
   if (lo === hi) { lo -= 1; hi += 1; }
@@ -66,7 +67,7 @@ function drawLine(el, pts, o = {}) {
     <filter id="${id}f" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"/></filter></defs>
     ${bands}
     <g class="grid">${ticks.map((v) => `<line x1="${L}" x2="${W - R}" y1="${r1(ys(v))}" y2="${r1(ys(v))}"/>`).join('')}</g>
-    <g class="axis">${ticks.map((v) => `<text x="${L - 6}" y="${r1(ys(v)) + 3.5}" text-anchor="end">${esc(o.tick ? o.tick(v) : nf(v, Math.abs(hi - lo) < 5 ? 1 : 0))}</text>`).join('')}
+    <g class="axis">${ticks.map((v) => `<text x="${L - 6}" y="${r1(ys(v)) + 3.5}" text-anchor="end">${esc(o.tick ? o.tick(v) : nf(v, tickDec(ticks)))}</text>`).join('')}
     ${labs.map((k) => `<text x="${P[k][0]}" y="${H - 6}" text-anchor="${k === 0 && labs.length > 1 ? 'start' : k === pts.length - 1 && labs.length > 1 ? 'end' : 'middle'}">${esc(fmtD(pts[k].date))}</text>`).join('')}</g>
     ${o.goal != null ? `<line x1="${L}" x2="${W - R}" y1="${r1(ys(o.goal))}" y2="${r1(ys(o.goal))}" stroke="var(--good)" stroke-dasharray="5 4" stroke-width="1.4"/><text x="${W - R}" y="${r1(ys(o.goal)) - 5}" text-anchor="end" fill="var(--good)" font-size="10.5" font-weight="600">${esc(o.goalLabel || 'Goal')}</text>` : ''}
     ${area ? `<path d="${area}" fill="url(#${id})"/>` : ''}
@@ -152,7 +153,7 @@ function drawScatter(el, ps, o = {}) {
   const fit = o.fit;
   el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(o.label || 'Scatter plot')}">
     <g class="grid">${yt.map((v) => `<line x1="${L}" x2="${W - R}" y1="${r1(ys(v))}" y2="${r1(ys(v))}"/>`).join('')}${xt.map((v) => `<line y1="${T}" y2="${H - B}" x1="${r1(xs(v))}" x2="${r1(xs(v))}"/>`).join('')}</g>
-    <g class="axis">${yt.map((v) => `<text x="${L - 6}" y="${r1(ys(v)) + 3.5}" text-anchor="end">${nf(v, 1)}</text>`).join('')}${xt.map((v) => `<text x="${r1(xs(v))}" y="${H - B + 14}" text-anchor="middle">${nf(v, 1)}</text>`).join('')}
+    <g class="axis">${yt.map((v) => `<text x="${L - 6}" y="${r1(ys(v)) + 3.5}" text-anchor="end">${nf(v, tickDec(yt))}</text>`).join('')}${xt.map((v) => `<text x="${r1(xs(v))}" y="${H - B + 14}" text-anchor="middle">${nf(v, tickDec(xt))}</text>`).join('')}
     <text x="${(L + W - R) / 2}" y="${H - 3}" text-anchor="middle" font-weight="600">${esc(o.xl || '')}</text>
     <text transform="translate(11 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle" font-weight="600">${esc(o.yl || '')}</text></g>
     ${fit ? `<line x1="${xs(xl)}" y1="${r1(ys(fit.icpt + fit.slope * xl))}" x2="${xs(xh)}" y2="${r1(ys(fit.icpt + fit.slope * xh))}" stroke="var(--purple)" stroke-width="2.2" stroke-dasharray="6 4" clip-path="inset(0)"/>` : ''}
@@ -180,28 +181,28 @@ function heatColor(pct, pts) {
 function courtSvg(agg, o = {}) {
   const z = (id) => ZONES.find((x) => x.id === id);
   const line = 'var(--court-line, rgba(160,180,255,.55))';
+  // Hoop at (250,52), 3-point arc radius 237, corner lines at x=40/460 (meet the arc at y=162).
   const zoneShape = {
-    lc3: 'M0,0H32V140H0Z', rc3: 'M468,0H500V140H468Z',
-    lw3: 'M0,140H32C60,220 110,280 170,312L130,380H0Z', rw3: 'M500,140H468C440,220 390,280 330,312L370,380H500Z',
-    top3: 'M170,312C220,334 280,334 330,312L370,380H130Z',
-    lbm: 'M32,0H180V130H40C36,90 33,45 32,0Z', rbm: 'M468,0H320V130H460C464,90 467,45 468,0Z',
-    lay: 'M180,0H320V130H180Z',
-    le: 'M40,130H180V250C120,230 70,190 40,130Z', re: 'M460,130H320V250C380,230 430,190 460,130Z',
-    ft: 'M180,130H320V250C290,262 210,262 180,250Z',
+    lc3: 'M0,0H40V162H0Z', rc3: 'M460,0H500V162H460Z',
+    lw3: 'M0,162H40A237,237 0 0 0 170,275V380H0Z', rw3: 'M330,275A237,237 0 0 0 460,162H500V380H330Z',
+    top3: 'M170,275A237,237 0 0 0 330,275V380H170Z',
+    lbm: 'M40,0H180V130H40Z', rbm: 'M320,0H460V130H320Z', lay: 'M180,0H320V130H180Z',
+    le: 'M40,130H180V278A237,237 0 0 1 40,162Z', re: 'M320,130H460V162A237,237 0 0 1 320,278Z',
+    ft: 'M180,130H320V278A237,237 0 0 1 180,278Z',
   };
   const cells = ZONES.map((zz) => {
     const v = agg[zz.id] || { m: 0, a: 0 }, pct = v.a ? v.m / v.a : null, on = o.selected === zz.id;
     return `<path class="zone" data-zone="${zz.id}" d="${zoneShape[zz.id]}" fill="${heatColor(pct, zz.pts)}" fill-opacity="${v.a ? 0.85 : 0.35}" stroke="${on ? '#fff' : 'rgba(10,15,40,.6)'}" stroke-width="${on ? 3 : 1.5}" role="button" tabindex="0" aria-label="${esc(zz.name)}: ${v.a ? `${v.m} of ${v.a}` : 'no shots'}"/>`;
   }).join('');
   const labels = ZONES.map((zz) => {
-    const v = agg[zz.id] || { m: 0, a: 0 };
-    return `<text x="${zz.x}" y="${zz.y}" text-anchor="middle" fill="#fff" font-size="${v.a ? 17 : 11}" font-weight="700" style="paint-order:stroke;stroke:rgba(0,0,0,.45);stroke-width:3px">${v.a ? Math.round((v.m / v.a) * 100) + '%' : esc(zz.name)}</text>${v.a ? `<text x="${zz.x}" y="${zz.y + 15}" text-anchor="middle" fill="#fff" font-size="11" opacity=".9" style="paint-order:stroke;stroke:rgba(0,0,0,.45);stroke-width:3px">${v.m}/${v.a}</text>` : ''}`;
+    const v = agg[zz.id] || { m: 0, a: 0 }, narrow = /c3$/.test(zz.id);
+    return `<text x="${zz.x}" y="${zz.y}" text-anchor="middle" fill="#fff" font-size="${v.a ? (narrow ? 13 : 17) : narrow ? 9 : 11}" font-weight="700" style="paint-order:stroke;stroke:rgba(0,0,0,.45);stroke-width:3px">${v.a ? Math.round((v.m / v.a) * 100) + '%' : esc(narrow ? 'Corner' : zz.name)}</text>${v.a ? `<text x="${zz.x}" y="${zz.y + 15}" text-anchor="middle" fill="#fff" font-size="${narrow ? 9 : 11}" opacity=".9" style="paint-order:stroke;stroke:rgba(0,0,0,.45);stroke-width:3px">${v.m}/${v.a}</text>` : ''}`;
   }).join('');
   return `<div class="court"><svg viewBox="0 0 500 380" role="group" aria-label="Basketball half court shot chart">
     <rect width="500" height="380" rx="16" fill="#0e1735"/>
     ${cells}
     <g fill="none" stroke="${line}" stroke-width="2.4" pointer-events="none">
-      <path d="M32,0V140C60,230 150,330 250,334C350,330 440,230 468,140V0"/>
+      <path d="M40,0V162A237,237 0 0 0 460,162V0"/>
       <rect x="180" y="0" width="140" height="190"/><circle cx="250" cy="190" r="60"/>
       <path d="M210,40A40,40 0 0 0 290,40"/><line x1="220" y1="38" x2="280" y2="38"/><circle cx="250" cy="52" r="9" stroke="#ff8a4c"/>
       <path d="M190,380A60,60 0 0 1 310,380"/>

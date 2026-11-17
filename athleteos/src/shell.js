@@ -20,14 +20,16 @@ function go(view, sub) {
 }
 const subOf = (v) => state.sub[v] || SUBS[v]?.[0][0];
 function render() {
-  for (const [v] of VIEWS) $('#view-' + v).hidden = v !== state.view;
+  // Only the active screen keeps content, so element ids are never duplicated.
+  for (const [v] of VIEWS) { const x = $('#view-' + v); x.hidden = v !== state.view; if (x.hidden) x.innerHTML = ''; }
   $$('.tab').forEach((t) => { const on = t.dataset.view === state.view; t.classList.toggle('on', on); t.setAttribute('aria-current', on ? 'page' : 'false'); });
   const el = $('#view-' + state.view);
   const subs = SUBS[state.view];
   const nav = subs ? `<nav class="subnav" aria-label="Sections">${subs.map(([k, l]) => `<button type="button" data-sub="${k}" class="${k === subOf(state.view) ? 'on' : ''}">${l}</button>`).join('')}</nav>` : '';
   el.innerHTML = nav + `<div class="view" id="vbody"></div>`;
-  try { RENDER[state.view]($('#vbody'), subOf(state.view)); } catch (err) { console.error(err); $('#vbody').innerHTML = `<div class="card"><b>Something went wrong drawing this screen.</b><p class="muted small">${esc(err.message)}</p></div>`; }
+  try { RENDER[state.view]($('#vbody', el), subOf(state.view)); } catch (err) { console.error(err); $('#vbody', el).innerHTML = `<div class="card"><b>Something went wrong drawing this screen.</b><p class="muted small">${esc(err.message)}</p></div>`; }
   animateRings(el);
+  $$('.heat', el).forEach((h) => { h.scrollLeft = h.scrollWidth; }); // newest weeks in view first
   $('.subnav .on', el)?.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
 // Re-render only the active screen body (keeps scroll position).
@@ -48,6 +50,10 @@ function openSheet(title, html, mount) {
   if (!d.open) d.showModal();
   mount?.(d);
   return d;
+}
+// The artifact viewer blocks confirm(), so confirmations happen in a sheet.
+function confirmSheet(msg, okLabel, fn) {
+  openSheet('Are you sure?', `<p>${esc(msg)}</p><div class="row"><button type="button" class="btn" data-close style="flex:1">Cancel</button><button type="button" class="btn danger" id="cf-ok" style="flex:1">${esc(okLabel)}</button></div>`, (d) => $('#cf-ok', d).addEventListener('click', () => { closeSheet(); fn(); }));
 }
 const closeSheet = () => { const d = $('#sheet'); if (d.open) d.close(); };
 $('#sheet').addEventListener('click', (e) => { if (e.target.closest('[data-close]') || e.target === $('#sheet')) closeSheet(); });
