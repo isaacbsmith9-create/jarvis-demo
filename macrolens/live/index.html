@@ -654,6 +654,43 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
 .corr-ins { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .corr-ins button { width: 100%; text-align: left; border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 8px 10px; font-size: 13px; cursor: pointer; color: var(--fg); }
 
+/* Consistency heatmap */
+.hm-filters { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-top: 10px; padding-bottom: 2px; }
+.hm-filters::-webkit-scrollbar { display: none; }
+.hm-filters .chip-btn { flex: none; font-size: 12px; }
+.hm, .hm-day { --h0: color-mix(in srgb, var(--accent) 8%, var(--surface-2)); }
+i.hm { display: block; border-radius: 3px; aspect-ratio: 1; background: var(--h0); }
+.hm.l1, .hm-day.l1 { background: color-mix(in srgb, var(--accent) 28%, var(--surface-2)); }
+.hm.l2, .hm-day.l2 { background: color-mix(in srgb, var(--accent) 50%, var(--surface-2)); }
+.hm.l3, .hm-day.l3 { background: color-mix(in srgb, var(--accent) 72%, var(--purple, var(--accent))); }
+.hm.l4, .hm-day.l4 { background: linear-gradient(135deg, var(--accent), var(--purple, var(--accent))); box-shadow: 0 0 10px -2px var(--glow, transparent); }
+.hm.lr, .hm-day.lr { background: repeating-linear-gradient(45deg, var(--surface-2) 0 3px, transparent 3px 6px); border: 1px solid var(--line); }
+.hm.lx { background: transparent; border: 1px dashed var(--line); }
+.hm-strip { display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); gap: 3px; margin-top: 12px; }
+.hm-col { display: grid; gap: 3px; }
+.hm-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.hm-stats div { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; display: grid; }
+.hm-stats b { font: 700 22px var(--f-display); }
+.hm-stats small { font-size: 11px; color: var(--muted); }
+.hm-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.hm-grid .dow { font-size: 11px; color: var(--muted); text-align: center; font-weight: 600; }
+.hm-day { aspect-ratio: 1; border-radius: 9px; border: 0; background: var(--h0); color: var(--fg); font-size: 12px; font-weight: 600; display: grid; place-items: center; cursor: pointer; padding: 0; }
+.hm-day.l3, .hm-day.l4 { color: #fff; }
+.hm-day.lx { background: transparent; color: var(--muted); opacity: .45; cursor: default; }
+.hm-day.today { outline: 2px solid var(--fg); outline-offset: 1px; }
+.hm-day.sel { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hm-key { display: flex; align-items: center; gap: 4px; justify-content: flex-end; margin-top: 8px; font-size: 11px; color: var(--muted); }
+.hm-key i.hm { width: 12px; }
+.hm-key span:nth-of-type(2) { margin-right: 8px; }
+.hm-detail { margin-top: 10px; padding: 10px 12px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); }
+.hm-detail ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
+.hm-detail li span { display: inline-block; width: 18px; font-weight: 800; }
+.hm-detail li.ok span { color: var(--good, var(--accent)); } .hm-detail li.no span { color: var(--over); } .hm-detail li.rest { color: var(--muted); }
+.hm-weeks { display: grid; gap: 6px; margin-top: 12px; }
+.hm-wk { display: grid; grid-template-columns: 56px 1fr 36px; gap: 8px; align-items: center; font-size: 12px; }
+.hm-wk .corr-bar { margin: 0; }
+.hm-wk b { text-align: right; }
+
 /* ===== Sports-tech look (navy, electric blue, purple glow) ===== */
 :root[data-theme="dark"] body, :root:not([data-theme="light"]) body { background: radial-gradient(1200px 520px at 50% -180px, rgba(84, 70, 255, .22), transparent 70%), radial-gradient(900px 600px at 110% 30%, rgba(61, 139, 255, .10), transparent 60%), var(--bg); background-attachment: fixed; }
 :root[data-theme="dark"] .card, :root:not([data-theme="light"]) .card { background: linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, 0) 40%), var(--surface); border-color: rgba(120, 140, 255, .16); box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 12px 30px -18px rgba(0, 0, 0, .8); }
@@ -910,6 +947,7 @@ h2, h3 { letter-spacing: -.01em; }
     <div class="card wr" id="wr-card"></div>
     <div class="stats" id="stats"></div>
     <div class="card" id="dna-card"></div>
+    <div class="card" id="heat-card"></div>
     <div class="card" id="month-card"></div>
 
     <h2 class="section-label">Training & recovery</h2>
@@ -1750,7 +1788,7 @@ function renderProfile() {
 let currentView = 'today';
 function render() {
   renderToday();
-  if (currentView === 'progress') { renderWeekly(); renderProgress(); renderMonth(); renderCorr(); monthExtras(); renderProgressExtras(); renderDnaCard(); renderTrend(); renderBadges(); renderMeasures(); renderGoalW(); }
+  if (currentView === 'progress') { renderWeekly(); renderProgress(); renderHeat(); renderMonth(); renderCorr(); monthExtras(); renderProgressExtras(); renderDnaCard(); renderTrend(); renderBadges(); renderMeasures(); renderGoalW(); }
   if (currentView === 'profile') { renderProfile(); renderAcc(); }
   if (currentView === 'coach') renderCoach();
 }
@@ -5910,6 +5948,78 @@ Reply with only JSON: {"text":"..."}`;
     catch (err) { toast(AI_ERRORS?.[err?.code] || 'Coach could not read your patterns right now.'); }
     renderCorr();
   }
+});
+
+// ===================== Training consistency heatmap =====================
+// GitHub-style calendar of healthy habits. A habit only counts on days it applies: no workout is a rest day,
+// not a miss, so rest never breaks a streak or lowers the score.
+const HEAT_HABITS = [
+  ['meals', 'Meals', (d) => (entriesOf(d).length ? feedingCount(d) >= 3 || (d === todayIso() && entriesOf(d).length > 0) : false)],
+  ['water', 'Water', (d) => (dayDoc(d)?.water || 0) >= targets(d).waterOz * 0.9],
+  ['workout', 'Workouts', (d) => (exList(d).length ? true : null)], // null = rest day, never a miss
+  ['sleep', 'Sleep check', (d) => (dayDoc(d)?.feel?.sleepH ?? readLS('ru:day-' + d)?.checkin?.sleepH) != null],
+  ['recovery', 'Recovery check', (d) => dayDoc(d)?.feel?.energy != null || dayDoc(d)?.feel?.sore != null || !!readLS('ru:day-' + d)?.checkin],
+  ['nutrition', 'Nutrition', (d) => (entriesOf(d).length ? (consistency(d) ?? 0) >= 70 : false)],
+];
+let heatFilter = 'all', heatMonth = todayIso().slice(0, 7), heatSel = null;
+try { heatFilter = localStorage.getItem('ml-heat') || 'all'; } catch {}
+function heatDay(d) {
+  if (d > todayIso()) return { future: true };
+  const res = Object.fromEntries(HEAT_HABITS.map(([k, , f]) => [k, f(d)]));
+  const any = entriesOf(d).length || exList(d).length || dayDoc(d)?.water || dayDoc(d)?.feel;
+  if (heatFilter !== 'all') { const v = res[heatFilter]; return { res, v, level: v == null ? null : v ? 4 : 0, rest: v == null }; }
+  const appl = HEAT_HABITS.filter(([k]) => res[k] != null), done = appl.filter(([k]) => res[k]).length;
+  const pct = any ? done / appl.length : 0;
+  return { res, pct, level: !any ? 0 : pct >= 0.85 ? 4 : pct >= 0.65 ? 3 : pct >= 0.4 ? 2 : 1, rest: res.workout == null };
+}
+const heatHit = (h) => (heatFilter === 'all' ? h.level >= 3 : h.v === true);
+function heatStreaks() {
+  // Walk back day by day; rest days (filter "Workouts") are skipped, today can still be in progress.
+  let cur = 0, best = 0, run = 0, counting = true;
+  for (let i = 0; i < 400; i++) {
+    const d = shiftIso(todayIso(), -i), h = heatDay(d);
+    if (heatFilter === 'workout' && h.rest) continue;
+    const hit = heatHit(h);
+    if (hit) { run++; if (counting) cur = run; }
+    else { if (i === 0) continue; counting = false; best = Math.max(best, run); run = 0; }
+  }
+  return { cur, best: Math.max(best, run, cur) };
+}
+function renderHeat() {
+  const el = $('#heat-card'); if (!el) return;
+  const [y, m] = heatMonth.split('-').map(Number), first = new Date(y, m - 1, 1), nDays = new Date(y, m, 0).getDate(), lead = (first.getDay() + 6) % 7, today = todayIso();
+  const iso = (dd) => `${y}-${String(m).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+  const days = Array.from({ length: nDays }, (_, i) => iso(i + 1)), H = Object.fromEntries(days.map((d) => [d, heatDay(d)]));
+  const past = days.filter((d) => d <= today), counted = past.filter((d) => !(heatFilter === 'workout' && H[d].rest) && !(d === today && !heatHit(H[d])));
+  const pct = counted.length ? Math.round((counted.filter((d) => heatHit(H[d])).length / counted.length) * 100) : 0;
+  const st = heatStreaks(), label = HEAT_HABITS.find(([k]) => k === heatFilter)?.[1] || 'All habits';
+  // 18-week strip, GitHub style: columns are weeks (Mon top), newest on the right.
+  const stripStart = shiftIso(today, -(7 * 17 + ((new Date(today + 'T12:00:00').getDay() + 6) % 7)));
+  const strip = Array.from({ length: 18 }, (_, w) => `<div class="hm-col">${Array.from({ length: 7 }, (_, r) => { const d = shiftIso(stripStart, w * 7 + r), h = heatDay(d);
+    return `<i class="hm l${h.future ? 'x' : h.level ?? 'r'}" title="${d}"></i>`; }).join('')}</div>`).join('');
+  // weekly breakdown for this month
+  const weeks = []; for (let s = shiftIso(iso(1), -lead); s <= iso(nDays); s = shiftIso(s, 7)) weeks.push(s);
+  const weekRows = weeks.map((s) => { const wd = Array.from({ length: 7 }, (_, i) => shiftIso(s, i)).filter((d) => d <= today && d.slice(0, 7) === heatMonth && !(heatFilter === 'workout' && heatDay(d).rest));
+    const hits = wd.filter((d) => heatHit(heatDay(d))).length; return wd.length ? { s, hits, n: wd.length } : null; }).filter(Boolean);
+  const sel = heatSel && heatSel.slice(0, 7) === heatMonth ? heatSel : null, sh = sel ? heatDay(sel) : null;
+  const isNow = heatMonth >= today.slice(0, 7);
+  el.innerHTML = `<div class="row-between"><h3>Consistency heatmap</h3><span class="muted small">${esc(label)}</span></div>
+    <div class="hm-filters">${[['all', 'All'], ...HEAT_HABITS.map(([k, l]) => [k, l])].map(([k, l]) => `<button type="button" class="chip-btn${heatFilter === k ? ' active' : ''}" data-heat-f="${k}">${esc(l)}</button>`).join('')}</div>
+    <div class="hm-strip" aria-label="Last 18 weeks">${strip}</div>
+    <div class="hm-stats"><div><b class="num">${st.cur}</b><small>current streak</small></div><div><b class="num">${st.best}</b><small>longest streak</small></div><div><b class="num">${pct}%</b><small>${first.toLocaleDateString(undefined, { month: 'short' })} consistency</small></div></div>
+    <div class="row-between" style="margin:12px 0 8px"><button class="icon-btn" type="button" data-heat-nav="-1" aria-label="Previous month">‹</button><b>${first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</b><button class="icon-btn" type="button" data-heat-nav="1" aria-label="Next month"${isNow ? ' disabled' : ''}>›</button></div>
+    <div class="hm-grid">${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d) => `<span class="dow">${d}</span>`).join('')}${'<span></span>'.repeat(lead)}${days.map((d) => { const h = H[d];
+      return `<button type="button" class="hm-day l${h.future ? 'x' : h.level ?? 'r'}${d === today ? ' today' : ''}${d === sel ? ' sel' : ''}" data-heat-day="${d}"${h.future ? ' disabled' : ''} aria-label="${d}${h.rest && heatFilter === 'workout' ? ', rest day' : ''}">${Number(d.slice(8))}</button>`; }).join('')}</div>
+    <div class="hm-key"><span>Less</span><i class="hm l0"></i><i class="hm l1"></i><i class="hm l2"></i><i class="hm l3"></i><i class="hm l4"></i><span>More</span><i class="hm lr"></i><span>Rest</span></div>
+    ${sh ? `<div class="hm-detail"><div class="row-between"><b>${new Date(sel + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</b><button type="button" class="mini" data-heat-open="${sel}">Open day</button></div>
+      <ul>${HEAT_HABITS.map(([k, l]) => { const v = sh.res[k]; return `<li class="${v == null ? 'rest' : v ? 'ok' : 'no'}"><span>${v == null ? '–' : v ? '✓' : '✗'}</span>${esc(l)}${k === 'workout' ? (v == null ? ' · rest day' : ` · ${exList(sel).map((x) => `${x.name} ${fmtDur(x.mins)}`).join(', ')}`) : k === 'water' ? ` · ${dayDoc(sel)?.water || 0} oz` : k === 'meals' ? ` · ${entriesOf(sel).length} items, ${totals(entriesOf(sel)).calories.toLocaleString()} kcal` : ''}</li>`; }).join('')}</ul></div>` : '<p class="muted small" style="margin:8px 0 0">Tap a day to see what you hit. Rest days never count against you.</p>'}
+    ${weekRows.length ? `<div class="hm-weeks">${weekRows.map((w) => `<div class="hm-wk"><span>${new Date(w.s + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span><div class="corr-bar"><div style="width:${(w.hits / w.n) * 100}%"></div></div><b class="num">${w.hits}/${w.n}</b></div>`).join('')}</div>` : ''}`;
+}
+$('#heat-card').addEventListener('click', (e) => {
+  const f = e.target.closest('[data-heat-f]'); if (f) { heatFilter = f.dataset.heatF; try { localStorage.setItem('ml-heat', heatFilter); } catch {} return renderHeat(); }
+  const n = e.target.closest('[data-heat-nav]'); if (n) { const [y, m] = heatMonth.split('-').map(Number), d = new Date(y, m - 1 + Number(n.dataset.heatNav), 1); heatMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; return renderHeat(); }
+  const o = e.target.closest('[data-heat-open]'); if (o) { day = o.dataset.heatOpen; return showView('today'); }
+  const b = e.target.closest('[data-heat-day]'); if (b && !b.disabled) { heatSel = heatSel === b.dataset.heatDay ? null : b.dataset.heatDay; renderHeat(); }
 });
 
 // ===================== Coach tabs =====================
