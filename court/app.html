@@ -1,68 +1,139 @@
-<title>Court Lab</title>
+<title>Court Lab Pro</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
-/* Layout: one phone column. Setup card -> generated session of game cards (court diagram + rules) -> tap scoreboard sheet. Bottom tabs: Games / Record. */
+/* Layout: one phone column. Home (today's program session, level, listen), Program (8-week guard plan), Train (workouts, partner games, video drills), Shots (shot chart), Me (games, records, levels). Fixed tab bar; full-screen workout player. */
 :root {
-  --bg: #f4f1ee;
-  --surface: #ffffff;
-  --surface-2: #efe9e3;
-  --line: #e2dad2;
-  --fg: #1b1410;
-  --muted: #73665c;
-  --accent: #d9692c;
-  --accent-ink: #ffffff;
-  --accent-soft: #f8e1d2;
-  --court: #f3dcc1;
-  --court-line: #b9865c;
-  --you: #d9692c;
-  --them: #1b1410;
-  --good: #1b8a4d;
-  --bad: #c23b2c;
-  --f-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --bg: #f2f0ec; --surface: #ffffff; --surface-2: #ece8e2; --line: #e0dad2; --fg: #141210; --muted: #6f6961;
+  --accent: #e8590c; --accent-2: #f08c00; --accent-ink: #ffffff; --accent-soft: #fde3d2;
+  --good: #1a8f4e; --bad: #d23b2c; --gold: #c98a00;
+  --court: #f1dcc0; --court-line: #b4835a; --you: #e8590c; --them: #141210;
+  --hero-a: #1c130d; --hero-b: #5a2309; --hero-ink: #fff7f0;
+  --shadow: 0 1px 2px rgba(20, 18, 16, .06), 0 6px 20px rgba(20, 18, 16, .06);
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --bg: #14100d; --surface: #1d1814; --surface-2: #2a231d; --line: #352c25; --fg: #f4ece4; --muted: #a8988b; --accent: #f08a4b; --accent-ink: #1b1410; --accent-soft: #3d2618;
-    --court: #3a2a1c; --court-line: #a77850; --you: #f08a4b; --them: #f4ece4; --good: #4fd18b; --bad: #ff7a69; color-scheme: dark; }
+  :root:not([data-theme="light"]) { --bg: #0b0b0c; --surface: #161618; --surface-2: #212124; --line: #2c2c30; --fg: #f6f3ef; --muted: #9b968f;
+    --accent: #ff7a2e; --accent-2: #ffb347; --accent-ink: #1a0d05; --accent-soft: #3a1f10; --good: #3ddc84; --bad: #ff6a5c; --gold: #ffc53d;
+    --court: #2e2117; --court-line: #9a6c45; --you: #ff7a2e; --them: #f6f3ef; --hero-a: #1d120b; --hero-b: #6b2a0b; --hero-ink: #fff7f0; --shadow: none; color-scheme: dark; }
 }
-:root[data-theme="dark"] { --bg: #14100d; --surface: #1d1814; --surface-2: #2a231d; --line: #352c25; --fg: #f4ece4; --muted: #a8988b; --accent: #f08a4b; --accent-ink: #1b1410; --accent-soft: #3d2618;
-  --court: #3a2a1c; --court-line: #a77850; --you: #f08a4b; --them: #f4ece4; --good: #4fd18b; --bad: #ff7a69; color-scheme: dark; }
+:root[data-theme="dark"] { --bg: #0b0b0c; --surface: #161618; --surface-2: #212124; --line: #2c2c30; --fg: #f6f3ef; --muted: #9b968f;
+  --accent: #ff7a2e; --accent-2: #ffb347; --accent-ink: #1a0d05; --accent-soft: #3a1f10; --good: #3ddc84; --bad: #ff6a5c; --gold: #ffc53d;
+  --court: #2e2117; --court-line: #9a6c45; --you: #ff7a2e; --them: #f6f3ef; --hero-a: #1d120b; --hero-b: #6b2a0b; --hero-ink: #fff7f0; --shadow: none; color-scheme: dark; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 var(--f-body); -webkit-font-smoothing: antialiased; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
-button, input, select { font: inherit; color: inherit; }
+button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.wrap { max-width: 620px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 calc(96px + env(safe-area-inset-bottom, 0px)); }
-header.top { padding-block: 16px 6px; }
-header.top h1 { margin: 0; font-family: var(--f-display); font-weight: 800; font-size: 34px; line-height: 1; text-transform: uppercase; letter-spacing: .01em; }
-header.top h1 span { color: var(--accent); }
-header.top p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
-.view { display: grid; gap: 14px; margin-top: 12px; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; min-width: 0; }
-h2, h3 { margin: 0; font-family: var(--f-display); font-weight: 700; text-wrap: balance; }
-h2 { font-size: 22px; text-transform: uppercase; letter-spacing: .02em; }
-h3 { font-size: 21px; }
+.wrap { max-width: 640px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 calc(100px + env(safe-area-inset-bottom, 0px)); }
+header.top { padding-block: 16px 4px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.logo { margin: 0; font: italic 800 30px/1 var(--f-display); text-transform: uppercase; letter-spacing: .01em; }
+.logo span { color: var(--accent); }
+.logo small { font: 800 12px var(--f-body); letter-spacing: .14em; background: var(--accent); color: var(--accent-ink); padding: 2px 6px; border-radius: 5px; margin-left: 6px; vertical-align: 5px; font-style: normal; }
+.lvl-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 4px 10px 4px 4px; font-weight: 700; font-size: 13px; }
+.lvl-pill b { background: var(--accent); color: var(--accent-ink); border-radius: 99px; min-width: 24px; height: 24px; display: grid; place-items: center; font-size: 12px; }
+.view { display: grid; gap: 14px; margin-top: 10px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 16px; min-width: 0; box-shadow: var(--shadow); }
+h2, h3 { margin: 0; font-family: var(--f-display); font-weight: 800; text-wrap: balance; }
+h2 { font-size: 26px; text-transform: uppercase; letter-spacing: .01em; line-height: 1.05; }
+h3 { font-size: 21px; line-height: 1.1; }
 .muted { color: var(--muted); } .small { font-size: 13px; } .num { font-variant-numeric: tabular-nums; }
+.kicker { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
 .label { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 14px 0 7px; }
 .label:first-child { margin-top: 0; }
+.row { display: flex; align-items: center; gap: 8px; }
+.between { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 8px 13px; font-size: 14px; font-weight: 600; color: var(--fg); }
 .chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-.btn { border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 11px 16px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn { border: 1px solid var(--line); background: var(--surface-2); border-radius: 14px; padding: 11px 16px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; color: var(--fg); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.btn.wide { width: 100%; padding: 14px; font-size: 16px; }
-.btn.ghost { background: none; border-color: transparent; color: var(--accent); padding: 6px 8px; }
-input[type=text] { width: 100%; border: 1px solid var(--line); background: var(--surface-2); border-radius: 10px; padding: 10px 12px; font-size: 16px; }
-.sess-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.btn.wide { width: 100%; padding: 15px; font-size: 16px; }
+.btn.sm { padding: 7px 11px; font-size: 13px; border-radius: 10px; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.danger { color: var(--bad); }
+input[type=text], input[type=number], input[type=date], input[type=url], select, textarea { width: 100%; border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 10px 12px; font-size: 16px; min-width: 0; }
+textarea { font: 14px/1.4 var(--f-body); min-height: 110px; resize: vertical; }
+label.f { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 14px; }
+.seg button { border: 0; background: none; border-radius: 10px; padding: 9px 4px; font-weight: 700; font-size: 14px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 3px rgba(0, 0, 0, .15); }
+/* hero */
+.hero { position: relative; overflow: hidden; border-radius: 24px; padding: 18px; color: var(--hero-ink); background: radial-gradient(120% 90% at 100% 0%, var(--hero-b) 0%, var(--hero-a) 62%); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+.hero::after { content: ""; position: absolute; right: -60px; bottom: -80px; width: 260px; height: 260px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .08); box-shadow: 0 0 0 40px rgba(255, 255, 255, .03); pointer-events: none; }
+.hero .kicker { color: var(--accent-2); }
+.hero h2 { font: italic 800 40px/0.95 var(--f-display); margin-top: 6px; }
+.hero p { margin: 8px 0 0; color: rgba(255, 247, 240, .8); font-size: 14px; max-width: 40ch; }
+.hero .meta { display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap; position: relative; z-index: 1; }
+.hero .meta div { font-size: 12px; color: rgba(255, 247, 240, .7); }
+.hero .meta b { display: block; font: 800 22px/1 var(--f-display); color: var(--hero-ink); }
+.hero .acts { display: flex; gap: 8px; margin-top: 16px; position: relative; z-index: 1; }
+.hero .acts .btn { white-space: nowrap; padding: 12px 14px; }
+.hero .btn { border-color: rgba(255, 255, 255, .18); background: rgba(255, 255, 255, .1); color: var(--hero-ink); }
+.hero .btn.primary { background: var(--accent); border-color: var(--accent); color: #1a0d05; }
+.wkstrip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
+.wkstrip div { text-align: center; font-size: 11px; color: var(--muted); font-weight: 600; }
+.wkstrip i { display: block; height: 30px; border-radius: 9px; background: var(--surface-2); margin-bottom: 4px; display: grid; place-items: center; font-style: normal; font-size: 13px; }
+.wkstrip i.plan { border: 2px dashed var(--line); background: none; }
+.wkstrip i.done { background: var(--accent); color: var(--accent-ink); }
+.wkstrip i.today { outline: 2px solid var(--fg); outline-offset: 1px; }
+.xp { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-top: 8px; }
+.xp div { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 99px; }
+.stat3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.stat3 div { background: var(--surface-2); border-radius: 14px; padding: 10px 11px; min-width: 0; }
+.stat3 b { display: block; font: 800 26px/1.05 var(--f-display); }
+.stat3 small { font-size: 12px; color: var(--muted); }
+.quick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.quick a, .quick button { border: 1px solid var(--line); background: var(--surface); border-radius: 16px; padding: 12px 4px 10px; display: grid; justify-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--fg); text-decoration: none; box-shadow: var(--shadow); }
+.quick svg { width: 24px; height: 24px; color: var(--accent); }
+/* program */
+.phase-bar { display: grid; grid-template-columns: 3fr 3fr 2fr; gap: 4px; margin-top: 12px; }
+.phase-bar div { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.phase-bar div span { display: block; height: 100%; background: var(--accent); }
+.phase-names { display: grid; grid-template-columns: 3fr 3fr 2fr; gap: 4px; font-size: 11px; color: var(--muted); font-weight: 700; margin-top: 4px; text-transform: uppercase; letter-spacing: .06em; }
+.week { border-top: 1px solid var(--line); padding: 10px 0; }
+.week:first-child { border-top: 0; }
+.week summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.week summary::-webkit-details-marker { display: none; }
+.dots { display: flex; gap: 4px; }
+.dots i { width: 10px; height: 10px; border-radius: 99px; background: var(--surface-2); }
+.dots i.d { background: var(--accent); }
+.dots i.t { background: var(--gold); }
+.sess { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 0; }
+.sess .ic { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; font: 800 15px var(--f-display); background: var(--surface-2); }
+.sess.done .ic { background: var(--accent); color: var(--accent-ink); }
+.sess.next .ic { outline: 2px solid var(--accent); }
+.sess small { display: block; color: var(--muted); font-size: 12px; }
+.block-h { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 14px 0 4px; }
+.drill { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; padding: 9px 0; border-top: 1px solid var(--line); }
+.drill:first-of-type { border-top: 0; }
+.drill b { font-size: 15px; }
+.drill .amt { font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; text-align: right; }
+.drill small { grid-column: 1 / -1; color: var(--muted); font-size: 13px; }
+.tag { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 2px 6px; border-radius: 5px; background: var(--accent-soft); color: var(--accent); margin-left: 6px; vertical-align: 2px; }
+.tag.gold { background: color-mix(in srgb, var(--gold) 22%, transparent); color: var(--gold); }
+/* listen */
+.listen { display: grid; gap: 8px; }
+.listen-bar { display: flex; align-items: center; gap: 10px; }
+.listen-bar .eq { width: 34px; height: 34px; border-radius: 10px; background: var(--accent-soft); display: grid; place-items: center; color: var(--accent); flex: none; }
+.listen-bar .t { min-width: 0; flex: 1; }
+.listen-bar .t b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
+#listen-dock { position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(78px + env(safe-area-inset-bottom, 0px)); width: 200px; z-index: 4; border-radius: 12px; overflow: hidden; box-shadow: 0 6px 24px rgba(0, 0, 0, .35); transform: translateX(calc(100% + 24px)); transition: transform .25s; }
+#listen-dock:empty { display: none; }
+#listen-dock.show { transform: none; }
+#listen-dock iframe { width: 200px; height: 113px; border: 0; display: block; }
+/* games (partner) */
 .game { padding: 0; overflow: hidden; }
 .game .g-top { padding: 14px 16px 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
 .game .role { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
-.game .mins { font-family: var(--f-display); font-size: 18px; font-weight: 700; white-space: nowrap; }
+.game .mins { font: 800 20px var(--f-display); white-space: nowrap; }
 .game .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
-.game .tag { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
+.game .tg { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
 .court { margin: 12px 16px 0; border-radius: 14px; overflow: hidden; background: var(--court); }
 .court svg { display: block; width: 100%; height: auto; }
 .court .lines { fill: none; stroke: var(--court-line); stroke-width: 2; }
@@ -72,222 +143,697 @@ input[type=text] { width: 100%; border: 1px solid var(--line); background: var(-
 .score-line { background: var(--accent-soft); border-radius: 12px; padding: 10px 12px; font-size: 14px; }
 .score-line b { display: block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin-bottom: 2px; }
 .why { font-size: 14px; color: var(--muted); margin: 0; }
-details.more summary { cursor: pointer; font-weight: 600; color: var(--accent); font-size: 14px; }
+details.more summary { cursor: pointer; font-weight: 700; color: var(--accent); font-size: 14px; }
 details.more div { display: grid; gap: 6px; margin-top: 8px; font-size: 14px; }
 details.more div p { margin: 0; }
-.g-actions { display: flex; gap: 8px; }
+.g-actions { display: flex; gap: 8px; align-items: center; }
 .g-actions .btn { flex: 1; }
-.result { font-size: 13px; font-weight: 700; padding: 6px 10px; border-radius: 8px; }
+.result { font-size: 13px; font-weight: 800; padding: 6px 10px; border-radius: 8px; white-space: nowrap; }
 .result.w { background: color-mix(in srgb, var(--good) 18%, transparent); color: var(--good); }
 .result.l { background: color-mix(in srgb, var(--bad) 16%, transparent); color: var(--bad); }
-.principles { margin: 0; padding-left: 18px; display: grid; gap: 8px; font-size: 14px; }
-/* scoreboard */
-dialog.board { border: 0; padding: 0; width: 100%; max-width: 620px; height: 100%; max-height: 100%; margin: 0 auto; background: var(--bg); color: var(--fg); }
-dialog.board::backdrop { background: rgba(0, 0, 0, .6); }
-.board-in { height: 100%; display: grid; grid-template-rows: auto 1fr auto; padding: calc(12px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); gap: 12px; }
-.board-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.board-head h3 { font-size: 22px; }
-.sides { display: grid; grid-template-rows: 1fr 1fr; gap: 10px; min-height: 0; }
-.side { border-radius: 20px; padding: 14px; display: grid; grid-template-rows: auto 1fr auto; text-align: center; min-height: 0; }
-.side.you { background: var(--you); color: #fff; }
-.side.them { background: var(--surface); border: 1px solid var(--line); }
-.side .who { font-weight: 700; font-size: 15px; letter-spacing: .04em; text-transform: uppercase; }
-.side .pts { font-family: var(--f-display); font-weight: 800; font-size: clamp(64px, 18vh, 120px); line-height: 1; display: grid; place-items: center; }
-.side .adds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.side .adds button { border: 0; border-radius: 12px; padding: 12px 0; font-weight: 800; font-size: 18px; background: rgba(255, 255, 255, .22); color: inherit; }
-.side.them .adds button { background: var(--surface-2); }
-.board-foot { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; }
-.win-banner { text-align: center; font-family: var(--f-display); font-size: 26px; font-weight: 800; text-transform: uppercase; }
-/* record */
-.rec-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; }
-.rec-row:first-child { border-top: 0; }
-.rec-row small { display: block; color: var(--muted); font-size: 12px; }
+/* rows */
+.rrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; align-items: center; }
+.rrow:first-child { border-top: 0; }
+.rrow small { display: block; color: var(--muted); font-size: 12px; }
 .bars { display: grid; gap: 10px; }
-.bar-row { display: grid; grid-template-columns: 120px 1fr 64px; gap: 10px; align-items: center; font-size: 13px; }
+.bar-row { display: grid; grid-template-columns: 110px 1fr 70px; gap: 10px; align-items: center; font-size: 13px; }
 .bar-row .track { height: 9px; border-radius: 6px; background: var(--surface-2); overflow: hidden; }
 .bar-row .fill { height: 100%; border-radius: 6px; background: var(--accent); }
 .bar-row .v { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
-.big3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.big3 div { background: var(--surface-2); border-radius: 12px; padding: 10px; }
-.big3 b { display: block; font-family: var(--f-display); font-size: 26px; }
-.big3 small { font-size: 12px; color: var(--muted); }
-nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(5, 1fr); padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
-.tab { display: grid; justify-items: center; gap: 2px; padding: 6px; font-size: 12px; font-weight: 600; color: var(--muted); text-decoration: none; }
-.tab svg { width: 22px; height: 22px; }
-.tab[aria-current="page"] { color: var(--accent); }
-.tab { font-size: 11px; }
-.preset { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
-.preset:first-of-type { border-top: 0; }
-.preset b { font-size: 16px; } .preset small { color: var(--muted); font-size: 13px; grid-column: 1; }
-.preset .btn { grid-row: 1 / span 2; grid-column: 2; }
-.drill-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; }
-.drill-row:first-child { border-top: 0; }
-.drill-row .n { font-family: var(--f-display); font-weight: 700; color: var(--muted); text-align: center; }
-.drill-row small { display: block; color: var(--muted); font-size: 12px; }
-.drill-row .amt { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
-/* player */
-dialog.player { border: 0; padding: 0; width: 100%; max-width: 620px; height: 100%; max-height: 100%; margin: 0 auto; background: var(--bg); color: var(--fg); }
-.pl-in { height: 100%; display: grid; grid-template-rows: auto auto 1fr auto; gap: 12px; padding: calc(12px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
-.pl-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.pl-prog { height: 6px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
-.pl-prog div { height: 100%; background: var(--accent); }
-.pl-main { display: grid; align-content: center; justify-items: center; gap: 10px; text-align: center; min-height: 0; }
-.pl-phase { font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
-.pl-name { font-family: var(--f-display); font-weight: 800; font-size: clamp(30px, 8vw, 44px); line-height: 1.05; text-transform: uppercase; }
-.pl-cue { color: var(--muted); max-width: 34ch; margin: 0; }
-.ring-t { width: min(62vw, 240px); }
-.ring-t svg { width: 100%; height: auto; display: block; }
-.ring-t .tv { font-family: var(--f-display); font-weight: 800; font-size: 56px; fill: var(--fg); }
-.ring-t .tl { font-size: 13px; fill: var(--muted); font-family: var(--f-body); }
-.pl-reps { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 360px; }
-.pl-reps button { border: 0; border-radius: 16px; padding: 18px 0; font-size: 20px; font-weight: 800; }
-.pl-reps .mk { background: var(--accent); color: var(--accent-ink); } .pl-reps .ms { background: var(--surface-2); }
-.pl-clip { width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #000; max-width: 100%; }
-.pl-clip iframe { width: 100%; height: 100%; border: 0; display: block; }
-.pl-next { color: var(--muted); font-size: 14px; text-align: center; }
-.pl-ctrl { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 8px; }
-/* shots */
+.chart svg { width: 100%; height: auto; display: block; }
+.chart text { font: 10px var(--f-body); fill: var(--muted); }
+.badges { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.badge { text-align: center; font-size: 11px; font-weight: 600; color: var(--muted); }
+.badge i { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 4px; border-radius: 16px; background: var(--surface-2); font-style: normal; font-size: 24px; filter: grayscale(1); opacity: .45; }
+.badge.on { color: var(--fg); }
+.badge.on i { filter: none; opacity: 1; background: linear-gradient(135deg, var(--accent-soft), color-mix(in srgb, var(--gold) 25%, var(--surface-2))); }
+/* shot chart */
 .shot-court { border-radius: 14px; overflow: hidden; background: var(--court); }
 .shot-court svg { display: block; width: 100%; height: auto; }
 .shot-court .lines { fill: none; stroke: var(--court-line); stroke-width: 2; }
 .spot { cursor: pointer; }
 .spot text { font: 700 9.5px var(--f-body); fill: var(--fg); pointer-events: none; }
 .spot .pct { font-size: 10.5px; }
-.shot-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.shot-btns button { border: 0; border-radius: 14px; padding: 16px 0; font-size: 18px; font-weight: 800; }
-.shot-btns .mk { background: var(--accent); color: var(--accent-ink); } .shot-btns .ms { background: var(--surface-2); }
-.trend svg { width: 100%; height: auto; display: block; }
-.trend text { font: 10px var(--f-body); fill: var(--muted); }
+.mm { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mm button { border: 0; border-radius: 18px; padding: 20px 0; font: 800 22px var(--f-display); text-transform: uppercase; letter-spacing: .04em; }
+.mm .mk { background: var(--accent); color: var(--accent-ink); }
+.mm .ms { background: var(--surface-2); color: var(--fg); }
 /* videos */
-textarea { width: 100%; border: 1px solid var(--line); background: var(--surface-2); border-radius: 10px; padding: 10px 12px; font: 14px/1.4 var(--f-body); color: inherit; min-height: 110px; resize: vertical; }
-.vid-clip { aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; margin-top: 10px; max-width: 100%; }
+.vid-clip { aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; margin-top: 10px; }
 .vid-clip iframe { width: 100%; height: 100%; border: 0; display: block; }
 .vrow { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; }
 .vrow:first-child { border-top: 0; }
 .vrow .ts { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
 .vrow .acts { display: flex; gap: 6px; }
-.vrow .acts button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 9px; padding: 6px 10px; font-size: 13px; font-weight: 700; }
-.vrow .acts button.go { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 9px 14px; border-radius: 99px; font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 30; max-width: calc(100% - 32px); text-align: center; }
+/* tabs */
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(5, 1fr); padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+.tab { display: grid; justify-items: center; gap: 2px; padding: 6px; font-size: 11px; font-weight: 700; color: var(--muted); text-decoration: none; }
+.tab svg { width: 23px; height: 23px; }
+.tab[aria-current="page"] { color: var(--accent); }
+/* sheets */
+dialog.sheet { border: 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px)); width: 100%; max-width: 600px; max-height: 92dvh; margin: auto auto 0; border-radius: 24px 24px 0 0; background: var(--surface); color: var(--fg); }
+dialog.sheet::backdrop { background: rgba(0, 0, 0, .55); }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+.x { width: 36px; height: 36px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface-2); display: grid; place-items: center; flex: none; }
+/* scoreboard */
+dialog.full { border: 0; padding: 0; width: 100%; max-width: 640px; height: 100%; max-height: 100%; margin: 0 auto; background: var(--bg); color: var(--fg); }
+dialog.full::backdrop { background: rgba(0, 0, 0, .7); }
+.board-in { height: 100%; display: grid; grid-template-rows: auto 1fr auto; padding: calc(12px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); gap: 12px; }
+.sides { display: grid; grid-template-rows: 1fr 1fr; gap: 10px; min-height: 0; }
+.side { border-radius: 22px; padding: 14px; display: grid; grid-template-rows: auto 1fr auto; text-align: center; min-height: 0; }
+.side.you { background: var(--you); color: #fff; }
+.side.them { background: var(--surface); border: 1px solid var(--line); }
+.side .who { font-weight: 800; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; }
+.side .pts { font: 800 clamp(64px, 18vh, 120px)/1 var(--f-display); display: grid; place-items: center; }
+.side .adds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.side .adds button { border: 0; border-radius: 12px; padding: 12px 0; font-weight: 800; font-size: 18px; background: rgba(255, 255, 255, .22); color: inherit; }
+.side.them .adds button { background: var(--surface-2); }
+.win-banner { text-align: center; font: 800 28px var(--f-display); text-transform: uppercase; }
+/* player */
+.pl-in { height: 100%; display: grid; grid-template-rows: auto auto 1fr auto; gap: 10px; padding: calc(12px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(14px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.pl-prog { height: 6px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.pl-prog div { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .3s; }
+.pl-main { display: grid; align-content: center; justify-items: center; gap: 8px; text-align: center; min-height: 0; overflow: auto; }
+.pl-phase { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.pl-name { font: italic 800 clamp(32px, 9vw, 48px)/1 var(--f-display); text-transform: uppercase; }
+.pl-cue { color: var(--muted); max-width: 36ch; margin: 0; }
+.pl-call { font: italic 800 clamp(44px, 14vw, 72px)/1 var(--f-display); color: var(--accent); text-transform: uppercase; min-height: 1em; }
+.ring-t { width: min(58vw, 230px); }
+.ring-t svg { width: 100%; height: auto; display: block; }
+.ring-t .tv { font: 800 56px var(--f-display); fill: var(--fg); }
+.ring-t .tl { font-size: 13px; fill: var(--muted); font-family: var(--f-body); }
+.pl-clip { width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #000; }
+.pl-clip iframe { width: 100%; height: 100%; border: 0; display: block; }
+.pl-mini { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 6px 8px; font-size: 13px; }
+.pl-mini span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-ctrl { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 8px; }
+.score-in { display: flex; gap: 8px; align-items: center; justify-content: center; }
+.score-in input { width: 110px; text-align: center; font: 800 32px var(--f-display); }
+.sum { display: grid; gap: 14px; text-align: center; justify-items: center; }
+.sum h2 { font: italic 800 44px/1 var(--f-display); }
+.toast { position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 99px; font-weight: 700; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 60; max-width: calc(100% - 32px); text-align: center; }
 .toast.show { opacity: 1; }
+.empty { text-align: center; color: var(--muted); font-size: 14px; padding: 8px; }
+@media (max-width: 370px) { .hero h2 { font-size: 34px; } .quick { gap: 6px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
 <div class="wrap">
-  <header class="top"><h1>Court<span>Lab</span></h1><p>Games, workouts, shots and video drills</p></header>
+  <header class="top"><h1 class="logo">Court<span>Lab</span><small>PRO</small></h1><button type="button" class="lvl-pill" id="lvl-pill" aria-label="Your level"></button></header>
 
-  <section class="view" id="v-games">
-    <div class="card" id="setup">
-      <div class="label">Who's with you</div>
-      <div class="chips" data-set="partners"><button type="button" class="chip" data-v="1">1 partner</button><button type="button" class="chip" data-v="2">2 partners</button></div>
-      <div class="label">Your partner is</div>
-      <div class="chips" data-set="level"><button type="button" class="chip" data-v="better">Better than me</button><button type="button" class="chip" data-v="same">About the same</button><button type="button" class="chip" data-v="weaker">Not as good</button></div>
-      <div class="label">Work on (pick up to 3)</div>
-      <div class="chips" data-set="focus" data-multi="1"></div>
-      <div class="label">Time</div>
-      <div class="chips" data-set="time"><button type="button" class="chip" data-v="20">20 min</button><button type="button" class="chip" data-v="30">30 min</button><button type="button" class="chip" data-v="45">45 min</button><button type="button" class="chip" data-v="60">60 min</button></div>
-      <div class="label">Where</div>
-      <div class="chips" data-set="court"><button type="button" class="chip" data-v="half">Half court</button><button type="button" class="chip" data-v="full">Full gym</button><button type="button" class="chip" data-v="driveway">Driveway hoop</button></div>
-      <div class="label">Partner's name</div>
-      <input type="text" id="pname" placeholder="Partner" maxlength="20" autocomplete="off">
-      <button class="btn primary wide" id="build" type="button" style="margin-top:16px">Build my session</button>
+  <!-- HOME -->
+  <section class="view" id="v-home">
+    <div id="home-hero"></div>
+    <div class="card" id="home-week"></div>
+    <div class="quick">
+      <a href="#shots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 4h16"/><path d="M8 4v3a4 4 0 0 0 8 0V4"/><circle cx="7" cy="17" r="1.6" fill="currentColor"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/><circle cx="17" cy="16" r="1.6" fill="currentColor"/></svg>Shoot</a>
+      <a href="#train/workouts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>Workout</a>
+      <a href="#train/partner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c.5-3.5 2.5-5.5 5-5.5s4.5 2 5 5.5M14 20c.3-2.6 1.6-4.3 3.5-4.3S20.7 17.4 21 20"/></svg>1-on-1</a>
+      <button type="button" id="q-game"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h4M7 13h10M7 17h6"/></svg>Log game</button>
     </div>
-    <div id="session"></div>
-    <div class="card">
-      <h3>How these games work</h3>
-      <ul class="principles" style="margin-top:10px">
-        <li><b>A live defender beats cones.</b> Every rep has a real read, so the move you learn is the one that works in a game.</li>
-        <li><b>The rules teach the skill.</b> Want more paint touches? Make paint finishes worth more. Want quicker decisions? Shrink the dribbles or the clock.</li>
-        <li><b>Always keep score.</b> Competing makes the reps game speed and shows you what is actually working.</li>
-        <li><b>Short and intense.</b> Games to 5 or 7 with quick rotations. Quality over volume.</li>
-        <li><b>Even it out.</b> If one player is better, give the other a scoring bonus so every game stays close.</li>
-      </ul>
+    <div class="card listen" id="listen-card">
+      <div class="between"><h3>Listen while you train</h3><span class="muted small">YouTube plays in here</span></div>
+      <p class="muted small" style="margin:0">Free YouTube stops when you switch apps. Paste a song, mix, playlist or podcast link and it keeps playing during your workout. Spotify and Apple Music play fine in the background on their own.</p>
+      <div class="row"><input type="url" id="ls-link" placeholder="youtube.com/watch?v=… or a playlist link" autocomplete="off" inputmode="url"><button type="button" class="btn primary" id="ls-go">Play</button></div>
+      <div id="ls-bar"></div>
+    </div>
+    <div class="card" id="home-recent"></div>
+  </section>
+
+  <!-- PROGRAM -->
+  <section class="view" id="v-program" hidden>
+    <div id="prog-top"></div>
+    <div class="card" id="prog-weeks"></div>
+    <div class="card" id="prog-tests"></div>
+    <div class="card" id="prog-about"></div>
+  </section>
+
+  <!-- TRAIN -->
+  <section class="view" id="v-train" hidden>
+    <div class="seg" id="train-seg" role="group" aria-label="Training type"><button type="button" data-t="workouts">Workouts</button><button type="button" data-t="partner">With a partner</button><button type="button" data-t="videos">Video drills</button></div>
+
+    <div id="t-workouts" class="view" style="margin-top:0">
+      <div class="card">
+        <h3>Build a workout</h3><p class="muted small" style="margin:4px 0 0">Pick what to work on. The app runs it hands-free: calls each drill, counts down, beeps, and counts your makes.</p>
+        <div class="label">Work on</div>
+        <div class="chips" id="w-focus"></div>
+        <div class="label">Time</div>
+        <div class="chips" id="w-time"><button type="button" class="chip" data-v="15">15 min</button><button type="button" class="chip" data-v="30">30 min</button><button type="button" class="chip" data-v="45">45 min</button><button type="button" class="chip" data-v="60">60 min</button></div>
+        <div class="label">Where</div>
+        <div class="chips" id="w-where"><button type="button" class="chip" data-v="gym">Gym</button><button type="button" class="chip" data-v="driveway">Driveway hoop</button><button type="button" class="chip" data-v="none">No hoop</button></div>
+        <button class="btn primary wide" id="w-build" type="button" style="margin-top:16px">Build workout</button>
+      </div>
+      <div class="card" id="w-plan" hidden></div>
+      <div class="card"><h3>Quick starts</h3><div id="w-presets" style="margin-top:6px"></div></div>
+      <div class="card"><h3>Drill library</h3><p class="muted small" style="margin:4px 0 8px">Every drill in the app. Tap one to run it on its own.</p><div class="chips" id="lib-cats"></div><div id="lib-list" style="margin-top:8px"></div></div>
+    </div>
+
+    <div id="t-partner" class="view" style="margin-top:0" hidden>
+      <div class="card" id="setup">
+        <h3>Small-sided games</h3><p class="muted small" style="margin:4px 0 0">Live 1-on-1 and 2-on-1 games where the rules teach the skill. Always keep score.</p>
+        <div class="label">Who's with you</div>
+        <div class="chips" data-set="partners"><button type="button" class="chip" data-v="1">1 partner</button><button type="button" class="chip" data-v="2">2 partners</button></div>
+        <div class="label">Your partner is</div>
+        <div class="chips" data-set="level"><button type="button" class="chip" data-v="better">Better than me</button><button type="button" class="chip" data-v="same">About the same</button><button type="button" class="chip" data-v="weaker">Not as good</button></div>
+        <div class="label">Work on (up to 3)</div>
+        <div class="chips" data-set="focus" data-multi="1"></div>
+        <div class="label">Time</div>
+        <div class="chips" data-set="time"><button type="button" class="chip" data-v="20">20 min</button><button type="button" class="chip" data-v="30">30 min</button><button type="button" class="chip" data-v="45">45 min</button><button type="button" class="chip" data-v="60">60 min</button></div>
+        <div class="label">Where</div>
+        <div class="chips" data-set="court"><button type="button" class="chip" data-v="half">Half court</button><button type="button" class="chip" data-v="full">Full gym</button><button type="button" class="chip" data-v="driveway">Driveway hoop</button></div>
+        <div class="label">Partner's name</div>
+        <input type="text" id="pname" placeholder="Partner" maxlength="20" autocomplete="off">
+        <button class="btn primary wide" id="build" type="button" style="margin-top:16px">Build my session</button>
+      </div>
+      <div id="session"></div>
+    </div>
+
+    <div id="t-videos" class="view" style="margin-top:0" hidden>
+      <div class="card">
+        <h3>Video drills</h3>
+        <p class="muted small" style="margin:4px 0 10px">Paste a YouTube training video, then its chapters (from the description) or transcript (… › Show transcript). Each drill becomes a 10-second clip: watch it, then do it.</p>
+        <input type="url" id="v-link" placeholder="YouTube link" autocomplete="off" inputmode="url">
+        <input type="text" id="v-name" placeholder="Name it (optional)" autocomplete="off" style="margin-top:8px">
+        <textarea id="v-text" placeholder="0:00 Intro&#10;0:45 Pound dribbles&#10;2:10 Crossover series&#10;… or paste the transcript" style="margin-top:8px"></textarea>
+        <button class="btn primary wide" id="v-go" type="button" style="margin-top:10px">Find the drills</button>
+      </div>
+      <div id="v-list"></div>
     </div>
   </section>
 
-  <section class="view" id="v-solo" hidden>
-    <div class="card">
-      <h2>Solo workout</h2><p class="muted small" style="margin:4px 0 0">No partner? Build a workout and the app runs it hands-free: it calls out each drill, counts down, and beeps.</p>
-      <div class="label">Work on</div>
-      <div class="chips" id="s-focus"><button type="button" class="chip" data-v="handles">Handles</button><button type="button" class="chip" data-v="shooting">Shooting</button><button type="button" class="chip" data-v="finishing">Finishing</button><button type="button" class="chip" data-v="athletic">Athletic</button></div>
-      <div class="label">Time</div>
-      <div class="chips" id="s-time"><button type="button" class="chip" data-v="15">15 min</button><button type="button" class="chip" data-v="30">30 min</button><button type="button" class="chip" data-v="45">45 min</button></div>
-      <button class="btn primary wide" id="s-build" type="button" style="margin-top:16px">Build workout</button>
-    </div>
-    <div class="card" id="s-plan" hidden></div>
-    <div class="card"><h3>Quick starts</h3><div id="s-presets" style="margin-top:6px"></div></div>
-    <div class="card"><h3>Workouts done</h3><div id="s-hist" style="margin-top:6px"></div></div>
-  </section>
-
+  <!-- SHOTS -->
   <section class="view" id="v-shots" hidden>
     <div class="card">
-      <div class="sess-head"><h2>Shot chart</h2><div class="chips" id="sh-mode"><button type="button" class="chip" data-v="live">This session</button><button type="button" class="chip" data-v="all">All-time</button></div></div>
-      <p class="muted small" style="margin:6px 0 10px" id="sh-help">Tap a spot, then tap Make or Miss for every shot.</p>
+      <div class="between"><h2>Shot chart</h2><div class="seg" id="sh-mode" style="width:auto"><button type="button" data-v="live">Session</button><button type="button" data-v="all">All-time</button></div></div>
+      <p class="muted small" style="margin:6px 0 10px" id="sh-help"></p>
       <div class="shot-court" id="sh-court"></div>
       <div id="sh-live-ctrl">
         <div class="muted small" id="sh-sel" style="margin:10px 0 8px;text-align:center"></div>
-        <div class="shot-btns"><button type="button" class="ms" id="sh-miss">Miss</button><button type="button" class="mk" id="sh-make">Make</button></div>
+        <div class="mm"><button type="button" class="ms" id="sh-miss">Miss</button><button type="button" class="mk" id="sh-make">Make</button></div>
         <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-top:8px"><button type="button" class="btn" id="sh-undo">Undo</button><button type="button" class="btn primary" id="sh-save">Save session</button></div>
       </div>
     </div>
-    <div class="card"><h3>Shooting numbers</h3><div class="big3" id="sh-stats" style="margin-top:10px"></div><p class="small" id="sh-best" style="margin:10px 0 0"></p></div>
-    <div class="card trend"><h3>FG% by session</h3><div id="sh-trend" style="margin-top:8px"></div></div>
+    <div class="card"><h3>Shooting numbers</h3><div class="stat3" id="sh-stats" style="margin-top:10px"></div><p class="small" id="sh-best" style="margin:10px 0 0"></p></div>
+    <div class="card"><h3>Makes from workouts</h3><div class="stat3" id="sh-work" style="margin-top:10px"></div></div>
+    <div class="card chart"><h3>FG% by session</h3><div id="sh-trend" style="margin-top:8px"></div></div>
   </section>
 
-  <section class="view" id="v-videos" hidden>
-    <div class="card">
-      <h2>Video drills</h2>
-      <p class="muted small" style="margin:4px 0 10px">Paste a YouTube training video, then paste its chapters (from the description) or its transcript (… → Show transcript). Each drill becomes a 10-second clip you can watch, then do.</p>
-      <input type="text" id="v-link" placeholder="YouTube link" autocomplete="off" inputmode="url">
-      <input type="text" id="v-name" placeholder="Name it (optional): Cole handles workout" autocomplete="off" style="margin-top:8px">
-      <textarea id="v-text" placeholder="0:00 Intro&#10;0:45 Pound dribbles&#10;2:10 Crossover series&#10;… or paste the transcript" style="margin-top:8px"></textarea>
-      <button class="btn primary wide" id="v-go" type="button" style="margin-top:10px">Find the drills</button>
-      <p class="muted small" style="margin:8px 0 0">YouTube only. TikTok and Instagram can't be clipped by time.</p>
-    </div>
-    <div id="v-list"></div>
-  </section>
-
-  <section class="view" id="v-record" hidden>
-    <div class="card"><h2>Record</h2><div class="big3" id="rec-big" style="margin-top:12px"></div></div>
-    <div class="card"><h3>Win % by skill</h3><p class="muted small" style="margin:4px 0 10px">The skills you lose most are the ones to build next.</p><div class="bars" id="rec-skill"></div></div>
-    <div class="card"><h3>Recent games</h3><div id="rec-list" style="margin-top:8px"></div></div>
+  <!-- ME -->
+  <section class="view" id="v-me" hidden>
+    <div class="card" id="me-level"></div>
+    <div class="card" id="me-games"></div>
+    <div class="card" id="me-records"></div>
+    <div class="card" id="me-badges"></div>
+    <div class="card" id="me-partner"></div>
+    <div class="card" id="me-history"></div>
   </section>
 </div>
 
 <nav class="tabs" aria-label="Sections">
-  <a class="tab" href="#games" data-tab="games"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>Games</a>
-  <a class="tab" href="#solo" data-tab="solo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>Solo</a>
-  <a class="tab" href="#shots" data-tab="shots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4h16"/><path d="M8 4v3a4 4 0 0 0 8 0V4"/><circle cx="7" cy="17" r="1.6" fill="currentColor"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/><circle cx="17" cy="16" r="1.6" fill="currentColor"/></svg>Shots</a>
-  <a class="tab" href="#videos" data-tab="videos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg>Videos</a>
-  <a class="tab" href="#record" data-tab="record"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20h16M7 16v-5M12 16V6M17 16v-8"/></svg>Record</a>
+  <a class="tab" href="#home" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg>Home</a>
+  <a class="tab" href="#program" data-tab="program"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M4 10h16M9 3v4M15 3v4M8 14h3M8 17h6"/></svg>Program</a>
+  <a class="tab" href="#train" data-tab="train"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>Train</a>
+  <a class="tab" href="#shots" data-tab="shots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 4h16"/><path d="M8 4v3a4 4 0 0 0 8 0V4"/><circle cx="7" cy="17" r="1.6" fill="currentColor"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/><circle cx="17" cy="16" r="1.6" fill="currentColor"/></svg>Shots</a>
+  <a class="tab" href="#me" data-tab="me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Me</a>
 </nav>
 
-<dialog class="board" id="board" aria-labelledby="b-title"><div class="board-in">
-  <div class="board-head"><div><h3 id="b-title">Game</h3><div class="muted small" id="b-goal"></div></div><button type="button" class="btn" id="b-close">Close</button></div>
+<!-- Program setup -->
+<dialog class="sheet" id="setup-sheet" aria-labelledby="ss-title">
+  <div class="sheet-head"><h3 id="ss-title">Elite Guard Program</h3><button type="button" class="x" data-close aria-label="Close">✕</button></div>
+  <p class="muted small" style="margin:0 0 6px">8 weeks, 3 phases. Built around your schedule. You can change this any time without losing progress.</p>
+  <div class="label">Days a week</div>
+  <div class="chips" id="ss-days-n"><button type="button" class="chip" data-v="3">3</button><button type="button" class="chip" data-v="4">4</button><button type="button" class="chip" data-v="5">5</button><button type="button" class="chip" data-v="6">6</button></div>
+  <div class="label">Which days</div>
+  <div class="chips" id="ss-days"></div>
+  <div class="label">Session length</div>
+  <div class="chips" id="ss-len"><button type="button" class="chip" data-v="30">30 min</button><button type="button" class="chip" data-v="45">45 min</button><button type="button" class="chip" data-v="60">60 min</button><button type="button" class="chip" data-v="75">75 min</button></div>
+  <div class="label">Where you usually train</div>
+  <div class="chips" id="ss-where"><button type="button" class="chip" data-v="gym">Gym</button><button type="button" class="chip" data-v="driveway">Driveway hoop</button><button type="button" class="chip" data-v="none">No hoop</button></div>
+  <div class="label">You have</div>
+  <div class="chips" id="ss-eq"><button type="button" class="chip" data-v="ball2">2 basketballs</button><button type="button" class="chip" data-v="cones">Cones or chairs</button><button type="button" class="chip" data-v="rebounder">Rebounder or partner</button></div>
+  <button type="button" class="btn primary wide" id="ss-save" style="margin-top:18px">Start the program</button>
+  <button type="button" class="btn wide danger" id="ss-reset" style="margin-top:8px" hidden>Restart from week 1</button>
+</dialog>
+
+<!-- Session preview -->
+<dialog class="sheet" id="sess-sheet" aria-labelledby="sp-title">
+  <div class="sheet-head"><div><div class="kicker" id="sp-kick"></div><h3 id="sp-title"></h3></div><button type="button" class="x" data-close aria-label="Close">✕</button></div>
+  <div id="sp-body"></div>
+  <div class="row" style="margin-top:14px"><button type="button" class="btn" id="sp-swap">Swap a drill</button><button type="button" class="btn primary" id="sp-start" style="flex:1">Start session</button></div>
+</dialog>
+
+<!-- Test day -->
+<dialog class="sheet" id="test-sheet" aria-labelledby="ts-title">
+  <div class="sheet-head"><div><div class="kicker">Benchmark test</div><h3 id="ts-title">Test day</h3></div><button type="button" class="x" data-close aria-label="Close">✕</button></div>
+  <p class="muted small" style="margin:0 0 8px">Same tests, same way, every time. Warm up first. Leave anything blank you can't do today.</p>
+  <div id="ts-body"></div>
+  <div class="card" style="margin-top:10px;padding:12px;text-align:center"><div class="kicker">Stopwatch</div><div style="font:800 40px var(--f-display)" class="num" id="sw">0.00</div><div class="row" style="justify-content:center"><button type="button" class="btn sm" id="sw-go">Start</button><button type="button" class="btn sm" id="sw-reset">Reset</button></div></div>
+  <button type="button" class="btn primary wide" id="ts-save" style="margin-top:12px">Save results</button>
+</dialog>
+
+<!-- Game log -->
+<dialog class="sheet" id="game-sheet" aria-labelledby="gm-title">
+  <div class="sheet-head"><h3 id="gm-title">Log a game</h3><button type="button" class="x" data-close aria-label="Close">✕</button></div>
+  <form id="game-form" style="display:grid;gap:10px">
+    <div class="grid2"><label class="f">Date<input type="date" id="gm-date" required></label><label class="f">Opponent<input type="text" id="gm-opp" maxlength="40" placeholder="Central"></label></div>
+    <div class="grid2"><label class="f">Level<select id="gm-lvl"><option>Varsity</option><option>JV</option><option>Freshman</option><option>AAU</option><option>League</option><option>Pickup</option></select></label><label class="f">Result<select id="gm-res"><option value="">–</option><option value="W">Win</option><option value="L">Loss</option></select></label></div>
+    <div class="grid3"><label class="f">Minutes<input type="number" id="gm-min" min="0" max="60" inputmode="numeric"></label><label class="f">Points<input type="number" id="gm-pts" min="0" max="99" inputmode="numeric" required></label><label class="f">Rebounds<input type="number" id="gm-reb" min="0" max="40" inputmode="numeric"></label></div>
+    <div class="grid3"><label class="f">FG made<input type="number" id="gm-fgm" min="0" max="60" inputmode="numeric"></label><label class="f">FG att.<input type="number" id="gm-fga" min="0" max="80" inputmode="numeric"></label><label class="f">Assists<input type="number" id="gm-ast" min="0" max="40" inputmode="numeric"></label></div>
+    <div class="grid3"><label class="f">3PT made<input type="number" id="gm-3m" min="0" max="30" inputmode="numeric"></label><label class="f">3PT att.<input type="number" id="gm-3a" min="0" max="40" inputmode="numeric"></label><label class="f">Steals<input type="number" id="gm-stl" min="0" max="20" inputmode="numeric"></label></div>
+    <div class="grid3"><label class="f">FT made<input type="number" id="gm-ftm" min="0" max="40" inputmode="numeric"></label><label class="f">FT att.<input type="number" id="gm-fta" min="0" max="40" inputmode="numeric"></label><label class="f">Turnovers<input type="number" id="gm-tov" min="0" max="20" inputmode="numeric"></label></div>
+    <label class="f">Notes<input type="text" id="gm-notes" maxlength="160" placeholder="What worked, what to fix"></label>
+    <div class="row"><button type="button" class="btn danger" id="gm-del" hidden>Delete</button><button class="btn primary" style="flex:1">Save game</button></div>
+  </form>
+</dialog>
+
+<dialog class="full" id="board" aria-labelledby="b-title"><div class="board-in">
+  <div class="between"><div><h3 id="b-title">Game</h3><div class="muted small" id="b-goal"></div></div><button type="button" class="btn" id="b-close">Close</button></div>
   <div class="sides">
     <div class="side them"><div class="who" id="b-them-name">Partner</div><div class="pts num" id="b-them">0</div><div class="adds" data-side="them"><button type="button" data-add="1">+1</button><button type="button" data-add="2">+2</button><button type="button" data-add="3">+3</button></div></div>
     <div class="side you"><div class="who">You</div><div class="pts num" id="b-you">0</div><div class="adds" data-side="you"><button type="button" data-add="1">+1</button><button type="button" data-add="2">+2</button><button type="button" data-add="3">+3</button></div></div>
   </div>
-  <div><div class="win-banner" id="b-win" hidden></div><div class="board-foot"><button type="button" class="btn" id="b-undo">Undo</button><button type="button" class="btn primary" id="b-save">Save result</button></div></div>
+  <div><div class="win-banner" id="b-win" hidden></div><div style="display:grid;grid-template-columns:1fr 2fr;gap:8px"><button type="button" class="btn" id="b-undo">Undo</button><button type="button" class="btn primary" id="b-save">Save result</button></div></div>
 </div></dialog>
-<dialog class="player" id="player" aria-labelledby="pl-name"><div class="pl-in">
-  <div><div class="pl-top"><span class="muted small num" id="pl-count"></span><button type="button" class="btn" id="pl-exit">End</button></div><div class="pl-prog" style="margin-top:10px"><div id="pl-prog"></div></div></div>
-  <div id="pl-clip"></div>
-  <div class="pl-main"><div class="pl-phase" id="pl-phase"></div><div class="pl-name" id="pl-name"></div><p class="pl-cue" id="pl-cue"></p><div id="pl-center"></div></div>
-  <div><div class="pl-next" id="pl-next"></div><div class="pl-ctrl" style="margin-top:10px"><button type="button" class="btn" id="pl-back">Back</button><button type="button" class="btn primary" id="pl-pause">Pause</button><button type="button" class="btn" id="pl-skip">Skip</button></div></div>
-</div></dialog>
-<div class="toast" id="toast" role="status"></div>
 
+<dialog class="full" id="player" aria-labelledby="pl-name"><div class="pl-in">
+  <div><div class="between"><span class="muted small num" id="pl-count"></span><button type="button" class="btn sm" id="pl-exit">End</button></div><div class="pl-prog" style="margin-top:10px"><div id="pl-prog"></div></div></div>
+  <div id="pl-top"></div>
+  <div class="pl-main" id="pl-main"></div>
+  <div id="pl-foot"></div>
+</div></dialog>
+
+<div id="listen-dock" aria-label="Music video"></div>
+<div class="toast" id="toast" role="status"></div>
 <script>
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const rd = (k, d) => { try { return JSON.parse(localStorage.getItem('cl:' + k)) ?? d; } catch { return d; } };
-const wr = (k, v) => { try { localStorage.setItem('cl:' + k, JSON.stringify(v)); } catch {} };
-let toastT; function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2400); }
+const wr = (k, v) => { try { localStorage.setItem('cl:' + k, JSON.stringify(v)); } catch { toast('Could not save on this device'); } };
+let toastT; function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
 function rng(seed) { let s = seed >>> 0 || 1; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
 const pick = (r, a) => a[Math.floor(r() * a.length)];
+const shuffle = (r, a) => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+const isoDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const todayIso = () => isoDate(new Date());
+const shiftIso = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoDate(d); };
+const fmtT = (s) => `${Math.floor(s / 60)}:${String(Math.round(s) % 60).padStart(2, '0')}`;
+const fmtDate = (t, o = { month: 'short', day: 'numeric' }) => new Date(t).toLocaleDateString(undefined, o);
+const pct = (m, a) => (a ? Math.round((m / a) * 100) : null);
 
+// ===================== Drill library =====================
+// k: 't' timed (a = seconds) · 'm' makes (a = makes to hit, tap Make/Miss) · 'x' challenge (a = seconds, then enter your score; it becomes a record).
+// ph: first and last phase it shows up in. eq: what it needs. calls: the app shouts these at random during the drill.
+const D = (id, c, n, k, a, cue, how, o = {}) => ({ id, c, n, k, a, cue, how, ph: o.ph || [1, 3], eq: o.eq || [], calls: o.calls || null, unit: o.unit || (k === 'x' ? 'makes' : ''), every: o.every || 0 });
+const H = ['hoop'];
+const LIB = [
+  // warm-up and cool-down
+  D('warm', 'warm', 'Dynamic warm-up', 't', 240, 'Get loose and warm before any hard work.', 'High knees, butt kicks, walking lunges with a twist, lateral shuffles, arm circles. About 30 seconds each.'),
+  D('ballwarm', 'warm', 'Ball wake-up', 't', 120, 'Soft hands, eyes up.', 'Pounds with each hand, around the waist, around each leg, figure 8 through the legs.'),
+  D('formwarm', 'warm', 'Form shooting, close', 'm', 12, 'One hand, elbow under the ball, hold the follow-through.', 'Start 3 feet from the rim, straight on. Swish 3, then step back a foot. Never past the free-throw line.', { eq: H }),
+  D('cool', 'cool', 'Cool-down stretch', 't', 180, 'Breathe slow. This is how you stay healthy.', 'Hip flexor, hamstring, quad, calf and ankle circles. 30 seconds each side.'),
+  // handles
+  D('pound', 'handles', 'Pound series', 't', 45, 'Hard as you can, below the knee, eyes up.', '15 seconds right hand, 15 left, 15 alternating. Every pound like you are trying to put it through the floor.', { ph: [1, 2] }),
+  D('cross', 'handles', 'Low crossovers', 't', 40, 'Wide and low. Ball never above your knee.', 'Quick crossovers in a wide stance. Push the ball across hard, catch it on the outside of your foot.'),
+  D('legs', 'handles', 'Between-the-legs series', 't', 40, 'Push it through hard. Stay low.', 'Front to back, then back to front, then continuous. Switch your feet each rep.'),
+  D('btb', 'handles', 'Behind-the-back wraps', 't', 40, 'Tight to the hip, chest up.', 'Wrap behind your back side to side without stopping. Snap the wrist.'),
+  D('inout', 'handles', 'In-and-out to cross', 't', 45, 'Sell the in-and-out with your eyes and shoulders.', 'In-and-out with one hand, then explode into a crossover. Alternate hands every rep.'),
+  D('combo', 'handles', 'Combo chain', 't', 45, 'Cross, legs, back without a break. Speed up each round.', 'Chain crossover into between the legs into behind the back. Go both directions.', { ph: [2, 3] }),
+  D('ball2pound', 'handles', 'Two-ball pounds', 't', 40, 'Both balls hit the floor at the same time.', 'Pound both balls hard and low. Then alternate like a drum beat.', { eq: ['ball2'] }),
+  D('ball2cross', 'handles', 'Two-ball crossovers', 't', 45, 'Cross one, pound the other. Eyes up.', 'One ball crosses in front while the other pounds. Switch which ball crosses every 10 seconds.', { ph: [2, 3], eq: ['ball2'] }),
+  D('retreat', 'handles', 'Retreat and re-attack', 't', 45, 'Two hard retreat dribbles, then blow by.', 'Attack forward 3 dribbles, retreat 2 when pressured, then a crossover and explode forward. Use the whole space.', { ph: [2, 3] }),
+  D('hesi', 'handles', 'Hesi and go', 't', 45, 'Freeze the defender, then explode.', 'Walk the ball up, sell a stop with your eyes and shoulders, then go full speed for 3 dribbles. Back and forth.'),
+  D('callhandles', 'handles', 'Call-out handles', 't', 60, 'React the instant you hear it. No thinking.', 'Dribble low in place. When the app calls a move, hit it right away, then back to pounding.', { ph: [2, 3], calls: ['Cross!', 'Between!', 'Behind!', 'In and out!', 'Hesi!', 'Retreat!', 'Spin!', 'Switch hands!'], every: 3 }),
+  D('cones', 'handles', 'Cone zig-zag attacks', 't', 60, 'Change direction at every cone, low and fast.', 'Set 5 cones or chairs in a zig-zag. Different move at each one: cross, legs, behind, spin, hesi.', { eq: ['cones'] }),
+  D('cod', 'handles', 'Full-court change of pace', 't', 60, 'Slow, then fast. Speed changes beat defenders.', 'Dribble baseline to baseline. Jog 3 dribbles, sprint 3, hesi, sprint. Both hands.', { eq: ['space'] }),
+  D('tennis', 'handles', 'Tennis ball toss dribble', 't', 45, 'Eyes off the ball completely.', 'Dribble with one hand, toss and catch a tennis ball with the other. No tennis ball? Flip a sock.', { ph: [3, 3] }),
+  // finishing
+  D('mikan', 'finish', 'Mikan drill', 't', 60, 'Never let the ball touch the floor.', 'Right-hand layup, catch it out of the net, left-hand layup. Stay close, keep it high.', { eq: H }),
+  D('revmikan', 'finish', 'Reverse Mikan', 't', 60, 'Use the rim to protect the ball.', 'Reverse layups side to side under the rim, both hands.', { eq: H }),
+  D('offhand', 'finish', 'Off-hand finishes', 'm', 10, 'Weak hand only. Make it a weapon.', 'From the wing, two hard dribbles, finish with your weak hand off the glass. Both sides.', { eq: H }),
+  D('euro', 'finish', 'Euro step finishes', 'm', 10, 'Long first step one way, long second step the other.', 'Attack from the top or wing, sell one direction, step across, finish. Both sides.', { eq: H }),
+  D('jumpstop', 'finish', 'Jump-stop power finish', 'm', 10, 'Two feet, chin the ball, go up strong.', 'Attack, jump stop in the paint, pump fake once, power up with two hands.', { eq: H }),
+  D('floater', 'finish', 'Floaters', 'm', 10, 'Release early and high, soft touch.', 'Attack from the top, float it off one foot from 6 to 10 feet before the shot blocker arrives.', { ph: [2, 3], eq: H }),
+  D('inside', 'finish', 'Inside-hand finishes', 'm', 8, 'Finish with the hand closest to the defender, away from the block.', 'Drive right, finish with your left hand on the right side. Then the other way. Hard, but this is what guards need.', { ph: [2, 3], eq: H }),
+  D('reverse', 'finish', 'Reverse layups', 'm', 8, 'Spin it high off the glass.', 'Baseline drive, finish on the far side of the rim. Both sides.', { eq: H }),
+  D('prohop', 'finish', 'Pro hop finishes', 'm', 8, 'Gather with a hop to change your angle.', 'Attack the wing, hop to two feet sideways past an imaginary help defender, finish.', { ph: [2, 3], eq: H }),
+  D('mikan60', 'finish', 'Mikan 60 challenge', 'x', 60, 'Beat your record.', 'Mikan drill for 60 seconds, as fast as you can. Count every make.', { eq: H }),
+  D('speedlay', 'finish', 'Speed layups challenge', 'x', 60, 'Sprint, finish, sprint.', 'Start at the right elbow. Drive, layup, rebound, dribble to the left elbow, drive, layup. 60 seconds. Count makes.', { ph: [2, 3], eq: H }),
+  // catch and shoot
+  D('spot5', 'catch', '5-spot spot-up', 'm', 15, 'Feet set before the catch. Same shot every time.', 'Corner, wing, top, wing, corner. 3 makes at each spot before you move.', { eq: H }),
+  D('hop', 'catch', 'Hop into your shot', 'm', 12, 'Land where you took off. Shoot on the way up.', 'Toss yourself the ball, hop on the catch, shoot. Mid-range in phase 1, threes after.', { eq: H }),
+  D('onetwo', 'catch', '1-2 step shooting', 'm', 12, 'Inside foot first, then outside, square up.', 'Coming off an imaginary screen from the block to the wing. 1-2 step into the shot.', { eq: H }),
+  D('elbows', 'catch', 'Elbow jumpers off the catch', 'm', 12, 'Game speed. Sprint to every spot.', 'Left elbow, right elbow, back and forth. Sprint between spots.', { eq: H }),
+  D('relocate', 'catch', 'Shoot and relocate', 'm', 12, 'Never stand after you shoot.', 'Shoot a three, sprint to a new spot, catch and shoot again. Keep moving.', { ph: [2, 3], eq: H }),
+  D('corners', 'catch', 'Corner-to-corner threes', 'm', 10, 'Sprint along the baseline, feet set on the catch.', 'Corner three, sprint to the other corner, shoot. Repeat.', { ph: [2, 3], eq: ['hoop', 'space'] }),
+  D('tired3', 'catch', 'Tired threes', 'm', 10, 'Your legs are your shot when you are tired.', 'Sprint to half court and back, then shoot one three. Repeat until you hit the makes.', { ph: [3, 3], eq: H }),
+  D('spot5x', 'catch', 'Beat 25 challenge', 'x', 120, 'Beat your record.', '2 minutes: shoot threes from any of the 5 spots, rebound yourself. Count makes.', { ph: [2, 3], eq: H }),
+  // off the dribble
+  D('pull1', 'create', '1-dribble pull-ups', 'm', 12, 'Big last dribble, stop on a dime, rise straight up.', 'From the wing: one hard dribble to the elbow, pull up. Half going right, half going left.', { eq: H }),
+  D('pull2', 'create', 'Crossover pull-ups', 'm', 10, 'Cross low, then rise.', 'Crossover from the top, two dribbles, pull up at the elbow. Both directions.', { eq: H }),
+  D('jab', 'create', 'Jab series', 'm', 10, 'Jab hard, read it, then shoot or go.', 'Triple threat at the wing. Jab and shoot, jab and drive one dribble pull-up, jab-crossover drive. Count makes.', { eq: H }),
+  D('stepback', 'create', 'Step-back jumpers', 'm', 8, 'Push off hard, land balanced, then shoot.', 'Attack 2 dribbles toward the elbow, step back. Mid-range first, then threes in phase 3.', { ph: [2, 3], eq: H }),
+  D('sidestep', 'create', 'Side-step threes', 'm', 8, 'Big side step, stay square to the rim.', 'Attack the wing, side-step to the left or right behind the line, shoot.', { ph: [2, 3], eq: H }),
+  D('hesipull', 'create', 'Hesi pull-ups', 'm', 10, 'Sell the drive, then rise.', 'Attack from the top, hesitation at the free-throw line extended, pull up.', { ph: [2, 3], eq: H }),
+  D('snatch', 'create', 'Snatch-back jumpers', 'm', 8, 'Snatch the ball back hard to create space.', 'Drive two dribbles, plant, snatch the ball back with one hard retreat, shoot.', { ph: [3, 3], eq: H }),
+  D('spinfade', 'create', 'Spin-out counters', 'm', 8, 'When the drive gets cut off, spin back to your jumper.', 'Drive baseline, reverse spin back toward the elbow, pull up.', { ph: [3, 3], eq: H }),
+  D('pull20x', 'create', 'Pull-up 20 challenge', 'x', 120, 'Beat your record.', '2 minutes of one-dribble pull-ups, alternate directions, rebound yourself. Count makes.', { ph: [2, 3], eq: H }),
+  // feet: defense and footwork
+  D('slides', 'feet', 'Defensive slides', 't', 30, 'Low, wide, no crossing your feet.', 'Lane line to lane line, touch each line. Stay in your stance the whole time.'),
+  D('closeout', 'feet', 'Closeout, chop, slide', 't', 40, 'Sprint, chop your feet, high hand, then slide.', 'Sprint toward a spot, chop your feet with a high hand, slide two steps each way, back to the start.'),
+  D('mirror', 'feet', 'Reaction slides', 't', 45, 'Move the instant you hear it.', 'Defensive stance. When the app calls a direction, slide or sprint there 2 steps and get back.', { calls: ['Left!', 'Right!', 'Back!', 'Closeout!', 'Sprint!', 'Drop!'], every: 3 }),
+  D('droprecover', 'feet', 'Drop step and recover', 't', 40, 'Open your hips, then recover in front.', 'Get beat on purpose: drop step, run 2 steps, cut back in front of the line. Both ways.', { ph: [2, 3] }),
+  D('jabfeet', 'feet', 'Jab and pivot footwork', 't', 45, 'Stay low on every pivot.', 'No ball needed. Jab, rip through, front pivot, reverse pivot. Both pivot feet.'),
+  // engine: speed and conditioning
+  D('rope', 'engine', 'Jump rope', 't', 90, 'Light and quick on the balls of your feet.', 'No rope? Do it without one. Mix in high knees.'),
+  D('pogos', 'engine', 'Pogo jumps', 't', 30, 'Stiff ankles, quick off the ground.', 'Small fast hops on the balls of your feet. Barely bend your knees.'),
+  D('skaters', 'engine', 'Skater bounds', 't', 30, 'Stick every landing for a second.', 'Bound sideways off one leg, land on the other, hold it, go back.'),
+  D('downback', 'engine', 'Down-and-backs', 't', 45, 'Full sprint, touch every line.', 'Baseline to the far baseline and back. Driveway: sprint 20 yards and back.'),
+  D('suicide', 'engine', 'Suicides', 't', 60, 'Touch every line with your hand.', 'Free-throw line, half court, far free-throw line, far baseline. Back to the start after each.', { ph: [2, 3], eq: ['space'] }),
+  D('sprintshot', 'engine', 'Sprint to a shot', 'm', 8, 'Shoot it the same tired as fresh.', 'Sprint to half court and back to a spot, catch and shoot. Keep going until you hit the makes.', { eq: H }),
+  D('lines17', 'engine', '17s challenge', 'x', 60, 'Sideline to sideline as many times as you can.', 'Sprint sideline to sideline in 60 seconds. Count lines touched. Driveway: 10 yards apart.', { unit: 'lines' }),
+  // free throws
+  D('ft', 'ft', 'Free throws', 'm', 10, 'Same routine every single shot.', 'Your full routine. Breathe, dribble, set, shoot.', { eq: H }),
+  D('ftpairs', 'ft', 'Free throws in pairs', 'm', 10, 'Like a real trip to the line.', 'Shoot 2, walk off, come back. Like a game.', { eq: H }),
+  D('fttired', 'ft', 'Tired free throws', 'm', 10, 'Slow your breathing before you shoot.', 'Sprint a down-and-back, then shoot 2. Repeat.', { ph: [2, 3], eq: H }),
+  // iq
+  D('reads', 'iq', 'Call-out reads', 't', 60, 'Decide in under a second.', 'Triple threat at the wing. When the app calls a read, make that move at game speed and reset.', { ph: [1, 3], calls: ['Shoot!', 'Drive left!', 'Drive right!', 'Jab and shoot!', 'Pass fake, drive!', 'Step back!'], every: 4 }),
+  D('visual', 'iq', 'Mental reps', 't', 120, 'See it before you do it.', 'Eyes closed. Picture 5 game possessions: the read, the move, the finish. Feel each one.'),
+];
+const LIBI = Object.fromEntries(LIB.map((d) => [d.id, d]));
+const CATS = { warm: 'Warm-up', handles: 'Handles', finish: 'Finishing', catch: 'Catch & shoot', create: 'Off the dribble', feet: 'Footwork & D', engine: 'Speed & engine', ft: 'Free throws', iq: 'Reads', cool: 'Cool-down' };
+const HIT = { finish: 0.7, catch: 0.45, create: 0.4, ft: 0.72, warm: 0.7, engine: 0.45 };
+function canDo(d, eq) {
+  return d.eq.every((e) => (e === 'hoop' ? eq.where !== 'none' : e === 'space' ? eq.where === 'gym' : e === 'ball2' ? eq.ball2 : e === 'cones' ? eq.cones : true));
+}
+const PH_MULT = [1, 1.2, 1.4];
+function amountFor(d, phase, taper) {
+  if (d.k === 'x') return d.a;
+  const m = PH_MULT[phase - 1] * (taper ? 0.75 : 1);
+  return d.k === 't' ? Math.max(20, Math.round((d.a * m) / 5) * 5) : Math.max(4, Math.round(d.a * m));
+}
+const estSecs = (it) => (it.k === 't' ? it.amt : it.k === 'x' ? it.amt + 30 : Math.round((it.amt / (HIT[it.c] || 0.5)) * 6)) + 20;
+const toItem = (d, phase = 1, taper = false) => ({ id: d.id, c: d.c, n: d.n, k: d.k, amt: amountFor(d, phase, taper), cue: d.cue, how: d.how, calls: d.calls, every: d.every, unit: d.unit });
+
+// ===================== Elite Guard Program =====================
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const STYPES = {
+  attack: { name: 'Attack', sub: 'Handles + finishing at the rim', slots: [['handles', 3], ['finish', 3]], ch: ['mikan60', 'speedlay'] },
+  shooter: { name: 'Shooter', sub: 'Catch-and-shoot volume and footwork', slots: [['catch', 4], ['feet', 1]], ch: ['spot5x'] },
+  creator: { name: 'Creator', sub: 'Scoring off the dribble', slots: [['handles', 1], ['create', 4], ['finish', 1]], ch: ['pull20x'] },
+  engine: { name: 'Engine', sub: 'Speed, defense, shooting tired', slots: [['feet', 2], ['engine', 3], ['catch', 1]], ch: ['lines17'] },
+  combine: { name: 'Combine', sub: 'Game-speed mix and reads', slots: [['iq', 1], ['handles', 1], ['create', 1], ['finish', 1], ['catch', 1]], ch: ['mikan60', 'spot5x', 'pull20x'] },
+  touch: { name: 'Touch', sub: 'Light skill day: form, handles, free throws', slots: [['handles', 2], ['catch', 1]], ch: [], light: true },
+};
+const ROTATION = { 3: ['attack', 'shooter', 'creator'], 4: ['attack', 'shooter', 'creator', 'engine'], 5: ['attack', 'shooter', 'creator', 'engine', 'combine'], 6: ['attack', 'shooter', 'creator', 'engine', 'combine', 'touch'] };
+const NOHOOP = { finish: 'handles', catch: 'feet', create: 'handles', ft: 'iq' };
+const PHASES = [{ n: 'Foundation', wk: [1, 3], about: 'Clean form, ball control and footwork. High volume at medium speed. Build the habits.' }, { n: 'Build', wk: [4, 6], about: 'Game speed. Off-the-dribble shots, combo moves, reacting to calls, shooting tired.' }, { n: 'Game speed', wk: [7, 8], about: 'Pressure and competition. Counters, challenges and fatigue. Week 8 tapers so you peak for the final test.' }];
+const phaseOf = (wk) => (wk <= 3 ? 1 : wk <= 6 ? 2 : 3);
+const TESTS = [
+  { id: 'three50', n: '50-shot three test', how: '10 threes from each of 5 spots: both corners, both wings, top. Count makes.', unit: 'of 50', max: 50, dir: 1, eq: H },
+  { id: 'pull20', n: 'Pull-up test', how: '10 one-dribble pull-ups going right, 10 going left, from the elbows. Count makes.', unit: 'of 20', max: 20, dir: 1, eq: H },
+  { id: 'ft20', n: 'Free throw test', how: '20 free throws with your full routine. Count makes.', unit: 'of 20', max: 20, dir: 1, eq: H },
+  { id: 'mikan', n: 'Mikan 60', how: 'Mikan drill for 60 seconds. Count makes.', unit: 'makes', max: 90, dir: 1, eq: H },
+  { id: 'fig8', n: 'Figure-8 30', how: 'Figure-8 dribble through your legs for 30 seconds. Count every pass through.', unit: 'reps', max: 150, dir: 1, eq: [] },
+  { id: 'shuttle', n: '5-10-5 shuttle', how: 'Lines 5 yards to each side. Sprint 5 one way, 10 back, 5 to the middle. Use the stopwatch. Best of 2.', unit: 'sec', max: 15, dir: -1, eq: [] },
+  { id: 'vert', n: 'Vertical jump', how: 'Reach up on a wall and mark it. Jump and mark. The gap in inches. Best of 3.', unit: 'in', max: 50, dir: 1, eq: [] },
+];
+const DEFAULT_PROG = { start: null, nDays: 4, days: [1, 2, 4, 6], len: 45, eq: { where: 'gym', ball2: false, cones: false, rebounder: false }, done: {}, tests: [], seeds: {}, swaps: {} };
+let prog = rd('prog', null);
+const progOn = () => !!prog?.start;
+function schedule() {
+  const p = prog, rot = ROTATION[p.nDays] || ROTATION[4], out = [{ key: 't1', test: true, wk: 1, label: 'Baseline test' }];
+  for (let wk = 1; wk <= 8; wk++) {
+    rot.forEach((t, i) => out.push({ key: `w${wk}s${i + 1}`, wk, i: i + 1, n: rot.length, type: t }));
+    if (wk === 4) out.push({ key: 't4', test: true, wk: 4, label: 'Mid-program test' });
+    if (wk === 8) out.push({ key: 't8', test: true, wk: 8, label: 'Final test' });
+  }
+  return out;
+}
+const isDone = (key) => !!prog?.done?.[key] || (key.startsWith('t') && prog?.tests?.some((t) => t.key === key));
+const nextSess = () => schedule().find((s) => !isDone(s.key)) || null;
+function buildSession(s) {
+  const p = prog, ty = STYPES[s.type], phase = phaseOf(s.wk), taper = s.wk === 8, light = ty.light;
+  const r = rng(((s.wk * 31 + s.i * 7) * 1009 + (p.seeds[s.key] || 0) * 7919) % 2147483647);
+  const hoop = p.eq.where !== 'none', budget = p.len * 60, eq = p.eq;
+  const pool = (cat) => LIB.filter((d) => d.c === cat && d.k !== 'x' && d.ph[0] <= phase && d.ph[1] >= phase && canDo(d, eq));
+  const blocks = [];
+  const warm = [toItem(LIBI.warm, phase), toItem(hoop ? LIBI.formwarm : LIBI.ballwarm, phase)];
+  if (light) warm.splice(0, 1, toItem(LIBI.ballwarm, phase));
+  blocks.push({ n: 'Warm-up', items: warm });
+  const finisher = [];
+  const chs = ty.ch.filter((id) => canDo(LIBI[id], eq) && LIBI[id].ph[0] <= phase), chId = chs.length ? chs[Math.floor(r() * chs.length)] : null;
+  if (chId) finisher.push(toItem(LIBI[chId], phase));
+  finisher.push(toItem(hoop ? LIBI[phase >= 2 && s.type === 'engine' ? 'fttired' : phase >= 2 ? 'ftpairs' : 'ft'] : LIBI.visual, phase, taper));
+  const cool = [toItem(LIBI.cool, phase)];
+  let used = [...warm, ...finisher, ...cool].reduce((a, it) => a + estSecs(it), 0);
+  const slots = ty.slots.map(([cat, want]) => { const c = hoop ? cat : NOHOOP[cat] || cat; return { cat, c, want, list: shuffle(r, pool(c)), got: [] }; });
+  const seen = new Set();
+  // Fill each slot to its count, then keep adding round-robin until the time budget is used.
+  for (let pass = 0; pass < 10; pass++) {
+    let added = false;
+    for (const sl of slots) {
+      if (pass === 0 ? false : sl.got.length >= sl.want + 4) continue;
+      const need = pass === 0 ? sl.want : 1;
+      for (let k = 0; k < need; k++) {
+        const d = sl.list.find((x) => !seen.has(x.id)); if (!d) break;
+        const it = toItem(d, phase, taper), cost = estSecs(it);
+        if (used + cost > budget * 1.06 && (pass > 0 || sl.got.length >= 1)) break;
+        seen.add(d.id); sl.got.push(it); used += cost; added = true;
+      }
+    }
+    if (pass > 0 && !added) break;
+  }
+  for (const [idx, id] of Object.entries(p.swaps[s.key] || {})) { const [bi, ii] = idx.split(':').map(Number); const sl = slots[bi]; if (sl?.got[ii] && LIBI[id]) sl.got[ii] = toItem(LIBI[id], phase, taper); }
+  // Not enough different drills to fill the time? Do more of each one (more makes, longer sets), up to about double.
+  const main = slots.flatMap((sl) => sl.got), mainSecs = main.reduce((a, it) => a + estSecs(it), 0), fixed = [...warm, ...finisher, ...cool].reduce((a, it) => a + estSecs(it), 0);
+  const ratio = mainSecs ? Math.min(3, (budget - fixed) / mainSecs) : 1;
+  if (ratio > 1.08) for (const it of main) it.amt = it.k === 't' ? Math.min(240, Math.round((it.amt * ratio) / 5) * 5) : it.k === 'm' ? Math.min(50, Math.round(it.amt * ratio)) : it.amt;
+  for (const sl of slots) if (sl.got.length) blocks.push({ n: CATS[sl.c], items: sl.got, slot: slots.indexOf(sl) });
+  // Long sessions: a second round of the main drills.
+  let total = [...warm, ...finisher, ...cool, ...main].reduce((a, it) => a + estSecs(it), 0);
+  const round2 = [];
+  for (let k = 0; k < main.length && total < budget * 0.92; k++) { const it = { ...main[(k * 2) % main.length] }; if (round2.some((x) => x.id === it.id)) continue; round2.push(it); total += estSecs(it); }
+  if (round2.length) blocks.push({ n: 'Second round', items: round2 });
+  blocks.push({ n: 'Finisher', items: finisher }, { n: 'Cool-down', items: cool });
+  const all = blocks.flatMap((b) => b.items);
+  return { blocks, mins: Math.round(all.reduce((a, it) => a + estSecs(it), 0) / 60), count: all.length, phase, type: ty };
+}
+const sessTitle = (s) => (s.test ? s.label : `${STYPES[s.type].name}`);
+const sessKick = (s) => (s.test ? `Week ${s.wk} · Test day` : `Week ${s.wk} · Day ${s.i} of ${s.n} · ${PHASES[phaseOf(s.wk) - 1].n}`);
+
+// ===================== Progress: XP, levels, records, hub summary =====================
+const RANKS = ['Rookie', 'Rotation Player', 'Starter', 'Varsity Lock', 'All-Conference', 'All-State', 'D1 Prospect', 'Pro'];
+const xpForLevel = (L) => 150 * (L - 1) * L; // L2 = 300, L3 = 900, L4 = 1800 ...
+function totals() {
+  const hist = rd('soloHist', []), shots = rd('shots', []), games = rd('gamelog', []), partner = rd('history', []);
+  let mk = 0, at = 0; for (const h of hist) { mk += h.makes || 0; at += h.att || 0; }
+  let cm = 0, ca = 0; for (const s of shots) for (const o of Object.values(s.spots || {})) { cm += o.m || 0; ca += o.a || 0; }
+  const mins = Math.round(hist.reduce((a, h) => a + (h.secs || 0), 0) / 60);
+  const progDone = Object.keys(prog?.done || {}).length, tests = prog?.tests?.length || 0;
+  const xp = hist.reduce((a, h) => a + 25 + Math.round((h.secs || 0) / 60) * 2, 0) + progDone * 100 + tests * 150 + Math.round((mk + cm) / 4) + shots.length * 15 + games.length * 40 + partner.length * 15 + Object.keys(rd('prs', {})).length * 20;
+  return { hist, shots, games, partner, makes: mk + cm, att: at + ca, wmk: mk, wat: at, mins, progDone, tests, xp, sessions: hist.length };
+}
+function levelOf(xp) { let L = 1; while (xp >= xpForLevel(L + 1)) L++; const lo = xpForLevel(L), hi = xpForLevel(L + 1); return { L, rank: RANKS[Math.min(RANKS.length - 1, Math.floor((L - 1) / 3))], into: xp - lo, need: hi - lo, next: hi }; }
+function weekStreak() {
+  // Weeks in a row hitting your weekly plan (program days, or 3 workouts without a program).
+  const hist = rd('soloHist', []), target = progOn() ? Math.min(prog.nDays, 6) : 3, mon = (t) => { const d = new Date(t); d.setHours(12); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoDate(d); };
+  const by = {}; for (const h of hist) { const k = mon(h.at); by[k] = (by[k] || 0) + 1; }
+  let n = 0, w = mon(Date.now()); if ((by[w] || 0) < target) w = shiftIso(w, -7);
+  while ((by[w] || 0) >= target && n < 200) { n++; w = shiftIso(w, -7); }
+  return n;
+}
+function writeHub() {
+  try {
+    const t = todayIso(), hs = rd('soloHist', []).filter((h) => isoDate(new Date(h.at)) === t);
+    const sh = rd('shots', []).filter((s) => isoDate(new Date(s.at)) === t);
+    let m = 0, a = 0; for (const h of hs) { m += h.makes || 0; a += h.att || 0; } for (const s of sh) for (const o of Object.values(s.spots || {})) { m += o.m || 0; a += o.a || 0; }
+    localStorage.setItem('hub:court:' + t, JSON.stringify({ mins: Math.round(hs.reduce((x, h) => x + (h.secs || 0), 0) / 60), sessions: hs.length, makes: m, att: a, level: levelOf(totals().xp).L, at: Date.now() }));
+  } catch {}
+}
+function setPR(id, val, dir = 1) {
+  const prs = rd('prs', {}), old = prs[id];
+  if (!old || (dir > 0 ? val > old.best : val < old.best)) { prs[id] = { best: val, at: Date.now(), prev: old?.best ?? null }; wr('prs', prs); return old ? 'pr' : 'first'; }
+  return null;
+}
+
+// ===================== Listen: YouTube audio that keeps playing while you train =====================
+let listen = rd('listen', null), lsState = { playing: false, title: '' };
+function parseYT(u) {
+  const s = String(u || '').trim(), list = s.match(/[?&]list=([\w-]+)/)?.[1], vid = s.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/))([\w-]{11})/)?.[1];
+  return list || vid ? { list: list || null, vid: vid || null } : null;
+}
+function lsSrc(l) {
+  const o = location.origin && location.origin !== 'null' ? `&origin=${encodeURIComponent(location.origin)}` : '';
+  return l.list ? `https://www.youtube.com/embed/${l.vid ? l.vid + '?' : 'videoseries?'}list=${l.list}&enablejsapi=1&playsinline=1&autoplay=1${o}` : `https://www.youtube.com/embed/${l.vid}?enablejsapi=1&playsinline=1&autoplay=1&loop=1&playlist=${l.vid}${o}`;
+}
+function lsCmd(func) { const f = $('#ls-frame'); try { f?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args: [] }), '*'); } catch {} }
+function mountListen(autoplay) {
+  const dock = $('#listen-dock');
+  if (!listen) { dock.innerHTML = ''; dock.classList.remove('show'); renderListenBar(); return; }
+  if (!$('#ls-frame') || $('#ls-frame').dataset.src !== JSON.stringify(listen)) {
+    dock.innerHTML = `<iframe id="ls-frame" title="Music player" data-src='${esc(JSON.stringify(listen))}' src="${esc(lsSrc(listen))}" allow="autoplay; encrypted-media; picture-in-picture"></iframe>`;
+    $('#ls-frame').addEventListener('load', () => { try { $('#ls-frame').contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 'ls' }), '*'); } catch {} });
+    lsState.playing = !!autoplay;
+  }
+  dock.classList.toggle('show', !!rd('lsShow', true));
+  renderListenBar();
+}
+window.addEventListener('message', (e) => {
+  if (!/youtube(-nocookie)?\.com$/.test(new URL(e.origin || 'https://x.invalid').hostname)) return;
+  let d; try { d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch { return; }
+  if (!d || e.source !== $('#ls-frame')?.contentWindow) return;
+  const info = d.info || {};
+  if (typeof info.playerState === 'number') lsState.playing = info.playerState === 1 || info.playerState === 3;
+  if (info.videoData?.title) lsState.title = info.videoData.title;
+  renderListenBar(); if (pl) renderPlayerTop();
+});
+const lsTitle = () => lsState.title || (listen?.list ? 'YouTube playlist' : 'YouTube audio');
+function renderListenBar() {
+  const el = $('#ls-bar'); if (!el) return;
+  if (!listen) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="listen-bar"><span class="eq" aria-hidden="true">♫</span><span class="t"><b>${esc(lsTitle())}</b><span class="muted small">${lsState.playing ? 'Playing' : 'Paused'} · keeps going during workouts</span></span>
+    ${listen.list ? '<button type="button" class="btn sm" data-ls="previousVideo" aria-label="Previous">⏮</button>' : ''}<button type="button" class="btn sm" data-ls="${lsState.playing ? 'pauseVideo' : 'playVideo'}" aria-label="${lsState.playing ? 'Pause' : 'Play'}">${lsState.playing ? '❚❚' : '▶'}</button>${listen.list ? '<button type="button" class="btn sm" data-ls="nextVideo" aria-label="Next">⏭</button>' : ''}</div>
+    <div class="row" style="margin-top:6px"><button type="button" class="btn sm" id="ls-show">${rd('lsShow', true) ? 'Hide video' : 'Show video'}</button><button type="button" class="btn sm danger" id="ls-stop">Stop</button></div>`;
+}
+document.addEventListener('click', (e) => {
+  const c = e.target.closest('[data-ls]'); if (c) { lsCmd(c.dataset.ls); lsState.playing = c.dataset.ls === 'playVideo' ? true : c.dataset.ls === 'pauseVideo' ? false : lsState.playing; renderListenBar(); if (pl) renderPlayerTop(); return; }
+  if (e.target.closest('#ls-show')) { wr('lsShow', !rd('lsShow', true)); mountListen(); return; }
+  if (e.target.closest('#ls-stop')) { listen = null; wr('listen', null); lsState = { playing: false, title: '' }; mountListen(); toast('Music stopped'); }
+});
+$('#ls-go').addEventListener('click', () => {
+  const p = parseYT($('#ls-link').value); if (!p) return toast('Paste a YouTube video or playlist link');
+  listen = p; wr('listen', p); lsState = { playing: true, title: '' }; $('#ls-link').value = ''; mountListen(true);
+  toast('Playing. Start a workout and it keeps going.');
+});
+
+// ===================== Hands-free player =====================
+let pl = null, audio = null;
+function beep(freq = 880, ms = 120) {
+  try { audio ??= new (window.AudioContext || window.webkitAudioContext)(); const o = audio.createOscillator(), g = audio.createGain(); o.frequency.value = freq; o.connect(g); g.connect(audio.destination); g.gain.setValueAtTime(0.2, audio.currentTime); g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + ms / 1000); o.start(); o.stop(audio.currentTime + ms / 1000); } catch {}
+}
+function say(t) { try { if (!window.speechSynthesis || rd('quiet', false)) return; speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = 1.08; speechSynthesis.speak(u); } catch {} }
+const ytClip = (vid, start) => `https://www.youtube-nocookie.com/embed/${vid}?start=${Math.max(0, Math.floor(start))}&end=${Math.floor(start) + 10}&autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+const itemAmt = (it) => (it.k === 'm' ? `${it.amt} makes` : it.k === 'x' ? `${fmtT(it.amt)} · challenge` : fmtT(it.amt));
+/** items: [{id,c,n,k,amt,cue,how,calls,every,unit,clip,block}] · meta: {name, progKey} */
+function startPlayer(items, meta) {
+  if (!items?.length) return;
+  pl = { items, meta, i: 0, phase: 'ready', left: 5, paused: false, made: 0, att: 0, done: 0, secs: 0, makes: 0, atts: 0, scores: {}, prs: [], call: '', callIn: 0 };
+  try { audio ??= new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch {}
+  try { navigator.wakeLock?.request('screen').then((w) => { if (pl) pl.lock = w; else w.release(); }).catch(() => {}); } catch {}
+  $('#player').showModal(); enterPhase('ready');
+  clearInterval(pl.timer); pl.timer = setInterval(tick, 1000);
+}
+function enterPhase(ph) {
+  const d = pl.items[pl.i];
+  pl.phase = ph; pl.made = 0; pl.att = 0; pl.call = ''; pl.callIn = 3;
+  if (ph === 'ready') { pl.left = d.clip ? 15 : 6; say(`${d.clip ? 'Watch the clip. ' : ''}Next: ${d.n}. ${d.k === 'm' ? d.amt + ' makes' : d.k === 'x' ? 'Challenge. ' + d.amt + ' seconds' : d.amt + ' seconds'}.`); if (d.clip && lsState.playing) { lsCmd('pauseVideo'); pl.resumeMusic = true; } }
+  if (ph === 'work') { pl.left = d.k === 'm' ? 0 : d.amt; beep(1200, 260); say('Go'); if (pl.resumeMusic && !d.clip) { lsCmd('playVideo'); pl.resumeMusic = false; } }
+  if (ph === 'rest') { pl.left = d.c === 'warm' || d.c === 'cool' ? 5 : 20; beep(600, 300); if (pl.resumeMusic) { lsCmd('playVideo'); pl.resumeMusic = false; } }
+  if (ph === 'score') { beep(1300, 200); say('Time. How many?'); }
+  renderPlayer();
+}
+function afterWork() {
+  pl.done++;
+  if (pl.i >= pl.items.length - 1) return finishPlayer(true);
+  enterPhase('rest');
+}
+function tick() {
+  if (!pl || pl.paused || pl.phase === 'summary' || pl.phase === 'score') return;
+  pl.secs++;
+  const d = pl.items[pl.i];
+  if (pl.phase === 'work' && d.calls) { pl.callIn--; if (pl.callIn <= 0) { let c; do { c = pick(Math.random, d.calls); } while (c === pl.call && d.calls.length > 1); pl.call = c; say(c.replace('!', '')); pl.callIn = Math.max(2, (d.every || 3) - (phaseOf(prog?.start ? (nextSess()?.wk || 1) : 1) - 1)); } }
+  if (pl.phase === 'work' && d.k === 'm') { renderPlayer(); return; }
+  pl.left--;
+  if (pl.left > 0 && pl.left <= 3) beep(880, 110);
+  if (pl.left <= 0) {
+    if (pl.phase === 'ready') return enterPhase('work');
+    if (pl.phase === 'work') return d.k === 'x' ? enterPhase('score') : afterWork();
+    if (pl.phase === 'rest') { pl.i++; return enterPhase('ready'); }
+  }
+  renderPlayer();
+}
+function renderPlayerTop() {
+  const d = pl.items[pl.i], el = $('#pl-top'), wantClip = d.clip && pl.phase !== 'rest' && pl.phase !== 'summary';
+  const music = listen ? `<div class="pl-mini"><span>♫ ${esc(lsTitle())}</span><button type="button" class="btn sm" data-ls="${lsState.playing ? 'pauseVideo' : 'playVideo'}" aria-label="${lsState.playing ? 'Pause music' : 'Play music'}">${lsState.playing ? '❚❚' : '▶'}</button>${listen.list ? '<button type="button" class="btn sm" data-ls="nextVideo" aria-label="Next song">⏭</button>' : ''}</div>` : '';
+  const key = `${pl.i}|${wantClip}`;
+  if (el.dataset.key !== key || !wantClip) {
+    el.innerHTML = (wantClip ? `<div class="pl-clip"><iframe src="${ytClip(d.clip.vid, d.clip.t)}" title="${esc(d.n)} clip" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>` : '') + `<div id="pl-music" style="${wantClip ? 'margin-top:8px' : ''}">${music}</div>`;
+    el.dataset.key = key;
+  } else $('#pl-music').innerHTML = music;
+}
+function ring(pctv, big, small, col = 'var(--accent)') {
+  const C = 2 * Math.PI * 88;
+  return `<div class="ring-t"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="88" fill="none" stroke="var(--surface-2)" stroke-width="12"/><circle cx="100" cy="100" r="88" fill="none" stroke="${col}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(Math.max(0, Math.min(1, pctv)) * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 100 100)"/><text x="100" y="${small ? 106 : 116}" text-anchor="middle" class="tv">${big}</text>${small ? `<text x="100" y="134" text-anchor="middle" class="tl">${small}</text>` : ''}</svg></div>`;
+}
+function renderPlayer() {
+  if (!pl) return;
+  const d = pl.items[pl.i], n = pl.items.length;
+  $('#pl-count').textContent = `${pl.meta.name} · ${pl.i + 1} of ${n}`;
+  $('#pl-prog').style.width = `${((pl.i + (pl.phase === 'rest' || pl.phase === 'summary' ? 1 : 0)) / n) * 100}%`;
+  renderPlayerTop();
+  const main = $('#pl-main'), foot = $('#pl-foot');
+  if (pl.phase === 'summary') {
+    const s = pl.summary;
+    main.innerHTML = `<div class="sum"><div class="kicker">${s.completed ? 'Session complete' : 'Saved'}</div><h2>${s.completed ? 'Work done.' : 'Nice reps.'}</h2>
+      <div class="stat3" style="width:100%"><div><b>${fmtT(s.secs)}</b><small>time</small></div><div><b>${s.atts ? s.makes + '/' + s.atts : s.drills}</b><small>${s.atts ? `makes · ${pct(s.makes, s.atts)}%` : 'drills done'}</small></div><div><b>+${s.xp}</b><small>XP</small></div></div>
+      ${s.prs.length ? `<div class="card" style="width:100%;text-align:left">${s.prs.map((p) => `<div class="rrow"><span>🏆 <b>${esc(p.n)}</b><small>${p.first ? 'First record set' : `New record (was ${p.prev})`}</small></span><b>${p.v}</b></div>`).join('')}</div>` : ''}
+      ${s.level ? `<p class="small" style="margin:0">Level ${s.level.L} · ${esc(s.level.rank)} · ${s.level.next - s.xpTotal} XP to level ${s.level.L + 1}</p>` : ''}</div>`;
+    foot.innerHTML = '<button type="button" class="btn primary wide" id="pl-close">Done</button>';
+    return;
+  }
+  const phLabel = { ready: 'Get ready', work: d.k === 'm' ? `Make ${d.amt}` : d.k === 'x' ? 'Challenge · go' : 'Go', rest: 'Rest', score: 'Time!' }[pl.phase];
+  let center = '';
+  if (pl.phase === 'work' && d.k === 'm') center = ring(pl.made / d.amt, `${pl.made}/${d.amt}`, pl.att ? `${pct(pl.made, pl.att)}% · ${pl.att} shots` : 'tap every shot') + '<div class="mm" style="width:100%;max-width:380px"><button type="button" class="ms" data-shot="0">Miss</button><button type="button" class="mk" data-shot="1">Make</button></div>';
+  else if (pl.phase === 'score') { const pr = rd('prs', {})[d.id]; center = `<div class="score-in"><button type="button" class="btn" data-sc="-1" aria-label="Less">−</button><input type="number" id="pl-score" min="0" max="300" inputmode="numeric" value="${pl.scores[d.id] ?? pr?.best ?? 10}" aria-label="Your score"><button type="button" class="btn" data-sc="1" aria-label="More">＋</button></div><p class="muted small" style="margin:0">${d.unit || 'makes'}${pr ? ` · record ${pr.best}` : ' · first try sets your record'}</p>`; }
+  else { const total = pl.phase === 'ready' ? (d.clip ? 15 : 6) : pl.phase === 'rest' ? (d.c === 'warm' || d.c === 'cool' ? 5 : 20) : d.amt; center = (d.calls && pl.phase === 'work' ? `<div class="pl-call" aria-live="assertive">${esc(pl.call || '…')}</div>` : '') + ring(total ? pl.left / total : 0, fmtT(Math.max(0, pl.left)), '', pl.phase === 'rest' ? 'var(--muted)' : 'var(--accent)'); }
+  const name = pl.phase === 'rest' ? `Next: ${pl.items[pl.i + 1]?.n || ''}` : d.n;
+  main.innerHTML = `<div class="pl-phase">${d.block && pl.phase !== 'rest' ? esc(d.block) + ' · ' : ''}${phLabel}</div><div class="pl-name">${esc(name)}</div><p class="pl-cue">${esc(pl.phase === 'rest' ? 'Water. Breathe. Walk it off.' : d.cue)}</p>${pl.phase === 'ready' && d.how ? `<p class="small" style="margin:0;max-width:40ch">${esc(d.how)}</p>` : ''}${center}`;
+  const nx = pl.items[pl.i + 1];
+  foot.innerHTML = pl.phase === 'score' ? '<button type="button" class="btn primary wide" id="pl-score-save">Save score</button>'
+    : `<div class="muted small" style="text-align:center;margin-bottom:8px">${pl.phase === 'rest' ? '' : nx ? `Then: ${esc(nx.n)}` : 'Last one'}</div><div class="pl-ctrl"><button type="button" class="btn" id="pl-back"${pl.i === 0 ? ' disabled' : ''}>Back</button><button type="button" class="btn primary" id="pl-pause">${pl.paused ? 'Resume' : 'Pause'}</button><button type="button" class="btn" id="pl-skip">${pl.phase === 'ready' ? 'Start now' : 'Skip'}</button></div>`;
+}
+function finishPlayer(completed) {
+  if (!pl || pl.phase === 'summary') return;
+  clearInterval(pl.timer); try { pl.lock?.release(); } catch {}
+  if (pl.resumeMusic) { lsCmd('playVideo'); pl.resumeMusic = false; }
+  const before = totals().xp;
+  const worth = pl.done > 0 || pl.secs > 60;
+  if (worth) {
+    const h = rd('soloHist', []);
+    h.unshift({ at: Date.now(), name: pl.meta.name, done: Math.min(pl.done, pl.items.length), total: pl.items.length, secs: pl.secs, makes: pl.makes, att: pl.atts, prog: pl.meta.progKey || null });
+    wr('soloHist', h.slice(0, 400));
+    if (pl.meta.progKey && (completed || pl.done >= Math.ceil(pl.items.length * 0.6))) { prog.done[pl.meta.progKey] = { at: Date.now(), secs: pl.secs, makes: pl.makes, att: pl.atts }; wr('prog', prog); }
+    writeHub();
+  }
+  if (!worth) { closePlayer(); return; }
+  const t = totals();
+  if (completed) { beep(1300, 400); say('Session done. Nice work.'); }
+  pl.summary = { completed: completed || !!prog?.done?.[pl.meta.progKey], secs: pl.secs, makes: pl.makes, atts: pl.atts, drills: pl.done, prs: pl.prs, xp: t.xp - before, xpTotal: t.xp, level: levelOf(t.xp) };
+  pl.phase = 'summary'; renderPlayer();
+}
+function closePlayer() { if (pl) { clearInterval(pl.timer); try { pl.lock?.release(); } catch {} } pl = null; $('#pl-top').innerHTML = ''; $('#pl-top').dataset.key = ''; if ($('#player').open) $('#player').close(); try { speechSynthesis.cancel(); } catch {} route(); }
+$('#player').addEventListener('click', (e) => {
+  if (!pl) return;
+  if (e.target.closest('#pl-close')) return closePlayer();
+  const s = e.target.closest('[data-shot]');
+  if (s && pl.phase === 'work') { const d = pl.items[pl.i]; pl.att++; pl.atts++; if (s.dataset.shot === '1') { pl.made++; pl.makes++; beep(1000, 70); } if (navigator.vibrate) navigator.vibrate(12); if (pl.made >= d.amt) afterWork(); else renderPlayer(); return; }
+  const sc = e.target.closest('[data-sc]'); if (sc) { const i = $('#pl-score'); i.value = Math.max(0, Number(i.value || 0) + Number(sc.dataset.sc)); return; }
+  if (e.target.closest('#pl-score-save')) {
+    const d = pl.items[pl.i], v = Math.round(Number($('#pl-score').value));
+    if (!Number.isFinite(v) || v < 0 || v > 300) return toast('Enter a number from 0 to 300');
+    pl.scores[d.id] = v; const prev = rd('prs', {})[d.id]?.best, r = setPR(d.id, v);
+    if (r) { pl.prs.push({ n: d.n, v, prev, first: r === 'first' }); if (r === 'pr') { say('New record!'); toast(`🏆 New record: ${v}`); } }
+    return afterWork();
+  }
+  if (e.target.closest('#pl-pause')) { pl.paused = !pl.paused; return renderPlayer(); }
+  if (e.target.closest('#pl-skip')) { if (pl.phase === 'ready') return enterPhase('work'); if (pl.phase === 'rest') { pl.i++; return enterPhase('ready'); } return afterWork(); }
+  if (e.target.closest('#pl-back')) { if (pl.i > 0) { pl.i--; enterPhase('ready'); } }
+});
+$('#pl-exit').addEventListener('click', () => { if (!pl) return; if (pl.phase === 'summary') return closePlayer(); finishPlayer(false); });
+$('#player').addEventListener('cancel', (e) => { e.preventDefault(); if (pl?.phase === 'summary') closePlayer(); else finishPlayer(false); });
+
+// ===================== Partner games (small-sided) =====================
 const FOCUS = [['finishing', 'Finishing'], ['pullup', 'Shooting off the dribble'], ['catchshoot', 'Catch & shoot'], ['handles', 'Handles under pressure'], ['decisions', 'Decisions'], ['defense', 'Defense'], ['post', 'Post moves'], ['conditioning', 'Conditioning']];
 const FOCUS_NAME = Object.fromEntries(FOCUS);
 
@@ -410,7 +956,7 @@ const GAMES = [
 let opts = rd('opts', { partners: '1', level: 'same', focus: ['decisions', 'finishing'], time: '30', court: 'half', pname: '' });
 let session = rd('session', null);
 function eligible(g, o) { return g.players <= Number(o.partners) && (!g.courts || g.courts.includes(o.court)); }
-function buildSession(seed) {
+function buildGames(seed) {
   const o = { ...opts }, r = rng(seed), T = Number(o.time), c = { ...o, pname: o.pname || 'Partner' };
   const focus = o.focus.length ? o.focus : ['decisions'];
   const scoreG = (g) => g.focus.filter((f) => focus.includes(f)).length + r() * 0.5;
@@ -447,9 +993,9 @@ function renderSession() {
   const el = $('#session');
   if (!session) { el.innerHTML = ''; return; }
   const total = session.games.reduce((a, g) => a + g.mins, 0), pn = session.opts.pname || 'Partner';
-  el.innerHTML = `<div class="sess-head"><h2>Your session</h2><span class="muted small num">${session.games.length} games · ${total} min</span></div>` +
+  el.innerHTML = `<div class="between"><h2>Your session</h2><span class="muted small num">${session.games.length} games · ${total} min</span></div>` +
     session.games.map((g, i) => `<article class="card game" style="margin-top:12px">
-      <div class="g-top"><div style="min-width:0"><div class="role">${i + 1}. ${g.roleLabel}</div><h3>${esc(g.name)}</h3><div class="tags">${g.focus.filter((f) => FOCUS_NAME[f]).map((f) => `<span class="tag">${FOCUS_NAME[f]}</span>`).join('')}</div></div><div class="mins num">${g.mins} min</div></div>
+      <div class="g-top"><div style="min-width:0"><div class="role">${i + 1}. ${g.roleLabel}</div><h3>${esc(g.name)}</h3><div class="tags">${g.focus.filter((f) => FOCUS_NAME[f]).map((f) => `<span class="tg">${FOCUS_NAME[f]}</span>`).join('')}</div></div><div class="mins num">${g.mins} min</div></div>
       <div class="court">${courtSvg(g.setup)}</div>
       <div class="g-body">
         <ul>${g.rules.filter(Boolean).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
@@ -511,176 +1057,12 @@ $('#setup').addEventListener('click', (e) => {
   wr('opts', opts); renderSetup();
 });
 $('#pname').addEventListener('input', (e) => { opts.pname = e.target.value.trim(); wr('opts', opts); });
-$('#build').addEventListener('click', () => { buildSession(Date.now() % 1000000); renderSession(); $('#session').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+$('#build').addEventListener('click', () => { buildGames(Date.now() % 1000000); renderSession(); $('#session').scrollIntoView({ behavior: 'smooth', block: 'start' }); toast('Session built'); });
 $('#session').addEventListener('click', (e) => {
   const p = e.target.closest('[data-play]'); if (p) return openBoard(Number(p.dataset.play));
   const s = e.target.closest('[data-swap]'); if (s) return swapGame(Number(s.dataset.swap));
-  if (e.target.closest('#reroll')) { buildSession(Date.now() % 1000000); renderSession(); toast('New session built'); }
+  if (e.target.closest('#reroll')) { buildGames(Date.now() % 1000000); renderSession(); toast('New session built'); }
 });
-// ===================== Drill library (solo) =====================
-// kind 'time' = seconds of work, kind 'reps' = makes to hit.
-const DRILLS = [
-  ['handles', 'Pound dribbles, right', 'time', 30, 'As hard as you can, ball below the knee, eyes up.'],
-  ['handles', 'Pound dribbles, left', 'time', 30, 'Same speed as your right. Do not let it get soft.'],
-  ['handles', 'Low crossovers', 'time', 30, 'Wide and low. Ball never comes above your knee.'],
-  ['handles', 'Between the legs', 'time', 30, 'Push it through hard, stay in a low stance.'],
-  ['handles', 'Behind the back', 'time', 30, 'Wrap it tight to your hip, keep your chest up.'],
-  ['handles', 'Cross, legs, back combo', 'time', 45, 'Chain all three without stopping. Speed up each round.'],
-  ['handles', 'Two-ball pounds', 'time', 30, 'Both balls hit the floor at the same time.'],
-  ['handles', 'Two-ball alternating', 'time', 30, 'Like a drum beat: left, right, left, right.'],
-  ['handles', 'In-and-out to cross', 'time', 45, 'Sell the in-and-out with your head and shoulders.'],
-  ['handles', 'Hesi and go', 'time', 45, 'Freeze at the top, then explode past an imaginary defender.'],
-  ['handles', 'Retreat dribble and attack', 'time', 45, 'Two hard retreat dribbles, then attack forward.'],
-  ['shooting', 'Form shooting, one hand', 'reps', 10, 'Close to the rim. Elbow in, hold your follow-through.'],
-  ['shooting', 'Corner threes', 'reps', 10, 'Feet set before the catch. Shoot it the same every time.'],
-  ['shooting', 'Wing threes', 'reps', 10, 'Hop into your shot, land where you took off.'],
-  ['shooting', 'One-dribble pull-up, right', 'reps', 10, 'Big last dribble, stop on a dime, rise straight up.'],
-  ['shooting', 'One-dribble pull-up, left', 'reps', 10, 'Same rhythm going left. Square up before you rise.'],
-  ['shooting', 'Step-back threes', 'reps', 8, 'Push off hard, land balanced, then shoot.'],
-  ['shooting', 'Elbow jumpers', 'reps', 10, 'Game speed. Sprint to the spot every rep.'],
-  ['shooting', 'Free throws', 'reps', 10, 'Same routine every single shot.'],
-  ['finishing', 'Mikan drill', 'time', 60, 'Never let the ball touch the floor. Both hands.'],
-  ['finishing', 'Reverse Mikan', 'time', 60, 'Use the rim to protect the ball.'],
-  ['finishing', 'Off-hand layups', 'reps', 10, 'From the wing, two hard dribbles, weak hand finish.'],
-  ['finishing', 'Euro step layups', 'reps', 10, 'Long first step one way, then the other.'],
-  ['finishing', 'Floaters', 'reps', 10, 'Release it early and high off one foot.'],
-  ['finishing', 'Two-foot power layups', 'reps', 10, 'Jump stop, chin the ball, go up strong.'],
-  ['finishing', 'Reverse layups', 'reps', 8, 'Finish on the far side with spin off the glass.'],
-  ['athletic', 'Defensive slides', 'time', 30, 'Lane line to lane line, stay low, no crossing feet.'],
-  ['athletic', 'Closeout and slide', 'time', 30, 'Sprint, chop your feet, slide two steps, repeat.'],
-  ['athletic', 'Skater jumps', 'time', 30, 'Stick every landing for a second.'],
-  ['athletic', 'Jump rope', 'time', 60, 'Light and quick on the balls of your feet.'],
-  ['athletic', 'Down-and-backs', 'time', 45, 'Full sprints. Touch the line every time.'],
-].map(([cat, name, kind, amt, cue]) => ({ cat, name, kind, secs: kind === 'time' ? amt : 0, reps: kind === 'reps' ? amt : 0, cue }));
-const WARM = { cat: 'warm', name: 'Dynamic warm-up', kind: 'time', secs: 120, reps: 0, cue: 'High knees, butt kicks, lunges, arm circles. Get loose.' };
-const estSecs = (d) => (d.kind === 'time' ? d.secs : d.reps * 9) + 15;
-let solo = rd('solo', { focus: ['handles', 'shooting'], time: '30' }), plan = null;
-function buildWorkout(focus, minutes, seed) {
-  const r = rng(seed), cats = focus.length ? focus : ['handles'], goal = minutes * 60, out = [{ ...WARM }];
-  const pools = Object.fromEntries(cats.map((c) => [c, DRILLS.filter((d) => d.cat === c).sort(() => r() - 0.5)]));
-  let used = estSecs(WARM), i = 0, guard = 0;
-  while (used < goal - 30 && guard++ < 80) {
-    const c = cats[i++ % cats.length], d = pools[c].shift(); if (!d) continue;
-    out.push({ ...d }); used += estSecs(d);
-    if (!pools[c].length) pools[c] = DRILLS.filter((x) => x.cat === c).sort(() => r() - 0.5);
-  }
-  return out;
-}
-const PRESETS = [
-  { name: 'Daily handles', focus: ['handles'], min: 15, note: 'Every day before practice' },
-  { name: 'Shooting reps', focus: ['shooting'], min: 30, note: 'Catch-and-shoot, pull-ups, free throws' },
-  { name: 'Finishing at the rim', focus: ['finishing'], min: 20, note: 'Both hands, all angles' },
-  { name: 'Game-speed mix', focus: ['handles', 'shooting', 'finishing', 'athletic'], min: 45, note: 'A full workout' },
-];
-const fmtT = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-function renderSolo() {
-  for (const b of $$('#s-focus .chip')) b.setAttribute('aria-pressed', String(solo.focus.includes(b.dataset.v)));
-  for (const b of $$('#s-time .chip')) b.setAttribute('aria-pressed', String(solo.time === b.dataset.v));
-  const pl = $('#s-plan'); pl.hidden = !plan;
-  if (plan) {
-    const tot = plan.reduce((a, d) => a + estSecs(d), 0);
-    pl.innerHTML = `<div class="sess-head"><h3>Your workout</h3><span class="muted small num">${plan.length} drills · about ${Math.round(tot / 60)} min</span></div>
-      <div style="margin-top:6px">${plan.map((d, i) => `<div class="drill-row"><span class="n">${i + 1}</span><span>${esc(d.name)}<small>${esc(d.cue)}</small></span><span class="amt">${d.kind === 'time' ? fmtT(d.secs) : d.reps + ' makes'}</span></div>`).join('')}</div>
-      <div class="g-actions" style="margin-top:12px"><button type="button" class="btn" id="s-reroll">Shuffle</button><button type="button" class="btn primary" id="s-start">Start workout</button></div>`;
-  }
-  $('#s-presets').innerHTML = PRESETS.map((p, i) => `<div class="preset"><b>${p.name}</b><small>${p.min} min · ${p.note}</small><button type="button" class="btn" data-preset="${i}">Start</button></div>`).join('');
-  const h = rd('soloHist', []);
-  $('#s-hist').innerHTML = h.length ? h.slice(0, 12).map((x) => `<div class="rec-row"><span>${esc(x.name)}<small>${new Date(x.at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} · ${x.done} of ${x.total} drills</small></span><span class="num muted">${Math.round(x.secs / 60)} min</span></div>`).join('') : '<p class="muted small" style="margin:0">Finished workouts show up here.</p>';
-}
-$('#s-focus').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; const v = b.dataset.v; solo.focus = solo.focus.includes(v) ? solo.focus.filter((x) => x !== v) : [...solo.focus, v]; wr('solo', solo); renderSolo(); });
-$('#s-time').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; solo.time = b.dataset.v; wr('solo', solo); renderSolo(); });
-$('#s-build').addEventListener('click', () => { if (!solo.focus.length) return toast('Pick at least one thing to work on'); plan = buildWorkout(solo.focus, Number(solo.time), Date.now() % 99991); renderSolo(); $('#s-plan').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-$('#v-solo').addEventListener('click', (e) => {
-  if (e.target.closest('#s-reroll')) { plan = buildWorkout(solo.focus, Number(solo.time), Date.now() % 99991); return renderSolo(); }
-  if (e.target.closest('#s-start')) return startPlayer(plan, 'Custom workout');
-  const pr = e.target.closest('[data-preset]'); if (pr) { const p = PRESETS[Number(pr.dataset.preset)]; startPlayer(buildWorkout(p.focus, p.min, Date.now() % 99991), p.name); }
-});
-
-// ===================== Hands-free player =====================
-let pl = null, audio = null;
-function beep(freq = 880, ms = 120) {
-  try { audio ??= new (window.AudioContext || window.webkitAudioContext)(); const o = audio.createOscillator(), g = audio.createGain(); o.frequency.value = freq; o.connect(g); g.connect(audio.destination); g.gain.setValueAtTime(0.18, audio.currentTime); g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + ms / 1000); o.start(); o.stop(audio.currentTime + ms / 1000); } catch {}
-}
-function say(t) { try { if (!window.speechSynthesis) return; speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = 1.05; speechSynthesis.speak(u); } catch {} }
-const ytEmbed = (vid, start) => `https://www.youtube-nocookie.com/embed/${vid}?start=${Math.max(0, Math.floor(start))}&end=${Math.floor(start) + 10}&autoplay=1&playsinline=1&rel=0&modestbranding=1`;
-function startPlayer(items, name) {
-  if (!items?.length) return;
-  pl = { items, name, i: 0, phase: 'ready', left: 5, paused: false, made: 0, att: 0, done: 0, secs: 0, started: Date.now() };
-  try { audio ??= new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch {}
-  try { navigator.wakeLock?.request('screen').then((w) => { pl && (pl.lock = w); }).catch(() => {}); } catch {}
-  $('#player').showModal(); enterPhase('ready');
-  clearInterval(pl.timer); pl.timer = setInterval(tick, 1000);
-}
-function enterPhase(ph) {
-  const d = pl.items[pl.i];
-  pl.phase = ph; pl.made = 0; pl.att = 0;
-  if (ph === 'ready') { pl.left = d.clip ? 15 : 5; say(`${d.clip ? 'Watch the clip. ' : ''}Next up: ${d.name}. ${d.kind === 'time' ? d.secs + ' seconds' : d.reps + ' makes'}.`); }
-  if (ph === 'work') { pl.left = d.kind === 'time' ? d.secs : 0; beep(1200, 260); say('Go'); }
-  if (ph === 'rest') { pl.left = 15; beep(600, 300); }
-  renderPlayer();
-}
-function nextItem(countDone = true) {
-  if (countDone) pl.done++;
-  if (pl.i >= pl.items.length - 1) return finishPlayer(true);
-  pl.i++; enterPhase('ready');
-}
-function tick() {
-  if (!pl || pl.paused) return;
-  pl.secs++;
-  const d = pl.items[pl.i];
-  if (pl.phase === 'work' && d.kind === 'reps') { renderPlayer(); return; }
-  pl.left--;
-  if (pl.left > 0 && pl.left <= 3) beep(880, 110);
-  if (pl.left <= 0) {
-    if (pl.phase === 'ready') enterPhase('work');
-    else if (pl.phase === 'work') { if (pl.i >= pl.items.length - 1) return finishPlayer(true); enterPhase('rest'); pl.done++; }
-    else if (pl.phase === 'rest') { pl.i++; enterPhase('ready'); }
-    return;
-  }
-  renderPlayer();
-}
-function renderPlayer() {
-  const d = pl.items[pl.i], n = pl.items.length;
-  $('#pl-count').textContent = `${pl.name} · drill ${pl.i + 1} of ${n}`;
-  $('#pl-prog').style.width = `${((pl.i + (pl.phase === 'rest' ? 1 : 0)) / n) * 100}%`;
-  $('#pl-phase').textContent = { ready: 'Get ready', work: d.kind === 'reps' ? 'Make ' + d.reps : 'Go', rest: 'Rest' }[pl.phase];
-  $('#pl-name').textContent = pl.phase === 'rest' ? `Next: ${pl.items[pl.i + 1]?.name || ''}` : d.name;
-  $('#pl-cue').textContent = pl.phase === 'rest' ? 'Grab water, breathe.' : d.cue;
-  const clipEl = $('#pl-clip'), wantClip = d.clip && pl.phase !== 'rest';
-  if (wantClip && clipEl.dataset.key !== `${pl.i}`) { clipEl.innerHTML = `<div class="pl-clip"><iframe src="${ytEmbed(d.clip.vid, d.clip.t)}" title="${esc(d.name)} clip" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`; clipEl.dataset.key = `${pl.i}`; }
-  if (!wantClip) { clipEl.innerHTML = ''; clipEl.dataset.key = ''; }
-  const C = 2 * Math.PI * 88;
-  if (pl.phase === 'work' && d.kind === 'reps') {
-    const pct = Math.min(1, pl.made / d.reps);
-    $('#pl-center').innerHTML = `<div class="ring-t"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="88" fill="none" stroke="var(--surface-2)" stroke-width="12"/><circle cx="100" cy="100" r="88" fill="none" stroke="var(--accent)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(pct * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 100 100)"/><text x="100" y="108" text-anchor="middle" class="tv">${pl.made}/${d.reps}</text><text x="100" y="134" text-anchor="middle" class="tl">${pl.att ? Math.round((pl.made / pl.att) * 100) + '% · ' + pl.att + ' shots' : 'tap every shot'}</text></svg></div>
-      <div class="pl-reps"><button type="button" class="ms" data-shot="0">Miss</button><button type="button" class="mk" data-shot="1">Make</button></div>`;
-  } else {
-    const total = pl.phase === 'ready' ? (d.clip ? 15 : 5) : pl.phase === 'rest' ? 15 : d.secs, pct = total ? pl.left / total : 0;
-    $('#pl-center').innerHTML = `<div class="ring-t"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="88" fill="none" stroke="var(--surface-2)" stroke-width="12"/><circle cx="100" cy="100" r="88" fill="none" stroke="${pl.phase === 'rest' ? 'var(--muted)' : 'var(--accent)'}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(pct * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 100 100)"/><text x="100" y="114" text-anchor="middle" class="tv">${fmtT(Math.max(0, pl.left))}</text></svg></div>`;
-  }
-  const nx = pl.items[pl.i + 1];
-  $('#pl-next').textContent = pl.phase === 'rest' ? '' : nx ? `Then: ${nx.name}` : 'Last drill';
-  $('#pl-pause').textContent = pl.paused ? 'Resume' : 'Pause';
-  $('#pl-back').disabled = pl.i === 0;
-}
-function finishPlayer(completed) {
-  if (!pl) return;
-  clearInterval(pl.timer); try { pl.lock?.release(); } catch {}
-  if (pl.done || pl.secs > 60) { const h = rd('soloHist', []); h.unshift({ at: Date.now(), name: pl.name, done: Math.min(pl.done, pl.items.length), total: pl.items.length, secs: pl.secs }); wr('soloHist', h.slice(0, 200)); }
-  if (completed) { beep(1300, 400); say('Workout done. Nice work.'); toast('Workout done'); }
-  pl = null; $('#pl-clip').innerHTML = ''; $('#player').close(); if (location.hash === '#solo') renderSolo();
-}
-$('#player').addEventListener('click', (e) => {
-  if (!pl) return;
-  const s = e.target.closest('[data-shot]');
-  if (s) { const d = pl.items[pl.i]; pl.att++; if (s.dataset.shot === '1') { pl.made++; beep(1000, 80); } if (pl.made >= d.reps) { if (pl.i >= pl.items.length - 1) return finishPlayer(true); pl.done++; enterPhase('rest'); } else renderPlayer(); }
-});
-$('#pl-pause').addEventListener('click', () => { if (!pl) return; pl.paused = !pl.paused; renderPlayer(); });
-$('#pl-skip').addEventListener('click', () => { if (!pl) return; if (pl.phase === 'ready') return enterPhase('work'); nextItem(pl.phase === 'work'); });
-$('#pl-back').addEventListener('click', () => { if (!pl || pl.i === 0) return; pl.i--; enterPhase('ready'); });
-$('#pl-exit').addEventListener('click', () => finishPlayer(false));
-$('#player').addEventListener('cancel', (e) => { e.preventDefault(); finishPlayer(false); });
-
 // ===================== Shot chart =====================
 const SPOTS = [
   ['lc3', 'L corner 3', 26, 30, true], ['lw3', 'L wing 3', 52, 152, true], ['top3', 'Top 3', 150, 214, true], ['rw3', 'R wing 3', 248, 152, true], ['rc3', 'R corner 3', 274, 30, true],
@@ -691,7 +1073,7 @@ let shotLive = rd('shotLive', {});
 const pctOf = (o) => (o && o.a ? Math.round((o.m / o.a) * 100) : null);
 function allTimeShots() { const t = {}; for (const s of [...rd('shots', []).map((x) => x.spots), shotLive]) for (const [k, v] of Object.entries(s)) { t[k] ??= { m: 0, a: 0 }; t[k].m += v.m; t[k].a += v.a; } return t; }
 function renderShots() {
-  for (const b of $$('#sh-mode .chip')) b.setAttribute('aria-pressed', String(b.dataset.v === shotMode));
+  for (const b of $$('#sh-mode button')) b.setAttribute('aria-pressed', String(b.dataset.v === shotMode));
   const data = shotMode === 'live' ? shotLive : allTimeShots();
   let g = `<rect width="300" height="250" fill="var(--court)"/><g class="lines"><line x1="6" y1="8" x2="294" y2="8"/><rect x="108" y="8" width="84" height="112"/><circle cx="150" cy="120" r="30"/><path d="M14 8v34a136 136 0 0 0 272 0V8"/><line x1="134" y1="20" x2="166" y2="20"/><circle cx="150" cy="28" r="7"/></g>`;
   for (const sp of SPOTS) {
@@ -724,9 +1106,8 @@ $('#sh-court').addEventListener('click', (e) => { const g = e.target.closest('[d
 $('#sh-make').addEventListener('click', () => logShot(true));
 $('#sh-miss').addEventListener('click', () => logShot(false));
 $('#sh-undo').addEventListener('click', () => { const l = shotLog.pop(); if (!l) return; const o = shotLive[l[0]]; o.a--; if (l[1]) o.m--; if (!o.a) delete shotLive[l[0]]; wr('shotLive', shotLive); renderShots(); });
-$('#sh-save').addEventListener('click', () => { if (!Object.keys(shotLive).length) return toast('Log some shots first'); const s2 = rd('shots', []); s2.unshift({ at: Date.now(), spots: shotLive }); wr('shots', s2.slice(0, 300)); shotLive = {}; shotLog = []; wr('shotLive', shotLive); renderShots(); toast('Session saved'); });
-$('#sh-mode').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) { shotMode = b.dataset.v; renderShots(); } });
-
+$('#sh-save').addEventListener('click', () => { if (!Object.keys(shotLive).length) return toast('Log some shots first'); const s2 = rd('shots', []); s2.unshift({ at: Date.now(), spots: shotLive }); wr('shots', s2.slice(0, 300)); shotLive = {}; shotLog = []; wr('shotLive', shotLive); renderShots(); writeHub(); toast('Shooting session saved'); });
+$('#sh-mode').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { shotMode = b.dataset.v; renderShots(); } });
 // ===================== Video drills =====================
 function ytId(u) { const m = String(u).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/))([\w-]{11})/); return m ? m[1] : null; }
 const tsSec = (h, m, s) => (Number(h) || 0) * 3600 + Number(m) * 60 + Number(s);
@@ -761,10 +1142,10 @@ let openVid = null, playing = null;
 function renderVideos() {
   const vids = rd('videos', []);
   $('#v-list').innerHTML = vids.length ? vids.map((v, vi) => `<div class="card" style="margin-top:12px">
-      <div class="sess-head"><h3>${esc(v.name)}</h3><span class="muted small">${v.drills.length} clip${v.drills.length === 1 ? '' : 's'}</span></div>
+      <div class="between"><h3>${esc(v.name)}</h3><span class="muted small">${v.drills.length} clip${v.drills.length === 1 ? '' : 's'}</span></div>
       ${v.mode === 'split' ? '<p class="muted small" style="margin:4px 0 0">No drill names found, so the video is split into equal parts. Paste the chapters for exact drills.</p>' : v.mode === 'none' ? '<p class="muted small" style="margin:4px 0 0">Paste the chapters or transcript to split this into drills.</p>' : ''}
       ${playing && playing.vi === vi ? `<div class="vid-clip"><iframe src="${ytEmbed(v.vid, v.drills[playing.di].t)}" title="${esc(v.drills[playing.di].name)} clip" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>` : ''}
-      <div style="margin-top:8px">${v.drills.map((d, di) => `<div class="vrow"><span class="ts">${fmtTs(d.t)}</span><span>${esc(d.name)}</span><span class="acts"><button type="button" data-watch="${vi}:${di}">Watch 10s</button><button type="button" class="go" data-doit="${vi}:${di}">Do it</button></span></div>`).join('')}</div>
+      <div style="margin-top:8px">${v.drills.map((d, di) => `<div class="vrow"><span class="ts">${fmtTs(d.t)}</span><span>${esc(d.name)}</span><span class="acts"><button type="button" class="btn sm" data-watch="${vi}:${di}">Watch 10s</button><button type="button" class="btn sm primary" data-doit="${vi}:${di}">Do it</button></span></div>`).join('')}</div>
       <div class="g-actions" style="margin-top:10px"><a class="btn" href="https://www.youtube.com/watch?v=${v.vid}" target="_blank" rel="noopener">Open video</a><button type="button" class="btn" data-vdel="${vi}">Delete</button><button type="button" class="btn primary" data-vall="${vi}">Do all</button></div>
     </div>`).join('') : '<div class="card"><p class="muted small" style="margin:0">Your saved videos show up here, each split into drills.</p></div>';
 }
@@ -779,20 +1160,325 @@ $('#v-go').addEventListener('click', () => {
 $('#v-list').addEventListener('click', (e) => {
   const vids = rd('videos', []);
   const w = e.target.closest('[data-watch]'); if (w) { const [vi, di] = w.dataset.watch.split(':').map(Number); playing = { vi, di }; renderVideos(); return; }
-  const d = e.target.closest('[data-doit]'); if (d) { const [vi, di] = d.dataset.doit.split(':').map(Number), v = vids[vi], dr = v.drills[di]; return startPlayer([{ cat: 'video', name: dr.name, kind: 'time', secs: 60, reps: 0, cue: `From ${v.name}. Watch it, then match it.`, clip: { vid: v.vid, t: dr.t } }], dr.name); }
-  const a = e.target.closest('[data-vall]'); if (a) { const v = vids[Number(a.dataset.vall)]; return startPlayer(v.drills.map((dr) => ({ cat: 'video', name: dr.name, kind: 'time', secs: 60, reps: 0, cue: `From ${v.name}.`, clip: { vid: v.vid, t: dr.t } })), v.name); }
+  const d = e.target.closest('[data-doit]'); if (d) { const [vi, di] = d.dataset.doit.split(':').map(Number), v = vids[vi], dr = v.drills[di]; return startPlayer([{ id: 'video', c: 'video', n: dr.name, k: 't', amt: 60, cue: `From ${v.name}. Watch it, then match it.`, how: '', clip: { vid: v.vid, t: dr.t } }], { name: 'Video: ' + dr.name }); }
+  const a = e.target.closest('[data-vall]'); if (a) { const v = vids[Number(a.dataset.vall)]; return startPlayer(v.drills.map((dr) => ({ id: 'video', c: 'video', n: dr.name, k: 't', amt: 60, cue: `From ${v.name}.`, how: '', clip: { vid: v.vid, t: dr.t } })), { name: 'Video: ' + v.name }); }
   const x = e.target.closest('[data-vdel]');
   if (x) { if (x.dataset.confirm !== '1') { x.dataset.confirm = '1'; x.textContent = 'Tap to delete'; setTimeout(() => { if (x.isConnected) { x.dataset.confirm = ''; x.textContent = 'Delete'; } }, 2500); return; } vids.splice(Number(x.dataset.vdel), 1); wr('videos', vids); playing = null; renderVideos(); }
 });
-
-function route() {
-  const h = location.hash.slice(1), v = ['games', 'solo', 'shots', 'videos', 'record'].includes(h) ? h : 'games';
-  for (const x of ['games', 'solo', 'shots', 'videos', 'record']) $('#v-' + x).hidden = x !== v;
-  if (v === 'solo') renderSolo(); if (v === 'shots') renderShots(); if (v === 'videos') renderVideos();
-  $$('.tab').forEach((t) => { if (t.dataset.tab === v) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
-  if (v === 'record') renderRecord();
-  window.scrollTo(0, 0);
+const ytEmbed = ytClip;
+function renderShotsWork() {
+  const t = totals(), wk = new Date(); wk.setDate(wk.getDate() - 7);
+  const recent = t.hist.filter((h) => h.at >= wk.getTime()), rm = recent.reduce((a, h) => a + (h.makes || 0), 0), ra = recent.reduce((a, h) => a + (h.att || 0), 0);
+  $('#sh-work').innerHTML = `<div><b class="num">${rm}</b><small>makes, 7 days</small></div><div><b class="num">${pct(rm, ra) ?? '–'}${ra ? '%' : ''}</b><small>hit rate, 7 days</small></div><div><b class="num">${t.wmk.toLocaleString()}</b><small>workout makes, all time</small></div>`;
 }
-window.addEventListener('hashchange', route);
-renderSetup(); renderSession(); route();
+
+// ===================== Home =====================
+const sessSched = () => (progOn() ? schedule() : []);
+function heroHtml() {
+  if (!progOn()) return `<div class="hero"><div class="kicker">8-week program</div><h2>Elite Guard<br>Program</h2><p>Handles, finishing, catch-and-shoot, pull-ups, footwork and speed in 3 phases. Sessions fit your days, your time and your hoop. Test day at the start, middle and end so you can see it working.</p>
+    <div class="acts"><button type="button" class="btn primary" data-open-setup>Start the program</button><a class="btn" href="#program">See how it works</a></div></div>`;
+  const s = nextSess();
+  if (!s) return `<div class="hero"><div class="kicker">Program complete</div><h2>You finished<br>all 8 weeks</h2><p>Check your test results in Program. Restart at a harder level any time: your records carry over.</p><div class="acts"><a class="btn primary" href="#program">See results</a></div></div>`;
+  if (s.test) return `<div class="hero"><div class="kicker">${esc(sessKick(s))}</div><h2>${esc(s.label)}</h2><p>7 quick benchmarks: threes, pull-ups, free throws, Mikan, handles, speed and vertical. About 30 minutes. This is how you'll see your progress.</p><div class="acts"><button type="button" class="btn primary" data-test="${s.key}">Start test day</button></div></div>`;
+  const b = buildSession(s), today = DAYS[new Date().getDay()], isDay = prog.days.includes(new Date().getDay());
+  return `<div class="hero"><div class="kicker">${isDay ? 'Today' : 'Up next'} · ${esc(sessKick(s))}</div><h2>${esc(b.type.name)}</h2><p>${esc(b.type.sub)}.${isDay ? '' : ` Today (${today}) is an off day on your plan, but you can still go.`}</p>
+    <div class="meta"><div><b class="num">${b.mins}</b>minutes</div><div><b class="num">${b.count}</b>drills</div><div><b>${esc(PHASES[b.phase - 1].n)}</b>phase</div></div>
+    <div class="acts"><button type="button" class="btn primary" data-go="${s.key}">Start session</button><button type="button" class="btn" data-preview="${s.key}">Preview</button></div></div>`;
+}
+function renderHome() {
+  $('#home-hero').innerHTML = heroHtml();
+  const t = totals(), lv = levelOf(t.xp), st = weekStreak();
+  const mon = (() => { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoDate(d); })();
+  const doneDays = new Set(t.hist.map((h) => isoDate(new Date(h.at))));
+  const strip = [0, 1, 2, 3, 4, 5, 6].map((i) => { const iso = shiftIso(mon, i), wd = new Date(iso + 'T12:00:00').getDay(), done = doneDays.has(iso), plan = progOn() && prog.days.includes(wd);
+    return `<div><i class="${done ? 'done' : plan ? 'plan' : ''}${iso === todayIso() ? ' today' : ''}">${done ? '✓' : ''}</i>${DAYS[wd].slice(0, 2)}</div>`; }).join('');
+  const wkMins = t.hist.filter((h) => isoDate(new Date(h.at)) >= mon).reduce((a, h) => a + (h.secs || 0), 0) / 60;
+  $('#home-week').innerHTML = `<div class="between"><h3>This week</h3><span class="muted small">${st ? `🔥 ${st}-week streak` : progOn() ? `Goal: ${prog.nDays} sessions` : 'Goal: 3 sessions'}</span></div><div class="wkstrip">${strip}</div>
+    <div class="stat3" style="margin-top:12px"><div><b class="num">${Math.round(wkMins)}</b><small>minutes</small></div><div><b class="num">${t.hist.filter((h) => isoDate(new Date(h.at)) >= mon).reduce((a, h) => a + (h.makes || 0), 0)}</b><small>makes</small></div><div><b class="num">${lv.L}</b><small>${esc(lv.rank)}</small></div></div>
+    <div class="xp" title="${lv.into} of ${lv.need} XP"><div style="width:${Math.round((lv.into / lv.need) * 100)}%"></div></div><div class="muted small" style="margin-top:4px">${lv.need - lv.into} XP to level ${lv.L + 1}</div>`;
+  const prs = rd('prs', {}), recent = Object.entries(prs).sort((a, b) => b[1].at - a[1].at).slice(0, 3);
+  const last = t.hist.slice(0, 3);
+  $('#home-recent').innerHTML = `<h3>Recent</h3>${recent.length ? recent.map(([id, p]) => `<div class="rrow"><span>🏆 ${esc(LIBI[id]?.n || TESTS.find((x) => x.id === id)?.n || id)}<small>Record · ${fmtDate(p.at)}</small></span><b class="num">${p.best}</b></div>`).join('') : ''}
+    ${last.map((h) => `<div class="rrow"><span>${esc(h.name)}<small>${fmtDate(h.at, { weekday: 'short', month: 'short', day: 'numeric' })}${h.att ? ` · ${h.makes}/${h.att} makes` : ''}</small></span><span class="muted num">${Math.round(h.secs / 60)} min</span></div>`).join('') || (recent.length ? '' : '<p class="empty">Your sessions and records show up here.</p>')}`;
+  $('#home-recent').querySelector('.rrow') && ($('#home-recent').querySelector('.rrow').style.marginTop = '6px');
+  renderListenBar();
+}
+
+// ===================== Program =====================
+function renderProgram() {
+  const top = $('#prog-top');
+  if (!progOn()) {
+    top.innerHTML = heroHtml();
+    $('#prog-weeks').innerHTML = `<h3>How the 8 weeks work</h3>${PHASES.map((p, i) => `<div class="rrow"><span><b>Phase ${i + 1}: ${p.n}</b> · weeks ${p.wk[0]}-${p.wk[1]}<small>${esc(p.about)}</small></span></div>`).join('')}
+      <div class="block-h">Session types</div>${Object.values(STYPES).map((t) => `<div class="rrow"><span><b>${t.name}</b><small>${esc(t.sub)}</small></span></div>`).join('')}`;
+    $('#prog-tests').innerHTML = `<h3>Test days</h3><p class="muted small" style="margin:6px 0 0">Week 1, week 4 and week 8: ${TESTS.map((x) => x.n).join(', ')}.</p>`;
+    $('#prog-about').innerHTML = aboutHtml(); return;
+  }
+  const sch = schedule(), nx = nextSess(), doneN = sch.filter((s) => isDone(s.key)).length, wkNow = nx ? nx.wk : 8;
+  const phPct = (i) => { const [a, b] = PHASES[i].wk, ss = sch.filter((s) => s.wk >= a && s.wk <= b); return Math.round((ss.filter((s) => isDone(s.key)).length / ss.length) * 100); };
+  top.innerHTML = `<div class="card"><div class="between"><div><div class="kicker">Elite Guard Program</div><h2>Week ${wkNow} of 8</h2></div><button type="button" class="btn sm" data-open-setup>Settings</button></div>
+    <p class="muted small" style="margin:6px 0 0">${prog.nDays} days a week (${prog.days.map((d) => DAYS[d]).join(', ')}) · ${prog.len} min · ${{ gym: 'gym', driveway: 'driveway hoop', none: 'no hoop' }[prog.eq.where]}. ${doneN} of ${sch.length} sessions done.</p>
+    <div class="phase-bar">${PHASES.map((p, i) => `<div><span style="width:${phPct(i)}%"></span></div>`).join('')}</div><div class="phase-names">${PHASES.map((p) => `<span>${p.n}</span>`).join('')}</div>
+    <p class="small" style="margin:10px 0 0"><b>${PHASES[phaseOf(wkNow) - 1].n}:</b> ${esc(PHASES[phaseOf(wkNow) - 1].about)}</p></div>`;
+  let html = '';
+  for (let wk = 1; wk <= 8; wk++) {
+    const ss = sch.filter((s) => s.wk === wk), d = ss.filter((s) => isDone(s.key)).length, open = wk === wkNow;
+    html += `<details class="week"${open ? ' open' : ''}><summary><span><b>Week ${wk}</b> <span class="muted small">${PHASES[phaseOf(wk) - 1].n}${wk === 8 ? ' · taper' : ''}</span></span><span class="row"><span class="dots">${ss.map((s) => `<i class="${isDone(s.key) ? (s.test ? 't' : 'd') : ''}"></i>`).join('')}</span><span class="muted small num">${d}/${ss.length}</span></span></summary>
+      ${ss.map((s) => { const done = isDone(s.key), isNext = nx && nx.key === s.key, ty = s.test ? null : STYPES[s.type];
+        return `<div class="sess${done ? ' done' : ''}${isNext ? ' next' : ''}"><span class="ic">${s.test ? '⏱' : ty.name[0]}</span><span>${s.test ? `<b>${esc(s.label)}</b><small>7 benchmarks</small>` : `<b>${ty.name}</b><small>${esc(ty.sub)}${done ? ` · done ${fmtDate(prog.done[s.key].at)}` : ''}</small>`}</span>
+          ${s.test ? `<button type="button" class="btn sm${isNext ? ' primary' : ''}" data-test="${s.key}">${done ? 'Results' : 'Start'}</button>` : `<button type="button" class="btn sm${isNext ? ' primary' : ''}" data-preview="${s.key}">${done ? 'Again' : isNext ? 'Start' : 'View'}</button>`}</div>`; }).join('')}</details>`;
+  }
+  $('#prog-weeks').innerHTML = html;
+  const tests = prog.tests || [];
+  $('#prog-tests').innerHTML = `<h3>Test results</h3>${tests.length ? `<div style="overflow-x:auto;margin-top:6px"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th style="text-align:left;padding:6px 4px;color:var(--muted)">Test</th>${tests.map((t) => `<th style="text-align:right;padding:6px 4px;color:var(--muted)">Wk ${t.wk}</th>`).join('')}<th style="text-align:right;padding:6px 4px;color:var(--muted)">Change</th></tr></thead><tbody>${TESTS.map((T) => {
+    const vals = tests.map((t) => t.res[T.id]), have = vals.filter((v) => v != null); if (!have.length) return '';
+    const ch = have.length > 1 ? have.at(-1) - have[0] : null, good = ch != null && ch * T.dir > 0;
+    return `<tr><td style="padding:7px 4px;border-top:1px solid var(--line)">${esc(T.n)}</td>${vals.map((v) => `<td class="num" style="text-align:right;padding:7px 4px;border-top:1px solid var(--line)">${v ?? '–'}</td>`).join('')}<td class="num" style="text-align:right;padding:7px 4px;border-top:1px solid var(--line);font-weight:800;color:${ch == null || ch === 0 ? 'var(--muted)' : good ? 'var(--good)' : 'var(--bad)'}">${ch == null ? '–' : (ch > 0 ? '+' : '') + Math.round(ch * 100) / 100}</td></tr>`; }).join('')}</tbody></table></div>` : '<p class="muted small" style="margin:6px 0 0">Do the baseline test first so you can measure what the program does.</p>'}`;
+  $('#prog-about').innerHTML = aboutHtml();
+}
+function aboutHtml() {
+  return `<h3>Built on how good guards train</h3><ul class="small" style="margin:8px 0 0;padding-left:18px;display:grid;gap:5px">
+    <li><b>Makes, not minutes.</b> Shooting drills end when you hit the makes, so you get game reps instead of going through the motions.</li>
+    <li><b>Progression.</b> Every phase adds harder drills and more volume: about 20% more each phase, then a lighter week 8 so you peak for the final test.</li>
+    <li><b>Both hands, both directions.</b> Every finishing and pull-up drill goes both ways.</li>
+    <li><b>React, don't memorize.</b> Call-out drills shout moves and reads at random, so you practice deciding, not just doing.</li>
+    <li><b>Fits your setup.</b> No hoop or no gym? Sessions swap in drills you can do.</li></ul>`;
+}
+
+// session preview
+let pv = null;
+function openPreview(key) {
+  const s = schedule().find((x) => x.key === key); if (!s || s.test) return;
+  pv = { s, b: buildSession(s) };
+  $('#sp-kick').textContent = sessKick(s); $('#sp-title').textContent = `${pv.b.type.name} · ${pv.b.mins} min`;
+  $('#sp-body').innerHTML = `<p class="muted small" style="margin:0">${esc(pv.b.type.sub)}. Tap ↻ to swap a drill you can't do today.</p>` + pv.b.blocks.map((bl, bi) => `<div class="block-h">${esc(bl.n)}</div>${bl.items.map((it, ii) => `<div class="drill"><b>${esc(it.n)}${it.k === 'x' ? '<span class="tag gold">Challenge</span>' : ''}${it.calls ? '<span class="tag">Call-outs</span>' : ''}</b><span class="row"><span class="amt">${itemAmt(it)}</span>${bl.slot != null ? `<button type="button" class="btn sm" data-swap-d="${bl.slot}:${ii}" aria-label="Swap ${esc(it.n)}">↻</button>` : ''}</span><small>${esc(it.cue)}</small></div>`).join('')}`).join('');
+  if (!$('#sess-sheet').open) $('#sess-sheet').showModal();
+}
+$('#sp-body').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-swap-d]'); if (!b || !pv) return;
+  const [si, ii] = b.dataset.swapD.split(':').map(Number), bl = pv.b.blocks.find((x) => x.slot === si), cur = bl.items[ii];
+  const used = new Set(pv.b.blocks.flatMap((x) => x.items.map((y) => y.id)));
+  const opts = LIB.filter((d) => d.c === cur.c && d.k !== 'x' && !used.has(d.id) && d.ph[0] <= pv.b.phase && canDo(d, prog.eq));
+  if (!opts.length) return toast('No other drill of this type fits your setup');
+  const d = opts[Math.floor(Math.random() * opts.length)];
+  prog.swaps[pv.s.key] = { ...(prog.swaps[pv.s.key] || {}), [`${si}:${ii}`]: d.id }; wr('prog', prog);
+  openPreview(pv.s.key); toast(`Swapped in ${d.n}`);
+});
+$('#sp-swap').addEventListener('click', () => { if (!pv) return; prog.seeds[pv.s.key] = (prog.seeds[pv.s.key] || 0) + 1; delete prog.swaps[pv.s.key]; wr('prog', prog); openPreview(pv.s.key); toast('New version of this session'); });
+$('#sp-start').addEventListener('click', () => { if (!pv) return; const k = pv.s.key; $('#sess-sheet').close(); goSession(k); });
+function goSession(key) {
+  const s = schedule().find((x) => x.key === key); if (!s) return;
+  const b = buildSession(s), items = b.blocks.flatMap((bl) => bl.items.map((it) => ({ ...it, block: bl.n })));
+  startPlayer(items, { name: `Wk ${s.wk} · ${b.type.name}`, progKey: key });
+}
+
+// setup sheet
+let draft = null;
+function openSetup() {
+  draft = JSON.parse(JSON.stringify(prog || DEFAULT_PROG));
+  $('#ss-save').textContent = progOn() ? 'Save changes' : 'Start the program'; $('#ss-reset').hidden = !progOn(); $('#ss-reset').dataset.confirm = ''; $('#ss-reset').textContent = 'Restart from week 1';
+  renderSetupSheet(); $('#setup-sheet').showModal();
+}
+function renderSetupSheet() {
+  $$('#ss-days-n .chip').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.v) === draft.nDays)));
+  $('#ss-days').innerHTML = DAYS.map((d, i) => `<button type="button" class="chip" data-v="${i}" aria-pressed="${draft.days.includes(i)}">${d}</button>`).join('');
+  $$('#ss-len .chip').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.v) === draft.len)));
+  $$('#ss-where .chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === draft.eq.where)));
+  $$('#ss-eq .chip').forEach((b) => b.setAttribute('aria-pressed', String(!!draft.eq[b.dataset.v])));
+}
+$('#setup-sheet').addEventListener('click', (e) => {
+  const c = e.target.closest('.chip'); if (!c) return; const grp = c.parentElement.id, v = c.dataset.v;
+  if (grp === 'ss-days-n') { draft.nDays = Number(v); const def = { 3: [1, 3, 5], 4: [1, 2, 4, 6], 5: [1, 2, 3, 5, 6], 6: [1, 2, 3, 4, 5, 6] }[v]; draft.days = def; }
+  if (grp === 'ss-days') { const i = Number(v); draft.days = draft.days.includes(i) ? draft.days.filter((x) => x !== i) : [...draft.days, i].sort(); }
+  if (grp === 'ss-len') draft.len = Number(v);
+  if (grp === 'ss-where') draft.eq.where = v;
+  if (grp === 'ss-eq') draft.eq[v] = !draft.eq[v];
+  renderSetupSheet();
+});
+$('#ss-save').addEventListener('click', () => {
+  if (draft.days.length !== draft.nDays) return toast(`Pick exactly ${draft.nDays} days (you have ${draft.days.length})`);
+  const first = !progOn(); if (first) draft.start = todayIso();
+  prog = draft; wr('prog', prog); $('#setup-sheet').close(); route();
+  toast(first ? 'Program started. First up: the baseline test.' : 'Program updated');
+});
+$('#ss-reset').addEventListener('click', () => {
+  const b = $('#ss-reset'); if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Tap again: progress resets (records stay)'; return; }
+  prog = { ...draft, start: todayIso(), done: {}, tests: [], seeds: {}, swaps: {} }; wr('prog', prog); $('#setup-sheet').close(); route(); toast('Restarted at week 1');
+});
+
+// test day
+let tsKey = null, sw = { on: false, t0: 0, acc: 0, raf: 0 };
+function openTest(key) {
+  tsKey = key; const s = schedule().find((x) => x.key === key), prev = (prog.tests || []).find((t) => t.key === key);
+  $('#ts-title').textContent = s.label;
+  $('#ts-body').innerHTML = TESTS.filter((T) => canDo({ eq: T.eq }, prog.eq)).map((T) => { const best = rd('prs', {})['test_' + T.id]?.best;
+    return `<div class="drill"><b>${esc(T.n)}</b><span class="amt muted small">${esc(T.unit)}</span><small>${esc(T.how)}${best != null ? ` Best: ${best}.` : ''}</small><label class="f" style="grid-column:1/-1"><input type="number" step="${T.unit === 'sec' ? '0.01' : '1'}" min="0" max="${T.max}" data-test-in="${T.id}" inputmode="decimal" value="${prev?.res?.[T.id] ?? ''}" aria-label="${esc(T.n)} result"></label></div>`; }).join('');
+  swReset(); $('#test-sheet').showModal();
+}
+function swDraw() { const t = sw.acc + (sw.on ? (performance.now() - sw.t0) / 1000 : 0); $('#sw').textContent = t.toFixed(2); if (sw.on) sw.raf = requestAnimationFrame(swDraw); }
+function swReset() { cancelAnimationFrame(sw.raf); sw = { on: false, t0: 0, acc: 0, raf: 0 }; $('#sw-go').textContent = 'Start'; swDraw(); }
+$('#sw-go').addEventListener('click', () => { if (sw.on) { sw.acc += (performance.now() - sw.t0) / 1000; sw.on = false; $('#sw-go').textContent = 'Start'; swDraw(); } else { sw.t0 = performance.now(); sw.on = true; $('#sw-go').textContent = 'Stop'; swDraw(); } });
+$('#sw-reset').addEventListener('click', swReset);
+$('#ts-save').addEventListener('click', () => {
+  const res = {}; let bad = null;
+  for (const inp of $$('[data-test-in]')) { if (inp.value === '') continue; const T = TESTS.find((x) => x.id === inp.dataset.testIn), v = Number(inp.value); if (!Number.isFinite(v) || v < 0 || v > T.max) { bad = T; break; } res[T.id] = v; }
+  if (bad) return toast(`${bad.n}: enter 0 to ${bad.max}`);
+  if (!Object.keys(res).length) return toast('Enter at least one result');
+  const s = schedule().find((x) => x.key === tsKey), prs = [];
+  prog.tests = [...(prog.tests || []).filter((t) => t.key !== tsKey), { key: tsKey, wk: s.wk, at: Date.now(), res }].sort((a, b) => a.wk - b.wk);
+  wr('prog', prog);
+  for (const [id, v] of Object.entries(res)) { const T = TESTS.find((x) => x.id === id); if (setPR('test_' + id, v, T.dir) === 'pr') prs.push(T.n); }
+  writeHub(); $('#test-sheet').close(); swReset(); route();
+  toast(prs.length ? `🏆 New best: ${prs.join(', ')}` : 'Test saved');
+});
+
+// ===================== Train: workouts =====================
+let wk = rd('solo2', { focus: ['handles', 'finish'], time: '30', where: prog?.eq?.where || 'gym' }), wplan = null;
+const WCATS = ['handles', 'finish', 'catch', 'create', 'feet', 'engine', 'ft', 'iq'];
+function buildWorkout(focus, minutes, where, seed) {
+  const r = rng(seed), eq = { where, ball2: prog?.eq?.ball2, cones: prog?.eq?.cones }, hoop = where !== 'none', budget = minutes * 60;
+  const items = [{ ...toItem(LIBI.warm), amt: minutes <= 15 ? 120 : 240 }];
+  const cats = (focus.length ? focus : ['handles']).map((c) => (hoop ? c : NOHOOP[c] || c));
+  const pools = Object.fromEntries(cats.map((c) => [c, shuffle(r, LIB.filter((d) => d.c === c && d.k !== 'x' && canDo(d, eq)))]));
+  let used = estSecs(items[0]), i = 0, guard = 0;
+  while (used < budget - 40 && guard++ < 60) { const c = cats[i++ % cats.length], d = pools[c]?.shift(); if (!d) continue; const it = toItem(d, 2); if (used + estSecs(it) > budget * 1.08) continue; items.push(it); used += estSecs(it); }
+  return items;
+}
+const PRESETS = [
+  { name: 'Daily handles', focus: ['handles'], min: 15, where: 'none', note: 'No hoop needed. Every day.' },
+  { name: 'Shooting reps', focus: ['catch', 'create', 'ft'], min: 30, where: 'gym', note: 'Catch-and-shoot, pull-ups, free throws' },
+  { name: 'Finishing at the rim', focus: ['finish'], min: 20, where: 'gym', note: 'Both hands, every angle' },
+  { name: 'Driveway shooter', focus: ['catch', 'create', 'ft'], min: 30, where: 'driveway', note: 'No full-court drills' },
+  { name: 'Guard engine', focus: ['feet', 'engine'], min: 20, where: 'gym', note: 'Defense, speed and conditioning' },
+];
+function renderWorkouts() {
+  $('#w-focus').innerHTML = WCATS.map((c) => `<button type="button" class="chip" data-v="${c}" aria-pressed="${wk.focus.includes(c)}">${CATS[c]}</button>`).join('');
+  $$('#w-time .chip').forEach((b) => b.setAttribute('aria-pressed', String(wk.time === b.dataset.v)));
+  $$('#w-where .chip').forEach((b) => b.setAttribute('aria-pressed', String(wk.where === b.dataset.v)));
+  const p = $('#w-plan'); p.hidden = !wplan;
+  if (wplan) { const tot = wplan.reduce((a, d) => a + estSecs(d), 0);
+    p.innerHTML = `<div class="between"><h3>Your workout</h3><span class="muted small num">${wplan.length} drills · ~${Math.round(tot / 60)} min</span></div><div style="margin-top:6px">${wplan.map((d) => `<div class="drill"><b>${esc(d.n)}</b><span class="amt">${itemAmt(d)}</span><small>${esc(d.cue)}</small></div>`).join('')}</div>
+      <div class="g-actions" style="margin-top:12px"><button type="button" class="btn" id="w-reroll">Shuffle</button><button type="button" class="btn primary" id="w-start">Start workout</button></div>`; }
+  $('#w-presets').innerHTML = PRESETS.map((p2, i) => `<div class="rrow"><span><b>${esc(p2.name)}</b><small>${p2.min} min · ${esc(p2.note)}</small></span><button type="button" class="btn sm primary" data-preset="${i}">Start</button></div>`).join('');
+  renderLib();
+}
+let libCat = 'handles';
+function renderLib() {
+  $('#lib-cats').innerHTML = Object.entries(CATS).map(([k, v]) => `<button type="button" class="chip" data-lc="${k}" aria-pressed="${k === libCat}">${v}</button>`).join('');
+  $('#lib-list').innerHTML = LIB.filter((d) => d.c === libCat).map((d) => `<div class="drill"><b>${esc(d.n)}${d.k === 'x' ? '<span class="tag gold">Challenge</span>' : ''}${d.calls ? '<span class="tag">Call-outs</span>' : ''}</b><span class="row"><span class="amt muted small">${d.k === 'm' ? d.a + ' makes' : fmtT(d.a)}</span><button type="button" class="btn sm" data-lib="${d.id}" aria-label="Run ${esc(d.n)}">▶</button></span><small>${esc(d.how)}</small></div>`).join('');
+}
+$('#t-workouts').addEventListener('click', (e) => {
+  const f = e.target.closest('#w-focus .chip'); if (f) { const v = f.dataset.v; wk.focus = wk.focus.includes(v) ? wk.focus.filter((x) => x !== v) : [...wk.focus, v]; wr('solo2', wk); return renderWorkouts(); }
+  const t = e.target.closest('#w-time .chip'); if (t) { wk.time = t.dataset.v; wr('solo2', wk); return renderWorkouts(); }
+  const w = e.target.closest('#w-where .chip'); if (w) { wk.where = w.dataset.v; wr('solo2', wk); return renderWorkouts(); }
+  if (e.target.closest('#w-build')) { if (!wk.focus.length) return toast('Pick at least one thing to work on'); wplan = buildWorkout(wk.focus, Number(wk.time), wk.where, Date.now() % 99991); renderWorkouts(); return $('#w-plan').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  if (e.target.closest('#w-reroll')) { wplan = buildWorkout(wk.focus, Number(wk.time), wk.where, Date.now() % 99991); return renderWorkouts(); }
+  if (e.target.closest('#w-start')) return startPlayer(wplan, { name: 'Custom workout' });
+  const pr = e.target.closest('[data-preset]'); if (pr) { const p2 = PRESETS[Number(pr.dataset.preset)]; return startPlayer(buildWorkout(p2.focus, p2.min, p2.where, Date.now() % 99991), { name: p2.name }); }
+  const lc = e.target.closest('[data-lc]'); if (lc) { libCat = lc.dataset.lc; return renderLib(); }
+  const lb = e.target.closest('[data-lib]'); if (lb) { const d = LIBI[lb.dataset.lib]; return startPlayer([toItem(d, progOn() ? phaseOf(nextSess()?.wk || 1) : 1)], { name: d.n }); }
+});
+
+// ===================== Me =====================
+const BADGES = [
+  ['🏀', 'First session', (t) => t.sessions >= 1], ['🔟', '10 sessions', (t) => t.sessions >= 10], ['💯', '50 sessions', (t) => t.sessions >= 50],
+  ['🎯', '1,000 makes', (t) => t.makes >= 1000], ['🔥', '5,000 makes', (t) => t.makes >= 5000], ['⛰️', '25,000 makes', (t) => t.makes >= 25000],
+  ['📅', '4-week streak', () => weekStreak() >= 4], ['🧱', 'Foundation done', () => progOn() && schedule().filter((s) => s.wk <= 3).every((s) => isDone(s.key))],
+  ['⚙️', 'Build done', () => progOn() && schedule().filter((s) => s.wk <= 6).every((s) => isDone(s.key))], ['🎓', 'Program graduate', () => progOn() && !nextSess()],
+  ['🧊', '18/20 free throws', () => (rd('prs', {}).test_ft20?.best || 0) >= 18], ['⚡', 'Mikan 40+', () => Math.max(rd('prs', {}).mikan60?.best || 0, rd('prs', {}).test_mikan?.best || 0) >= 40],
+  ['📈', '20-point game', (t) => t.games.some((g) => g.pts >= 20)], ['🤝', '5-assist game', (t) => t.games.some((g) => g.ast >= 5)], ['🥇', '10 1-on-1 wins', (t) => t.partner.filter((x) => x.you > x.them).length >= 10], ['🎥', 'Video workout', () => rd('soloHist', []).some((h) => /video|clip/i.test(h.name)) || rd('videos', []).length > 0],
+];
+function renderMe() {
+  const t = totals(), lv = levelOf(t.xp);
+  $('#me-level').innerHTML = `<div class="between"><div><div class="kicker">Level ${lv.L}</div><h2>${esc(lv.rank)}</h2></div><div style="text-align:right"><b style="font:800 30px var(--f-display)" class="num">${t.xp.toLocaleString()}</b><div class="muted small">total XP</div></div></div>
+    <div class="xp"><div style="width:${Math.round((lv.into / lv.need) * 100)}%"></div></div><div class="muted small" style="margin-top:4px">${lv.need - lv.into} XP to level ${lv.L + 1}. XP comes from sessions, makes, records, tests and games.</div>
+    <div class="stat3" style="margin-top:12px"><div><b class="num">${t.sessions}</b><small>sessions</small></div><div><b class="num">${t.makes.toLocaleString()}</b><small>makes tracked</small></div><div><b class="num">${Math.round(t.mins / 60)}h</b><small>trained</small></div></div>`;
+  const g = [...t.games].sort((a, b) => b.date.localeCompare(a.date)), n = g.length, sum = (k) => g.reduce((a, x) => a + (Number(x[k]) || 0), 0), avg = (k) => (n ? (sum(k) / n).toFixed(1) : '–');
+  const fg = pct(sum('fgm'), sum('fga')), tp = pct(sum('tm'), sum('ta')), ft = pct(sum('ftm'), sum('fta'));
+  let chart = '';
+  if (n >= 2) { const pts = g.slice(0, 12).reverse().map((x) => Number(x.pts) || 0), W = 300, H = 110, mx = Math.max(10, ...pts), x = (i) => 14 + (i / (pts.length - 1)) * (W - 28), y = (v) => H - 16 - (v / mx) * (H - 30);
+    chart = `<div class="chart" style="margin-top:8px"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Points per game"><path d="${pts.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('')}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>${pts.map((v, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3.5" fill="var(--accent)"/><text x="${x(i).toFixed(1)}" y="${(y(v) - 7).toFixed(1)}" text-anchor="middle">${v}</text>`).join('')}</svg></div>`; }
+  const wl = g.filter((x) => x.res === 'W').length, ll = g.filter((x) => x.res === 'L').length;
+  $('#me-games').innerHTML = `<div class="between"><h3>Games</h3><button type="button" class="btn sm primary" data-game-new>＋ Log game</button></div>
+    ${n ? `<div class="stat3" style="margin-top:10px"><div><b class="num">${avg('pts')}</b><small>PPG</small></div><div><b class="num">${avg('ast')}</b><small>APG</small></div><div><b class="num">${avg('reb')}</b><small>RPG</small></div></div>
+      <div class="stat3" style="margin-top:8px"><div><b class="num">${fg ?? '–'}${fg != null ? '%' : ''}</b><small>FG</small></div><div><b class="num">${tp ?? '–'}${tp != null ? '%' : ''}</b><small>3PT</small></div><div><b class="num">${ft ?? '–'}${ft != null ? '%' : ''}</b><small>FT</small></div></div>
+      <p class="muted small" style="margin:8px 0 0">${n} game${n === 1 ? '' : 's'}${wl + ll ? ` · ${wl}-${ll}` : ''} · ${avg('stl')} steals · ${avg('tov')} turnovers${sum('tov') ? ` · ${(sum('ast') / Math.max(1, sum('tov'))).toFixed(1)} assist/TO` : ''}</p>${chart}
+      ${g.slice(0, 8).map((x, i) => `<div class="rrow" style="${i ? '' : 'margin-top:6px'}"><span>${x.res ? `<span class="result ${x.res === 'W' ? 'w' : 'l'}" style="padding:2px 6px;margin-right:6px">${x.res}</span>` : ''}${x.opp ? 'vs ' + esc(x.opp) : esc(x.lvl)}<small>${fmtDate(x.date + 'T12:00:00')} · ${esc(x.lvl)} · ${x.pts} pts${x.fga ? ` · ${x.fgm}-${x.fga} FG` : ''}${x.ta ? ` · ${x.tm}-${x.ta} 3PT` : ''}${x.ast != null && x.ast !== '' ? ` · ${x.ast} ast` : ''}</small></span><button type="button" class="btn sm" data-game-edit="${esc(x.id)}">Edit</button></div>`).join('')}`
+      : '<p class="muted small" style="margin:6px 0 0">Log your games to see season averages, shooting splits and trends next to your training.</p>'}`;
+  const prs = rd('prs', {}), recs = Object.entries(prs).sort((a, b) => b[1].at - a[1].at);
+  $('#me-records').innerHTML = `<h3>Records</h3>${recs.length ? recs.map(([id, p]) => { const T = TESTS.find((x) => 'test_' + x.id === id), d = LIBI[id]; return `<div class="rrow"><span>🏆 ${esc(T ? T.n : d?.n || id)}<small>${T ? 'Test' : 'Challenge'} · ${fmtDate(p.at)}${p.prev != null ? ` · was ${p.prev}` : ''}</small></span><b class="num">${p.best}${T?.unit === 'sec' ? 's' : ''}</b></div>`; }).join('') : '<p class="muted small" style="margin:6px 0 0">Challenges and test days set your records. Beat them to level up faster.</p>'}`;
+  $('#me-badges').innerHTML = `<div class="between"><h3>Badges</h3><span class="muted small">${BADGES.filter((b) => b[2](t)).length}/${BADGES.length}</span></div><div class="badges" style="margin-top:10px">${BADGES.map(([ic, n2, f]) => `<div class="badge${f(t) ? ' on' : ''}"><i>${ic}</i>${esc(n2)}</div>`).join('')}</div>`;
+  const h = t.partner, w = h.filter((x) => x.you > x.them).length, l = h.filter((x) => x.you < x.them).length, by = {};
+  for (const x of h) for (const f of x.focus || []) { if (!FOCUS_NAME[f]) continue; by[f] ??= { w: 0, n: 0 }; by[f].n++; if (x.you > x.them) by[f].w++; }
+  const rows = Object.entries(by).sort((a, b) => a[1].w / a[1].n - b[1].w / b[1].n);
+  $('#me-partner').innerHTML = `<h3>1-on-1 record</h3>${h.length ? `<div class="stat3" style="margin-top:10px"><div><b class="num">${w}-${l}</b><small>record</small></div><div><b class="num">${pct(w, h.length)}%</b><small>win rate</small></div><div><b class="num">${h.length}</b><small>games</small></div></div>
+    ${rows.length ? `<div class="bars" style="margin-top:12px">${rows.map(([f, v]) => `<div class="bar-row"><span>${FOCUS_NAME[f]}</span><div class="track"><div class="fill" style="width:${(v.w / v.n) * 100}%"></div></div><span class="v">${Math.round((v.w / v.n) * 100)}% · ${v.n}</span></div>`).join('')}</div><p class="muted small" style="margin:8px 0 0">Lowest win rate first: that's the skill to build next.</p>` : ''}` : '<p class="muted small" style="margin:6px 0 0">Play small-sided games in Train › With a partner and save the score.</p>'}`;
+  $('#me-history').innerHTML = `<h3>Workout history</h3>${t.hist.length ? t.hist.slice(0, 15).map((x) => `<div class="rrow"><span>${esc(x.name)}<small>${fmtDate(x.at, { weekday: 'short', month: 'short', day: 'numeric' })} · ${x.done} of ${x.total} drills${x.att ? ` · ${x.makes}/${x.att} makes` : ''}</small></span><span class="muted num">${Math.round(x.secs / 60)} min</span></div>`).join('') : '<p class="muted small" style="margin:6px 0 0">Finished workouts show up here.</p>'}`;
+}
+// game log sheet
+let gEdit = null;
+const GF = [['date', 'gm-date'], ['opp', 'gm-opp'], ['lvl', 'gm-lvl'], ['res', 'gm-res'], ['min', 'gm-min'], ['pts', 'gm-pts'], ['reb', 'gm-reb'], ['fgm', 'gm-fgm'], ['fga', 'gm-fga'], ['ast', 'gm-ast'], ['tm', 'gm-3m'], ['ta', 'gm-3a'], ['stl', 'gm-stl'], ['ftm', 'gm-ftm'], ['fta', 'gm-fta'], ['tov', 'gm-tov'], ['notes', 'gm-notes']];
+const NUMF = new Set(['min', 'pts', 'reb', 'fgm', 'fga', 'ast', 'tm', 'ta', 'stl', 'ftm', 'fta', 'tov']);
+function openGame(id = null) {
+  const g = id ? rd('gamelog', []).find((x) => x.id === id) : null; gEdit = id;
+  for (const [k, el] of GF) $('#' + el).value = g ? (g[k] ?? '') : k === 'date' ? todayIso() : k === 'lvl' ? (rd('gamelog', [])[0]?.lvl || 'Varsity') : '';
+  $('#gm-title').textContent = g ? 'Edit game' : 'Log a game'; $('#gm-del').hidden = !g; $('#gm-del').dataset.confirm = ''; $('#gm-del').textContent = 'Delete';
+  $('#game-sheet').showModal();
+}
+$('#game-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const g = { id: gEdit || 'g' + Date.now() };
+  for (const [k, el] of GF) { const v = $('#' + el).value.trim(); g[k] = NUMF.has(k) ? (v === '' ? null : Math.round(Number(v))) : v; }
+  if (!g.date || g.date > todayIso()) return toast('Pick the game date (today or earlier)');
+  if (g.pts == null || g.pts < 0) return toast('Enter your points');
+  const chk = [['fgm', 'fga', 'FG'], ['tm', 'ta', '3PT'], ['ftm', 'fta', 'FT']];
+  for (const [m, a, l] of chk) if (g[m] != null && g[a] != null && g[m] > g[a]) return toast(`${l}: made can't be more than attempted`);
+  if (g.tm != null && g.fgm != null && g.tm > g.fgm) return toast('3PT made is part of FG made, so it can\'t be higher');
+  const calc = (g.fgm ?? 0) * 2 + (g.tm ?? 0) + (g.ftm ?? 0);
+  const list = rd('gamelog', []).filter((x) => x.id !== g.id); list.push(g); wr('gamelog', list);
+  $('#game-sheet').close(); route();
+  toast(g.fgm != null && g.ftm != null && calc !== g.pts ? `Saved. Heads up: your makes add up to ${calc} points, not ${g.pts}.` : 'Game saved');
+});
+$('#gm-del').addEventListener('click', () => { const b = $('#gm-del'); if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Tap again to delete'; return; } wr('gamelog', rd('gamelog', []).filter((x) => x.id !== gEdit)); $('#game-sheet').close(); route(); toast('Game deleted'); });
+
+// ===================== global clicks + routing =====================
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-open-setup]')) return openSetup();
+  const go = e.target.closest('[data-go]'); if (go) return goSession(go.dataset.go);
+  const p = e.target.closest('[data-preview]'); if (p) return openPreview(p.dataset.preview);
+  const ts = e.target.closest('[data-test]'); if (ts) return openTest(ts.dataset.test);
+  if (e.target.closest('[data-game-new]') || e.target.closest('#q-game')) return openGame();
+  const ge = e.target.closest('[data-game-edit]'); if (ge) return openGame(ge.dataset.gameEdit);
+  if (e.target.closest('#lvl-pill')) { location.hash = '#me'; return; }
+  const c = e.target.closest('[data-close]'); if (c) c.closest('dialog').close();
+});
+$$('dialog.sheet').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+let trainTab = 'workouts';
+$('#train-seg').addEventListener('click', (e) => { const b = e.target.closest('[data-t]'); if (b) location.hash = '#train/' + b.dataset.t; });
+function route() {
+  const [h, sub] = location.hash.slice(1).split('/'), v = ['home', 'program', 'train', 'shots', 'me'].includes(h) ? h : 'home';
+  for (const x of ['home', 'program', 'train', 'shots', 'me']) $('#v-' + x).hidden = x !== v;
+  $$('.tab').forEach((t) => { if (t.dataset.tab === v) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current'); });
+  const lv = levelOf(totals().xp); $('#lvl-pill').innerHTML = `<b>${lv.L}</b>${esc(lv.rank)}`;
+  if (v === 'home') renderHome();
+  if (v === 'program') renderProgram();
+  if (v === 'train') {
+    if (['workouts', 'partner', 'videos'].includes(sub)) trainTab = sub;
+    $$('#train-seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.t === trainTab)));
+    for (const x of ['workouts', 'partner', 'videos']) $('#t-' + x).hidden = x !== trainTab;
+    if (trainTab === 'workouts') renderWorkouts(); if (trainTab === 'partner') { renderSetup(); renderSession(); } if (trainTab === 'videos') renderVideos();
+  }
+  if (v === 'shots') { renderShots(); renderShotsWork(); }
+  if (v === 'me') renderMe();
+}
+let lastRoute = '';
+window.addEventListener('hashchange', () => { const h = location.hash.split('/')[0]; route(); if (h !== lastRoute) window.scrollTo(0, 0); lastRoute = h; });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !pl) route(); });
+
+// ===================== boot =====================
+mountListen(false);
+if (!location.hash) history.replaceState(null, '', '#home');
+lastRoute = location.hash.split('/')[0];
+route();
+writeHub();
 </script>
