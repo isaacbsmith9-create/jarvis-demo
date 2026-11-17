@@ -136,7 +136,9 @@ function readFloor(pos, holder) {
   for (const o of OFF) {
     if (o === holder) continue;
     const sep = Math.min(...DEF.map((d) => dist(pos[d], pos[o])));
-    const lane = Math.min(...DEF.map((d) => (dist(pos[d], hp) < 2.5 ? 99 : segDist(pos[d], hp, pos[o]))));
+    // The lane stops 3 ft short of the receiver: his own defender is measured by separation, not as a lane blocker.
+    const L = dist(hp, pos[o]) || 1, k = Math.max(0, (L - 3) / L), end = [hp[0] + (pos[o][0] - hp[0]) * k, hp[1] + (pos[o][1] - hp[1]) * k];
+    const lane = Math.min(...DEF.map((d) => (dist(pos[d], hp) < 3.6 ? 99 : segDist(pos[d], hp, end))));
     const open = clamp(Math.min(sep / 6, lane / 3.5), 0, 1);
     out[o] = { sep: R(sep), lane: R(lane), open, d: R(distHoop(pos[o])) };
   }
