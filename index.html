@@ -557,6 +557,15 @@ table.cmp th { font-size: 12px; color: var(--muted); font-weight: 600; }
 @media (max-width: 380px) { .rm-mods { grid-template-columns: 1fr; } }
 .t-check { margin-top: 6px; }
 .icon-btn.star { font-size: 20px; color: var(--carbs); }
+.dna-helix { width: 100%; height: 44px; display: block; margin: 6px 0 8px; }
+.dna-hero { background: var(--surface-2); border-radius: 16px; padding: 12px; }
+.dna-src { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 12px; color: var(--muted); margin-top: 10px; }
+.dna-src b { color: var(--fg); }
+.dna-rules { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 14px; font-weight: 600; }
+.dna-trait { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.dna-trait .small { margin-top: 3px; line-height: 1.5; }
+.dna-ic { width: 36px; height: 36px; flex: none; border-radius: 10px; background: var(--accent-soft); display: grid; place-items: center; font-size: 18px; }
+.dna-trait.locked .dna-ic { background: var(--surface-2); }
 .section-label { font-family: var(--f-body); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 12px 4px -4px; }
 details.fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; cursor: pointer; }
 details.fold > summary::-webkit-details-marker { display: none; }
@@ -811,6 +820,7 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
   <!-- PROGRESS -->
   <section id="view-progress" class="view" hidden>
     <div class="stats" id="stats"></div>
+    <div class="card" id="dna-card"></div>
     <div class="card" id="month-card"></div>
 
     <h2 class="section-label">Training & recovery</h2>
@@ -1133,6 +1143,12 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
       <p class="muted" style="margin:0">Educational info, not medical advice.</p>
     </div>
   </details>
+</dialog>
+
+<!-- PERFORMANCE DNA -->
+<dialog id="dna-sheet" class="sheet" aria-labelledby="dna-title">
+  <div class="sheet-head"><strong id="dna-title">Your Performance DNA</strong><button class="icon-btn" data-close aria-label="Close">✕</button></div>
+  <div id="dna-body"></div>
 </dialog>
 
 <!-- SCORES -->
@@ -1644,7 +1660,7 @@ function renderProfile() {
 let currentView = 'today';
 function render() {
   renderToday();
-  if (currentView === 'progress') { renderProgress(); renderMonth(); monthExtras(); renderProgressExtras(); renderTrend(); renderBadges(); renderMeasures(); renderGoalW(); }
+  if (currentView === 'progress') { renderProgress(); renderMonth(); monthExtras(); renderProgressExtras(); renderDnaCard(); renderTrend(); renderBadges(); renderMeasures(); renderGoalW(); }
   if (currentView === 'profile') { renderProfile(); renderAcc(); }
   if (currentView === 'coach') renderCoach();
 }
@@ -5154,6 +5170,154 @@ $('#timeline').addEventListener('click', (e) => {
   s.has(t) ? s.delete(t) : s.add(t); d.fuelDone = [...s]; persist('day-' + todayIso()); renderCoach(); render();
 });
 syncDescribe();
+
+
+// ===================== Performance DNA =====================
+// A profile that learns from everything logged on this website: MacroLens (food, water, workouts, ratings),
+// Court Lab (shooting sessions, solo workouts) and ReadyUp (sleep, soreness, energy). Patterns only, never medical advice.
+const DNA_SPOTS = { lc3: 'L corner 3', lw3: 'L wing 3', top3: 'Top 3', rw3: 'R wing 3', rc3: 'R corner 3', lbm: 'L baseline', le: 'L elbow', ft: 'Free throw', re: 'R elbow', rbm: 'R baseline', lay: 'At the rim' };
+const isoOfTs = (ts) => isoDate(new Date(ts));
+const minOfTs = (ts) => { const d = new Date(ts); return d.getHours() * 60 + d.getMinutes(); };
+const meanOf = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+function dnaData() {
+  const days = lastNDays(60);
+  const shotsRaw = readLS('cl:shots') || [], solo = readLS('cl:soloHist') || [];
+  const shots = shotsRaw.map((s) => { let m = 0, a = 0, m3 = 0, a3 = 0; for (const [id, o] of Object.entries(s.spots || {})) { m += o.m || 0; a += o.a || 0; if (/3$/.test(id)) { m3 += o.m || 0; a3 += o.a || 0; } } return { at: s.at, iso: isoOfTs(s.at), min: minOfTs(s.at), m, a, m3, a3, pct: a ? m / a : null, spots: s.spots || {} }; }).filter((s) => s.a >= 10);
+  const ru = (iso) => readLS('ru:day-' + iso)?.checkin || null;
+  const logged = days.filter((d) => entriesOf(d).length);
+  // Every workout with a measurable result: MacroLens ratings and Court Lab shooting sessions.
+  const outs = [];
+  for (const iso of days) for (const w of exWindows(iso)) if (w.rating) outs.push({ iso, st: w.st, score: (w.rating - 1) / 4, kind: 'rating', type: w.type });
+  for (const s of shots) outs.push({ iso: s.iso, st: Math.max(0, s.min - 45), score: s.pct, kind: 'shots', pct: s.pct });
+  for (const o of outs) {
+    const pre = eatenBetween(o.iso, o.st - 240, o.st - 15), t = targets(o.iso);
+    o.food = entriesOf(o.iso).length > 0; o.preK = pre.calories; o.preC = pre.carbs;
+    o.prevK = entriesOf(shiftIso(o.iso, -1)).length ? totals(entriesOf(shiftIso(o.iso, -1))).calories / targets(shiftIso(o.iso, -1)).calories : null;
+    o.water = o.food ? (dayDoc(o.iso)?.water || 0) / t.waterOz : null;
+    const ck = ru(o.iso); o.sleep = ck?.sleepH ?? null; o.sore = ck?.soreness ?? null; o.energy = ck?.energy ?? null;
+    o.preItems = entriesOf(o.iso).filter((e) => e.addedAt && addedMin(e) >= o.st - 240 && addedMin(e) <= o.st - 15);
+    o.gap = o.preItems.length ? o.st - Math.max(...o.preItems.map(addedMin)) : null;
+  }
+  return { days, logged, shots, solo, outs, ru };
+}
+/** Split results by a factor and compare the average result in each half. */
+function dnaSplit(outs, key, cut, { min = 2 } = {}) {
+  const v = outs.filter((o) => o[key] != null && o.score != null);
+  const hi = v.filter((o) => o[key] >= cut), lo = v.filter((o) => o[key] < cut);
+  if (hi.length < min || lo.length < min) return null;
+  return { hi: meanOf(hi.map((o) => o.score)), lo: meanOf(lo.map((o) => o.score)), nHi: hi.length, nLo: lo.length };
+}
+const pctTxt = (x) => `${Math.round(x * 100)}%`;
+function dnaTraits() {
+  const D = dnaData(), out = [], rules = [];
+  const shotOuts = D.outs.filter((o) => o.kind === 'shots'), rateOuts = D.outs.filter((o) => o.kind === 'rating');
+  const fmtRes = (o, x) => (o.kind === 'shots' ? pctTxt(x) : `${(1 + x * 4).toFixed(1)}/5`);
+  const compare = (outs, key, cut, label, unitHi, unitLo, rule) => {
+    const s = dnaSplit(outs, key, cut); if (!s) return null;
+    const diff = s.hi - s.lo, kind = outs[0]?.kind, big = kind === 'shots' ? Math.abs(diff) >= 0.04 : Math.abs(diff) >= 0.12;
+    return { s, diff, big, line: `${unitHi}: <b>${fmtRes(outs[0], s.hi)}</b> (${s.nHi}) vs. ${unitLo}: <b>${fmtRes(outs[0], s.lo)}</b> (${s.nLo})`, label, rule: big && diff > 0 ? rule : null };
+  };
+  // 1. Fuel before workouts
+  const fuelCmp = [compare(shotOuts.filter((o) => o.food), 'preK', 250, 'Ate before shooting', '250+ kcal in the 4 h before', 'less', 'Eat 250+ calories 1-4 hours before you shoot.'), compare(rateOuts, 'preK', 250, 'Ate before training', '250+ kcal before', 'less', 'Eat a real snack or meal 1-4 hours before training.')].filter(Boolean);
+  const good = D.outs.filter((o) => o.score != null && (o.kind === 'shots' ? o.score >= meanOf(shotOuts.map((x) => x.score)) : o.score >= 0.75) && o.preItems.length);
+  const foodCount = {}, seenDay = new Set();
+  for (const o of good) { if (seenDay.has(o.iso)) continue; seenDay.add(o.iso); for (const n of new Set(o.preItems.map((e) => e.name))) foodCount[n] = (foodCount[n] || 0) + 1; }
+  const topPre = Object.entries(foodCount).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const gaps = good.map((o) => o.gap).filter((g) => g != null);
+  out.push({ id: 'pre', icon: '⛽', title: 'Your best pre-workout fuel', need: good.length < 3 ? `Needs ${3 - good.length} more good workouts with food logged before them (rate workouts 4-5, or save Court Lab shooting sessions).` : null,
+    body: good.length >= 3 ? `Before your best sessions you usually had ${topPre.map(([n, c]) => `<b>${esc(n)}</b>${c > 1 ? ` (${c}×)` : ''}`).join(', ')}${gaps.length ? `, about <b>${fmtDur(Math.round(meanOf(gaps) / 15) * 15)}</b> before you started` : ''}. Average: ${Math.round(meanOf(good.map((o) => o.preK)))} kcal, ${Math.round(meanOf(good.map((o) => o.preC)))} g carbs.${fuelCmp.length ? '<br>' + fuelCmp.map((c) => `${c.label}: ${c.line}`).join('<br>') : ''}` : '' });
+  const bestOf = (arr) => arr.filter((c) => c?.rule).sort((a, b) => Math.abs(b.diff) * (b.s.nHi + b.s.nLo) - Math.abs(a.diff) * (a.s.nHi + a.s.nLo))[0];
+  { const c = bestOf(fuelCmp); if (c) rules.push([Math.abs(c.diff) * (c.s.nHi + c.s.nLo), c.rule]); }
+  if (topPre.length && good.length >= 3) rules.push([0.5, `Go-to pre-workout: ${topPre[0][0]}${gaps.length ? `, about ${fmtDur(Math.round(meanOf(gaps) / 15) * 15)} before` : ''}.`]);
+
+  // 2. Sleep
+  const allRes = [...shotOuts, ...rateOuts];
+  const slS = compare(shotOuts, 'sleep', 8, 'Shooting', '8+ h sleep', 'under 8 h', 'Get 8+ hours before shooting days. Your percentage depends on it.');
+  const slR = compare(rateOuts, 'sleep', 8, 'Workout ratings', '8+ h sleep', 'under 8 h', 'Protect 8+ hours of sleep before practice days.');
+  const withSleep = allRes.filter((o) => o.sleep != null).length;
+  out.push({ id: 'sleep', icon: '😴', title: 'Sleep → performance', need: !slS && !slR ? `Needs sleep check-ins in ReadyUp on at least 4 workout days (${withSleep} so far).` : null,
+    body: [slS, slR].filter(Boolean).map((c) => `${c.label}: ${c.line}`).join('<br>') });
+  { const c = bestOf([slS, slR]); if (c) rules.push([Math.abs(c.diff) * (c.s.nHi + c.s.nLo) * 1.1, c.rule]); }
+
+  // 3. Yesterday's fuel and hydration
+  const pv = compare(allRes.filter((o) => o.prevK != null && o.kind === (shotOuts.length >= rateOuts.length ? 'shots' : 'rating')), 'prevK', 0.9, 'Ate enough the day before', '90%+ of target', 'under 90%', 'Hit your calories the day before big sessions. Fuel is built the day before.');
+  const hy = compare(allRes.filter((o) => o.water != null && o.kind === (shotOuts.length >= rateOuts.length ? 'shots' : 'rating')), 'water', 0.8, 'Hydration that day', '80%+ of water goal', 'less', 'Get most of your water in before training starts.');
+  out.push({ id: 'prev', icon: '🔋', title: 'The day before and hydration', need: !pv && !hy ? 'Needs more workouts on days where you also logged food and water.' : null, body: [pv, hy].filter(Boolean).map((c) => `${c.label}: ${c.line}`).join('<br>') });
+  [pv, hy].forEach((c) => c?.rule && rules.push([Math.abs(c.diff) * (c.s.nHi + c.s.nLo), c.rule]));
+
+  // 4. Shooting profile
+  const spot = {}; for (const s of D.shots) for (const [id, o] of Object.entries(s.spots)) { spot[id] ??= { m: 0, a: 0 }; spot[id].m += o.m || 0; spot[id].a += o.a || 0; }
+  const spots = Object.entries(spot).filter(([, o]) => o.a >= 15).map(([id, o]) => ({ id, n: DNA_SPOTS[id] || id, p: o.m / o.a, a: o.a })).sort((a, b) => b.p - a.p);
+  const tA = D.shots.reduce((a, s) => a + s.a, 0), tM = D.shots.reduce((a, s) => a + s.m, 0), t3a = D.shots.reduce((a, s) => a + s.a3, 0), t3m = D.shots.reduce((a, s) => a + s.m3, 0);
+  const recent = D.shots.slice(0, 5), older = D.shots.slice(5, 15), tr = recent.length >= 3 && older.length >= 3 ? meanOf(recent.map((s) => s.pct)) - meanOf(older.map((s) => s.pct)) : null;
+  const am = D.shots.filter((s) => s.min < 15 * 60), pm = D.shots.filter((s) => s.min >= 15 * 60);
+  out.push({ id: 'shoot', icon: '🎯', title: 'Shooting profile', need: D.shots.length < 3 ? `Needs ${3 - D.shots.length} more saved shooting sessions in Court Lab (10+ shots each).` : null,
+    body: D.shots.length >= 3 ? `${tA.toLocaleString()} shots tracked · <b>${pctTxt(tM / tA)}</b> overall${t3a ? ` · <b>${pctTxt(t3m / t3a)}</b> from three` : ''}.${spots.length >= 2 ? `<br>Best spot: <b>${spots[0].n}</b> ${pctTxt(spots[0].p)} · Work on: <b>${spots[spots.length - 1].n}</b> ${pctTxt(spots[spots.length - 1].p)}` : ''}${tr != null ? `<br>Trend: last 5 sessions ${tr >= 0 ? '▲' : '▼'} ${Math.abs(Math.round(tr * 100))} points vs. the 10 before.` : ''}${am.length >= 2 && pm.length >= 2 ? `<br>Before 3 PM ${pctTxt(meanOf(am.map((s) => s.pct)))} vs. after ${pctTxt(meanOf(pm.map((s) => s.pct)))}.` : ''}` : '' });
+  if (spots.length >= 2 && spots[spots.length - 1].p < spots[0].p - 0.1) rules.push([0.4, `Extra reps from ${spots[spots.length - 1].n}: it's your weakest spot (${pctTxt(spots[spots.length - 1].p)}).`]);
+
+  // 5. Fuel style
+  const L = D.logged.slice(-30);
+  if (L.length >= 5) {
+    const firsts = L.map((d) => Math.min(...entriesOf(d).filter((e) => e.addedAt).map(addedMin))).filter(Number.isFinite);
+    const feeds = meanOf(L.map(feedingCount));
+    const wkK = (we) => meanOf(L.filter((d) => [0, 6].includes(new Date(d + 'T12:00:00').getDay()) === we).map((d) => totals(entriesOf(d)).calories / targets(d).calories));
+    const wd = wkK(false), we = wkK(true);
+    const fc = {}, pTot = { all: 0 }; for (const d of L) for (const e of entriesOf(d)) { const n = scale(e, e.servings ?? 1); fc[e.name] = (fc[e.name] || 0) + n.protein; pTot.all += n.protein; }
+    const topP = Object.entries(fc).sort((a, b) => b[1] - a[1]).slice(0, 3), share = topP.reduce((a, [, v]) => a + v, 0) / Math.max(1, pTot.all);
+    out.push({ id: 'style', icon: '🍽️', title: 'Your fuel style', body: `${firsts.length ? `First food around <b>${fmtMin(Math.round(meanOf(firsts) / 15) * 15)}</b> · ` : ''}<b>${feeds.toFixed(1)}</b> meals and snacks a day.${wd != null && we != null ? `<br>Weekdays you eat <b>${pctTxt(wd)}</b> of your target, weekends <b>${pctTxt(we)}</b>.` : ''}<br>${pctTxt(share)} of your protein comes from ${topP.map(([n]) => `<b>${esc(n)}</b>`).join(', ')}.` });
+    if (we != null && wd != null && we < wd - 0.12) rules.push([0.6, 'Weekends are your weak spot. Plan a big breakfast on Saturday and Sunday.']);
+    if (wd != null && we != null && wd < we - 0.12) rules.push([0.6, 'School days run low. Pack two extra snacks for the school day.']);
+    if (feeds < 3.2) rules.push([0.5, 'Add a 4th feeding: one snack between lunch and practice.']);
+  } else out.push({ id: 'style', icon: '🍽️', title: 'Your fuel style', need: `Needs ${5 - L.length} more days of food logging.` });
+
+  // 6. Habits: strongest and weakest over 30 days
+  const hs = lastNDays(30).map(habitsOf).filter(Boolean);
+  if (hs.length >= 5) {
+    const rate = HABITS.map(([k, l]) => { const v = hs.filter((h) => h[k] != null); return v.length >= 3 ? { k, l, r: v.filter((h) => h[k]).length / v.length } : null; }).filter(Boolean).sort((a, b) => b.r - a.r);
+    out.push({ id: 'habits', icon: '📈', title: 'Habits', body: `Strongest: <b>${rate[0].l}</b> (${pctTxt(rate[0].r)} of days) · Weakest: <b>${rate[rate.length - 1].l}</b> (${pctTxt(rate[rate.length - 1].r)}).<br>Best streak: <b>${Math.max(consStreak(), core().bestStreak || 0)}</b> days.` });
+    if (rate[rate.length - 1].r < 0.6) rules.push([0.55, `Focus this week: ${{ logged: 'log every meal', meals: 'eat at least 3 meals or snacks every day', protein: 'hit your protein goal every day', energy: 'eat enough to match your training', water: 'hit your water goal', pre: 'eat 1-3 hours before every workout', post: 'get protein within an hour after training' }[rate[rate.length - 1].k]}.`]);
+  } else out.push({ id: 'habits', icon: '📈', title: 'Habits', need: `Needs ${5 - hs.length} more logged days.` });
+
+  // 7. Training load and recovery
+  const sore = D.days.map((d) => ({ d, s: D.ru(d)?.soreness, prevMin: exList(shiftIso(d, -1)).reduce((a, x) => a + Number(x.mins), 0), prevP: entriesOf(shiftIso(d, -1)).length ? totals(entriesOf(shiftIso(d, -1))).protein / targets(shiftIso(d, -1)).protein : null })).filter((x) => x.s != null && x.prevMin >= 60 && x.prevP != null);
+  const sp = sore.length >= 4 ? { hi: sore.filter((x) => x.prevP >= 0.9), lo: sore.filter((x) => x.prevP < 0.9) } : null;
+  const solo30 = D.solo.filter((s) => s.at > Date.now() - 30 * 864e5), soloMin = Math.round(solo30.reduce((a, s) => a + (s.secs || 0), 0) / 60);
+  const mins4 = [0, 1, 2, 3].map((w) => lastNDays(28).slice(21 - w * 7, 28 - w * 7).reduce((a, d) => a + exList(d).reduce((s, x) => s + Number(x.mins), 0), 0));
+  out.push({ id: 'load', icon: '💪', title: 'Training and recovery', need: !mins4.some(Boolean) && !solo30.length ? 'Needs workouts logged in MacroLens or Court Lab.' : null,
+    body: `Training last 4 weeks: ${mins4.map((m) => `<b>${fmtDur(m)}</b>`).reverse().join(' → ')}${solo30.length ? `<br>Court Lab solo: <b>${solo30.length}</b> workout${solo30.length === 1 ? '' : 's'}, ${fmtDur(soloMin)} in 30 days.` : ''}${sp && sp.hi.length >= 2 && sp.lo.length >= 2 ? `<br>Soreness after hard days: <b>${(meanOf(sp.hi.map((x) => x.s))).toFixed(1)}/5</b> when you hit protein vs. <b>${(meanOf(sp.lo.map((x) => x.s))).toFixed(1)}/5</b> when you didn't.` : ''}` });
+  if (sp && sp.hi.length >= 2 && sp.lo.length >= 2 && meanOf(sp.lo.map((x) => x.s)) - meanOf(sp.hi.map((x) => x.s)) >= 0.5) rules.push([0.9, 'Hit your protein on hard training days. You wake up less sore when you do.']);
+
+  const sources = { days: D.logged.length, rated: rateOuts.length, shots: D.shots.length, sleep: D.days.filter((d) => D.ru(d)).length };
+  const pts = Math.min(sources.days, 30) / 30 * 40 + Math.min(sources.rated + sources.shots, 15) / 15 * 40 + Math.min(sources.sleep, 14) / 14 * 20;
+  return { traits: out, rules: rules.sort((a, b) => b[0] - a[0]).map((r) => r[1]).filter((r, i, a) => a.indexOf(r) === i).slice(0, 3), sources, strength: Math.round(pts) };
+}
+function dnaHelix(strength) {
+  let s = ''; const n = 14;
+  for (let i = 0; i < n; i++) { const x = 8 + i * 14, ph = (i / n) * Math.PI * 2.2, y1 = 22 + Math.sin(ph) * 14, y2 = 22 - Math.sin(ph) * 14, on = i / n < strength / 100;
+    s += `<line x1="${x}" x2="${x}" y1="${y1.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${on ? 'var(--accent)' : 'var(--line)'}" stroke-width="2"/><circle cx="${x}" cy="${y1.toFixed(1)}" r="3.5" fill="${on ? 'var(--accent)' : 'var(--surface-2)'}"/><circle cx="${x}" cy="${y2.toFixed(1)}" r="3.5" fill="${on ? 'var(--protein)' : 'var(--surface-2)'}"/>`; }
+  return `<svg viewBox="0 0 200 44" class="dna-helix" aria-hidden="true">${s}</svg>`;
+}
+const dnaLevel = (s) => (s >= 75 ? 'Strong' : s >= 40 ? 'Solid' : s >= 15 ? 'Building' : 'Just started');
+function renderDnaCard() {
+  const el = $('#dna-card'); if (!el) return;
+  const R = dnaTraits(), unlocked = R.traits.filter((t) => !t.need).length;
+  el.innerHTML = `<div class="row-between"><h3>Performance DNA</h3><span class="pill ok">${dnaLevel(R.strength)}</span></div>
+    ${dnaHelix(R.strength)}
+    <p class="small" style="margin:0 0 8px">${R.rules[0] ? `<b>Your #1 rule:</b> ${esc(R.rules[0])}` : 'Learns what makes <b>you</b> play your best, from your food, workouts, Court Lab shooting and ReadyUp sleep.'}</p>
+    <button type="button" class="nv-open" id="dna-open" style="margin-top:0"><span>${unlocked}/${R.traits.length} traits unlocked</span><span class="muted small" style="flex:none">Open ›</span></button>`;
+}
+function openDna() {
+  const R = dnaTraits(), S = R.sources;
+  $('#dna-body').innerHTML = `<div class="dna-hero">${dnaHelix(R.strength)}<div class="row-between"><b>Data strength: ${dnaLevel(R.strength)}</b><span class="muted small num">${R.strength}/100</span></div>
+      <div class="bar" style="margin-top:6px"><div class="bar-fill" style="width:${R.strength}%;background:var(--accent)"></div></div>
+      <div class="dna-src"><span><b>${S.days}</b> days of food</span><span><b>${S.rated}</b> rated workouts</span><span><b>${S.shots}</b> shooting sessions</span><span><b>${S.sleep}</b> sleep check-ins</span></div></div>
+    ${R.rules.length ? `<h4 class="sc-h">Your rules</h4><ol class="dna-rules">${R.rules.map((r) => `<li>${esc(r)}</li>`).join('')}</ol>` : '<p class="small">Your personal rules show up here once there\'s enough data. Keep logging, rate your workouts, and save shooting sessions in Court Lab.</p>'}
+    <h4 class="sc-h">Traits</h4>
+    ${R.traits.map((t) => `<div class="dna-trait${t.need ? ' locked' : ''}"><div class="dna-ic" aria-hidden="true">${t.need ? '🔒' : t.icon}</div><div><b>${t.title}</b><div class="small">${t.need ? `<span class="muted">${esc(t.need)}</span>` : t.body}</div></div></div>`).join('')}
+    <p class="muted small" style="margin:14px 0 0"><b>How this works:</b> it compares your best and worst sessions (workout ratings 1-5 and Court Lab shooting %) with what you ate, drank and slept beforehand. Numbers in (parentheses) are how many sessions each side is based on. These are patterns from your own logs, not proof and not medical advice. Small samples can mislead, so it gets more trustworthy the more you log. Sleep comes from ReadyUp and shooting from Court Lab on this same website.</p>`;
+  $('#dna-sheet').showModal();
+}
+$('#dna-card').addEventListener('click', (e) => { if (e.target.closest('#dna-open')) openDna(); });
 
 // ===================== Coach tabs =====================
 const COACH_TAB_KEY = 'macrolens-coach-tab';
