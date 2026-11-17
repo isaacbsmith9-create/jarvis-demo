@@ -691,6 +691,25 @@ i.hm { display: block; border-radius: 3px; aspect-ratio: 1; background: var(--h0
 .hm-wk .corr-bar { margin: 0; }
 .hm-wk b { text-align: right; }
 
+/* Apple Health import */
+.ah-pill { font-size: 11px; font-weight: 700; letter-spacing: .04em; padding: 3px 9px; border-radius: 99px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+.ah-pill.on { background: color-mix(in srgb, var(--good, var(--accent)) 18%, transparent); color: var(--good, var(--accent)); border-color: transparent; }
+.ah-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.ah-sum div { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; display: grid; }
+.ah-sum b { font: 700 18px var(--f-display); } .ah-sum small { font-size: 11px; color: var(--muted); }
+.ah-cats { display: grid; gap: 6px; }
+.ah-cats label { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; padding: 8px 10px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); cursor: pointer; }
+.ah-cats input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--accent); }
+.ah-cats span { display: grid; } .ah-cats b { font-size: 14px; } .ah-cats small { font-size: 12px; color: var(--muted); }
+.ah-range { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 13px; font-weight: 600; }
+.ah-range span { white-space: nowrap; }
+.ah-range select { flex: 1; min-width: 0; }
+.ah-steps { margin: 10px 0; padding-left: 18px; display: grid; gap: 3px; color: var(--fg); }
+.ah-file { position: relative; width: 100%; }
+.ah-file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.ah-file.busy { opacity: .7; pointer-events: none; }
+.ah-off { color: var(--danger); }
+
 /* ===== Sports-tech look (navy, electric blue, purple glow) ===== */
 :root[data-theme="dark"] body, :root:not([data-theme="light"]) body { background: radial-gradient(1200px 520px at 50% -180px, rgba(84, 70, 255, .22), transparent 70%), radial-gradient(900px 600px at 110% 30%, rgba(61, 139, 255, .10), transparent 60%), var(--bg); background-attachment: fixed; }
 :root[data-theme="dark"] .card, :root:not([data-theme="light"]) .card { background: linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, 0) 40%), var(--surface); border-color: rgba(120, 140, 255, .16); box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 12px 30px -18px rgba(0, 0, 0, .8); }
@@ -1068,6 +1087,7 @@ h2, h3 { letter-spacing: -.01em; }
       <button class="btn">Save</button>
     </form>
 
+    <div class="card" id="health-card"></div>
     <form id="acc-form" class="card form">
       <div><h3>Accuracy and smart targets</h3>
       <p class="muted small" style="margin:4px 0 0">Measure once. When you put your hand or phone in a food photo, AI uses these to judge portion size.</p></div>
@@ -1789,7 +1809,7 @@ let currentView = 'today';
 function render() {
   renderToday();
   if (currentView === 'progress') { renderWeekly(); renderProgress(); renderHeat(); renderMonth(); renderCorr(); monthExtras(); renderProgressExtras(); renderDnaCard(); renderTrend(); renderBadges(); renderMeasures(); renderGoalW(); }
-  if (currentView === 'profile') { renderProfile(); renderAcc(); }
+  if (currentView === 'profile') { renderProfile(); renderAcc(); renderHealth(); }
   if (currentView === 'coach') renderCoach();
 }
 function showView(v) {
@@ -5738,7 +5758,7 @@ function weekStats(mon) {
   const cons = days.map((d) => consistency(d));
   const consVals = cons.map((v) => v ?? 0).sort((a, b) => a - b); if (consVals.length >= 4) consVals.shift(); // forgiving: worst day dropped
   const rec = days.map((d) => recoveryScore(d)?.score ?? null).filter((v) => v != null);
-  const sleep = days.map((d) => readLS('ru:day-' + d)?.checkin?.sleepH ?? null);
+  const sleep = days.map((d) => dayDoc(d)?.feel?.sleepH ?? readLS('ru:day-' + d)?.checkin?.sleepH ?? core().health?.days?.[d]?.sleepH ?? null);
   const proteinHit = logged.filter((d, i) => tot[i].protein >= tg[i].protein * 0.95).length;
   return { mon, days, logged: logged.length, n: days.length,
     kcal: avg((t) => t.calories), p: avg((t) => t.protein), c: avg((t) => t.carbs), f: avg((t) => t.fat), fiber: avg((t) => t.fiber),
@@ -5803,7 +5823,7 @@ function renderWeekly() {
     </div>
     <div class="wr-chart"><div class="row-between"><b>Calories</b><span class="muted small">dashes = goal</span></div><div class="chart">${miniBars(pad7(s.cal), { goals: pad7(s.calGoal), labels, color: (v, i) => (v >= s.calGoal[i] * 0.9 ? 'var(--accent)' : 'var(--purple, var(--carbs))'), fmt: (v) => (v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v), H: 120 })}</div></div>
     <div class="wr-chart"><div class="row-between"><b>Protein</b><span class="muted small">g · dashes = goal</span></div><div class="chart">${miniBars(pad7(s.pro), { goals: pad7(s.proGoal), labels, color: (v, i) => (v >= s.proGoal[i] * 0.95 ? 'var(--good, var(--accent))' : 'var(--protein)'), H: 120 })}</div></div>
-    ${s.sleepAvg != null ? `<div class="wr-chart"><div class="row-between"><b>Sleep</b><span class="muted small">${s.sleepAvg.toFixed(1)} h avg from ReadyUp</span></div><div class="chart">${miniBars(pad7(s.sleep.map((v) => v ?? 0)), { labels, max: 10, color: (v) => (v >= 8 ? 'var(--good, var(--accent))' : v >= 7 ? 'var(--carbs)' : 'var(--over)'), fmt: (v) => v.toFixed(1), H: 110 })}</div></div>` : ''}
+    ${s.sleepAvg != null ? `<div class="wr-chart"><div class="row-between"><b>Sleep</b><span class="muted small">${s.sleepAvg.toFixed(1)} h avg</span></div><div class="chart">${miniBars(pad7(s.sleep.map((v) => v ?? 0)), { labels, max: 10, color: (v) => (v >= 8 ? 'var(--good, var(--accent))' : v >= 7 ? 'var(--carbs)' : 'var(--over)'), fmt: (v) => v.toFixed(1), H: 110 })}</div></div>` : ''}
     <div class="wr-cols"><div><h4>Going well</h4><ul>${notes.good.map((x) => `<li>${esc(x)}</li>`).join('') || '<li class="muted">Log a few more days to see trends.</li>'}</ul></div>
       <div><h4>Needs attention</h4><ul class="wr-fix">${notes.fix.map((x) => `<li>${esc(x)}</li>`).join('') || '<li class="muted">Nothing stands out. Keep it rolling.</li>'}</ul></div></div>
     <details class="wr-compare"><summary>Compare with earlier weeks</summary>
@@ -5840,7 +5860,9 @@ Reply with only JSON: {"summary":"...","points":["..."],"focus":"..."}`;
 // Observational only: wording always says "tended to", never "caused". A quick daily feel check (day.feel
 // {sleepH, energy, sore}) supplies sleep/energy/soreness; ReadyUp check-ins on this device are used when present.
 const CORR_VARS = [
-  ['sleep', 'Sleep', 'h', (d) => dayDoc(d)?.feel?.sleepH ?? readLS('ru:day-' + d)?.checkin?.sleepH ?? null],
+  ['sleep', 'Sleep', 'h', (d) => dayDoc(d)?.feel?.sleepH ?? readLS('ru:day-' + d)?.checkin?.sleepH ?? core().health?.days?.[d]?.sleepH ?? null],
+  ['steps', 'Steps', 'steps', (d) => core().health?.days?.[d]?.steps ?? null],
+  ['rhr', 'Resting heart rate', 'bpm', (d) => core().health?.days?.[d]?.rhr ?? null],
   ['energy', 'Energy (1-5)', '', (d) => dayDoc(d)?.feel?.energy ?? readLS('ru:day-' + d)?.checkin?.energy ?? null],
   ['sore', 'Soreness (1-5)', '', (d) => dayDoc(d)?.feel?.sore ?? readLS('ru:day-' + d)?.checkin?.soreness ?? null],
   ['rating', 'Workout rating', '/5', (d) => { const r = exWindows(d).map((w) => w.rating).filter(Boolean); return r.length ? r.reduce((a, b) => a + b, 0) / r.length : null; }],
@@ -5957,7 +5979,7 @@ const HEAT_HABITS = [
   ['meals', 'Meals', (d) => (entriesOf(d).length ? feedingCount(d) >= 3 || (d === todayIso() && entriesOf(d).length > 0) : false)],
   ['water', 'Water', (d) => (dayDoc(d)?.water || 0) >= targets(d).waterOz * 0.9],
   ['workout', 'Workouts', (d) => (exList(d).length ? true : null)], // null = rest day, never a miss
-  ['sleep', 'Sleep check', (d) => (dayDoc(d)?.feel?.sleepH ?? readLS('ru:day-' + d)?.checkin?.sleepH) != null],
+  ['sleep', 'Sleep check', (d) => (dayDoc(d)?.feel?.sleepH ?? readLS('ru:day-' + d)?.checkin?.sleepH ?? core().health?.days?.[d]?.sleepH) != null],
   ['recovery', 'Recovery check', (d) => dayDoc(d)?.feel?.energy != null || dayDoc(d)?.feel?.sore != null || !!readLS('ru:day-' + d)?.checkin],
   ['nutrition', 'Nutrition', (d) => (entriesOf(d).length ? (consistency(d) ?? 0) >= 70 : false)],
 ];
@@ -6020,6 +6042,149 @@ $('#heat-card').addEventListener('click', (e) => {
   const n = e.target.closest('[data-heat-nav]'); if (n) { const [y, m] = heatMonth.split('-').map(Number), d = new Date(y, m - 1 + Number(n.dataset.heatNav), 1); heatMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; return renderHeat(); }
   const o = e.target.closest('[data-heat-open]'); if (o) { day = o.dataset.heatOpen; return showView('today'); }
   const b = e.target.closest('[data-heat-day]'); if (b && !b.disabled) { heatSel = heatSel === b.dataset.heatDay ? null : b.dataset.heatDay; renderHeat(); }
+});
+
+// ===================== Apple Health (import) =====================
+// MacroLens is a web page, and only native iOS apps can read HealthKit, so there is no live connection.
+// What works for real: the Health app's "Export All Health Data" file (export.zip or export.xml), parsed here
+// in the browser, only for the categories the user ticks. Docs: core.health {cats, since, lastSync, stats,
+// days {iso: {steps, kcal, rhr, sleepH}}}; workouts land in day.exercise with source 'apple-health' (deduped).
+const HEALTH_CATS = [
+  ['steps', 'Steps', 'Daily step totals for your activity picture and weekly report.'],
+  ['energy', 'Active energy', 'Calories burned moving, to compare with what you eat.'],
+  ['workouts', 'Workouts', 'Adds Apple Watch / Health workouts to your Exercise log so meal timing and refuel checks know about them.'],
+  ['hr', 'Resting heart rate', 'A recovery signal for Performance correlations.'],
+  ['sleep', 'Sleep', 'Hours asleep for the weekly report, heatmap and correlations.'],
+];
+const healthCfg = () => core().health || null;
+const healthDay = (d) => core().health?.days?.[d] || null;
+let healthBusy = false, healthMsg = '';
+function loadJsZip() {
+  return new Promise((res, rej) => {
+    if (window.JSZip) return res(window.JSZip);
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    sc.onload = () => (window.JSZip ? res(window.JSZip) : rej(new Error('no JSZip'))); sc.onerror = () => rej(new Error('load'));
+    document.head.append(sc);
+  });
+}
+const AH_TYPES = { Basketball: 'practice', TraditionalStrengthTraining: 'lift', FunctionalStrengthTraining: 'lift', Running: 'run', Walking: 'walk', Cycling: 'bike', HighIntensityIntervalTraining: 'conditioning', CrossTraining: 'conditioning', Soccer: 'conditioning', Football: 'conditioning' };
+function healthParser(cats, since) {
+  const want = new Set(cats), acc = { steps: {}, energy: {}, hr: {}, sleep: {}, workouts: [] };
+  const attr = (tag, n) => { const m = tag.match(new RegExp(`\\s${n}="([^"]*)"`)); return m ? m[1] : null; };
+  const bump = (o, d, src, v) => { (o[d] ||= {})[src] = (o[d][src] || 0) + v; };
+  let buf = '', n = 0;
+  const tag = (t) => {
+    n++;
+    if (t.startsWith('<Workout')) {
+      if (!want.has('workouts')) return;
+      const st = attr(t, 'startDate'); if (!st || st.slice(0, 10) < since) return;
+      const type = (attr(t, 'workoutActivityType') || '').replace('HKWorkoutActivityType', ''), unit = attr(t, 'durationUnit') || 'min';
+      let mins = Number(attr(t, 'duration')) || 0; if (unit === 's' || unit === 'sec') mins /= 60; if (unit === 'hr' || unit === 'h') mins *= 60;
+      const kcal = Number(attr(t, 'totalEnergyBurned')) || null;
+      if (mins >= 5) acc.workouts.push({ date: st.slice(0, 10), time: st.slice(11, 16), type, mins: Math.round(mins), kcal });
+      return;
+    }
+    const type = attr(t, 'type'); if (!type) return;
+    const st = attr(t, 'startDate'), en = attr(t, 'endDate'); if (!st) return;
+    const d = st.slice(0, 10); if (d < since) return;
+    const src = attr(t, 'sourceName') || '?', v = Number(attr(t, 'value'));
+    if (type === 'HKQuantityTypeIdentifierStepCount' && want.has('steps')) bump(acc.steps, d, src, v || 0);
+    else if (type === 'HKQuantityTypeIdentifierActiveEnergyBurned' && want.has('energy')) bump(acc.energy, d, src, (attr(t, 'unit') === 'kJ' ? v / 4.184 : v) || 0);
+    else if (type === 'HKQuantityTypeIdentifierRestingHeartRate' && want.has('hr') && v > 0) (acc.hr[d] ||= []).push(v);
+    else if (type === 'HKCategoryTypeIdentifierSleepAnalysis' && want.has('sleep') && /Asleep/.test(attr(t, 'value') || '') && en) {
+      const ms = new Date(en.replace(' ', 'T').replace(/ ([+-]\d\d)(\d\d)$/, '$1:$2')) - new Date(st.replace(' ', 'T').replace(/ ([+-]\d\d)(\d\d)$/, '$1:$2'));
+      if (ms > 0 && ms < 16 * 3600e3) bump(acc.sleep, en.slice(0, 10), src, ms / 60000);
+    }
+  };
+  return {
+    acc, count: () => n,
+    feed(chunk) {
+      buf += chunk; let i = 0;
+      for (;;) {
+        const a = buf.indexOf('<', i); if (a < 0) { buf = ''; return; }
+        const b = buf.indexOf('>', a); if (b < 0) { buf = buf.slice(a); return; }
+        const t = buf.slice(a, b + 1); if (t.startsWith('<Record') || t.startsWith('<Workout ')) tag(t);
+        i = b + 1;
+      }
+    },
+  };
+}
+async function healthRead(file, parser, onProgress) {
+  if (/\.zip$/i.test(file.name) || /zip/.test(file.type)) {
+    const JSZip = await loadJsZip(), zip = await JSZip.loadAsync(file);
+    const entry = zip.file(/(^|\/)export\.xml$/)[0]; if (!entry) throw new Error('no export.xml in that zip');
+    await new Promise((res, rej) => { let k = 0; entry.internalStream('string').on('data', (c) => { parser.feed(c); if (++k % 200 === 0) onProgress(); }).on('error', rej).on('end', res).resume(); });
+  } else {
+    const dec = new TextDecoder(), step = 4 << 20;
+    for (let off = 0; off < file.size; off += step) { parser.feed(dec.decode(await file.slice(off, off + step).arrayBuffer(), { stream: off + step < file.size })); onProgress(off / file.size); await new Promise((r) => setTimeout(r)); }
+  }
+}
+const maxSrc = (o) => Math.max(0, ...Object.values(o || {})); // iPhone + Watch both count steps: take the bigger source, don't double
+async function healthImport(file, cats, days) {
+  const since = shiftIso(todayIso(), -days), parser = healthParser(cats, since);
+  await healthRead(file, parser, (p) => { healthMsg = `Reading your Health export… ${p != null ? Math.round(p * 100) + '%' : parser.count().toLocaleString() + ' records'}`; const s = $('#ah-status'); if (s) s.textContent = healthMsg; });
+  const A = parser.acc, out = {};
+  const put = (d, k, v) => { (out[d] ||= {})[k] = v; };
+  for (const d in A.steps) put(d, 'steps', Math.round(maxSrc(A.steps[d])));
+  for (const d in A.energy) put(d, 'kcal', Math.round(maxSrc(A.energy[d])));
+  for (const d in A.hr) put(d, 'rhr', Math.round(A.hr[d].reduce((a, b) => a + b, 0) / A.hr[d].length));
+  for (const d in A.sleep) put(d, 'sleepH', Math.round((maxSrc(A.sleep[d]) / 60) * 10) / 10);
+  let added = 0, dup = 0;
+  for (const w of A.workouts) {
+    const id = 'ah-' + w.date.replace(/-/g, '') + w.time.replace(':', ''), d = dayDoc(w.date, true), list = d.exercise || [];
+    if (list.some((x) => x.id === id || (x.time && Math.abs(toMin(x.time) - toMin(w.time)) <= 20))) { dup++; continue; }
+    const type = AH_TYPES[w.type] || 'other', name = (w.type.replace(/([a-z])([A-Z])/g, '$1 $2') || 'Workout').slice(0, 30);
+    d.exercise = [...list, { id, type, name, mins: w.mins, int: 'moderate', kcal: w.kcal ? Math.round(w.kcal) : exBurn(type, w.mins, 'moderate'), time: w.time, source: 'apple-health', addedAt: Date.now() }];
+    persist('day-' + w.date); added++;
+  }
+  const c = core();
+  c.health = { cats, since, lastSync: Date.now(), days: { ...(c.health?.days || {}), ...out }, stats: { days: Object.keys(out).length, added, dup, records: parser.count() } };
+  persist('core');
+  return c.health.stats;
+}
+function healthDisconnect() {
+  let removed = 0;
+  for (const k of new Set([...Object.keys(cache), ...lsKeys()])) {
+    if (!k.startsWith('day-')) continue; const d = doc(k); if (!d?.exercise?.some((x) => x.source === 'apple-health')) continue;
+    removed += d.exercise.filter((x) => x.source === 'apple-health').length; d.exercise = d.exercise.filter((x) => x.source !== 'apple-health'); persist(k);
+  }
+  delete core().health; persist('core');
+  return removed;
+}
+function renderHealth() {
+  const el = $('#health-card'); if (!el) return;
+  const h = healthCfg(), picked = new Set(h?.cats || HEALTH_CATS.map(([k]) => k));
+  const last7 = lastNDays(7).map(healthDay).filter(Boolean), avg = (k) => { const v = last7.map((x) => x[k]).filter((x) => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  el.innerHTML = `<div class="row-between"><h3>Apple Health</h3><span class="ah-pill${h ? ' on' : ''}">${h ? 'Imported' : 'Not connected'}</span></div>
+    <p class="muted small" style="margin:6px 0 0">MacroLens runs in Claude, and only App Store apps can open Apple Health directly, so there's no live link. You can import your Health export instead. It's read on this device, and only the categories you pick are kept.</p>
+    ${h ? `<div class="ah-sum"><div><b class="num">${avg('steps') != null ? Math.round(avg('steps')).toLocaleString() : '–'}</b><small>steps/day, 7 days</small></div><div><b class="num">${avg('sleepH') != null ? avg('sleepH').toFixed(1) + ' h' : '–'}</b><small>sleep</small></div><div><b class="num">${avg('rhr') != null ? Math.round(avg('rhr')) : '–'}</b><small>resting HR</small></div></div>
+      <p class="small" style="margin:8px 0 0">Last synced ${new Date(h.lastSync).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })} · ${h.stats.days} days · ${h.stats.added} workout${h.stats.added === 1 ? '' : 's'} added${h.stats.dup ? `, ${h.stats.dup} already logged (skipped)` : ''}. Sharing: ${h.cats.map((k) => HEALTH_CATS.find((c) => c[0] === k)?.[1]).join(', ')}.</p>` : ''}
+    <h4 style="margin:12px 0 6px">What to bring in</h4>
+    <div class="ah-cats">${HEALTH_CATS.map(([k, l, why]) => `<label><input type="checkbox" data-ah-cat="${k}"${picked.has(k) ? ' checked' : ''}><span><b>${l}</b><small>${why}</small></span></label>`).join('')}</div>
+    <label class="ah-range"><span>Import the last</span><select id="ah-days">${[[30, '30 days'], [60, '60 days'], [90, '90 days'], [180, '6 months']].map(([v, l]) => `<option value="${v}"${(h ? Math.round((Date.now() - new Date(h.since + 'T12:00:00')) / 864e5) : 60) === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label>
+    <ol class="ah-steps small"><li>On your iPhone open <b>Health</b>, tap your picture (top right), then <b>Export All Health Data</b>.</li><li>Save the zip to Files (it can take a minute).</li><li>Tap below and pick <b>export.zip</b>.</li></ol>
+    <label class="btn primary ah-file${healthBusy ? ' busy' : ''}">${healthBusy ? 'Importing…' : h ? 'Import a newer export' : 'Choose Health export'}<input type="file" accept=".zip,.xml,application/zip,text/xml" id="ah-file"${healthBusy ? ' disabled' : ''}></label>
+    <p class="muted small" id="ah-status" style="margin:6px 0 0">${esc(healthMsg)}</p>
+    ${h ? '<button type="button" class="btn ah-off" id="ah-off" style="width:100%;margin-top:8px">Disconnect and remove imported data</button>' : ''}`;
+}
+$('#health-card').addEventListener('change', async (e) => {
+  if (e.target.id !== 'ah-file') return;
+  const f = e.target.files?.[0]; if (!f) return;
+  const cats = $$('#health-card [data-ah-cat]').filter((x) => x.checked).map((x) => x.dataset.ahCat);
+  if (!cats.length) { toast('Pick at least one category'); e.target.value = ''; return; }
+  healthBusy = true; healthMsg = 'Opening the file…'; renderHealth();
+  try {
+    const s = await healthImport(f, cats, Number($('#ah-days')?.value) || 60);
+    healthMsg = s.records ? `Done: ${s.days} days of data, ${s.added} workout${s.added === 1 ? '' : 's'} added${s.dup ? `, ${s.dup} skipped as duplicate${s.dup === 1 ? '' : 's'}` : ''}.` : "That file had no Health records. Make sure it's export.zip or export.xml from the Health app.";
+    toast('Apple Health data imported'); render();
+  } catch (err) { healthMsg = /no export\.xml/.test(err?.message) ? "That zip doesn't have export.xml in it. Use the file from Health → Export All Health Data." : /load/.test(err?.message) ? "Couldn't load the unzip tool. Check your connection, or unzip on a computer and pick export.xml." : 'Could not read that file. If it is very large, unzip it and pick export.xml.'; }
+  healthBusy = false; renderHealth();
+});
+$('#health-card').addEventListener('click', (e) => {
+  const b = e.target.closest('#ah-off'); if (!b) return;
+  if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'Tap again to disconnect'; setTimeout(() => { if (b.isConnected) { b.dataset.sure = ''; b.textContent = 'Disconnect and remove imported data'; } }, 3000); return; }
+  const n = healthDisconnect(); healthMsg = ''; renderHealth(); render(); toast(`Disconnected. Removed imported data${n ? ` and ${n} workouts` : ''}.`);
 });
 
 // ===================== Coach tabs =====================
