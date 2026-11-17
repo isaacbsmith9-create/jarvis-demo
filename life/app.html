@@ -1,0 +1,542 @@
+<title>Life Score</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one phone column. Header with phase + date, then the active tab (Today, Week, Goals, Tests). Tab bar fixed at the bottom. */
+:root {
+  --bg: #f1f0ec; --surface: #fcfbf8; --surface-2: #eae8e2; --line: #dddad2; --ink: #121210; --ink-2: #4f4d47; --muted: #77756d;
+  --accent: #d9622b; --accent-soft: #f7dfd1; --good: #12865a; --good-soft: #d5efe2; --warn: #c98500;
+  --p-body: #2a78d6; --p-game: #d9622b; --p-mind: #7c5cd6; --p-money: #12865a; --p-life: #d24f86;
+  --f-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #10100f; --surface: #1a1a18; --surface-2: #262522; --line: #312f2b; --ink: #f2f0ea; --ink-2: #c6c3b9; --muted: #97948a;
+    --accent: #ec7a44; --accent-soft: #42261a; --good: #2fbf85; --good-soft: #173a2b; --warn: #e3a41c;
+    --p-body: #4a92ea; --p-game: #ec7a44; --p-mind: #9b82ec; --p-money: #2fbf85; --p-life: #e875a5; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #10100f; --surface: #1a1a18; --surface-2: #262522; --line: #312f2b; --ink: #f2f0ea; --ink-2: #c6c3b9; --muted: #97948a;
+  --accent: #ec7a44; --accent-soft: #42261a; --good: #2fbf85; --good-soft: #173a2b; --warn: #e3a41c;
+  --p-body: #4a92ea; --p-game: #ec7a44; --p-mind: #9b82ec; --p-money: #2fbf85; --p-life: #e875a5; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 var(--f-body); -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+input, select, textarea { width: 100%; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 9px 11px; min-width: 0; }
+textarea { resize: vertical; }
+label { display: grid; gap: 4px; font-size: 13px; color: var(--ink-2); font-weight: 500; }
+.wrap { max-width: 640px; margin: 0 auto; padding: 0 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
+.num { font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+h1, h2, h3 { margin: 0; font-family: var(--f-display); font-weight: 700; }
+h3 { font-size: 19px; }
+header.top { padding: 16px 0 6px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+header.top h1 { font-size: 32px; text-transform: uppercase; letter-spacing: .02em; line-height: 1; }
+.phase { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 99px; background: var(--accent-soft); white-space: nowrap; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; margin-top: 12px; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn { border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 9px 14px; font-weight: 600; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.block { width: 100%; }
+.btn:disabled { opacity: .5; cursor: default; }
+.mini { border: 1px solid var(--line); background: none; border-radius: 99px; padding: 3px 10px; font-size: 12px; color: var(--muted); }
+.icon-btn { width: 36px; height: 36px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; font-size: 16px; }
+.icon-btn:disabled { opacity: .35; }
+.daynav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+.daynav b { font-family: var(--f-display); font-size: 20px; }
+.hero { display: flex; align-items: center; gap: 16px; }
+.ring { width: 112px; height: 112px; flex: none; }
+.ring .big { font-family: var(--f-display); font-size: 40px; font-weight: 700; fill: var(--ink); }
+.ring .sub { font-size: 11px; fill: var(--muted); }
+.hero-side { display: grid; gap: 6px; min-width: 0; }
+.stat3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.stat3 div { background: var(--surface-2); border-radius: 12px; padding: 9px 10px; }
+.stat3 b { display: block; font-family: var(--f-display); font-size: 22px; line-height: 1.1; }
+.stat3 small { color: var(--muted); font-size: 11px; }
+.banner { border-radius: 14px; padding: 12px 14px; margin-top: 12px; font-size: 14px; background: var(--accent-soft); }
+.banner.good { background: var(--good-soft); }
+.d5 { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; background: none; border: 0; border-top: 1px solid var(--line); padding: 13px 0; }
+.d5:first-of-type { border-top: 0; }
+.d5 .chk { width: 30px; height: 30px; flex: none; border-radius: 9px; border: 2px solid var(--line); display: grid; place-items: center; font-weight: 800; color: #fff; }
+.d5.on .chk { background: var(--good); border-color: var(--good); }
+.d5 .txt { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.d5 .txt b { font-size: 15px; }
+.d5 .txt small { color: var(--muted); font-size: 12px; }
+.d5 .pill { flex: none; }
+.pill { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
+.pill.auto { background: var(--good-soft); }
+.dot { width: 9px; height: 9px; border-radius: 99px; display: inline-block; flex: none; }
+.switch { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; }
+.switch input { width: 24px; height: 24px; flex: none; accent-color: var(--good); }
+a.chip { text-decoration: none; color: var(--ink); font-weight: 600; }
+.tabbar { position: fixed; inset: auto 0 0; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr); padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); z-index: 5; }
+.tabbar button { border: 0; background: none; display: grid; justify-items: center; gap: 2px; font-size: 11px; font-weight: 600; color: var(--muted); padding: 6px 0; }
+.tabbar button svg { width: 22px; height: 22px; }
+.tabbar button[aria-current="true"] { color: var(--accent); }
+.week-grid { display: grid; grid-template-columns: 70px repeat(7, minmax(0, 1fr)); gap: 4px; align-items: center; font-size: 12px; }
+.week-grid .h { text-align: center; color: var(--muted); font-weight: 600; }
+.week-grid .lbl { color: var(--ink-2); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell { aspect-ratio: 1; border-radius: 7px; background: var(--surface-2); max-height: 34px; }
+.cell.on { background: var(--good); }
+.cell.fut { background: none; border: 1px dashed var(--line); }
+.chart svg { width: 100%; height: auto; display: block; }
+.chart text { font-size: 10px; fill: var(--muted); }
+.goal { padding: 12px 0; border-top: 1px solid var(--line); }
+.goal:first-of-type { border-top: 0; }
+.bar { height: 9px; background: var(--surface-2); border-radius: 99px; overflow: hidden; position: relative; margin: 8px 0 4px; }
+.bar > div { height: 100%; border-radius: 99px; }
+.bar .pace { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--ink); opacity: .55; }
+.form { display: grid; gap: 10px; }
+dialog.sheet { border: 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px)); width: 100%; max-width: 560px; max-height: 90dvh; margin: auto auto 0; border-radius: 22px 22px 0 0; background: var(--surface); color: var(--ink); }
+dialog.sheet::backdrop { background: rgba(0, 0, 0, .45); }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 6px 11px; font-size: 13px; }
+.chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { padding: 10px 0; border-top: 1px solid var(--line); }
+.list li:first-child { border-top: 0; }
+.empty { text-align: center; padding: 18px 8px; color: var(--muted); font-size: 14px; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th, .tbl td { padding: 7px 4px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.tbl th:first-child, .tbl td:first-child { text-align: left; }
+.tbl th { color: var(--muted); font-weight: 600; font-size: 12px; }
+#toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: 14px; z-index: 20; max-width: calc(100% - 32px); }
+</style>
+
+<div class="wrap">
+  <header class="top"><h1>Life Score</h1><span class="phase" id="phase"></span></header>
+  <p class="muted small" id="phase-sub" style="margin:0 0 4px"></p>
+
+  <!-- TODAY -->
+  <section id="v-today">
+    <div class="daynav"><button class="icon-btn" id="prev" aria-label="Previous day">‹</button><div style="text-align:center"><b id="day-title">Today</b><div class="muted small" id="day-sub"></div></div><button class="icon-btn" id="next" aria-label="Next day">›</button></div>
+    <div class="card">
+      <div class="hero"><svg class="ring" viewBox="0 0 120 120" id="ring" role="img" aria-label="Daily score"></svg>
+        <div class="hero-side"><b id="hero-title" style="font-size:17px"></b><span class="small muted" id="hero-sub"></span></div></div>
+      <div class="stat3"><div><b id="st-streak">0</b><small>win streak (4+)</small></div><div><b id="st-week">–</b><small>week avg / 5</small></div><div><b id="st-best">0</b><small>best streak</small></div></div>
+    </div>
+    <div id="banner"></div>
+    <div class="card">
+      <div class="row"><h3>The Daily 5</h3><span class="muted small">Auto ✓ comes from your apps</span></div>
+      <div id="d5"></div>
+      <label class="switch" style="margin-top:8px;border-top:1px solid var(--line);padding-top:12px"><span><b>Rough day: minimum version</b><br><span class="muted small">Smaller targets still count. Use it when you're sick, slammed or wiped out.</span></span><input type="checkbox" id="minday"></label>
+    </div>
+    <div class="card">
+      <div class="row"><h3>Today's #1</h3><span class="muted small">Morning, 3 minutes</span></div>
+      <div class="row" style="margin-top:8px"><input id="one" maxlength="120" placeholder="The one thing that makes today a win"><button class="icon-btn" id="one-done" aria-label="Mark #1 done" aria-pressed="false">✓</button></div>
+      <p class="muted small" style="margin:8px 0 0" id="focus-line"></p>
+    </div>
+    <div class="card">
+      <h3>Daily plan</h3>
+      <ol class="small" style="margin:8px 0 0;padding-left:18px;display:grid;gap:4px">
+        <li><b>Morning:</b> check ReadyUp, set today's #1.</li>
+        <li><b>After school:</b> school block first, then training, then free time.</li>
+        <li><b>Night:</b> check off the Daily 5, lay out tomorrow, phone away 30 minutes before bed.</li>
+      </ol>
+      <div class="chips" style="margin-top:10px"><a class="chip" href="../recovery/">ReadyUp</a><a class="chip" href="../">MacroLens</a><a class="chip" href="../court/">Court Lab</a><a class="chip" href="../gameplan/#night">Night routine</a><a class="chip" href="../weekboard/">Weekboard</a></div>
+    </div>
+  </section>
+
+  <!-- WEEK -->
+  <section id="v-week" hidden>
+    <div class="card"><div class="row"><h3 id="wk-title">This week</h3><span class="pill" id="wk-avg"></span></div>
+      <div class="chart" id="wk-chart" style="margin-top:8px"></div>
+      <div class="week-grid" id="wk-grid" style="margin-top:10px"></div>
+    </div>
+    <div class="card"><div class="row"><h3>Sunday review</h3><span class="muted small">30 minutes</span></div>
+      <form class="form" id="review" style="margin-top:10px">
+        <label>3 wins this week<textarea id="rv-wins" rows="3" maxlength="400" placeholder="Made 400 shots&#10;Bed by 10:15 five nights&#10;B+ on the bio test"></textarea></label>
+        <label>1 leak: the biggest thing that slipped<input id="rv-leak" maxlength="160" placeholder="Phone after 10 PM"></label>
+        <label>1 focus for next week<input id="rv-focus" maxlength="160" placeholder="Phone charges in the kitchen at 9:45" required></label>
+        <p class="muted small" id="rv-hint" style="margin:0"></p>
+        <button class="btn primary">Save review</button>
+      </form>
+    </div>
+    <div class="card"><h3>Past reviews</h3><ul class="list" id="rv-list" style="margin-top:6px"></ul></div>
+  </section>
+
+  <!-- GOALS -->
+  <section id="v-goals" hidden>
+    <div class="card"><div class="row"><h3>90-day goals</h3><button class="btn" id="g-add" type="button">＋ Goal</button></div>
+      <p class="muted small" style="margin:6px 0 0">One per pillar. The line on each bar is where you should be by today.</p>
+      <div id="g-list" style="margin-top:6px"></div>
+    </div>
+  </section>
+
+  <!-- TESTS -->
+  <section id="v-tests" hidden>
+    <div class="card"><div class="row"><h3>Monthly test day</h3><button class="btn primary" id="t-add" type="button">＋ Log test</button></div>
+      <p class="muted small" style="margin:6px 0 0" id="t-next"></p>
+      <div id="t-charts"></div>
+    </div>
+    <div class="card"><h3>All tests</h3><div id="t-table" style="overflow-x:auto;margin-top:6px"></div></div>
+    <div class="card"><h3>Settings</h3>
+      <div class="form" style="margin-top:10px">
+        <div class="grid2"><label>Start date<input type="date" id="s-start"></label><label>Sleep goal (h)<input type="number" id="s-sleep" min="6" max="11" step="0.25"></label>
+          <label>Basketball (min)<input type="number" id="s-ball" min="10" max="300" step="5"></label><label>School block (min)<input type="number" id="s-school" min="10" max="300" step="5"></label></div>
+        <button class="btn" id="s-save" type="button">Save settings</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<nav class="tabbar" aria-label="Sections">
+  <button data-tab="today" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.6 2.5L16 9.5"/></svg>Today</button>
+  <button data-tab="week"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Week</button>
+  <button data-tab="goals"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>Goals</button>
+  <button data-tab="tests"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"/></svg>Tests</button>
+</nav>
+
+<dialog id="goal-sheet" class="sheet" aria-labelledby="gs-title">
+  <div class="sheet-head"><b id="gs-title">New goal</b><button class="icon-btn" data-close aria-label="Close">✕</button></div>
+  <form class="form" id="goal-form">
+    <div class="chips" id="gs-templates"></div>
+    <label>Pillar<select id="gs-pillar"></select></label>
+    <label>Goal<input id="gs-name" maxlength="80" required placeholder="Catch-and-shoot 3s to 42%"></label>
+    <label>Track it with<select id="gs-source"></select></label>
+    <div class="grid2"><label>Start<input type="number" id="gs-start" step="any" required></label><label>Target<input type="number" id="gs-target" step="any" required></label>
+      <label>Unit<input id="gs-unit" maxlength="12" placeholder="%, lb, $"></label><label>Deadline<input type="date" id="gs-due" required></label></div>
+    <label id="gs-cur-wrap">Current<input type="number" id="gs-cur" step="any"></label>
+    <p class="muted small" id="gs-auto" style="margin:0"></p>
+    <div class="row"><button class="btn" type="button" id="gs-del" hidden style="color:var(--accent)">Delete</button><button class="btn primary" style="flex:1">Save goal</button></div>
+  </form>
+</dialog>
+
+<dialog id="test-sheet" class="sheet" aria-labelledby="ts-title">
+  <div class="sheet-head"><b id="ts-title">Test day</b><button class="icon-btn" data-close aria-label="Close">✕</button></div>
+  <form class="form" id="test-form">
+    <label>Date<input type="date" id="ts-date" required></label>
+    <div class="grid2" id="ts-fields"></div>
+    <label>Grades<input id="ts-grades" maxlength="120" placeholder="Bio B+, Alg A-, Eng B"></label>
+    <p class="muted small" id="ts-fill" style="margin:0"></p>
+    <div class="row"><button class="btn" type="button" id="ts-del" hidden style="color:var(--accent)">Delete</button><button class="btn primary" style="flex:1">Save test</button></div>
+  </form>
+</dialog>
+
+<div id="toast" role="status" hidden></div>
+
+<script>
+const $ = (s) => document.querySelector(s), $$ = (s) => [...document.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const isoDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const todayIso = () => isoDate(new Date());
+const shiftIso = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoDate(d); };
+const daysBetween = (a, b) => Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 864e5);
+const mondayOf = (iso) => { const d = new Date(iso + 'T12:00:00'); return shiftIso(iso, -((d.getDay() + 6) % 7)); };
+const mean = (a) => { const v = a.filter((x) => x != null && Number.isFinite(x)); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; };
+const fmtDate = (iso, o = { month: 'short', day: 'numeric' }) => new Date(iso + 'T12:00:00').toLocaleDateString(undefined, o);
+let toastT; function toast(m) { const t = $('#toast'); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 2600); }
+
+// ===================== storage: lf: keys, plus read-only access to the other apps on this site =====================
+const rd = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
+const wr = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { toast('Could not save on this device'); } };
+const core = () => { const c = rd('lf:core') || {}; c.settings = { start: todayIso(), sleep: 8.5, ball: 45, school: 60, ...(c.settings || {}) }; c.goals ||= []; c.tests ||= []; return c; };
+const saveCore = (c) => wr('lf:core', c);
+if (!rd('lf:core')) saveCore(core());
+const dayRec = (iso) => rd('lf:d-' + iso) || { man: {}, one: '', oneDone: false, min: false };
+const saveDay = (iso, d) => wr('lf:d-' + iso, d);
+
+// ---- other apps ----
+const MEALS = ['breakfast', 'lunch', 'dinner', 'snacks'];
+function mlFuel(iso) {
+  const d = rd('ml:day-' + iso); if (!d) return null;
+  let cal = 0, p = 0, n = 0;
+  for (const m of MEALS) for (const e of d[m] || []) { const s = e.servings ?? 1; cal += (e.calories || 0) * s; p += (e.protein || 0) * s; n++; }
+  if (!n) return null;
+  const c = rd('ml:core') || {}, t = { calories: 2800, protein: 140, ...(c.targets || {}) };
+  for (const [k, v] of Object.entries(c.overrides || {})) if (v > 0) t[k] = v;
+  const w = rd('mlw:today'); if (w && w.date === iso && w.pTarget) t.protein = w.pTarget;
+  const ex = (d.exercise || []).reduce((a, x) => a + (Number(x.kcal) || 0), 0);
+  return { cal, p, tCal: t.calories + ex * 0.6, tP: t.protein };
+}
+const BALL_TYPES = ['practice', 'game', 'skill', 'shooting', 'conditioning', 'lift'];
+function ballMins(iso) {
+  const parts = [];
+  const ml = (rd('ml:day-' + iso)?.exercise || []).filter((x) => BALL_TYPES.includes(x.type)).reduce((a, x) => a + Number(x.mins || 0), 0); if (ml) parts.push(['MacroLens', ml]);
+  const solo = (rd('cl:soloHist') || []).filter((s) => isoDate(new Date(s.at)) === iso).reduce((a, s) => a + (s.secs || 0) / 60, 0); if (solo) parts.push(['Court Lab', Math.round(solo)]);
+  const shots = (rd('cl:shots') || []).filter((s) => isoDate(new Date(s.at)) === iso).reduce((a, s) => a + Object.values(s.spots || {}).reduce((x, o) => x + (o.a || 0), 0), 0); if (shots) parts.push(['shots', Math.round(shots / 4)]); // about 4 shots a minute
+  const games = (rd('cl:history') || []).filter((g) => isoDate(new Date(g.at)) === iso).length; if (games) parts.push(['1-on-1 games', games * 10]);
+  const ru = (rd('ru:day-' + iso)?.sessions || []).reduce((a, s) => a + Number(s.mins || 0), 0); if (ru) parts.push(['ReadyUp', ru]);
+  const gp = (rd('gp:d-' + iso)?.entries || []).filter((e) => e.cat === 'practice' || e.cat === 'training').reduce((a, e) => a + Number(e.mins || 0), 0); if (gp) parts.push(['Time Tracker', Math.round(gp)]);
+  // The apps overlap (the same practice can be logged in MacroLens and ReadyUp), so take the biggest log plus solo work.
+  const big = Math.max(0, ml, ru, gp), extra = parts.filter(([n]) => n === 'Court Lab' || n === 'shots' || n === '1-on-1 games').reduce((a, [, m]) => a + m, 0);
+  return { mins: Math.round(big + extra), src: parts.map(([n]) => n) };
+}
+function schoolMins(iso) {
+  const gp = (rd('gp:d-' + iso)?.entries || []).filter((e) => e.cat === 'homework').reduce((a, e) => a + Number(e.mins || 0), 0);
+  const ch = (rd('ch:day-' + iso)?.secs || 0) / 60;
+  return { mins: Math.round(gp + ch), src: [gp ? 'Time Tracker' : null, ch ? 'Charla' : null].filter(Boolean) };
+}
+const workMins = (iso) => Math.round((rd('gp:d-' + iso)?.entries || []).filter((e) => e.cat === 'work').reduce((a, e) => a + Number(e.mins || 0), 0));
+const sleepH = (iso) => rd('ru:day-' + iso)?.checkin?.sleepH ?? null;
+
+// ===================== the Daily 5 =====================
+const PILLARS = { body: ['Body', 'var(--p-body)'], game: ['Game', 'var(--p-game)'], mind: ['Mind', 'var(--p-mind)'], money: ['Money', 'var(--p-money)'], life: ['Life', 'var(--p-life)'] };
+function daily5(iso) {
+  const s = core().settings, rec = dayRec(iso), min = !!rec.min;
+  const sl = sleepH(iso), fu = mlFuel(iso), bm = ballMins(iso), sm = schoolMins(iso), wm = workMins(iso);
+  const ballGoal = min ? 10 : rd('ml:day-' + iso)?.type === 'rest' ? 15 : Number(s.ball), schoolGoal = min ? 15 : Number(s.school), sleepGoal = min ? Number(s.sleep) - 1 : Number(s.sleep);
+  const items = [
+    { id: 'sleep', p: 'body', title: `Sleep ${sleepGoal}+ hours`, auto: sl != null ? sl >= sleepGoal : null, detail: sl != null ? `${sl} h from ReadyUp` : 'Do your ReadyUp check-in, or tap' },
+    { id: 'fuel', p: 'body', title: min ? 'Fuel: a protein snack at least' : 'Hit your fuel', auto: fu ? (min ? fu.p >= fu.tP * 0.5 : fu.p >= fu.tP * 0.95 && fu.cal >= fu.tCal * 0.8) : null, detail: fu ? `${Math.round(fu.p)} / ${Math.round(fu.tP)} g protein · ${Math.round((fu.cal / fu.tCal) * 100)}% of calories (MacroLens)` : 'Log food in MacroLens, or tap' },
+    { id: 'ball', p: 'game', title: min ? 'Basketball: 10 minutes or 10 shots' : `Basketball ${ballGoal}+ minutes`, auto: bm.mins ? bm.mins >= ballGoal : null, detail: bm.mins ? `${bm.mins} min from ${bm.src.join(', ')}` : rd('ml:day-' + iso)?.type === 'rest' ? 'Rest day: 15 min of film or form shooting counts' : 'Log in Court Lab or MacroLens, or tap' },
+    { id: 'school', p: 'mind', title: min ? 'School: 15 focused minutes' : `School block ${schoolGoal} minutes`, auto: sm.mins ? sm.mins >= schoolGoal : null, detail: sm.mins ? `${sm.mins} min from ${sm.src.join(', ')}` : 'Phone in another room. Track with Time Tracker, or tap' },
+    { id: 'step', p: 'money', title: 'One step forward', auto: wm >= (min ? 10 : 30) ? true : null, detail: wm ? `${wm} min of work in Time Tracker` : 'Business or a skill: 30 minutes clipping, one outreach, one lesson' },
+  ];
+  for (const it of items) { const m = rec.man?.[it.id]; it.done = m != null ? m : !!it.auto; it.how = m != null ? 'manual' : it.auto ? 'auto' : null; }
+  return { items, score: items.filter((x) => x.done).length, logged: items.some((x) => x.auto != null || rec.man?.[x.id] != null) };
+}
+const scoreOf = (iso) => { const d = daily5(iso); return d.logged ? d.score : null; };
+const isWin = (s) => s != null && s >= 4;
+function winStreak() {
+  let n = 0, iso = todayIso(); if (!isWin(scoreOf(iso))) iso = shiftIso(iso, -1);
+  while (isWin(scoreOf(iso)) && n < 1000) { n++; iso = shiftIso(iso, -1); }
+  return n;
+}
+function weekAvg(mon) { const v = []; for (let i = 0; i < 7; i++) { const iso = shiftIso(mon, i); if (iso > todayIso()) break; v.push(scoreOf(iso) ?? 0); } return v.length ? mean(v) : null; }
+
+// ===================== phase =====================
+function phaseInfo() {
+  const s = core().settings, d = Math.max(0, daysBetween(s.start, todayIso())), wk = Math.floor(d / 7) + 1;
+  const ph = wk <= 2 ? ['Foundation', 'Only the Daily 5 and your night routine. Goal: a week average of 3.5+.'] : wk <= 6 ? ['Build', 'Add the Sunday review and your first monthly test.'] : wk <= 12 ? ['Push', 'Chase the 90-day goals. Raise a target if you are crushing it.'] : ['Next cycle', 'You finished 12 weeks. Set new 90-day goals and restart at week 1 in Settings.'];
+  return { wk, name: ph[0], tip: ph[1] };
+}
+
+// ===================== render: Today =====================
+let day = todayIso();
+function ringSvg(score) {
+  const C = 2 * Math.PI * 50, segs = 5, gap = 6, seg = C / segs;
+  let s = '';
+  for (let i = 0; i < segs; i++) s += `<circle cx="60" cy="60" r="50" fill="none" stroke="${i < score ? 'var(--good)' : 'var(--surface-2)'}" stroke-width="12" stroke-dasharray="${(seg - gap).toFixed(1)} ${(C - seg + gap).toFixed(1)}" stroke-dashoffset="${(-i * seg).toFixed(1)}" transform="rotate(-90 60 60)" stroke-linecap="butt"/>`;
+  return s + `<text x="60" y="66" text-anchor="middle" class="big">${score}</text><text x="60" y="84" text-anchor="middle" class="sub">of 5</text>`;
+}
+function renderToday() {
+  const diff = daysBetween(day, todayIso());
+  $('#day-title').textContent = diff === 0 ? 'Today' : diff === 1 ? 'Yesterday' : fmtDate(day, { weekday: 'long' });
+  $('#day-sub').textContent = fmtDate(day, { weekday: diff > 1 ? undefined : 'short', month: 'short', day: 'numeric' });
+  $('#next').disabled = diff <= 0;
+  const D = daily5(day), rec = dayRec(day), c = core();
+  $('#ring').innerHTML = ringSvg(D.score);
+  $('#hero-title').textContent = D.score === 5 ? 'Perfect day.' : D.score === 4 ? 'That is a win.' : diff === 0 ? `${4 - D.score} more for a win` : 'Not a win';
+  $('#hero-sub').textContent = D.score >= 4 ? (D.score === 5 ? 'All five done. Stack another one tomorrow.' : '4 of 5 counts. Consistency beats perfect.') : diff === 0 ? 'A win is 4 of 5. Use the minimum version if today is rough.' : 'Never miss twice. Make the next day count.';
+  const st = winStreak(); if (st > (c.best || 0)) { c.best = st; saveCore(c); }
+  $('#st-streak').textContent = st; $('#st-best').textContent = Math.max(st, c.best || 0);
+  const wa = weekAvg(mondayOf(todayIso())); $('#st-week').textContent = wa == null ? '–' : wa.toFixed(1);
+  $('#d5').innerHTML = D.items.map((it) => `<button type="button" class="d5${it.done ? ' on' : ''}" data-d5="${it.id}" aria-pressed="${it.done}"><span class="chk" aria-hidden="true">${it.done ? '✓' : ''}</span><span class="txt"><b><span class="dot" style="background:${PILLARS[it.p][1]};margin-right:6px"></span>${esc(it.title)}</b><small>${esc(it.detail)}</small></span>${it.how ? `<span class="pill${it.how === 'auto' ? ' auto' : ''}">${it.how === 'auto' ? 'Auto' : 'Tapped'}</span>` : ''}</button>`).join('');
+  $('#minday').checked = !!rec.min;
+  if (document.activeElement !== $('#one')) $('#one').value = rec.one || '';
+  $('#one-done').setAttribute('aria-pressed', String(!!rec.oneDone)); $('#one-done').style.background = rec.oneDone ? 'var(--good)' : ''; $('#one-done').style.color = rec.oneDone ? '#fff' : '';
+  const wk = rd('lf:w-' + shiftIso(mondayOf(day), -7));
+  $('#focus-line').textContent = wk?.focus ? `This week's focus: ${wk.focus}` : 'Set a weekly focus in your Sunday review (Week tab).';
+  // Never miss twice
+  const y = scoreOf(shiftIso(day, -1)), yy = scoreOf(shiftIso(day, -2));
+  let b = '';
+  if (diff === 0 && y != null && !isWin(y) && !isWin(D.score)) b = `<div class="banner"><b>Never miss twice.</b> Yesterday was ${y}/5. Today matters more than usual. If it's a rough one, flip on the minimum version.</div>`;
+  else if (diff === 0 && isWin(D.score) && y != null && !isWin(y)) b = '<div class="banner good"><b>Bounced back.</b> Missed yesterday, won today. That\'s the whole system.</div>';
+  else if (diff === 0 && new Date().getDay() === 0 && !rd('lf:w-' + mondayOf(todayIso()))) b = '<div class="banner"><b>It\'s Sunday.</b> Do your 30-minute review in the Week tab.</div>';
+  else if (yy != null && y != null && !isWin(y) && !isWin(yy) && diff === 0) b = '<div class="banner"><b>Reset day.</b> Two misses in a row. Just get 4 today. Nothing else matters.</div>';
+  $('#banner').innerHTML = b;
+}
+$('#d5').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-d5]'); if (!b) return;
+  const id = b.dataset.d5, rec = dayRec(day), it = daily5(day).items.find((x) => x.id === id);
+  rec.man ||= {};
+  // Tap flips it. If the flip lands back on what the apps say, go back to following the apps.
+  const next = !it.done;
+  if ((it.auto != null && next === !!it.auto) || (it.auto == null && !next)) delete rec.man[id]; else rec.man[id] = next;
+  saveDay(day, rec); renderToday();
+});
+$('#minday').addEventListener('change', (e) => { const r = dayRec(day); r.min = e.target.checked; saveDay(day, r); renderToday(); if (e.target.checked) toast('Minimum version on for this day'); });
+$('#one').addEventListener('input', (e) => { const r = dayRec(day); r.one = e.target.value.slice(0, 120); saveDay(day, r); });
+$('#one-done').addEventListener('click', () => { const r = dayRec(day); if (!r.one) return toast('Write your #1 first'); r.oneDone = !r.oneDone; saveDay(day, r); renderToday(); if (r.oneDone) toast('#1 done. Nice.'); });
+$('#prev').addEventListener('click', () => { day = shiftIso(day, -1); renderToday(); });
+$('#next').addEventListener('click', () => { if (day < todayIso()) { day = shiftIso(day, 1); renderToday(); } });
+
+// ===================== render: Week =====================
+let wkMon = mondayOf(todayIso());
+function renderWeek() {
+  const mon = mondayOf(todayIso()), days = Array.from({ length: 7 }, (_, i) => shiftIso(mon, i)), sc = days.map((d) => (d > todayIso() ? null : scoreOf(d)));
+  $('#wk-title').textContent = `Week of ${fmtDate(mon)}`;
+  const wa = weekAvg(mon); $('#wk-avg').textContent = wa == null ? 'No days yet' : `${wa.toFixed(1)} avg · target 4.0`; $('#wk-avg').className = 'pill' + (wa >= 4 ? ' auto' : '');
+  const W = 320, H = 130, B = 20, T = 14, slot = W / 7, bw = slot * 0.56, y = (v) => T + (H - T - B) * (1 - v / 5);
+  let s = `<line x1="0" x2="${W}" y1="${y(4)}" y2="${y(4)}" stroke="var(--muted)" stroke-dasharray="4 4"/><text x="${W}" y="${y(4) - 4}" text-anchor="end">win line</text>`;
+  days.forEach((d, i) => { const v = sc[i], x = slot * i + (slot - bw) / 2;
+    if (v) s += `<rect x="${x.toFixed(1)}" y="${y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(H - B - y(v)).toFixed(1)}" rx="4" fill="${v >= 4 ? 'var(--good)' : 'var(--accent)'}"/><text x="${(x + bw / 2).toFixed(1)}" y="${(y(v) - 4).toFixed(1)}" text-anchor="middle">${v}</text>`;
+    s += `<text x="${(x + bw / 2).toFixed(1)}" y="${H - 5}" text-anchor="middle">${fmtDate(d, { weekday: 'short' }).slice(0, 2)}</text>`; });
+  $('#wk-chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Daily scores this week">${s}</svg>`;
+  const D = days.map((d) => (d > todayIso() ? null : daily5(d)));
+  const rows = [['sleep', 'Sleep'], ['fuel', 'Fuel'], ['ball', 'Basketball'], ['school', 'School'], ['step', 'Step fwd']];
+  $('#wk-grid').innerHTML = '<span></span>' + days.map((d) => `<span class="h">${fmtDate(d, { weekday: 'narrow' })}</span>`).join('') +
+    rows.map(([id, l]) => `<span class="lbl">${l}</span>` + D.map((x) => `<span class="cell${!x ? ' fut' : x.items.find((i) => i.id === id).done ? ' on' : ''}"></span>`).join('')).join('');
+  // review form: this week's review
+  const rv = rd('lf:w-' + mon) || {};
+  if (!$('#review').contains(document.activeElement)) { $('#rv-wins').value = rv.wins || ''; $('#rv-leak').value = rv.leak || ''; $('#rv-focus').value = rv.focus || ''; }
+  const weak = rows.map(([id, l]) => [l, D.filter(Boolean).filter((x) => !x.items.find((i) => i.id === id).done).length]).sort((a, b) => b[1] - a[1])[0];
+  $('#rv-hint').textContent = weak && weak[1] ? `Data says your biggest leak this week was ${weak[0].toLowerCase()} (missed ${weak[1]} day${weak[1] === 1 ? '' : 's'}).` : '';
+  const all = Object.keys(localStorage).filter((k) => k.startsWith('lf:w-')).sort().reverse().slice(0, 12);
+  $('#rv-list').innerHTML = all.length ? all.map((k) => { const r = rd(k), m = k.slice(5), a = weekAvg(m); return `<li><div class="row"><b>Week of ${fmtDate(m)}</b><span class="pill">${a == null ? '–' : a.toFixed(1)} avg</span></div>${r.wins ? `<div class="small" style="white-space:pre-line;margin-top:4px">✅ ${esc(r.wins).replace(/\n/g, '\n✅ ')}</div>` : ''}${r.leak ? `<div class="small muted">Leak: ${esc(r.leak)}</div>` : ''}<div class="small"><b>Focus:</b> ${esc(r.focus)}</div></li>`; }).join('') : '<li class="empty">Your first review will show up here.</li>';
+}
+$('#review').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const focus = $('#rv-focus').value.trim(); if (!focus) return toast('Pick one focus for next week');
+  wr('lf:w-' + mondayOf(todayIso()), { wins: $('#rv-wins').value.trim().slice(0, 400), leak: $('#rv-leak').value.trim().slice(0, 160), focus: focus.slice(0, 160), at: Date.now() });
+  renderWeek(); toast('Review saved. Your focus shows on Today next week.');
+});
+
+// ===================== Goals =====================
+const SOURCES = {
+  manual: ['I update it myself', null],
+  three: ['3-point % · last 5 Court Lab sessions', () => clShotPct((id) => /3$/.test(id), 5)],
+  fg: ['Shooting % · last 5 Court Lab sessions', () => clShotPct(() => true, 5)],
+  made: ['Shots made since the goal started (Court Lab)', (g) => (rd('cl:shots') || []).filter((s) => isoDate(new Date(s.at)) >= g.created).reduce((a, s) => a + Object.values(s.spots || {}).reduce((x, o) => x + (o.m || 0), 0), 0)],
+  attempts: ['Shots taken since the goal started (Court Lab)', (g) => (rd('cl:shots') || []).filter((s) => isoDate(new Date(s.at)) >= g.created).reduce((a, s) => a + Object.values(s.spots || {}).reduce((x, o) => x + (o.a || 0), 0), 0)],
+  weight: ['Body weight · latest in MacroLens', () => { const w = [...(rd('ml:core')?.weights || [])].sort((a, b) => a.date.localeCompare(b.date)).pop(); return w ? w.lb : null; }],
+  sleep: ['Average sleep · last 7 days (ReadyUp)', () => { const v = Array.from({ length: 7 }, (_, i) => sleepH(shiftIso(todayIso(), -i))); const m = mean(v); return m == null ? null : Math.round(m * 10) / 10; }],
+  phone: ['Phone time a day · last 7 days (Time Tracker)', () => { const v = Array.from({ length: 7 }, (_, i) => (rd('gp:d-' + shiftIso(todayIso(), -i))?.entries || []).filter((e) => e.cat === 'phone').reduce((a, e) => a + Number(e.mins || 0), 0)); return Math.round(mean(v) / 6) / 10; }],
+  winweeks: ['Days won (4+/5) since the goal started', (g) => { let n = 0; for (let iso = g.created; iso <= todayIso(); iso = shiftIso(iso, 1)) if (isWin(scoreOf(iso))) n++; return n; }],
+};
+function clShotPct(f, n) {
+  const s = (rd('cl:shots') || []).slice(0, n); let m = 0, a = 0;
+  for (const x of s) for (const [id, o] of Object.entries(x.spots || {})) if (f(id)) { m += o.m || 0; a += o.a || 0; }
+  return a ? Math.round((m / a) * 1000) / 10 : null;
+}
+const TEMPLATES = [
+  { p: 'body', name: 'Add 5 lb', source: 'weight', unit: 'lb', delta: 5 },
+  { p: 'body', name: 'Average 8.5 h of sleep', source: 'sleep', unit: 'h', target: 8.5 },
+  { p: 'game', name: '3-point % to 42%', source: 'three', unit: '%', target: 42 },
+  { p: 'game', name: 'Make 25,000 shots', source: 'made', unit: 'makes', start: 0, target: 25000 },
+  { p: 'mind', name: 'Every grade B+ or better', source: 'manual', unit: 'classes', start: 0, target: 6 },
+  { p: 'money', name: 'First $500 from one business', source: 'manual', unit: '$', start: 0, target: 500 },
+  { p: 'life', name: 'Phone under 3 h a day', source: 'phone', unit: 'h', target: 3 },
+];
+const curOf = (g) => { const f = SOURCES[g.source]?.[1]; if (!f) return g.cur ?? g.start; const v = f(g); return v == null ? g.cur ?? g.start : v; };
+function renderGoals() {
+  const gs = core().goals;
+  $('#g-list').innerHTML = gs.length ? Object.keys(PILLARS).flatMap((p) => gs.map((g, i) => [g, i]).filter(([g]) => g.p === p)).map(([g, i]) => {
+    const cur = curOf(g), span = g.target - g.start, prog = span ? Math.max(0, Math.min(1, (cur - g.start) / span)) : cur === g.target ? 1 : 0;
+    const total = Math.max(1, daysBetween(g.created, g.due)), el = Math.max(0, Math.min(1, daysBetween(g.created, todayIso()) / total)), left = daysBetween(todayIso(), g.due);
+    const status = prog >= 1 ? ['Done 🎉', 'auto'] : prog >= el - 0.05 ? ['On pace', 'auto'] : ['Behind', ''];
+    return `<div class="goal"><div class="row"><b><span class="dot" style="background:${PILLARS[g.p][1]};margin-right:6px"></span>${esc(g.name)}</b><button class="mini" data-g-edit="${i}">Edit</button></div>
+      <div class="bar"><div style="width:${(prog * 100).toFixed(1)}%;background:${PILLARS[g.p][1]}"></div><span class="pace" style="left:${(el * 100).toFixed(1)}%"></span></div>
+      <div class="row small"><span class="num"><b>${fmtNum(cur)}</b> ${esc(g.unit)} · start ${fmtNum(g.start)} → ${fmtNum(g.target)}</span><span><span class="pill ${status[1]}">${status[0]}</span> <span class="muted">${left >= 0 ? `${left} d left` : 'past due'}</span></span></div>
+      <div class="muted small">${PILLARS[g.p][0]} · ${esc(SOURCES[g.source]?.[0] || '')}</div></div>`;
+  }).join('') : '<div class="empty">No goals yet. Tap ＋ Goal and pick a template, one per pillar.</div>';
+}
+const fmtNum = (v) => (v == null ? '–' : Math.abs(v) >= 1000 ? Math.round(v).toLocaleString() : String(Math.round(v * 10) / 10));
+let gEdit = null;
+function openGoal(i = null) {
+  gEdit = i; const g = i != null ? core().goals[i] : null;
+  $('#gs-title').textContent = g ? 'Edit goal' : 'New goal';
+  $('#gs-pillar').innerHTML = Object.entries(PILLARS).map(([k, [n]]) => `<option value="${k}">${n}</option>`).join('');
+  $('#gs-source').innerHTML = Object.entries(SOURCES).map(([k, [n]]) => `<option value="${k}">${n}</option>`).join('');
+  $('#gs-templates').innerHTML = g ? '' : TEMPLATES.map((t, j) => `<button type="button" class="chip" data-tpl="${j}">${esc(t.name)}</button>`).join('');
+  $('#gs-pillar').value = g?.p || 'game'; $('#gs-name').value = g?.name || ''; $('#gs-source').value = g?.source || 'manual';
+  $('#gs-start').value = g?.start ?? ''; $('#gs-target').value = g?.target ?? ''; $('#gs-unit').value = g?.unit || ''; $('#gs-due').value = g?.due || shiftIso(todayIso(), 90); $('#gs-cur').value = g?.cur ?? '';
+  $('#gs-del').hidden = !g; $('#gs-del').dataset.confirm = ''; $('#gs-del').textContent = 'Delete';
+  syncSource(); $('#goal-sheet').showModal();
+}
+function syncSource() {
+  const src = $('#gs-source').value, f = SOURCES[src][1];
+  $('#gs-cur-wrap').hidden = !!f;
+  const v = f ? f({ created: core().goals[gEdit]?.created || todayIso() }) : null;
+  $('#gs-auto').textContent = f ? (v == null ? 'No data for this yet. It fills in once you log it in that app.' : `Right now: ${fmtNum(v)}. Updates on its own.`) : '';
+  if (f && v != null && $('#gs-start').value === '' && !['made', 'attempts', 'winweeks'].includes(src)) $('#gs-start').value = v;
+}
+$('#gs-source').addEventListener('change', syncSource);
+$('#gs-templates').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-tpl]'); if (!b) return; const t = TEMPLATES[Number(b.dataset.tpl)];
+  $('#gs-pillar').value = t.p; $('#gs-name').value = t.name; $('#gs-source').value = t.source; $('#gs-unit').value = t.unit; $('#gs-start').value = t.start ?? '';
+  syncSource();
+  const now = SOURCES[t.source][1]?.({ created: todayIso() });
+  if (t.delta != null) { if (now != null) { $('#gs-start').value = now; $('#gs-target').value = Math.round((now + t.delta) * 10) / 10; } else $('#gs-target').value = ''; }
+  else $('#gs-target').value = t.target;
+  $$('#gs-templates .chip').forEach((x) => x.classList.toggle('on', x === b));
+});
+$('#goal-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const start = Number($('#gs-start').value), target = Number($('#gs-target').value), name = $('#gs-name').value.trim();
+  if (!name) return toast('Name the goal'); if (!Number.isFinite(start) || !Number.isFinite(target) || $('#gs-start').value === '' || $('#gs-target').value === '') return toast('Enter a start and a target number');
+  if (start === target) return toast('Start and target need to be different'); if ($('#gs-due').value <= todayIso()) return toast('Pick a deadline in the future');
+  const c = core(), old = gEdit != null ? c.goals[gEdit] : null;
+  const g = { p: $('#gs-pillar').value, name: name.slice(0, 80), source: $('#gs-source').value, start, target, unit: $('#gs-unit').value.trim().slice(0, 12), due: $('#gs-due').value, cur: $('#gs-cur').value === '' ? old?.cur ?? null : Number($('#gs-cur').value), created: old?.created || todayIso() };
+  if (old) c.goals[gEdit] = g; else c.goals.push(g);
+  saveCore(c); $('#goal-sheet').close(); renderGoals(); toast(old ? 'Goal updated' : 'Goal set. 90 days starts now.');
+});
+$('#gs-del').addEventListener('click', () => { const b = $('#gs-del'); if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Tap again to delete'; return; } const c = core(); c.goals.splice(gEdit, 1); saveCore(c); $('#goal-sheet').close(); renderGoals(); toast('Goal deleted'); });
+$('#g-add').addEventListener('click', () => openGoal());
+$('#g-list').addEventListener('click', (e) => { const b = e.target.closest('[data-g-edit]'); if (b) openGoal(Number(b.dataset.gEdit)); });
+
+// ===================== Monthly tests =====================
+const TF = [['shoot', 'Shooting % (100 shots)', '%', 'up'], ['vert', 'Vertical (in)', 'in', 'up'], ['sprint', '¾-court sprint (s)', 's', 'down'], ['push', 'Max push-ups', '', 'up'], ['weight', 'Weight (lb)', 'lb', 'up'], ['money', 'Earned/saved this month ($)', '$', 'up']];
+function nextTestDay() { const t = todayIso(), d = new Date(t + 'T12:00:00'); for (let m = 0; m < 2; m++) { const f = new Date(d.getFullYear(), d.getMonth() + m, 1); while (f.getDay() !== 6) f.setDate(f.getDate() + 1); const iso = isoDate(f); if (iso >= t) return iso; } return null; }
+function renderTests() {
+  const ts = [...core().tests].sort((a, b) => a.date.localeCompare(b.date)), nx = nextTestDay();
+  $('#t-next').textContent = nx === todayIso() ? 'Today is test day. Same tests, same way, every month.' : `Next test day: ${fmtDate(nx, { weekday: 'long', month: 'short', day: 'numeric' })} (first Saturday of the month).`;
+  $('#t-charts').innerHTML = TF.map(([k, l, u, dir]) => {
+    const pts = ts.filter((t) => t[k] != null); if (!pts.length) return '';
+    const vals = pts.map((t) => t[k]), lo = Math.min(...vals), hi = Math.max(...vals), first = vals[0], last = vals[vals.length - 1], ch = last - first, better = dir === 'up' ? ch > 0 : ch < 0;
+    const W = 320, H = 70, P = 10, x = (i) => (pts.length === 1 ? W / 2 : P + (i / (pts.length - 1)) * (W - P * 2)), y = (v) => (hi === lo ? H / 2 : H - 12 - ((v - lo) / (hi - lo)) * (H - 26));
+    return `<div style="margin-top:14px"><div class="row small"><b>${l}</b><span class="num"><b>${fmtNum(last)}</b>${pts.length > 1 ? ` <span style="color:${ch === 0 ? 'var(--muted)' : better ? 'var(--good)' : 'var(--accent)'}">${ch > 0 ? '+' : ''}${fmtNum(ch)}</span>` : ''}</span></div>
+      <div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${l} over time"><path d="${pts.map((t, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(t[k]).toFixed(1)}`).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>${pts.map((t, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(t[k]).toFixed(1)}" r="3.5" fill="var(--accent)"/>`).join('')}<text x="${P}" y="${H - 1}">${fmtDate(pts[0].date)}</text><text x="${W - P}" y="${H - 1}" text-anchor="end">${fmtDate(pts[pts.length - 1].date)}</text></svg></div></div>`;
+  }).join('') || '<div class="empty">Log your first test day to start the charts.</div>';
+  const rev = [...ts].reverse();
+  $('#t-table').innerHTML = rev.length ? `<table class="tbl"><thead><tr><th>Date</th>${TF.map(([k, l]) => `<th>${l.split(' (')[0].replace('Earned/saved this month', '$')}</th>`).join('')}<th></th></tr></thead><tbody>${rev.map((t) => `<tr><td>${fmtDate(t.date)}</td>${TF.map(([k]) => `<td class="num">${fmtNum(t[k])}</td>`).join('')}<td><button class="mini" data-t-edit="${t.id}">Edit</button></td></tr>${t.grades ? `<tr><td colspan="${TF.length + 2}" class="muted" style="text-align:left;white-space:normal">Grades: ${esc(t.grades)}</td></tr>` : ''}`).join('')}</tbody></table>` : '<div class="empty">No tests yet.</div>';
+  const s = core().settings;
+  if (!$('#v-tests').contains(document.activeElement)) { $('#s-start').value = s.start; $('#s-sleep').value = s.sleep; $('#s-ball').value = s.ball; $('#s-school').value = s.school; }
+}
+let tEdit = null;
+function openTest(id = null) {
+  const t = id ? core().tests.find((x) => x.id === id) : null; tEdit = t?.id || null;
+  $('#ts-date').value = t?.date || todayIso(); $('#ts-grades').value = t?.grades || '';
+  $('#ts-fields').innerHTML = TF.map(([k, l]) => `<label>${l}<input type="number" step="any" min="0" data-tf="${k}" value="${t?.[k] ?? ''}"></label>`).join('');
+  const fills = [];
+  if (!t) {
+    const w = SOURCES.weight[1](); if (w != null) { $('[data-tf=weight]').value = w; fills.push('weight from MacroLens'); }
+    const last = (rd('cl:shots') || [])[0]; if (last) { let m = 0, a = 0; for (const o of Object.values(last.spots || {})) { m += o.m || 0; a += o.a || 0; } if (a >= 50) { $('[data-tf=shoot]').value = Math.round((m / a) * 1000) / 10; fills.push(`shooting from your last Court Lab session (${a} shots)`); } }
+  }
+  $('#ts-fill').textContent = fills.length ? `Filled in ${fills.join(' and ')}. Change anything.` : 'Leave blank anything you didn\'t test.';
+  $('#ts-del').hidden = !t; $('#ts-del').dataset.confirm = ''; $('#ts-del').textContent = 'Delete';
+  $('#test-sheet').showModal();
+}
+$('#test-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const date = $('#ts-date').value; if (!date || date > todayIso()) return toast('Pick today or an earlier date');
+  const rec = { id: tEdit || 't' + Date.now(), date, grades: $('#ts-grades').value.trim().slice(0, 120) };
+  for (const inp of $$('[data-tf]')) { if (inp.value === '') continue; const v = Number(inp.value); if (!Number.isFinite(v) || v < 0) return toast('Numbers only, 0 or more'); if (inp.dataset.tf === 'shoot' && v > 100) return toast('Shooting % is 0 to 100'); rec[inp.dataset.tf] = v; }
+  if (Object.keys(rec).length <= 3 && !rec.grades) return toast('Enter at least one result');
+  const c = core(); c.tests = [...c.tests.filter((x) => x.id !== rec.id), rec]; saveCore(c);
+  $('#test-sheet').close(); renderTests(); toast('Test saved');
+});
+$('#ts-del').addEventListener('click', () => { const b = $('#ts-del'); if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Tap again to delete'; return; } const c = core(); c.tests = c.tests.filter((x) => x.id !== tEdit); saveCore(c); $('#test-sheet').close(); renderTests(); toast('Deleted'); });
+$('#t-add').addEventListener('click', () => openTest());
+$('#t-table').addEventListener('click', (e) => { const b = e.target.closest('[data-t-edit]'); if (b) openTest(b.dataset.tEdit); });
+$('#s-save').addEventListener('click', () => {
+  const sl = Number($('#s-sleep').value), ba = Number($('#s-ball').value), sc = Number($('#s-school').value), st = $('#s-start').value;
+  if (!(sl >= 6 && sl <= 11)) return toast('Sleep goal: 6 to 11 hours'); if (!(ba >= 10 && ba <= 300) || !(sc >= 10 && sc <= 300)) return toast('Minutes: 10 to 300'); if (!st || st > todayIso()) return toast('Start date can\'t be in the future');
+  const c = core(); c.settings = { ...c.settings, sleep: sl, ball: ba, school: sc, start: st }; saveCore(c); renderAll(); toast('Settings saved');
+});
+
+// ===================== shell =====================
+let tab = 'today';
+function renderAll() {
+  const ph = phaseInfo(); $('#phase').textContent = `Week ${ph.wk} · ${ph.name}`; $('#phase-sub').textContent = ph.tip;
+  if (tab === 'today') renderToday(); if (tab === 'week') renderWeek(); if (tab === 'goals') renderGoals(); if (tab === 'tests') renderTests();
+}
+function setTab(t) {
+  tab = t; for (const x of ['today', 'week', 'goals', 'tests']) $('#v-' + x).hidden = x !== t;
+  $$('.tabbar button').forEach((b) => b.setAttribute('aria-current', String(b.dataset.tab === t)));
+  try { history.replaceState(null, '', '#' + t); } catch {}
+  renderAll(); window.scrollTo(0, 0);
+}
+$$('.tabbar button').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
+document.addEventListener('click', (e) => { const c = e.target.closest('[data-close]'); if (c) c.closest('dialog').close(); });
+$$('dialog').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+// Other apps write to the same storage. Refresh when you come back to this tab.
+window.addEventListener('storage', () => renderAll());
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (day > todayIso()) day = todayIso(); renderAll(); } });
+setTab(['today', 'week', 'goals', 'tests'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'today');
+</script>
