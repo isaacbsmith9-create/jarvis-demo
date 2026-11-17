@@ -863,6 +863,8 @@ details.fold[open] > summary::after { transform: translateY(2px) rotate(225deg);
     </div>
 
     <div class="card"><p class="note" id="storage-note" style="margin:0"></p></div>
+    <div class="card"><h3>Move to Baseline</h3><p class="muted small" style="margin:4px 0 10px">Copies your whole food log, targets, saved meals and weigh-ins as a code. In Baseline, go to Profile → Bring in your data → Paste code. Nothing is deleted here.</p>
+      <button class="btn primary" id="baseline-copy" type="button" style="width:100%">Copy for Baseline</button><p class="muted small" id="baseline-status" style="margin:8px 0 0"></p></div>
   </section>
 </div>
 
@@ -2928,6 +2930,21 @@ $('#share-btn').addEventListener('click', () => {
   navigator.clipboard.writeText(text).then(() => toast('Summary copied. Paste it in a text.'), () => {
     const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('aria-label', 'Summary to copy'); ta.style.cssText = 'width:100%;min-height:160px;margin-top:8px';
     $('#share-btn').after(ta); ta.select(); toast('Select all and copy');
+  });
+});
+
+// ===================== Copy for Baseline =====================
+// Baseline (the all-in-one app on the website) can't read this artifact's synced storage, so this hands it a transfer code.
+$('#baseline-copy').addEventListener('click', () => {
+  const data = {};
+  for (const k of new Set([...Object.keys(cache), ...lsKeys()])) { const v = doc(k); if (v != null) data['ml:' + k] = JSON.stringify(v); }
+  const bytes = new TextEncoder().encode(JSON.stringify({ at: Date.now(), from: 'macrolens', data })); let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  const code = 'BL1:' + btoa(bin), days = Object.keys(data).filter((k) => k.startsWith('ml:day-')).length;
+  const done = () => { $('#baseline-status').textContent = `Copied ${days} day${days === 1 ? '' : 's'} of food. Open Baseline → Profile → Bring in your data → Paste code.`; toast('Copied for Baseline'); };
+  navigator.clipboard.writeText(code).then(done, () => {
+    const ta = document.createElement('textarea'); ta.value = code; ta.setAttribute('aria-label', 'Transfer code'); ta.style.cssText = 'width:100%;min-height:90px;margin-top:8px;font-size:12px';
+    $('#baseline-status').replaceChildren(ta); ta.select(); toast('Select all in the box and copy');
   });
 });
 
