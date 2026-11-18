@@ -102,6 +102,7 @@ function drawTS() {
   if (hv) {
     if (hv.type === 'pass') o.diagram = [{ type: 'pass', from: hv.from, to: st.pos[hv.to], label: 'Pass to ' + hv.to }];
     else if (hv.type === 'dribble') o.diagram = [{ type: 'dribble', from: hv.from, to: hv.at, label: hv.attack ? 'Attack the rim' : 'Dribble here' }];
+    else if (hv.type === 'rim') o.diagram = [{ type: 'dribble', from: hv.from, to: hv.opt.at, label: 'Drive & finish' }];
     else if (hv.type === 'shoot') o.diagram = [{ type: 'pass', from: hv.from, to: [0, 5.6], label: hv.opt ? 'Shoot' : 'Out of range', color: hv.opt ? 'rgba(255,140,90,.95)' : 'rgba(160,170,190,.8)' }];
   }
   TSIM.view.draw(TSIM.track, TSIM.t, o);
@@ -178,6 +179,7 @@ function renderTSRun(el) {
       const a = courtTarget(e); TSIM.hover = null; if (!a) return;
       if (a.type === 'pass') return chooseTS(a.opt);
       if (a.type === 'shoot') return a.opt ? chooseTS(a.opt) : toast('Too far to shoot from here. Tap open floor to dribble closer.');
+      if (a.type === 'rim') return chooseTS(a.opt);
       if (a.type === 'defender') return toast(`That's X${a.id[1]}. Tap a teammate to pass, your player to shoot, or open floor to dribble.`);
       chooseTS(dribbleOption(TSIM.S, TSIM.A, a.at));
     });
@@ -204,8 +206,9 @@ function courtTarget(e) {
   if (dist(st.pos[H], p) < 3 || dist([st.ball.x, st.ball.y], p) < 2.2) return { type: 'shoot', opt: TSIM.opts.find((x) => x.kind === 'shoot'), from: st.pos[H] };
   let best = null, bd = 3.5; for (const o of OFF) { if (o === H) continue; const d = dist(st.pos[o], p); if (d < bd) { bd = d; best = o; } }
   if (best) { const opt = TSIM.opts.find((x) => x.kind === 'pass' && x.to === best); if (opt) return { type: 'pass', opt, to: best, from: st.pos[H] }; }
-  for (const d of DEF) if (dist(st.pos[d], p) < 1.8) return { type: 'defender', id: d };
-  let to = [clamp(p[0], -24.5, 24.5), clamp(p[1], 1, 40)]; if (dist(st.pos[H], to) > 14) to = toward(st.pos[H], to, 14);
+  if (distHoop(p) <= 6.5) return { type: 'rim', opt: TSIM.opts.find((x) => x.kind === 'rim'), from: st.pos[H] };
+  for (const d of DEF) if (dist(st.pos[d], p) < 1.6) return { type: 'defender', id: d };
+  let to = [clamp(p[0], -24.5, 24.5), clamp(p[1], 1, 40)]; if (dist(st.pos[H], to) > 22) to = toward(st.pos[H], to, 22);
   return { type: 'dribble', at: RR(to), from: st.pos[H], attack: distHoop(to) < distHoop(st.pos[H]) - 3 && distHoop(to) < 16 };
 }
 function learnNotes(S) {
@@ -214,13 +217,13 @@ function learnNotes(S) {
 }
 function renderDecide(P) {
   const S = TSIM.S, M = TS_MODES[TSIM.mode], opts = TSIM.opts;
-  const kindTxt = { pass: 'Pass', backdoor: 'Backdoor', drive: 'Drive', shoot: 'Shot', script: 'Play', call: 'Call', reset: 'Reset', dribble: 'Dribble' };
+  const kindTxt = { rim: 'Drive & finish', pass: 'Pass', backdoor: 'Backdoor', drive: 'Drive', shoot: 'Shot', script: 'Play', call: 'Call', reset: 'Reset', dribble: 'Dribble' };
   P.innerHTML = `<div class="decide-head"><span class="eyebrow purple">Read ${TSIM.dec.length + 1} · ${Math.max(0, SHOT_CLOCK - S.t).toFixed(1)}s on the shot clock</span><p>${S.ball} has the ball at the ${SPOT_LABEL[spotName(S.pos[S.ball])]}. ${M.window ? 'Decide before the countdown runs out.' : ''}</p></div>
     ${lastReadStrip(TSIM.dec.at(-1))}
     ${M.reveal ? learnNotes(S) + `<div class="bd"><h4>Who's available (Learning mode shows this)</h4>${whyOpen(S, TSIM.A).map((w) => `<p class="small"><span class="chip ${w.tag === 'open' ? 'green' : w.tag === 'backdoor' ? 'purple' : w.tag === 'workable' ? 'amber' : 'red'}">${w.o} ${w.tag}</span> ${esc(w.txt)}</p>`).join('')}<p class="small">Your shot: <b>${TSIM.A.window}</b> · drive lane ${TSIM.A.drive >= 0.6 ? 'open' : TSIM.A.drive >= 0.35 ? 'possible' : 'closed'}</p></div>` : ''}
     <div class="opts">${opts.map((o, i) => `<button type="button" class="opt" data-o="${i}"><span class="k">${i + 1}</span><span><b>${esc(o.label)}</b><small>${kindTxt[o.kind] || ''}</small></span><span class="kind"></span></button>`).join('')}</div>
     <div class="row">${pauseToggle()}<span class="grow"></span><button type="button" class="btn ghost sm" id="ts-end">End possession</button></div>
-    <p class="hint"><b>On the court:</b> tap a teammate to pass · tap yourself or the ball to shoot · tap open floor to dribble there (up to 14 ft; toward the rim = attack). Keys 1–${Math.min(9, opts.length)} pick from the list.</p>`;
+    <p class="hint"><b>On the court:</b> tap a teammate to pass · tap yourself or the ball to shoot · tap the rim to drive and finish · tap open floor to dribble there (toward the rim = attack and read the help). Keys 1–${Math.min(9, opts.length)} pick from the list.</p>`;
   for (const b of $$('[data-o]', P)) b.onclick = () => chooseTS(opts[Number(b.dataset.o)]);
   bindPause(P);
   $('#ts-end').onclick = () => { if (TSIM.dec.length) finishTS(); else { TSIM.phase = 'setup'; TSIM.S = null; renderTeamSim(); } };
@@ -246,6 +249,7 @@ function bestReason(d) {
   if (b.kind === 'drive') return `Your defender was out of position (${A.gap < 2.3 ? 'crowding you' : A.behind ? 'trailing' : 'off the line to the rim'}) and the drive lane had ${A.corridorHelp} helper${A.corridorHelp === 1 ? '' : 's'} in it.`;
   if (b.kind === 'shoot') return `Your shot was ${A.window}: the closest defender was ${fmtFt(A.closest)} away.`;
   if (b.kind === 'call') return `${covOf(TSIM.S).name} is vulnerable to the ball screen: ${({ drop: 'the big sits back, so the back screen frees the roller and the pull-up is open', blitz: 'two on the ball leaves 4-on-3 behind it', hedge: 'the hedge leaves the roller alone', switch: 'the switch creates a mismatch', over: 'the chase leaves a 2-on-1 against the big', under: 'going under gives up the shot' })[covOf(TSIM.S).onBall] || 'it creates a new advantage'}.`;
+  if (b.kind === 'rim') return `Going all the way was worth it: your defender was ${A.gap < 2.3 ? 'crowding you' : A.behind ? 'trailing' : A.line > 1.8 ? 'off the line to the rim' : 'in front, but the finish was still the best look'} and the lane had ${A.corridorHelp} helper${A.corridorHelp === 1 ? '' : 's'} in it.`;
   if (b.kind === 'dribble') return b.attack ? 'Attacking off the dribble was the best way to make the defense react.' : 'Moving the ball with the dribble improved the angle for the next read.';
   if (b.kind === 'script') return 'Running our next action was the best way to create an advantage here.';
   return 'Nothing better was available.';
