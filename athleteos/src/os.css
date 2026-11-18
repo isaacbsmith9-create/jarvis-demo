@@ -540,3 +540,9 @@ a.tlev { text-decoration: none; }
 .cc-n { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
 .cc-s b { font-size: 13px; overflow-wrap: anywhere; } .cc-s em { font-style: normal; font-size: 11px; font-weight: 700; color: var(--c); }
 .cc-pri { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 6px; } .cc-pri li b { display: block; font-size: 14px; }
+/* Patterns */
+.pt-meta { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.pt-wd { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; height: 90px; align-items: end; }
+.pt-wd > div { display: grid; justify-items: center; gap: 3px; height: 100%; align-content: end; }
+.pt-wd i { width: 70%; border-radius: 6px 6px 3px 3px; display: block; }
+button.cc-pt { display: block; width: 100%; text-align: left; border: 1px dashed color-mix(in srgb, var(--purple) 50%, transparent); color: var(--fg); font: inherit; cursor: pointer; }
