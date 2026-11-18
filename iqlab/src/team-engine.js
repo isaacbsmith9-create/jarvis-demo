@@ -451,7 +451,7 @@ function finishShot(S, who, a, cap) {
 const fmtFt = (v) => (v >= 20 ? '20+ ft' : v.toFixed(1) + ' ft');
 
 // ---------------- grading ----------------
-const TEAM_W = { recognition: 0.15, read: 0.35, timing: 0.1, awareness: 0.2, principles: 0.2 };
+const TEAM_W = { read: 0.4, timing: 0.1, awareness: 0.25, principles: 0.25 };
 function gradeTeamDecision(A, opts, choice, info) {
   const best = opts.reduce((a, b) => (b.ev > a.ev ? b : a)), worst = Math.min(...opts.map((o) => o.ev));
   const parts = {};
@@ -460,7 +460,6 @@ function gradeTeamDecision(A, opts, choice, info) {
   const chosenOpen = choice.to ? Math.max(A.mates[choice.to].open, choice.kind === 'backdoor' ? 1 : 0) : null;
   parts.awareness = choice.kind === 'hold' ? 0 : !openMates.length ? 90 : chosenOpen != null ? Math.round(60 + 40 * chosenOpen) : choice.ev >= best.ev - 0.04 ? 85 : 45;
   parts.principles = choice.kind === 'hold' ? 0 : choice.principle ? 100 : 55;
-  if (info.recognition != null) parts.recognition = info.recognition ? 100 : 0;
   if (info.timing != null) parts.timing = info.timing;
   let s = 0, w = 0; for (const [k, v] of Object.entries(parts)) { s += TEAM_W[k] * v; w += TEAM_W[k]; }
   return { score: Math.round(s / w), parts, best };
