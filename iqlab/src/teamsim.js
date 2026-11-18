@@ -100,14 +100,18 @@ function drawTS() {
   if (showReveal) { const R = TSIM.phase === 'decide' ? whyOpen(S, TSIM.A) : TSIM.reveal.why; o.reveal = R.map((r) => ({ id: r.o, tag: r.tag })); const A = TSIM.phase === 'decide' ? TSIM.A : TSIM.reveal.A; o.window = { id: A.H, state: A.window }; }
   if (M.reveal || TSIM.phase === 'done' || TSIM.phase === 'outcome') o.overlays = { lanes: TSIM.ov.lanes, links: TSIM.ov.help };
   if (TSIM.phase === 'decide' && !M.reveal) o.overlays = { lanes: false, links: false };
+  // after you attack: name the helper and draw a line to the man he left
+  if (TSIM.phase === 'decide' && TSIM.autoHelp) { o.previews = []; for (const d of DEF) { if (!/helping|showing help|pack-line help|tag|trap/.test(S.roles?.[d] || '')) continue; const left = S.assign[d]; if (!left || left === S.ball || !st.pos[left]) continue; o.labels[d] = 'X' + d[1] + ' HELP'; o.previews.push({ from: st.pos[d], to: st.pos[left], color: 'rgba(255,90,110,.9)', dash: true, label: 'LEFT ' + left }); } }
   const hv = TSIM.phase === 'decide' && TSIM.hover;
   if (hv) {
+    if (hv.type === 'dribble' && TSIM.A?.closing && hv.attack) hv.closeout = true;
     if (hv.type === 'pass') o.diagram = [{ type: 'pass', from: hv.from, to: st.pos[hv.to], label: 'Pass to ' + hv.to }];
-    else if (hv.type === 'dribble') o.diagram = [{ type: 'dribble', from: hv.from, to: hv.at, label: hv.attack ? 'Attack the rim' : 'Dribble here' }];
+    else if (hv.type === 'dribble') o.diagram = [{ type: 'dribble', from: hv.from, to: hv.at, label: hv.closeout ? 'Attack the closeout' : hv.attack ? 'Attack the rim' : 'Dribble here' }];
     else if (hv.type === 'rim') o.diagram = [{ type: 'dribble', from: hv.from, to: hv.opt.at, label: 'Drive & finish' }];
     else if (hv.type === 'shoot') o.diagram = [{ type: 'pass', from: hv.from, to: [0, 5.6], label: hv.opt ? 'Shoot' : 'Out of range', color: hv.opt ? 'rgba(255,140,90,.95)' : 'rgba(160,170,190,.8)' }];
   }
   TSIM.view.draw(TSIM.track, TSIM.t, o);
+  if (TSIM.phase === 'decide') { const V = TSIM.view, c = V.ctx, sh = !!TSIM.opts.find((x) => x.kind === 'shoot'); c.save(); c.font = `800 ${Math.max(10, V.s * 1)}px Inter, sans-serif`; const t = sh ? 'SHOOT' : 'OUT OF RANGE', w = c.measureText(t).width + V.s * 1.4; c.fillStyle = sh ? 'rgba(255,106,31,.92)' : 'rgba(120,130,150,.8)'; const bx = V.X(0) + V.s * 3.2 + w / 2; roundRect(c, bx - w / 2, V.Y(3.6) - V.s * 0.8, w, V.s * 1.6, V.s * 0.8); c.fill(); c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(t, bx, V.Y(3.6)); c.restore(); }
 }
 function updateTSTimeline() {
   const rg = $('#ts-range'); if (!rg) return;
@@ -128,6 +132,7 @@ function chooseTS(opt) {
   const exec = res.result === 'tov' ? false : res.result === 'miss' ? false : true;
   const d = { i: TSIM.dec.length, tDecision, tAfter: S.t, cov: S.cov, covName: covOf(S).name, label: opt.label, kind: opt.kind, choice: opt, best: g.best, score: g.score, parts: g.parts, why, A, notes: notesBefore, res, exec, quad: quadrant(g.score, exec), rt: el, opts: all };
   TSIM.hover = null;
+  TSIM.autoHelp = ['drive', 'rim'].includes(opt.kind) || (opt.kind === 'dribble' && opt.attack);
   TSIM.dec.push(d);
   TSIM.reveal = { why, A }; TSIM.revealAt = tDecision;
   TSIM.phase = 'outcome'; TSIM.target = TSIM.tEnd; TSIM.t = tDecision; TSIM.playing = true;
@@ -206,9 +211,11 @@ function renderTSRun(el) {
 function courtTarget(e) {
   const r = $('#ts-court').getBoundingClientRect(), p = TSIM.view.toCourt(e.clientX - r.left, e.clientY - r.top), st = stateAt(TSIM.track, TSIM.t), H = TSIM.S.ball;
   if (dist(st.pos[H], p) < 3 || dist([st.ball.x, st.ball.y], p) < 2.2) return { type: 'shoot', opt: TSIM.opts.find((x) => x.kind === 'shoot'), from: st.pos[H] };
+  // the backboard is a shoot button
+  if (p[0] > -4.5 && p[0] < 11 && p[1] < 4.9) return { type: 'shoot', opt: TSIM.opts.find((x) => x.kind === 'shoot'), from: st.pos[H] };
   let best = null, bd = 3.5; for (const o of OFF) { if (o === H) continue; const d = dist(st.pos[o], p); if (d < bd) { bd = d; best = o; } }
   if (best) { const opt = TSIM.opts.find((x) => x.kind === 'pass' && x.to === best); if (opt) return { type: 'pass', opt, to: best, from: st.pos[H] }; }
-  if (distHoop(p) <= 6.5) return { type: 'rim', opt: TSIM.opts.find((x) => x.kind === 'rim'), from: st.pos[H] };
+  if (distHoop(p) <= (TSIM.A?.closing ? 4 : 6.5)) return { type: 'rim', opt: TSIM.opts.find((x) => x.kind === 'rim'), from: st.pos[H] };
   for (const d of DEF) if (dist(st.pos[d], p) < 1.6) return { type: 'defender', id: d };
   let to = [clamp(p[0], -24.5, 24.5), clamp(p[1], 1, 40)]; if (dist(st.pos[H], to) > 22) to = toward(st.pos[H], to, 22);
   return { type: 'dribble', at: RR(to), from: st.pos[H], attack: distHoop(to) < distHoop(st.pos[H]) - 3 && distHoop(to) < 16 };
@@ -222,10 +229,12 @@ function renderDecide(P) {
   const kindTxt = { rim: 'Drive & finish', pass: 'Pass', backdoor: 'Backdoor', drive: 'Drive', shoot: 'Shot', script: 'Play', call: 'Call', reset: 'Reset', dribble: 'Dribble' };
   P.innerHTML = `<div class="decide-head"><span class="eyebrow purple">Read ${TSIM.dec.length + 1} · ${Math.max(0, SHOT_CLOCK - S.t).toFixed(1)}s on the shot clock</span><p>${S.ball} has the ball at the ${SPOT_LABEL[spotName(S.pos[S.ball])]}. ${M.window ? 'Decide before the countdown runs out.' : ''}</p></div>
     ${lastReadStrip(TSIM.dec.at(-1))}
+    ${TSIM.autoHelp ? '<p class="hint"><b>You attacked.</b> The red HELP defender left his man to stop you. The dashed line points to the man he left, usually your pass.</p>' : ''}
+    ${TSIM.A.closing ? '<p class="hint"><b>Hard closeout!</b> Your defender is running at you. Tap the floor one dribble past him (or pick “Attack the closeout”) and read the help.</p>' : ''}
     ${M.reveal ? learnNotes(S) + `<div class="bd"><h4>Who's available (Learning mode shows this)</h4>${whyOpen(S, TSIM.A).map((w) => `<p class="small"><span class="chip ${w.tag === 'open' ? 'green' : w.tag === 'backdoor' ? 'purple' : w.tag === 'workable' ? 'amber' : 'red'}">${w.o} ${w.tag}</span> ${esc(w.txt)}</p>`).join('')}<p class="small">Your shot: <b>${TSIM.A.window}</b> · drive lane ${TSIM.A.drive >= 0.6 ? 'open' : TSIM.A.drive >= 0.35 ? 'possible' : 'closed'}</p></div>` : ''}
     <div class="opts">${opts.map((o, i) => `<button type="button" class="opt" data-o="${i}"><span class="k">${i + 1}</span><span><b>${esc(o.label)}</b><small>${kindTxt[o.kind] || ''}</small></span><span class="kind"></span></button>`).join('')}</div>
     <div class="row">${pauseToggle()}<span class="grow"></span><button type="button" class="btn ghost sm" id="ts-end">End possession</button></div>
-    <p class="hint"><b>On the court:</b> tap a teammate to pass · tap yourself or the ball to shoot · tap the rim to drive and finish · tap open floor to dribble there (toward the rim = attack and read the help). Keys 1–${Math.min(9, opts.length)} pick from the list.</p>`;
+    <p class="hint"><b>On the court:</b> tap a teammate to pass · tap yourself, the ball or the backboard (SHOOT) to shoot · tap the rim to drive and finish · off a hard closeout, tap the floor one dribble past him to attack it · tap open floor to dribble there (toward the rim = attack and read the help). Keys 1–${Math.min(9, opts.length)} pick from the list.</p>`;
   for (const b of $$('[data-o]', P)) b.onclick = () => chooseTS(opts[Number(b.dataset.o)]);
   bindPause(P);
   $('#ts-end').onclick = () => { if (TSIM.dec.length) finishTS(); else { TSIM.phase = 'setup'; TSIM.S = null; renderTeamSim(); } };

@@ -16,7 +16,8 @@ const CTRLS = {
   stick: { name: 'Thumb stick', desc: 'Touch anywhere and drag a direction like a joystick. Farther = faster. Let go to stop.' },
 };
 const CV_DEF = { man: 'Man-to-man', packline: 'Pack-line', pressure: 'Heavy pressure', switch: 'Switch everything', zone23: '2-3 zone' };
-const CV = { cam: uiGet('cvCam', 'behind'), ctrl: uiGet('cvCtrl', 'drag'), cov: uiGet('cvCov', 'man'), G: null, raf: 0, last: 0, keys: {}, ptr: null };
+const CV_FOLLOW = { me: { name: 'Stay as me', desc: 'You always control your own player (PG). Pass, then cut, relocate and call for it: your teammate gives it back when you\'re open.' }, ball: { name: 'Follow the ball', desc: 'Control jumps to whoever catches the pass, like a video game.' } };
+const CV = { follow: uiGet('cvFollow', 'me'), cam: uiGet('cvCam', 'behind'), ctrl: uiGet('cvCtrl', 'drag'), cov: uiGet('cvCov', 'man'), G: null, raf: 0, last: 0, keys: {}, ptr: null };
 const CV_SPOTS = { O1: [0, 30], O2: [-19, 19], O3: [19, 19], O4: [-21, 5], O5: [7, 9] };
 
 function renderCV() {
@@ -26,11 +27,13 @@ function renderCV() {
   el.innerHTML = `<div class="page-head"><span class="eyebrow green">Court Vision</span><h1>Play it from the floor</h1><p>Control the ball with your finger and see the court from different cameras. Drag to dribble, tap a teammate to pass, tap the rim to shoot. This mode is for experimenting: the defense reacts live, and every possession is logged by camera so you can see which view you actually play best in.</p></div>
     <div class="card"><div class="section-title"><h2>Camera</h2></div><div class="mode-pick">${Object.entries(CAMS).map(([k, c]) => `<button type="button" class="mode-card" data-cam="${k}" aria-pressed="${CV.cam === k}"><b>${c.name}</b><span>${c.desc}</span></button>`).join('')}</div>
       <div class="section-title" style="margin-top:14px"><h2>Movement</h2></div><div class="mode-pick">${Object.entries(CTRLS).map(([k, c]) => `<button type="button" class="mode-card" data-ctrl="${k}" aria-pressed="${CV.ctrl === k}"><b>${c.name}</b><span>${c.desc}</span></button>`).join('')}</div>
+      <div class="section-title" style="margin-top:14px"><h2>After you pass</h2></div><div class="mode-pick">${Object.entries(CV_FOLLOW).map(([k, c]) => `<button type="button" class="mode-card" data-follow="${k}" aria-pressed="${CV.follow === k}"><b>${c.name}</b><span>${c.desc}</span></button>`).join('')}</div>
       <label class="fld" style="margin-top:14px"><span>Defense</span><select id="cv-cov">${Object.entries(CV_DEF).map(([k, n]) => `<option value="${k}" ${CV.cov === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
       <div class="row" style="margin-top:12px"><button type="button" class="btn green" id="cv-go">${icon('play')} Play</button></div>
-      <p class="hint" style="margin-top:10px"><b>Controls:</b> drag on the court to move with the ball · tap a teammate to pass (you then control him) · tap the rim, or double-tap your player, to shoot · near the rim a shot is a layup. Keyboard: WASD or arrows to move, Space to shoot, 2–5 to pass. You can switch cameras during play.</p></div>
+      <p class="hint" style="margin-top:10px"><b>Controls:</b> drag on the court to move · tap a teammate to pass · tap the backboard (it says SHOOT) or double-tap yourself to shoot · without the ball, tap the backboard or double-tap yourself to call for it · near the rim a shot is a layup. Defenders who leave their man to help light up red with HELP. Keyboard: WASD or arrows to move, Space to shoot, E to call for it, 2–5 to pass.</p></div>
     ${cvStatsCard(L)}`;
   for (const b of $$('[data-cam]', el)) b.onclick = () => { CV.cam = b.dataset.cam; uiSet('cvCam', CV.cam); renderCV(); };
+  for (const b of $$('[data-follow]', el)) b.onclick = () => { CV.follow = b.dataset.follow; uiSet('cvFollow', CV.follow); renderCV(); };
   for (const b of $$('[data-ctrl]', el)) b.onclick = () => { CV.ctrl = b.dataset.ctrl; uiSet('cvCtrl', CV.ctrl); renderCV(); };
   $('#cv-cov').onchange = (e) => { CV.cov = e.target.value; uiSet('cvCov', CV.cov); };
   $('#cv-go').onclick = () => { cvNewGame(); renderCV(); };
@@ -51,7 +54,7 @@ function cvNewPoss() {
   for (const o of OFF) { const p = CV_SPOTS[o]; pos[o] = [p[0] + (Math.random() - 0.5) * 2, p[1] + (Math.random() - 0.5) * 2]; vel[o] = [0, 0]; }
   const S = { cov: CV.cov, intensity: 2, assign: Object.fromEntries(DEF.map((d, i) => [d, OFF[i]])), size: { O1: 1, O2: 2, O3: 3, O4: 4, O5: 5 }, names: Object.fromEntries(OFF.map((o) => [o, ROLE[o]])), pos };
   const d0 = defend(S, pos, 'O1', []); for (const d of DEF) { pos[d] = d0.m[d]; vel[d] = [0, 0]; }
-  Object.assign(G, { pos, vel, S, holder: 'O1', ball: { kind: 'hold' }, t: 0, clock: 24, tgt: {}, hist: [], defT: 0, over: null, passes: 0, drib: 0, q: null, face: {}, camYaw: null, lastTap: 0, stick: null, dragAt: null });
+  Object.assign(G, { pos, vel, S, holder: 'O1', ball: { kind: 'hold' }, t: 0, clock: 24, tgt: {}, hist: [], defT: 0, caught: 0, call: 0, spot: { ...CV_SPOTS }, over: null, passes: 0, drib: 0, q: null, face: {}, camYaw: null, lastTap: 0, stick: null, dragAt: null });
   G.face = Object.fromEntries([...OFF, ...DEF].map((id) => [id, norm(sub(T_HOOP, pos[id]))]));
   G.tgt = { ...d0.m };
 }
@@ -59,7 +62,7 @@ function cvEnd(res, pts) {
   const G = CV.G; if (G.over) return;
   G.over = { res, pts, at: G.t };
   G.score += pts; G.poss++;
-  const rec = { ts: Date.now(), cam: CV.cam, ctrl: CV.ctrl, cov: CV.cov, res, pts, q: G.q, passes: G.passes, drib: r1(G.drib) };
+  const rec = { ts: Date.now(), cam: CV.cam, ctrl: CV.ctrl, follow: CV.follow, cov: CV.cov, res, pts, q: G.q, passes: G.passes, drib: r1(G.drib) };
   const D = doc('cv'); D.list.push(rec); if (D.list.length > 400) D.list.splice(0, D.list.length - 400); persist('cv');
   G.msg = { make: pts === 3 ? 'Three!' : 'Bucket!', miss: 'Miss', tov: 'Turnover', violation: 'Shot-clock violation' }[res];
   cvPanel();
@@ -67,60 +70,76 @@ function cvEnd(res, pts) {
 }
 
 // ---------- simulation step ----------
-const CV_SPEED = { ball: 16, off: 14, onBall: 15, def: 13.5 };
+// "Stay as me" (default): you always control your own player (PG). After you pass you can cut, relocate and
+// call for it; the teammate with the ball reads you and gives it back when you're open.
+// "Follow the ball": control jumps to whoever catches it (video-game style).
+const CV_SPEED = { ball: 16, me: 17, off: 14, onBall: 15, def: 13.5 };
+const cvMe = () => (CV.follow === 'ball' ? CV.G.holder : 'O1');
 function cvStep(dt) {
   const G = CV.G; if (!G || G.over && G.ball.kind !== 'shot' && G.ball.kind !== 'reb') { if (G) G.t += dt; return; }
-  G.t += dt; const pos = G.pos, H = G.holder;
+  G.t += dt; const pos = G.pos, H = G.holder, ME = cvMe(), iHave = H === ME && G.ball.kind === 'hold';
   if (!G.over && G.ball.kind !== 'shot') { G.clock -= dt; if (G.clock <= 0) return cvEnd('violation', 0); }
-  // --- your player
-  let want = [0, 0];
-  if (G.ball.kind === 'hold') {
-    const me = pos[H];
-    if (CV.ctrl === 'drag' && G.dragAt) { const v = sub(G.dragAt, me), L = Math.hypot(v[0], v[1]); if (L > 0.6) want = mul(v, Math.min(1, L / 4) * CV_SPEED.ball / L); }
-    if (CV.ctrl === 'stick' && G.stick) want = mul(G.stick, CV_SPEED.ball);
-    const kv = cvKeyVec(); if (kv) want = mul(kv, CV_SPEED.ball);
+  // --- your player (with or without the ball)
+  let want = [0, 0]; const vmax = iHave ? CV_SPEED.ball : CV_SPEED.me;
+  if (G.ball.kind !== 'shot' || !iHave) {
+    const me = pos[ME];
+    if (CV.ctrl === 'drag' && G.dragAt) { const v = sub(G.dragAt, me), L = Math.hypot(v[0], v[1]); if (L > 0.6) want = mul(v, Math.min(1, L / 4) * vmax / L); }
+    if (CV.ctrl === 'stick' && G.stick) want = mul(G.stick, vmax);
+    const kv = cvKeyVec(); if (kv) want = mul(kv, vmax);
   }
   const k = 1 - Math.exp(-dt * 9);
-  G.vel[H] = lerpP(G.vel[H], want, k);
-  if (Math.hypot(...G.vel[H]) > 2) G.drib += dt;
-  // --- teammates: hold spots, clear out of the driver's way, drift to open space
+  G.vel[ME] = lerpP(G.vel[ME], want, k);
+  if (iHave && Math.hypot(...G.vel[ME]) > 2) G.drib += dt;
+  // --- teammates: hold spots, clear out of the driver's way, drift to open space; the AI handler holds and reads you
   for (const o of OFF) {
-    if (o === H) continue;
-    let home = CV_SPOTS[o]; const p = pos[o];
-    if (dist(p, pos[H]) < 9) home = add(p, mul(norm(sub(p, pos[H])), 6));
-    if (distHoop(pos[H]) < 14 && sgn(pos[H][0]) === sgn(home[0]) && home[1] > 12 && home[1] < 22) home = [sgn(home[0]) * 21, 6]; // drift to the corner on a drive
+    if (o === ME) continue;
+    let home = G.spot[o] || CV_SPOTS[o]; const p = pos[o];
+    if (o !== H) {
+      if (dist(p, pos[H]) < 9) home = add(p, mul(norm(sub(p, pos[H])), 6));
+      if (dist(p, pos[ME]) < 7) home = add(p, mul(norm(sub(p, pos[ME])), 6)); // make room for your cut / relocation
+      if (distHoop(pos[H]) < 14 && sgn(pos[H][0]) === sgn(home[0]) && home[1] > 12 && home[1] < 22) home = [sgn(home[0]) * 21, 6]; // drift to the corner on a drive
+    } else home = p; // the AI handler stays put and looks for you
     const v = sub(home, p), L = Math.hypot(v[0], v[1]);
     G.vel[o] = lerpP(G.vel[o], L > 0.8 ? mul(v, Math.min(CV_SPEED.off, L * 2) / L) : [0, 0], k);
   }
   // --- defense: re-run the coverage engine with a reaction delay
-  G.hist.push({ t: G.t, p: [...pos[H]] }); while (G.hist.length && G.hist[0].t < G.t - 0.6) G.hist.shift();
+  G.hist.push({ t: G.t, p: [...pos[H]], m: [...pos[ME]] }); while (G.hist.length && G.hist[0].t < G.t - 0.6) G.hist.shift();
   G.defT -= dt;
   if (G.defT <= 0 && G.ball.kind !== 'shot') {
     G.defT = 0.14;
-    const lag = G.hist.find((h) => h.t >= G.t - 0.24) || G.hist[0], seen = { ...pos, [H]: lag.p };
+    const lag = G.hist.find((h) => h.t >= G.t - 0.24) || G.hist[0], seen = { ...pos, [H]: lag.p, [ME]: lag.m };
     const dH = DEF.find((d) => G.S.assign[d] === H), hv = G.vel[H], sp = Math.hypot(hv[0], hv[1]);
     const behind = dH && distHoop(pos[dH]) > distHoop(pos[H]) + 0.8, ev = [];
     if (G.ball.kind === 'hold' && sp > 8 && distHoop(pos[H]) < 22 && (hv[0] * (0 - pos[H][0]) + hv[1] * (T_HOOP[1] - pos[H][1])) > 0) ev.push({ type: 'drive', user: H, from: G.hist[0].p, contained: !behind });
+    // your cut off the ball: fast and toward the rim
+    const mv = G.vel[ME]; if (ME !== H && Math.hypot(...mv) > 9 && (mv[0] * -pos[ME][0] + mv[1] * (T_HOOP[1] - pos[ME][1])) > 0) ev.push({ type: 'cut', user: ME, from: G.hist[0].m, basket: distHoop(pos[ME]) < 13 });
     G.S.pos = pos;
     const D = defend(G.S, seen, G.ball.kind === 'pass' ? G.ball.to : H, ev);
     G.S.assign = D.assign; G.tgt = D.m; G.roles = D.roles;
   }
   for (const d of DEF) {
     const t = G.tgt[d] || pos[d], v = sub(t, pos[d]), L = Math.hypot(v[0], v[1]), onBall = G.S.assign[d] === H;
-    const vmax = onBall ? CV_SPEED.onBall : CV_SPEED.def;
-    G.vel[d] = lerpP(G.vel[d], L > 0.3 ? mul(v, Math.min(vmax, L * 3.2) / L) : [0, 0], 1 - Math.exp(-dt * (onBall ? 7 : 5)));
+    const vm = onBall ? CV_SPEED.onBall : CV_SPEED.def;
+    G.vel[d] = lerpP(G.vel[d], L > 0.3 ? mul(v, Math.min(vm, L * 3.2) / L) : [0, 0], 1 - Math.exp(-dt * (onBall ? 7 : 5)));
   }
   for (const id of [...OFF, ...DEF]) { pos[id] = clampCourt(add(pos[id], mul(G.vel[id], dt))); }
   // bodies don't overlap: offense vs defense push apart (the ball handler is slowed by a set defender)
   for (const o of OFF) for (const d of DEF) {
     const v = sub(pos[o], pos[d]), L = Math.hypot(v[0], v[1]) || 0.01, min = 2.3;
-    if (L < min) { const push = mul(v, (min - L) / L / 2); pos[o] = add(pos[o], push); pos[d] = sub(pos[d], push); if (o === H) G.vel[H] = mul(G.vel[H], 0.6); }
+    if (L < min) { const push = mul(v, (min - L) / L / 2); pos[o] = add(pos[o], push); pos[d] = sub(pos[d], push); if (o === H || o === ME) G.vel[o] = mul(G.vel[o], 0.6); }
   }
   // facing
   for (const id of [...OFF, ...DEF]) {
     const v = G.vel[id], sp = Math.hypot(v[0], v[1]);
-    let f = id[0] === 'D' ? norm(sub(cvBallXY(), pos[id])) : id === H ? (sp > 3 ? norm(v) : norm(sub(T_HOOP, pos[id]))) : norm(sub(cvBallXY(), pos[id]));
+    let f = id[0] === 'D' ? norm(sub(cvBallXY(), pos[id])) : id === H ? (sp > 3 ? norm(v) : norm(sub(T_HOOP, pos[id]))) : id === ME && sp > 4 ? norm(v) : norm(sub(cvBallXY(), pos[id]));
     G.face[id] = norm(lerpP(G.face[id], f, 1 - Math.exp(-dt * 8)));
+  }
+  // --- the AI ball handler: gives it back when you're open (or when you call for it), shoots late in the clock
+  if (G.ball.kind === 'hold' && H !== ME && !G.over) {
+    const mp = pos[ME], sep = Math.min(...DEF.map((d) => dist(pos[d], mp))), lane = Math.min(...DEF.map((d) => (dist(pos[d], pos[H]) < 3 ? 99 : segDist(pos[d], toward(pos[H], mp, 2), toward(mp, pos[H], 2.5)))));
+    const held = G.t - G.caught, called = G.call && G.t - G.call < 1.5;
+    if (held > 0.4 && ((lane > 2.2 && (sep > 4.5 || (distHoop(mp) < 7 && sep > 2.6))) || (called && lane > 1.4))) { G.call = 0; cvPass(ME, true); }
+    else if (G.clock < 3.5) cvShoot();
   }
   // --- ball
   const B = G.ball;
@@ -131,7 +150,7 @@ function cvStep(dt) {
   } else if (B.kind === 'pass') {
     B.u += dt / B.dur;
     if (B.u >= 1 && B.to[0] === 'D') { G.ball = { kind: 'dead' }; }
-    else if (B.u >= 1) { G.holder = B.to; G.ball = { kind: 'hold' }; G.passes++; G.dragAt = null; G.stick = null; cvPanel(); }
+    else if (B.u >= 1) { G.holder = B.to; G.ball = { kind: 'hold' }; G.passes++; G.caught = G.t; if (CV.follow === 'ball' || B.to === ME) { G.dragAt = null; G.stick = null; } cvPanel(); }
   } else if (B.kind === 'shot') {
     B.u += dt / B.dur;
     if (B.u >= 1 && !B.done) { B.done = true; if (B.make) cvEnd('make', B.three ? 3 : 2); else { cvEnd('miss', 0); G.ball = { kind: 'reb', u: 0, to: DEF.slice().sort((a, b) => distHoop(pos[a]) - distHoop(pos[b]))[0] }; } }
@@ -149,17 +168,20 @@ function cvBallXY() { const G = CV.G, B = G.ball; if (B.kind === 'hold') { const
 function cvBallZ() { const G = CV.G, B = G.ball; if (B.kind === 'hold') return 0.4 + Math.abs(Math.sin(G.t * Math.PI * 2.1)) * 2.7; if (B.kind === 'pass') return 4.2 + 2 * 4 * B.u * (1 - B.u); if (B.kind === 'shot') { const d = distHoop(B.from); return lerp(7.5, 10, B.u) + (4.5 + d * 0.32) * 4 * B.u * (1 - B.u); } if (B.kind === 'reb') return lerp(10, 5, B.u) + 4 * 4 * B.u * (1 - B.u); return 0; }
 
 // ---------- actions ----------
-function cvPass(to) {
+function cvPass(to, ai) {
   const G = CV.G; if (!G || G.over || G.ball.kind !== 'hold' || to === G.holder) return;
+  if (!ai && CV.follow !== 'ball' && G.holder !== cvMe()) return cvCall();
   const a = G.pos[G.holder], b = G.pos[to], L = dist(a, b);
   // a defender sitting in the lane can deflect it
   let steal = null;
   for (const d of DEF) { const k = segDist(G.pos[d], toward(a, b, 2), toward(b, a, 2.5)); if (k < 1.4 && Math.random() < 0.55) { steal = d; break; } }
   if (steal) { G.msg = `Picked off by X${steal[1]}`; G.ball = { kind: 'pass', from: G.holder, to: steal, u: 0, dur: L / 60 + 0.1 }; return setTimeout(() => cvEnd('tov', 0), 250); }
-  G.ball = { kind: 'pass', from: G.holder, to, u: 0, dur: L / 45 + 0.15 }; G.dragAt = null; G.stick = null;
+  G.ball = { kind: 'pass', from: G.holder, to, u: 0, dur: L / 45 + 0.15 }; if (CV.follow === 'ball') { G.dragAt = null; G.stick = null; }
 }
-function cvShoot() {
+function cvCall() { const G = CV.G; if (!G || G.over) return; G.call = G.t; G.msg = 'Ball! (calling for it)'; cvPanel(); setTimeout(() => { if (CV.G === G && G.msg.startsWith('Ball!')) { G.msg = ''; cvPanel(); } }, 1200); }
+function cvShoot(fromUser) {
   const G = CV.G; if (!G || G.over || G.ball.kind !== 'hold') return;
+  if (fromUser && G.holder !== cvMe()) return cvCall();
   const p = G.pos[G.holder], d = distHoop(p), closest = Math.min(...DEF.map((x) => dist(G.pos[x], p)));
   const three = d >= 22 || (Math.abs(p[0]) >= 22 && p[1] <= 14.2);
   const q = d > 30 ? 0.04 : shotProb(d, closest, three, 2);
@@ -173,7 +195,7 @@ class Court3D {
   constructor(canvas) { this.c = canvas; this.ctx = canvas.getContext('2d'); this.resize(); this.hits = []; }
   resize() {
     const w = Math.max(280, Math.round(this.c.parentElement.clientWidth)), dpr = Math.min(2.5, window.devicePixelRatio || 1);
-    const h = Math.round(w < 700 ? w * 1.2 : w * 0.62);
+    const h = Math.round(w < 700 ? w * 1.05 : w * 0.62);
     this.W = w; this.H = h; this.dpr = dpr; this.c.width = Math.round(w * dpr); this.c.height = Math.round(h * dpr); this.c.style.width = w + 'px'; this.c.style.height = h + 'px';
   }
   setCam(eye, target, fovK = 0.85) {
@@ -226,11 +248,11 @@ class Court3D {
     this.line(arc(0, 47, 6, Math.PI, Math.PI * 2, 24), LC, LW);
     // objects sorted far to near: players, ball, hoop
     const objs = [];
-    for (const id of [...OFF, ...DEF]) { if (hideYou && id === G.holder && G.ball.kind !== 'pass') continue; const p = G.pos[id]; const c = this.cam([p[0], p[1], 3]); if (c[2] > 0.8) objs.push({ z: c[2], fn: () => this.player(G, id) }); }
+    for (const id of [...OFF, ...DEF]) { if (hideYou && id === cvMe()) continue; const p = G.pos[id]; const c = this.cam([p[0], p[1], 3]); if (c[2] > 0.8) objs.push({ z: c[2], fn: () => this.player(G, id) }); }
     const bxy = cvBallXY(), bz = cvBallZ(), bc = this.cam([bxy[0], bxy[1], bz]); if (bc[2] > 0.5) objs.push({ z: bc[2] - 0.3, fn: () => this.ball(bxy, bz) });
     const hc = this.cam([0, 5, 10]); objs.push({ z: hc[2], fn: () => this.hoop() });
     objs.sort((p, q) => q.z - p.z); this.hits = []; for (const o of objs) o.fn();
-    if (hideYou && G.ball.kind === 'hold') this.firstPersonBall(G);
+    if (hideYou && G.ball.kind === 'hold' && G.holder === cvMe()) this.firstPersonBall(G);
   }
   hoop() {
     const g = this.ctx;
@@ -240,7 +262,14 @@ class Court3D {
     const rim = [], net = []; for (let i = 0; i <= 20; i++) { const t = (i / 20) * Math.PI * 2; rim.push([Math.cos(t) * 0.75, 5.25 + Math.sin(t) * 0.75, 10]); net.push([Math.cos(t + 0.3) * 0.45, 5.25 + Math.sin(t + 0.3) * 0.45, 8.6]); }
     g.globalAlpha = 0.75; for (let i = 0; i < 20; i += 2) this.line([rim[i], net[i]], '#ffffff', 1); this.line(net, '#ffffff', 1); g.globalAlpha = 1;
     this.line(rim, '#ff6a1f', 3);
-    const s = this.P([0, 5.25, 10]); if (s) this.hits.push({ id: 'RIM', x: s[0], y: s[1], r: 34 });
+    const s = this.P([0, 5.25, 10]); if (s) this.hits.push({ id: 'RIM', x: s[0], y: s[1], r: 40 });
+    // the whole backboard is a shoot button, with a label so you know where to tap
+    const cs = [[-3.6, 4, 8.4], [3.6, 4, 8.4], [3.6, 4, 13], [-3.6, 4, 13], [0, 5.25, 10]].map((p) => this.P(p)).filter(Boolean);
+    if (cs.length >= 3) {
+      const xs = cs.map((c) => c[0]), ys = cs.map((c) => c[1]), box = [Math.min(...xs) - 14, Math.min(...ys) - 14, Math.max(...xs) + 14, Math.max(...ys) + 18];
+      this.hits.push({ id: 'RIM', box, x: (box[0] + box[2]) / 2, y: (box[1] + box[3]) / 2 });
+      const lt = this.P([0, 4, 13.6]); if (lt) { const G2 = CV.G, mine = G2 && G2.holder === cvMe() && G2.ball.kind === 'hold'; const t = mine ? 'SHOOT' : 'CALL FOR IT'; g.font = '800 12px Inter, sans-serif'; const w = g.measureText(t).width + 16; g.fillStyle = mine ? 'rgba(255,106,31,.92)' : 'rgba(47,214,138,.9)'; roundRect(g, lt[0] - w / 2, lt[1] - 22, w, 20, 10); g.fill(); g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, lt[0], lt[1] - 12); }
+    }
   }
   ball(xy, z) {
     const g = this.ctx, s = this.P([xy[0], xy[1], z]); if (!s) return; const c = this.cam([xy[0], xy[1], z]), r = Math.max(2.5, (0.39 / c[2]) * this.F);
@@ -268,7 +297,7 @@ class Court3D {
     const contest = !off && G.ball.kind === 'shot' && dist(p, G.ball.from) < 7;
     // shadow
     g.fillStyle = 'rgba(0,0,0,.32)'; g.beginPath(); g.ellipse(x, y, 1.3 * k, 0.45 * k, 0, 0, Math.PI * 2); g.fill();
-    if (id === G.holder && !G.over) { g.strokeStyle = 'rgba(80,220,140,.95)'; g.lineWidth = Math.max(2, k * 0.18); g.beginPath(); g.ellipse(x, y, 1.6 * k, 0.6 * k, 0, 0, Math.PI * 2); g.stroke(); }
+    if (id === cvMe() && !G.over) { g.strokeStyle = 'rgba(80,220,140,.95)'; g.lineWidth = Math.max(2, k * 0.18); g.beginPath(); g.ellipse(x, y, 1.6 * k, 0.6 * k, 0, 0, Math.PI * 2); g.stroke(); }
     const hipY = y - (off ? 3.2 : 2.7) * k, shY = y - (off ? 5.2 : 4.7) * k, stance = off ? 0.42 : 0.85;
     g.lineCap = 'round';
     // legs
@@ -293,9 +322,10 @@ class Court3D {
     g.fillStyle = 'rgba(20,14,10,.92)'; g.beginPath(); if (back) g.arc(x, hy, 0.46 * k, 0, Math.PI * 2); else g.arc(x, hy - 0.12 * k, 0.42 * k, Math.PI, 0); g.fill();
     if (off) { g.fillStyle = kit.trim; g.fillRect(x - 0.42 * k, hy - 0.2 * k, 0.84 * k, 0.1 * k); }
     // label
-    const lab = id === G.holder && off ? 'YOU' : off ? ROLE[id] : 'X' + n;
+    const role = !off && G.roles?.[id] || '', helping = /helping|showing help|pack-line help|tag|trap/.test(role) && G.S.assign[id] !== G.holder;
+    const lab = id === cvMe() && off ? 'YOU' : off ? ROLE[id] + (id === G.holder ? ' ●' : '') : 'X' + n + (helping ? ' HELP' : '');
     g.font = `700 ${clamp(0.75 * k, 9, 13)}px Inter, sans-serif`; const tw = g.measureText(lab).width + 8;
-    g.fillStyle = off ? (lab === 'YOU' ? 'rgba(40,190,110,.92)' : 'rgba(18,40,110,.85)') : 'rgba(60,18,32,.8)'; roundRect(g, x - tw / 2, hy - 0.9 * k - 16, tw, 15, 7); g.fill();
+    g.fillStyle = off ? (lab === 'YOU' ? 'rgba(40,190,110,.92)' : 'rgba(18,40,110,.85)') : helping ? 'rgba(255,90,110,.95)' : 'rgba(60,18,32,.8)'; roundRect(g, x - tw / 2, hy - 0.9 * k - 16, tw, 15, 7); g.fill();
     g.fillStyle = '#fff'; g.fillText(lab, x, hy - 0.9 * k - 8.5);
     this.hits.push({ id, x, y: (y + hy) / 2, r: Math.max(18, 1.4 * k), top: hy - 0.6 * k, bot: y, w: Math.max(20, 1.2 * k) });
   }
@@ -323,11 +353,11 @@ function renderCVPlay(el) {
 function cvShowCanvas() { const top = CV.cam === 'top'; $('#cv-3d').hidden = top; $('#cv-top').hidden = !top; if (top) CV.v2.resize(); else CV.v3.resize(); $('#cv-help').innerHTML = `<span>${CTRLS[CV.ctrl].name}: ${CTRLS[CV.ctrl].desc}</span>`; }
 function cvPanel() {
   const P = $('#cv-panel'), G = CV.G; if (!P || !G) return;
-  $('#cv-eyebrow').textContent = `${CAMS[CV.cam].name} · ${CTRLS[CV.ctrl].name} · vs ${CV_DEF[CV.cov]}`;
+  $('#cv-eyebrow').textContent = `${CAMS[CV.cam].name} · ${CTRLS[CV.ctrl].name} · ${CV_FOLLOW[CV.follow].name} · vs ${CV_DEF[CV.cov]}`;
   const m = $('#cv-msg'); m.hidden = !G.msg; m.textContent = G.msg || '';
   const L = doc('cv').list.filter((x) => x.cam === CV.cam), sh = L.filter((x) => x.q != null);
   P.innerHTML = `<div class="decide-head"><span class="eyebrow">Score</span><h3>${G.score} pts · ${G.poss} possession${G.poss === 1 ? '' : 's'}</h3></div>
-    <p class="small">You have the ball: <b>${ROLE[G.holder]}</b>. ${G.ball.kind === 'hold' ? 'Drag to move, tap a teammate to pass, tap the rim to shoot.' : ''}</p>
+    <p class="small">${G.holder === cvMe() ? `You have the ball. Drag to move, tap a teammate to pass, tap the backboard to shoot.` : `${ROLE[G.holder]} has it. Cut, relocate or space out; he passes back when you're open. Tap the backboard or double-tap yourself to call for it.`}</p>
     <div class="bd"><h4>This camera so far</h4><p class="small">${L.length ? `${L.length} possessions · ${(L.reduce((s, x) => s + (x.pts || 0), 0) / L.length).toFixed(2)} pts each · avg shot quality ${sh.length ? Math.round(100 * mean(sh.map((x) => x.q))) + '%' : '—'} · ${Math.round(100 * L.filter((x) => x.res === 'tov').length / L.length)}% turnovers` : 'No possessions with this camera yet.'}</p></div>
     <div class="bd def"><h4>How the defense plays</h4><p class="small">${esc(COVERAGES[CV.cov].desc)} The defenders react about a quarter-second after you move, so a hard change of direction gets you a step.</p></div>
     <p class="hint">Shot quality = make chance at release (distance + closest defender). It grades the decision, not the result.</p>`;
@@ -337,22 +367,24 @@ function cvBindInput(cv) {
   const hitTest = (sx, sy) => {
     const G = CV.G;
     if (CV.cam === 'top') {
-      const p = CV.v2.toCourt(sx, sy); if (distHoop(p) < 2.6) return { id: 'RIM' };
+      const p = CV.v2.toCourt(sx, sy); if (Math.abs(p[0]) < 5 && p[1] > 1 && p[1] < 8.5) return { id: 'RIM' };
       let best = null, bd = 2.8; for (const o of OFF) { const d = dist(G.pos[o], p); if (d < bd) { bd = d; best = o; } } return best ? { id: best } : { floor: p };
     }
     const V = CV.v3; let best = null, bd = 1e9;
     // players first (a teammate standing under the rim is a pass, not a shot), then the rim
     for (const h of V.hits) { if (h.id === 'RIM' || h.id[0] !== 'O') continue; const inBox = h.top != null ? (Math.abs(sx - h.x) < h.w && sy > h.top - 18 && sy < h.bot + 6) : Math.hypot(sx - h.x, sy - h.y) < h.r; if (inBox) { const d = Math.hypot(sx - h.x, sy - h.y); if (d < bd) { bd = d; best = h.id; } } }
     if (best) return { id: best };
-    const rim = V.hits.find((h) => h.id === 'RIM'); if (rim && Math.hypot(sx - rim.x, sy - rim.y) < rim.r) return { id: 'RIM' };
+    for (const h of V.hits) if (h.id === 'RIM' && (h.box ? sx > h.box[0] && sx < h.box[2] && sy > h.box[1] && sy < h.box[3] : Math.hypot(sx - h.x, sy - h.y) < h.r)) return { id: 'RIM' };
     const f = V.floorAt(sx, sy); return f ? { floor: f } : {};
   };
   cv.addEventListener('pointerdown', (e) => {
     const G = CV.G; if (!G || G.over) return; const r = cv.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top;
     const h = hitTest(sx, sy);
-    if (h.id === 'RIM') return cvShoot();
-    if (h.id && h.id !== G.holder) return cvPass(h.id);
-    if (h.id === G.holder) { const now = performance.now(); if (now - G.lastTap < 350) return cvShoot(); G.lastTap = now; }
+    if (h.id === 'RIM') return cvShoot(true);
+    const ME = cvMe();
+    if (h.id && h.id !== ME && h.id !== G.holder) return cvPass(h.id);
+    if (h.id && h.id === G.holder && h.id !== ME) return; // the teammate with the ball
+    if (h.id === ME) { const now = performance.now(); if (now - G.lastTap < 350) return G.holder === ME ? cvShoot(true) : cvCall(); G.lastTap = now; }
     cv.setPointerCapture?.(e.pointerId);
     CV.ptr = { x0: sx, y0: sy, id: e.pointerId };
     if (CV.ctrl === 'drag' && h.floor) G.dragAt = clampCourt(h.floor);
@@ -375,8 +407,9 @@ window.addEventListener('keydown', (e) => {
   if (current !== 'cv' || !CV.G || /input|select|textarea/i.test(e.target.tagName)) return;
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd'].includes(k)) { CV.keys[k] = true; e.preventDefault(); }
-  if (k === ' ') { e.preventDefault(); cvShoot(); }
+  if (k === ' ') { e.preventDefault(); cvShoot(true); }
   if (['2', '3', '4', '5'].includes(k)) { const o = 'O' + k; cvPass(o === CV.G.holder ? 'O1' : o); }
+  if (k === 'e') cvCall();
 });
 window.addEventListener('keyup', (e) => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; delete CV.keys[k]; });
 function cvLoop() {
@@ -397,15 +430,16 @@ function cvDraw() {
     const from = { ...G.pos }; if (B.kind === 'shot') from[G.holder] = B.from;
     const tr = { segs: [{ t0: 0, t1: 1, from, to: { ...G.pos }, ball, beat: {} }], t1: 1 };
     const u = B.kind === 'hold' ? (G.t % 1) * 0.98 : clamp(B.u ?? 1, 0, 0.999);
-    CV.v2.draw(tr, u, { you: G.holder, labels: { [G.holder]: 'YOU' }, captions: false });
+    CV.v2.draw(tr, u, { you: cvMe(), labels: { [cvMe()]: 'YOU' }, captions: false });
     if (G.dragAt) { const V = CV.v2, c = V.ctx; c.save(); c.strokeStyle = 'rgba(80,220,140,.8)'; c.setLineDash([4, 4]); c.beginPath(); c.arc(V.X(G.dragAt[0]), V.Y(G.dragAt[1]), V.s * 1.2, 0, Math.PI * 2); c.stroke(); c.restore(); }
     return;
   }
-  const V = CV.v3, me = G.pos[G.holder];
-  // camera yaw follows the line from you to the rim, smoothed so it doesn't whip around
-  const want = norm(sub(T_HOOP, me)); G.camF = G.camF ? norm(lerpP(G.camF, want, 0.06)) : want;
-  if (CV.cam === 'behind') { const f = G.camF; V.setCam([me[0] - f[0] * 13, me[1] - f[1] * 13, 9.5], [me[0] + f[0] * 10, me[1] + f[1] * 10, 3.2], 0.8); }
-  else if (CV.cam === 'eye') { const fv = G.face[G.holder], f = norm(lerpP(G.camF, fv, 0.35)); V.setCam([me[0] - f[0] * 0.4, me[1] - f[1] * 0.4, 6.2], [me[0] + f[0] * 12, me[1] + f[1] * 12, 4.3], 0.75); }
+  const V = CV.v3, ME = cvMe(), me = G.pos[ME], phone = V.W < 700;
+  // the camera turns to the action: toward the rim when you have the ball, toward the ball (and the rim) when you don't
+  const look = G.holder === ME && G.ball.kind === 'hold' ? T_HOOP : lerpP(cvBallXY(), T_HOOP, 0.35);
+  const want = dist(look, me) > 2 ? norm(sub(look, me)) : (G.camF || [0, -1]); G.camF = G.camF ? norm(lerpP(G.camF, want, G.holder === ME ? 0.07 : 0.11)) : want;
+  if (CV.cam === 'behind') { const f = G.camF, back = phone ? 18 : 16, up = phone ? 13 : 11; V.setCam([me[0] - f[0] * back, me[1] - f[1] * back, up], [me[0] + f[0] * 13, me[1] + f[1] * 13, 2.5], phone ? 0.5 : 0.62); }
+  else if (CV.cam === 'eye') { const fv = G.face[ME], f = norm(lerpP(G.camF, fv, 0.35)); V.setCam([me[0] - f[0] * 0.4, me[1] - f[1] * 0.4, 6.2], [me[0] + f[0] * 12, me[1] + f[1] * 12, 4.3], phone ? 0.5 : 0.62); }
   else { const by = clamp((cvBallXY()[1] + 5.25) / 2, 9, 21); G.sideY = G.sideY == null ? by : lerp(G.sideY, by, 0.05); V.setCam([-40, G.sideY + 1, 27], [1, G.sideY, 0], V.W < 700 ? 0.62 : 0.78); }
   V.draw(G, CV.cam === 'eye');
   if (G.dragAt && CV.ctrl === 'drag') { const s = V.P([G.dragAt[0], G.dragAt[1], 0.02]); if (s) { const g = V.ctx; g.strokeStyle = 'rgba(80,220,140,.85)'; g.lineWidth = 2; g.setLineDash([4, 4]); g.beginPath(); g.ellipse(s[0], s[1], 16, 6, 0, 0, Math.PI * 2); g.stroke(); g.setLineDash([]); } }
