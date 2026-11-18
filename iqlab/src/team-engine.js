@@ -121,6 +121,7 @@ function nearestHelper(S, pos, assign, driver, at, excl) {
 const ZONE_BASE = {
   '23': { D1: [-7, 22], D2: [7, 22], D3: [-13, 8], D4: [13, 8], D5: [0, 8.5] },
   '32': { D1: [0, 26], D2: [-14, 19], D3: [14, 19], D4: [-6, 8], D5: [6, 8] },
+  '131': { D1: [0, 28], D2: [-15, 18], D3: [15, 18], D4: [0, 16], D5: [0, 6.5] },
 };
 function zoneDefend(S, pos, holder, events) {
   const cov = covOf(S), base = ZONE_BASE[cov.shape], ball = pos[holder], m = {}, roles = {}, notes = [];

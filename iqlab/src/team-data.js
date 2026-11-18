@@ -63,6 +63,7 @@ const COVERAGES = {
   packline: { name: 'Pack-line', group: 'Man', type: 'man', ballGap: 3, deny: 0.05, help: 0.8, onBall: 'under', offBall: 'under', packline: 1, desc: 'Everyone off the ball sits inside an imaginary line about 16 ft from the rim. Drives are crowded; open catches outside are the cost.' },
   zone23: { name: '2-3 zone', group: 'Zone', type: 'zone', shape: '23', ballGap: 4, desc: 'Two guards up top, three across the back. Weak spots: the high post, the short corner, the top gaps.' },
   zone32: { name: '3-2 zone', group: 'Zone', type: 'zone', shape: '32', ballGap: 4, desc: 'Three across the top, two down low. Weak spots: the corners, the short corner, behind the top line.' },
+  zone131: { name: '1-3-1 zone', group: 'Zone', type: 'zone', shape: '131', ballGap: 4, desc: 'One at the point, three across the middle, one on the baseline. Weak spots: the corners and the short corner behind the middle line.' },
 };
 const INTENSITY = { 1: 'Low', 2: 'Medium', 3: 'High' };
 

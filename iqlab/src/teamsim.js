@@ -25,7 +25,9 @@ function renderTeamSim() {
       ${pauseToggle()}
       <button type="button" class="btn green" id="ts-start" ${plays.length ? '' : 'disabled'}>${icon('play')} ${TSIM.mode === 'prep' ? 'Start 5-rep prep' : 'Start possession'}</button>
     </div>
+    <div class="card dc-link"><span class="small"><b>Switch sides:</b> guard our own plays in the Defense center. The defensive positioning tests are built from your playbook.</span><button type="button" class="btn ghost sm" id="ts-defend">Defend our plays ›</button></div>
     ${tsHistory()}`;
+  $('#ts-defend').onclick = () => { DC.mod = 'team'; DC.sub = 'setup'; DC.run = null; go('defense'); };
   for (const b of $$('[data-tsmode]', el)) b.onclick = () => { TSIM.mode = b.dataset.tsmode; uiSet('tsMode', TSIM.mode); renderTeamSim(); };
   $('#ts-play') && ($('#ts-play').onchange = (e) => { TSIM.playId = e.target.value; });
   $('#ts-cov') && ($('#ts-cov').onchange = (e) => { TSIM.cov = e.target.value; uiSet('tsCov', TSIM.cov); $('#ts-covdesc').textContent = COVERAGES[TSIM.cov].desc; });

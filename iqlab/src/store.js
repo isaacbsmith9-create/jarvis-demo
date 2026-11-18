@@ -16,6 +16,10 @@ const BLANK = {
   // Team Playbook: the user's plays and offensive rules (starts from editable templates), and simulator history.
   playbook: () => ({ plays: JSON.parse(JSON.stringify(STARTER_PLAYS)), rules: JSON.parse(JSON.stringify(DEFAULT_RULES)) }),
   team: () => ({ list: [] }),
+  // Defense Intelligence Center: every graded rep, the adaptive level per category, daily challenge and challenge bests.
+  defense: () => ({ list: [], lvl: {}, events: [], daily: {}, chal: {} }),
+  // Court Vision: possessions played with each camera.
+  cv: () => ({ list: [] }),
 };
 function doc(key) {
   if (!(key in cache)) cache[key] = lsGet(key) ?? (BLANK[key] ? BLANK[key]() : null);

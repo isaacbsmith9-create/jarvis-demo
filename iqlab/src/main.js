@@ -6,12 +6,14 @@ const NAV = [
   { v: 'iq', t: 'IQ Academy', i: 'iq', rail: true },
   { v: 'playbook', t: 'Team Playbook', i: 'book', m: 'Team' },
   { v: 'teamsim', t: 'Coverage Sim', i: 'shield', rail: true },
-  { v: 'challenges', t: 'Challenges', i: 'trophy' },
-  { v: 'film', t: 'Film Room', i: 'film', m: 'Film' },
+  { v: 'defense', t: 'Defense IQ', i: 'def', m: 'Defense' },
+  { v: 'cv', t: 'Court Vision', i: 'cam', m: 'Play' },
+  { v: 'challenges', t: 'Challenges', i: 'trophy', rail: true },
+  { v: 'film', t: 'Film Room', i: 'film', m: 'Film', rail: true },
   { v: 'me', t: 'My IQ', i: 'chart' },
 ];
-const VIEWS = ['home', 'sim', 'pnr', 'iq', 'playbook', 'teamsim', 'film', 'challenges', 'me', 'play', 'quiz'];
-const RENDER = { home: renderHome, sim: renderSim, pnr: () => renderAcademy('pnr'), iq: () => renderAcademy('iq'), film: renderFilm, challenges: renderChallenges, me: renderMe, playbook: renderPlaybook, teamsim: renderTeamSim };
+const VIEWS = ['home', 'sim', 'pnr', 'iq', 'playbook', 'teamsim', 'defense', 'cv', 'film', 'challenges', 'me', 'play', 'quiz'];
+const RENDER = { home: renderHome, sim: renderSim, pnr: () => renderAcademy('pnr'), iq: () => renderAcademy('iq'), film: renderFilm, challenges: renderChallenges, me: renderMe, playbook: renderPlaybook, teamsim: renderTeamSim, defense: renderDefense, cv: renderCV };
 let current = 'home';
 
 function buildNav() {
@@ -36,6 +38,8 @@ function showView(v) {
   window.scrollTo({ top: 0 });
   if (v === 'play') ensureLoop();
   if (v === 'teamsim' && TSIM.S && TSIM.phase !== 'setup') setTimeout(tsLoop, 0);
+  if (v === 'defense' && DC.run && DC.sub === 'run') setTimeout(loopD, 0);
+  if (v === 'cv' && CV.G) setTimeout(cvLoop, 0);
 }
 function go(v) {
   if (!RENDER[v]) v = 'home';
