@@ -43,7 +43,8 @@ function drawLine(el, pts, o = {}) {
   const fmt = o.fmt || ((v) => nf(v, 1));
   const color = o.color || 'var(--accent)';
   const allP = o.proj ? [...pts, ...o.proj] : pts;
-  const t0 = parseIso(allP[0].date).getTime(), t1 = parseIso(allP[allP.length - 1].date).getTime();
+  // o.from / o.to keep the full time range, so days with nothing logged show as gaps, not as a squeezed axis.
+  const t0 = parseIso(o.from && o.from < allP[0].date ? o.from : allP[0].date).getTime(), t1 = parseIso(o.to && o.to > allP[allP.length - 1].date ? o.to : allP[allP.length - 1].date).getTime();
   const xs = (d) => (t1 === t0 ? (L + W - R) / 2 : L + ((parseIso(d).getTime() - t0) / (t1 - t0)) * (W - L - R));
   let lo = Math.min(...allP.map((p) => p.v)), hi = Math.max(...allP.map((p) => p.v));
   if (o.goal != null) { lo = Math.min(lo, o.goal); hi = Math.max(hi, o.goal); }
@@ -70,10 +71,11 @@ function drawLine(el, pts, o = {}) {
     ${bands}
     <g class="grid">${ticks.map((v) => `<line x1="${L}" x2="${W - R}" y1="${r1(ys(v))}" y2="${r1(ys(v))}"/>`).join('')}</g>
     <g class="axis">${ticks.map((v) => `<text x="${L - 6}" y="${r1(ys(v)) + 3.5}" text-anchor="end">${esc(o.tick ? o.tick(v) : nf(v, tickDec(ticks)))}</text>`).join('')}
-    ${projLab ? `<text x="${r1(xs(projLab.date))}" y="${H - 6}" text-anchor="end" fill="var(--purple)">${esc(fmtD(projLab.date))}</text>` : ''}${labs.map((k) => `<text x="${P[k][0]}" y="${H - 6}" text-anchor="${k === 0 && labs.length > 1 ? 'start' : k === pts.length - 1 && labs.length > 1 ? 'end' : 'middle'}">${esc(fmtD(pts[k].date))}</text>`).join('')}</g>
+    ${projLab ? `<text x="${r1(xs(projLab.date))}" y="${H - 6}" text-anchor="end" fill="var(--purple)">${esc(fmtD(projLab.date))}</text>` : ''}${o.from ? [0, 0.25, 0.5, 0.75, 1].map((f, i) => { const d = isoDate(new Date(t0 + f * (t1 - t0))); return `<text x="${r1(xs(d))}" y="${H - 6}" text-anchor="${i === 0 ? 'start' : i === 4 ? 'end' : 'middle'}">${esc(fmtD(d))}</text>`; }).join('') : labs.map((k) => `<text x="${P[k][0]}" y="${H - 6}" text-anchor="${k === 0 && labs.length > 1 ? 'start' : k === pts.length - 1 && labs.length > 1 ? 'end' : 'middle'}">${esc(fmtD(pts[k].date))}</text>`).join('')}</g>
     ${o.goal != null ? `<line x1="${L}" x2="${W - R}" y1="${r1(ys(o.goal))}" y2="${r1(ys(o.goal))}" stroke="var(--good)" stroke-dasharray="5 4" stroke-width="1.4"/><text x="${W - R}" y="${r1(ys(o.goal)) - 5}" text-anchor="end" fill="var(--good)" font-size="10.5" font-weight="600">${esc(o.goalLabel || 'Goal')}</text>` : ''}
     ${area ? `<path d="${area}" fill="url(#${id})"/>` : ''}
     ${P.length > 1 ? `<path d="${line}" fill="none" stroke="${color}" stroke-width="5" opacity=".35" filter="url(#${id}f)"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2.6" stroke-linecap="round"/>` : ''}
+    ${o.from ? P.map((q) => `<circle cx="${q[0]}" cy="${q[1]}" r="2.8" fill="${color}"/>`).join('') : ''}
     ${o.proj ? `<path d="M${P[P.length - 1][0]},${P[P.length - 1][1]}${o.proj.map((q) => `L${r1(xs(q.date))},${r1(ys(q.v))}`).join('')}" fill="none" stroke="var(--purple)" stroke-width="2.2" stroke-dasharray="6 5"/>${o.proj.map((q) => `<circle cx="${r1(xs(q.date))}" cy="${r1(ys(q.v))}" r="4" fill="var(--surface)" stroke="var(--purple)" stroke-width="2"/><circle class="hit" cx="${r1(xs(q.date))}" cy="${r1(ys(q.v))}" r="12" fill="transparent" data-tip="${esc('Projected ' + fmt(q.v))}|${esc(fmtDL(q.date))}"/>`).join('')}` : ''}
     ${P.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${pts.length > 40 ? 2 : 3.2}" fill="var(--surface)" stroke="${color}" stroke-width="2"/>`).join('')}
     <circle cx="${last[0]}" cy="${last[1]}" r="9" fill="${color}" opacity=".22"/><circle cx="${last[0]}" cy="${last[1]}" r="5" fill="${color}" stroke="var(--surface)" stroke-width="2"/>
@@ -287,7 +289,7 @@ function drawMulti(el, series, o = {}) {
   series = series.filter((s) => s.pts.length);
   if (!series.length) { el.innerHTML = ''; return; }
   const W = widthOf(el), H = o.h || 200, L = 40, R = 14, T = 14, B = 24, all = series.flatMap((s) => s.pts);
-  const dates = [...new Set(all.map((p) => p.date))].sort(), t0 = parseIso(dates[0]).getTime(), t1 = parseIso(dates[dates.length - 1]).getTime();
+  const dates = [...new Set([...all.map((p) => p.date), ...(o.from ? [o.from] : []), ...(o.to ? [o.to] : [])])].sort(), t0 = parseIso(dates[0]).getTime(), t1 = parseIso(dates[dates.length - 1]).getTime();
   const xs = (d) => (t1 === t0 ? (L + W - R) / 2 : L + ((parseIso(d).getTime() - t0) / (t1 - t0)) * (W - L - R));
   let lo = o.yMin ?? Math.min(...all.map((p) => p.v)), hi = o.yMax ?? Math.max(...all.map((p) => p.v));
   if (o.yMin == null || o.yMax == null) { const pad = (hi - lo || 1) * 0.12; if (o.yMin == null) lo -= pad; if (o.yMax == null) hi += pad; }
