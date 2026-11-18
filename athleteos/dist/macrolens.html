@@ -579,6 +579,56 @@ table.cmp th { font-size: 12px; color: var(--muted); font-weight: 600; }
 .dna-trait .small { margin-top: 3px; line-height: 1.5; }
 .dna-ic { width: 36px; height: 36px; flex: none; border-radius: 10px; background: var(--accent-soft); display: grid; place-items: center; font-size: 18px; }
 .dna-trait.locked .dna-ic { background: var(--surface-2); }
+.gd-banner { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; border: 0; border-radius: 18px; padding: 14px 16px; cursor: pointer; color: #fff7ef; background: radial-gradient(120% 120% at 100% 0%, #b4400f 0%, #2a1206 70%); box-shadow: 0 6px 20px rgba(180, 64, 15, .25); }
+.gd-banner .ball { font-size: 30px; flex: none; }
+.gd-banner b { display: block; font-family: var(--f-display); font-size: 21px; line-height: 1.1; }
+.gd-banner small { color: rgba(255, 247, 239, .78); font-size: 13px; }
+.gd-banner .go { margin-left: auto; font-weight: 800; font-size: 13px; background: rgba(255, 255, 255, .16); padding: 6px 10px; border-radius: 99px; white-space: nowrap; }
+dialog.gd { border: 0; padding: 0; width: 100%; max-width: 640px; height: 100%; max-height: 100%; margin: 0 auto; background: #0e0a08; color: #fbf3ec; }
+dialog.gd::backdrop { background: #000; }
+.gd-in { min-height: 100%; padding: calc(14px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 14px; align-content: start; }
+.gd-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.gd-kick { font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #ff9a55; }
+.gd-hero { border-radius: 24px; padding: 18px; background: radial-gradient(140% 120% at 100% 0%, #c2470f 0%, #3a1707 55%, #160b05 100%); border: 1px solid rgba(255, 154, 85, .3); }
+.gd-hero h2 { margin: 6px 0 0; font: italic 800 46px/0.95 var(--f-display); text-transform: uppercase; color: #fff; }
+.gd-count { display: flex; gap: 10px; margin-top: 14px; }
+.gd-count div { flex: 1; background: rgba(0, 0, 0, .28); border-radius: 14px; padding: 10px 6px; text-align: center; }
+.gd-count b { display: block; font: 800 34px/1 var(--f-display); font-variant-numeric: tabular-nums; color: #fff; }
+.gd-count small { font-size: 11px; color: rgba(255, 247, 239, .7); text-transform: uppercase; letter-spacing: .08em; }
+.gd-card { background: #1a1310; border: 1px solid #33241b; border-radius: 20px; padding: 16px; }
+.gd-card h3 { margin: 0 0 4px; font-family: var(--f-display); font-size: 21px; color: #fff; }
+.gd-card p { margin: 0; color: #cbb9ab; font-size: 14px; }
+.gd-now { border-color: #ff9a55; background: linear-gradient(180deg, #2a160b, #1a1310); }
+.gd-now .at { font: 800 15px var(--f-display); color: #ff9a55; letter-spacing: .04em; text-transform: uppercase; }
+.gd-now h3 { font-size: 28px; }
+.gd-step { display: grid; grid-template-columns: 64px 22px minmax(0, 1fr); gap: 8px; align-items: start; padding: 9px 0; border-top: 1px solid #2c201a; }
+.gd-step:first-child { border-top: 0; }
+.gd-step .t { font: 700 14px var(--f-display); color: #cbb9ab; padding-top: 2px; font-variant-numeric: tabular-nums; }
+.gd-step .ck { width: 22px; height: 22px; border-radius: 7px; border: 2px solid #4a3528; display: grid; place-items: center; font-size: 13px; background: none; color: #fff; padding: 0; }
+.gd-step.done .ck { background: #2fbf71; border-color: #2fbf71; }
+.gd-step.done b { text-decoration: line-through; opacity: .55; }
+.gd-step.now b { color: #ff9a55; }
+.gd-step b { font-size: 15px; color: #fff; }
+.gd-step small { display: block; color: #a8968a; font-size: 13px; margin-top: 2px; }
+.gd-pack { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+.gd-pack button { text-align: left; border: 1px solid #33241b; background: #120d0a; color: #fbf3ec; border-radius: 12px; padding: 9px 10px; font-size: 13px; font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.gd-pack button i { width: 16px; height: 16px; border-radius: 5px; border: 2px solid #4a3528; flex: none; font-style: normal; font-size: 10px; display: grid; place-items: center; }
+.gd-pack button.on { border-color: #2fbf71; color: #9be7bd; }
+.gd-pack button.on i { background: #2fbf71; border-color: #2fbf71; color: #062; }
+.gd-btn { border: 0; border-radius: 14px; padding: 12px 16px; font-weight: 800; background: #ff7a2e; color: #1a0d05; cursor: pointer; }
+.gd-btn.ghost { background: rgba(255, 255, 255, .08); color: #fbf3ec; border: 1px solid #3a2a20; }
+.gd-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.gd-bar { height: 10px; border-radius: 99px; background: #2c201a; overflow: hidden; margin-top: 8px; }
+.gd-bar div { height: 100%; background: linear-gradient(90deg, #3aa0ff, #6fd3ff); border-radius: 99px; }
+.gd-mini { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid #2c201a; }
+.gd-mini span { min-width: 0; }
+.gd-mini small { display: block; color: #a8968a; font-size: 12px; }
+.gd-in label { color: #cbb9ab; font-size: 13px; display: grid; gap: 4px; }
+.gd-in input, .gd-in select { background: #120d0a; border: 1px solid #3a2a20; color: #fbf3ec; border-radius: 12px; padding: 10px 12px; font-size: 16px; width: 100%; min-width: 0; }
+.gd-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.gd-rate { display: flex; gap: 6px; }
+.gd-rate button { flex: 1; border: 1px solid #3a2a20; background: #120d0a; color: #fbf3ec; border-radius: 12px; padding: 10px 0; font-weight: 800; }
+.gd-rate button.on { background: #ff7a2e; color: #1a0d05; border-color: #ff7a2e; }
 .section-label { font-family: var(--f-body); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 12px 4px -4px; }
 details.fold > summary { list-style: none; display: flex; align-items: center; gap: 10px; cursor: pointer; }
 details.fold > summary::-webkit-details-marker { display: none; }
@@ -822,7 +872,7 @@ h2, h3 { letter-spacing: -.01em; }
 
 <div class="wrap">
   <header class="topbar">
-    <div class="brand"><a class="os-back" href="index.html" aria-label="Back to Athlete OS">‹ OS</a>Macro<i>Lens</i></div>
+    <div class="brand" id="suite-host"><span class="suite-fallback">Macro<i>Lens</i></span></div>
     <div class="daynav" id="daynav">
       <button class="icon-btn" id="prev-day" aria-label="Previous day">‹</button>
       <div class="day-label"><strong id="day-title">Today</strong><span id="day-sub"></span></div>
@@ -833,6 +883,7 @@ h2, h3 { letter-spacing: -.01em; }
 
   <!-- DIARY -->
   <section id="view-today" class="view">
+    <button type="button" class="gd-banner" id="gd-banner" hidden></button>
     <div class="card summary">
       <div class="daytype" id="daytype" role="group" aria-label="Day type">
         <button type="button" data-type="training">Practice</button>
@@ -967,6 +1018,7 @@ h2, h3 { letter-spacing: -.01em; }
     <div data-group="game" class="card">
       <div class="row-between"><h3>Game day</h3><span class="muted small" id="game-when"></span></div>
       <form id="game-form" class="practice-row">
+        <label>Type<select id="g-kind"><option value="game">Game</option><option value="scrimmage">Scrimmage</option></select></label>
         <label>Game date<input type="date" id="g-date" required></label>
         <label>Tip-off<input type="time" id="g-time" required></label>
         <button class="btn">Set</button>
@@ -974,6 +1026,7 @@ h2, h3 { letter-spacing: -.01em; }
       <label class="small" style="margin:2px 0 6px">More games the same day? (tournament)<input type="text" id="g-more" placeholder="e.g. 1:30pm, 6:00pm"></label>
       <ol class="timeline" id="game-plan"></ol>
       <div id="cooler" class="fix" hidden style="margin-top:8px"></div>
+      <button class="btn primary" id="gd-open2" type="button" style="width:100%;margin-top:8px">🏀 Open game-day mode</button>
       <button class="btn" id="cal-game" type="button" hidden style="width:100%;margin-top:8px">Add game plan to my calendar</button>
     </div>
 
@@ -1399,6 +1452,9 @@ h2, h3 { letter-spacing: -.01em; }
   <div id="dna-body"></div>
 </dialog>
 
+<!-- GAME DAY MODE -->
+<dialog class="gd" id="gd" aria-labelledby="gd-title"><div class="gd-in" id="gd-body"></div></dialog>
+
 <!-- SCORES -->
 <dialog id="score-sheet" class="sheet" aria-labelledby="sc-title">
   <div class="sheet-head"><strong id="sc-title">Your scores</strong><button class="icon-btn" data-close aria-label="Close">✕</button></div>
@@ -1754,7 +1810,7 @@ function renderToday() {
   renderMiniPie(tot);
   renderDonuts(t);
   renderExtras(t, tot);
-  renderHydration(t); renderPostCard(); renderAlerts(); renderScoresCard(); syncDescribe();
+  renderHydration(t); renderPostCard(); renderAlerts(); renderScoresCard(); syncDescribe(); renderGDBanner();
   checkBadges();
   $('#micro-note').textContent = tot.missing ? `${tot.missing} item${tot.missing === 1 ? ' has' : 's have'} no nutrient data` : '';
 
@@ -2590,7 +2646,7 @@ function nightBeforePlan(start) {
 }
 function renderGame() {
   const g = core().game, today = todayIso();
-  if (g && !$('#g-date').value) { $('#g-date').value = g.date; $('#g-time').value = g.start; $('#g-more').value = (g.more || []).map((m) => fmtMin(toMin(m))).join(', '); }
+  if (g && !$('#g-date').value) { $('#g-date').value = g.date; $('#g-time').value = g.start; $('#g-kind').value = g.kind || 'game'; $('#g-more').value = (g.more || []).map((m) => fmtMin(toMin(m))).join(', '); }
   renderCooler();
   const el = $('#game-plan');
   if (!g || g.date < today) {
@@ -2609,13 +2665,14 @@ $('#game-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const more = parseTimes($('#g-more').value);
   if ($('#g-more').value.trim() && !more.length) return toast('Write extra game times like 1:30pm, 6:00pm');
-  const g = { date: $('#g-date').value, start: $('#g-time').value, more };
+  const g = { date: $('#g-date').value, start: $('#g-time').value, more, kind: $('#g-kind').value };
   if (!g.date || !g.start) return toast('Pick the game date and tip-off time');
   if (g.date < todayIso()) return toast('Pick today or a future date');
   core().game = g; persist('core');
   const d = dayDoc(g.date, true); d.type = 'training'; persist('day-' + g.date);
+  syncGameToApps(g);
   renderGame(); renderToday();
-  toast('Game day plan ready');
+  toast(`${g.kind === 'scrimmage' ? 'Scrimmage' : 'Game'} plan ready. Open game-day mode any time.`);
 });
 
 // ===================== Weekly averages (shared) =====================
@@ -5574,6 +5631,126 @@ function openDna() {
 }
 $('#dna-card').addEventListener('click', (e) => { if (e.target.closest('#dna-open')) openDna(); });
 
+
+// ===================== Game-day mode =====================
+// Full-screen game day: countdown, what to do right now, the timeline, the bag, water, then a quick post-game log.
+const gName = (g) => (g?.kind === 'scrimmage' ? 'Scrimmage' : 'Game');
+const gLen = (g) => (g?.kind === 'scrimmage' ? 120 : 105);
+const PACK = ['Shoes', 'Socks (extra pair)', 'Jersey / practice gear', 'Water bottles (2)', 'Sports drink', 'Pre-game snack', 'Halftime snack', 'Recovery: chocolate milk', 'Ankle braces / tape', 'Headphones', 'Towel', 'Phone charger'];
+const gdState = (date) => { const c = core(); c.gameDay = c.gameDay || {}; const k = Object.keys(c.gameDay); if (k.length > 12) for (const x of k.sort().slice(0, k.length - 12)) delete c.gameDay[x]; return (c.gameDay[date] ??= { pack: {}, done: {}, rating: 0, logged: false }); };
+function syncGameToApps(g) {
+  // Same website only: put the game on Gameplan's schedule for that day.
+  try {
+    const k = 'gp:d-' + g.date, d = JSON.parse(localStorage.getItem(k) || 'null') || { blocks: [], entries: [], night: { done: {}, completedAt: null } };
+    d.blocks = (d.blocks || []).filter((b) => b.src !== 'macrolens-game');
+    for (const [i, st] of gameStarts(g).entries()) d.blocks.push({ id: 'mlg' + i + Date.now().toString(36), title: gameStarts(g).length > 1 ? `${gName(g)} ${i + 1}` : gName(g), start: `${String(Math.floor(st / 60)).padStart(2, '0')}:${String(st % 60).padStart(2, '0')}`, mins: gLen(g), type: 'practice', done: false, src: 'macrolens-game' });
+    localStorage.setItem(k, JSON.stringify(d));
+  } catch {}
+}
+function gdPhase(g) {
+  const today = todayIso(), days = Math.round((new Date(g.date + 'T12:00:00') - new Date(today + 'T12:00:00')) / 864e5), now = nowMin(), starts = gameStarts(g), tip = starts[0], end = starts[starts.length - 1] + gLen(g);
+  if (days > 1) return { id: 'later', days };
+  if (days === 1) return { id: 'night', days };
+  if (days < 0) return { id: 'over', days };
+  if (now < tip - 240) return { id: 'morning', days };
+  if (now < tip) return { id: 'pre', days };
+  if (now < end) return { id: 'live', days };
+  return { id: 'post', days };
+}
+function gdSteps(g, ph) { return ph.id === 'night' ? nightBeforePlan(gameStarts(g)[0]).map((s) => ({ ...s, date: shiftIso(g.date, -1) })) : gameDaySteps(g).map((s) => ({ ...s, date: g.date })); }
+function gdDoneStep(g, st) {
+  const S = gdState(g.date); if (S.done[st.title + '@' + st.date]) return true;
+  if (!st.eat || st.date !== todayIso()) return false;
+  return entriesOf(st.date).some((e) => e.addedAt && Math.abs(addedMin(e) - st.at) <= 75);
+}
+function openGD() {
+  const g = core().game;
+  if (!g || g.date < todayIso()) { renderGDSetup(); $('#gd').showModal(); return; }
+  renderGD(); $('#gd').showModal();
+  clearInterval(openGD.t); openGD.t = setInterval(() => { if (!$('#gd').open) return clearInterval(openGD.t); const a = document.activeElement; const typing = a && $('#gd').contains(a) && a.matches('input,select'); const filled = [...$$('#gd-body input')].some((i) => i.value); if (!typing && !filled) renderGD(); }, 30000);
+}
+function renderGDSetup() {
+  $('#gd-body').innerHTML = `<div class="gd-top"><span class="gd-kick">Game-day mode</span><button type="button" class="gd-btn ghost" data-gd-close>Close</button></div>
+    <div class="gd-hero"><div class="gd-kick">Set it up</div><h2 id="gd-title">Next game</h2><p style="color:#e9d6c8;margin:8px 0 0">Add your next game or scrimmage and this becomes your game-day screen: countdown, what to eat and when, your bag, water and a quick post-game log.</p></div>
+    <div class="gd-card"><div class="gd-grid" style="grid-template-columns:1fr 1fr"><label>Type<select id="gds-kind"><option value="scrimmage">Scrimmage</option><option value="game">Game</option></select></label><label>Date<input type="date" id="gds-date" value="${shiftIso(todayIso(), 1)}"></label></div>
+      <label style="margin-top:10px">Tip-off<input type="time" id="gds-time" value="18:00"></label>
+      <div class="gd-row"><button type="button" class="gd-btn" id="gds-save" style="flex:1">Start game-day mode</button></div></div>`;
+}
+function renderGD() {
+  const g = core().game; if (!g) return renderGDSetup();
+  const ph = gdPhase(g), S = gdState(g.date), starts = gameStarts(g), tip = starts[0], t = targets(todayIso()), name = gName(g);
+  const tipAt = new Date(g.date + 'T00:00:00'); tipAt.setMinutes(tip);
+  const ms = Math.max(0, tipAt - Date.now()), hh = Math.floor(ms / 3600000), mm = Math.floor((ms % 3600000) / 60000);
+  const steps = gdSteps(g, ph), now = nowMin();
+  const live = ph.id === 'night' || ph.id === 'morning' || ph.id === 'pre' || ph.id === 'live' || ph.id === 'post';
+  let cur = null;
+  if (live && ph.id !== 'post') cur = steps.find((st, i) => !gdDoneStep(g, st) && (st.date > todayIso() || (st.at >= now - 45) || (steps[i + 1] && steps[i + 1].at > now)));
+  const title = { later: `${name} in ${ph.days} days`, night: `${name} tomorrow`, morning: `${name} day`, pre: `${name} day`, live: `${name} time`, post: `${name} done`, over: `${name} over` }[ph.id];
+  const sub = `${fmtMin(tip)}${starts.length > 1 ? ` · ${starts.length} games` : ''} · ${new Date(g.date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}`;
+  const water = dayDoc(todayIso())?.water || 0, wGoal = t.waterOz;
+  const packN = PACK.filter((x) => S.pack[x]).length;
+  const hero = `<div class="gd-hero"><div class="gd-kick">${esc(sub)}</div><h2 id="gd-title">${esc(title)}</h2>
+    ${ph.id === 'live' ? `<p style="color:#ffd7bd;margin:10px 0 0;font-weight:600">Sip water every timeout. Halftime: 8-12 oz of sports drink or orange slices.</p>` : ph.id === 'post' || ph.id === 'over' ? '' : `<div class="gd-count"><div><b>${hh}</b><small>hours</small></div><div><b>${String(mm).padStart(2, '0')}</b><small>minutes</small></div><div><b>${fmtMin(tip).replace(/\s?(AM|PM)/i, '')}</b><small>tip-off ${/PM/i.test(fmtMin(tip)) ? 'pm' : 'am'}</small></div></div>`}</div>`;
+  const nowCard = cur ? `<div class="gd-card gd-now"><div class="at">${cur.date > todayIso() ? 'Tomorrow ' : cur.date < todayIso() ? 'Tonight ' : ''}${cur.date === shiftIso(g.date, -1) && ph.id === 'night' ? 'Tonight · ' : ''}${fmtMin(cur.at)}${cur.at <= now && cur.date === todayIso() ? ' · now' : ''}</div><h3>${esc(cur.title)}</h3><p>${cur.body}</p>
+      <div class="gd-row">${cur.eat ? `<button type="button" class="gd-btn" data-gd-fit="${ph.id === 'post' ? 'recovery' : 'pre'}">What should I eat?</button>` : ''}<button type="button" class="gd-btn ghost" data-gd-step="${esc(cur.title + '@' + cur.date)}">Done</button></div></div>` : '';
+  const timeline = `<div class="gd-card"><h3>${ph.id === 'night' ? 'Tonight' : 'Game-day timeline'}</h3>${steps.map((st) => { const done = gdDoneStep(g, st), isNow = st === cur; return `<div class="gd-step${done ? ' done' : ''}${isNow ? ' now' : ''}"><span class="t">${fmtMin(st.at)}</span><button type="button" class="ck" data-gd-step="${esc(st.title + '@' + st.date)}" aria-label="Mark ${esc(st.title)} done" aria-pressed="${done}">${done ? '✓' : ''}</button><span><b>${esc(st.title)}</b><small>${st.body}</small></span></div>`; }).join('')}</div>`;
+  const pack = `<div class="gd-card"><div class="row-between"><h3>Pack the bag</h3><span style="color:${packN === PACK.length ? '#2fbf71' : '#a8968a'};font-size:13px;font-weight:700">${packN}/${PACK.length}</span></div><p>${ph.id === 'night' ? 'Pack it tonight so tomorrow is easy.' : 'Check it before you leave.'}</p><div class="gd-pack">${PACK.map((x) => `<button type="button" class="${S.pack[x] ? 'on' : ''}" data-gd-pack="${esc(x)}"><i>${S.pack[x] ? '✓' : ''}</i>${esc(x)}</button>`).join('')}</div></div>`;
+  const hydro = ph.id === 'night' ? '' : `<div class="gd-card"><div class="row-between"><h3>Water</h3><span style="font-size:13px;color:#cbb9ab" class="num">${water} / ${wGoal} oz</span></div><p>${ph.id === 'post' ? 'Replace what you sweated: 20-24 oz in the next hour.' : 'Pale yellow pee by tip-off means you are ready.'}</p><div class="gd-bar"><div style="width:${Math.min(100, (water / wGoal) * 100)}%"></div></div><div class="gd-row"><button type="button" class="gd-btn ghost" data-gd-water="8">+8 oz</button><button type="button" class="gd-btn ghost" data-gd-water="16">+16 oz</button><button type="button" class="gd-btn ghost" data-gd-water="20">+20 oz bottle</button></div></div>`;
+  const post = ph.id === 'post' || ph.id === 'live' || ph.id === 'over' ? (S.logged ? `<div class="gd-card"><h3>Logged ✓</h3><p>Your ${name.toLowerCase()} is saved${S.rating ? ` (rated ${S.rating}/5)` : ''}. It shows up in Court Lab's game log and in Fuel → performance.</p></div>`
+    : `<div class="gd-card"><h3>After the ${name.toLowerCase()}</h3><p>Quick log. Takes 20 seconds, and it teaches Fuel → performance what works for you.</p>
+      <label style="margin-top:10px">How did you play?</label><div class="gd-rate" style="margin-top:6px">${[1, 2, 3, 4, 5].map((n) => `<button type="button" class="${S.rating === n ? 'on' : ''}" data-gd-rate="${n}">${n}</button>`).join('')}</div>
+      <div class="gd-grid" style="margin-top:10px"><label>Points<input type="number" id="gdp-pts" min="0" max="99" inputmode="numeric"></label><label>Rebounds<input type="number" id="gdp-reb" min="0" max="40" inputmode="numeric"></label><label>Assists<input type="number" id="gdp-ast" min="0" max="40" inputmode="numeric"></label></div>
+      <div class="gd-grid" style="margin-top:8px"><label>Minutes<input type="number" id="gdp-min" min="0" max="60" inputmode="numeric"></label><label>Result<select id="gdp-res"><option value="">–</option><option value="W">Win</option><option value="L">Loss</option></select></label><label>Opponent<input type="text" id="gdp-opp" maxlength="30"></label></div>
+      <div class="gd-row"><button type="button" class="gd-btn" id="gdp-save" style="flex:1">Save ${name.toLowerCase()}</button></div></div>`) : '';
+  const later = ph.id === 'later' ? `<div class="gd-card"><h3>Nothing special yet</h3><p>Eat and sleep normally. Keep carbs up 2-3 days out and don't try new foods. The night-before plan shows up here the day before.</p></div>` : '';
+  const order = ph.id === 'night' ? [nowCard, pack, timeline] : ph.id === 'post' ? [post, nowCard, hydro, timeline] : ph.id === 'live' ? [hydro, post, timeline] : [nowCard, hydro, pack, timeline];
+  $('#gd-body').innerHTML = `<div class="gd-top"><span class="gd-kick">Game-day mode</span><div class="row-gap"><button type="button" class="gd-btn ghost" data-gd-edit>Change</button><button type="button" class="gd-btn ghost" data-gd-close>Close</button></div></div>` + hero + later + order.join('');
+}
+$('#gd').addEventListener('click', (e) => {
+  const t = e.target;
+  if (t.closest('[data-gd-close]')) return $('#gd').close();
+  if (t.closest('[data-gd-edit]')) { renderGDSetup(); const g = core().game; if (g) { $('#gds-kind').value = g.kind || 'game'; $('#gds-date').value = g.date; $('#gds-time').value = g.start; } return; }
+  if (t.closest('#gds-save')) {
+    const g = { date: $('#gds-date').value, start: $('#gds-time').value, more: core().game?.date === $('#gds-date').value ? core().game.more || [] : [], kind: $('#gds-kind').value };
+    if (!g.date || !g.start) return toast('Pick the date and tip-off time'); if (g.date < todayIso()) return toast('Pick today or a later date');
+    core().game = g; persist('core'); const d = dayDoc(g.date, true); d.type = 'training'; persist('day-' + g.date); syncGameToApps(g);
+    renderGD(); render(); $('#g-date').value = ''; return toast(`${gName(g)} set for ${fmtMin(toMin(g.start))}`);
+  }
+  const g = core().game; if (!g) return;
+  const S = gdState(g.date);
+  const st = t.closest('[data-gd-step]'); if (st) { S.done[st.dataset.gdStep] = !S.done[st.dataset.gdStep]; persist('core'); return renderGD(); }
+  const pk = t.closest('[data-gd-pack]'); if (pk) { S.pack[pk.dataset.gdPack] = !S.pack[pk.dataset.gdPack]; persist('core'); renderGD(); if (PACK.every((x) => S.pack[x])) toast('Bag packed. You are ready.'); return; }
+  const w = t.closest('[data-gd-water]'); if (w) { if (day !== todayIso()) { day = todayIso(); } addWater(Number(w.dataset.gdWater)); return renderGD(); }
+  const fit = t.closest('[data-gd-fit]'); if (fit) { $('#gd').close(); day = todayIso(); showView('today'); return openRescue(fit.dataset.gdFit); }
+  const r = t.closest('[data-gd-rate]'); if (r) { S.rating = Number(r.dataset.gdRate); persist('core'); $$('[data-gd-rate]').forEach((b) => b.classList.toggle('on', Number(b.dataset.gdRate) === S.rating)); return; }
+  if (t.closest('#gdp-save')) {
+    const num = (id, max) => { const v = $(id).value.trim(); if (v === '') return null; const n = Math.round(Number(v)); return Number.isFinite(n) && n >= 0 && n <= max ? n : NaN; };
+    const pts = num('#gdp-pts', 99), reb = num('#gdp-reb', 40), ast = num('#gdp-ast', 40), mins = num('#gdp-min', 60);
+    if ([pts, reb, ast, mins].some(Number.isNaN)) return toast('Check the numbers');
+    if (!S.rating && pts == null) return toast('Rate how you played, or enter your points');
+    // 1) MacroLens workout (feeds the calorie goal, recovery card and Fuel → performance)
+    const d = dayDoc(g.date, true), st0 = gameStarts(g)[0], gm = gLen(g) * gameStarts(g).length; // the whole session burns energy, not just minutes played
+    d.exercise = (d.exercise || []).filter((x) => x.src !== 'gameday');
+    d.exercise.push({ id: 'x' + Date.now(), type: 'game', name: gName(g), mins: gm, int: 'hard', kcal: exBurn('game', gm, 'hard'), time: `${String(Math.floor(st0 / 60)).padStart(2, '0')}:${String(st0 % 60).padStart(2, '0')}`, notes: [mins != null ? `${mins} min played` : '', pts != null ? `${pts} pts` : '', reb != null ? `${reb} reb` : '', ast != null ? `${ast} ast` : ''].filter(Boolean).join(', '), rating: S.rating || null, addedAt: Date.now(), src: 'gameday' });
+    persist('day-' + g.date);
+    // 2) Court Lab game log (same website)
+    try { const list = JSON.parse(localStorage.getItem('cl:gamelog') || '[]').filter((x) => x.src !== 'macrolens-' + g.date);
+      list.push({ id: 'g' + Date.now(), src: 'macrolens-' + g.date, date: g.date, opp: $('#gdp-opp').value.trim().slice(0, 30), lvl: g.kind === 'scrimmage' ? 'Pickup' : 'Varsity', res: $('#gdp-res').value, min: mins, pts: pts ?? 0, reb, ast, stl: null, tov: null, fgm: null, fga: null, tm: null, ta: null, ftm: null, fta: null, notes: g.kind === 'scrimmage' ? 'Scrimmage' : '' });
+      localStorage.setItem('cl:gamelog', JSON.stringify(list)); } catch {}
+    S.logged = true; persist('core'); render(); renderGD(); toast(`${gName(g)} saved. Go get your recovery meal.`);
+  }
+});
+$('#gd').addEventListener('cancel', () => clearInterval(openGD.t));
+$('#gd-banner').addEventListener('click', openGD);
+$('#gd-open2').addEventListener('click', openGD);
+function renderGDBanner() {
+  const el = $('#gd-banner'), g = core().game;
+  if (!g || day !== todayIso()) { el.hidden = true; return; }
+  const ph = gdPhase(g); if (!['night', 'morning', 'pre', 'live', 'post'].includes(ph.id) || gdState(g.date).logged) { el.hidden = true; return; }
+  const tip = gameStarts(g)[0], line = { night: `${gName(g)} tomorrow at ${fmtMin(tip)}`, morning: `${gName(g)} today at ${fmtMin(tip)}`, pre: `${gName(g)} at ${fmtMin(tip)}`, live: `${gName(g)} going on now`, post: `${gName(g)} done: log it and refuel` }[ph.id];
+  el.hidden = false;
+  el.innerHTML = `<span class="ball" aria-hidden="true">🏀</span><span><b>${esc(line)}</b><small>${ph.id === 'night' ? 'Tonight: carb dinner, pack your bag, sleep' : ph.id === 'post' ? 'Quick log + recovery meal' : 'Countdown, what to eat and when, water'}</small></span><span class="go">Game-day mode ›</span>`;
+}
 // ===================== Smart eating schedule =====================
 // A full day of meals and snacks built around wake time, bedtime, preferred meal times and every session today
 // (Coach practice, Weekboard, game day, timed workouts in the Exercise log). Feeds todaysSteps(), so the Diary's
@@ -6737,15 +6914,71 @@ setScanMode('plate');
 })();
 connectStore().then(() => { if (!core().profile && $('#sync').dataset.s !== 'synced') goProfileFirstRun(); });
 </script>
+<style>/* Athlete suite: the app switcher, identical on every page. Uses each page's own tokens (--fg, --muted, --surface…). */
+.suite { position: relative; display: inline-flex; min-width: 0; z-index: 30; }
+.suite-btn { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; color: var(--fg); cursor: pointer; padding: 4px 6px 4px 0; border-radius: 12px; font: 700 18px/1.1 var(--f-display); letter-spacing: -.2px; min-width: 0; }
+.suite-btn .suite-name { white-space: nowrap; }
+.suite-btn .suite-name i { font-style: normal; color: var(--suite-c); }
+.suite-btn svg { color: var(--muted); flex: none; transition: transform .15s; }
+.suite-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.suite-btn:focus-visible { outline: 2px solid var(--suite-c); outline-offset: 2px; }
+.suite-mark { width: 26px; height: 26px; border-radius: 8px; flex: none; background: linear-gradient(135deg, var(--suite-c), color-mix(in srgb, var(--suite-c) 55%, #7c3aed)); box-shadow: 0 6px 16px -8px var(--suite-c); position: relative; }
+.suite-mark::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .9); }
+.suite-menu { position: absolute; left: 0; top: calc(100% + 8px); width: min(300px, calc(100vw - 32px)); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 16px; padding: 6px; box-shadow: 0 18px 40px -12px rgba(0, 0, 0, .45); }
+.suite-head { font: 600 11px var(--f-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 8px 10px 6px; }
+.suite-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; color: var(--fg); text-decoration: none; }
+.suite-item:hover, .suite-item:focus-visible { background: var(--surface-2); outline: none; }
+.suite-item i { width: 10px; height: 34px; border-radius: 5px; background: var(--c); flex: none; }
+.suite-item span { min-width: 0; flex: 1; }
+.suite-item b { display: block; font: 600 15px var(--f-body); }
+.suite-item small { display: block; color: var(--muted); font: 400 12.5px/1.3 var(--f-body); }
+.suite-item em { font: 600 11px var(--f-body); font-style: normal; color: var(--c); }
+.suite-item.on { background: color-mix(in srgb, var(--c) 12%, transparent); }
+.suite-item.going { opacity: .6; }
 
-<style>.os-back{display:inline-flex;align-items:center;margin-right:8px;padding:4px 9px;border-radius:9px;font:600 12px var(--f-body);text-decoration:none;color:#fff;background:linear-gradient(135deg,var(--accent),var(--purple));vertical-align:2px}</style>
+@media (max-width: 430px) { #suite-host .suite-mark { display: none; } #suite-host .suite-btn { gap: 4px; font-size: 17px; } }</style>
 <script>
-// Athlete OS bridge: save before leaving, and open a section from the link that brought you here.
-document.querySelector('.os-back').addEventListener('click', async (e) => {
-  e.preventDefault();
-  try { await Promise.race([flush(), new Promise((r) => setTimeout(r, 2500))]); } catch {}
-  location.href = 'index.html';
-});
+// ===================== Athlete suite: shared across every page of the bundle =====================
+// One app switcher (the app's name, top-left, on every page), one theme setting, one list of apps.
+// Each page calls Suite.mount(el, '<app id>', beforeLeave) — beforeLeave saves pending changes before navigating.
+(function () {
+  const APPS = [
+    { id: 'aos', name: 'Athlete<i>OS</i>', plain: 'Athlete OS', href: 'index.html', desc: 'Training, performance, load and the Lab', color: '#3d8bff' },
+    { id: 'gp', name: 'Game<i>plan</i>', plain: 'Gameplan', href: 'gameplan.html', desc: 'Your day hour by hour, Top 3, night routine', color: '#22c55e' },
+    { id: 'ml', name: 'Macro<i>Lens</i>', plain: 'MacroLens', href: 'macrolens.html', desc: 'Food, macros, water and game-day fuel', color: '#f59e0b' },
+  ];
+  const THEME_KEY = 'macrolens-theme';
+  function theme() {
+    let c = 'dark'; try { c = localStorage.getItem(THEME_KEY) || 'dark'; } catch {}
+    if (c === 'light' || c === 'dark') document.documentElement.setAttribute('data-theme', c); else document.documentElement.removeAttribute('data-theme');
+  }
+  const chev = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  function mount(el, current, beforeLeave) {
+    if (!el) return;
+    const me = APPS.find((a) => a.id === current) || APPS[0];
+    el.classList.add('suite');
+    el.style.setProperty('--suite-c', me.color);
+    el.innerHTML = `<button type="button" class="suite-btn" aria-haspopup="menu" aria-expanded="false" aria-label="${me.plain}: switch app"><span class="suite-mark" aria-hidden="true"></span><span class="suite-name">${me.name}</span>${chev}</button>
+      <div class="suite-menu" role="menu" hidden><div class="suite-head">Your apps · same data</div>${APPS.map((a) => `<a role="menuitem" class="suite-item${a.id === me.id ? ' on' : ''}" href="${a.href}" data-suite="${a.id}" style="--c:${a.color}" ${a.id === me.id ? 'aria-current="page"' : ''}><i></i><span><b>${a.plain}</b><small>${a.desc}</small></span>${a.id === me.id ? '<em>Here</em>' : ''}</a>`).join('')}</div>`;
+    const btn = el.querySelector('.suite-btn'), menu = el.querySelector('.suite-menu');
+    const set = (open) => { menu.hidden = !open; btn.setAttribute('aria-expanded', String(open)); if (open) menu.querySelector('.suite-item:not(.on)')?.focus(); };
+    btn.addEventListener('click', (e) => { e.stopPropagation(); set(menu.hidden); });
+    document.addEventListener('click', (e) => { if (!el.contains(e.target)) set(false); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { set(false); btn.focus(); } });
+    menu.addEventListener('click', async (e) => {
+      const a = e.target.closest('[data-suite]'); if (!a) return;
+      e.preventDefault(); e.stopPropagation();
+      if (a.dataset.suite === me.id) return set(false);
+      a.classList.add('going');
+      try { await Promise.race([Promise.resolve(beforeLeave?.()), new Promise((r) => setTimeout(r, 2500))]); } catch {}
+      location.href = a.getAttribute('href');
+    });
+  }
+  window.Suite = { APPS, mount, theme, THEME_KEY };
+})();
+
+// Suite bridge: switcher (saves before leaving), and open a section from the link that brought you here (macrolens.html#coach-schedule).
+Suite.mount(document.getElementById('suite-host'), 'ml', () => flush());
 window.addEventListener('pagehide', () => { try { if (pending.size) flush(); } catch {} });
 (function openFromHash() {
   const [v, g] = location.hash.slice(1).split('-');
@@ -6754,4 +6987,5 @@ window.addEventListener('pagehide', () => { try { if (pending.size) flush(); } c
   if (v === 'coach' && g && typeof setCoachGroup === 'function') setCoachGroup(g);
 })();
 </script>
+
 </body></html>

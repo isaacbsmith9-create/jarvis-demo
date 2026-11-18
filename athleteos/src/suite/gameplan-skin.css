@@ -1,0 +1,34 @@
+/* Gameplan inside the Athlete suite: the same palette, fonts, cards and tab bar as Athlete OS, with a green accent.
+   Overrides Gameplan's own tokens (same selectors, later in the page), so its layout and features stay as they are. */
+:root {
+  --bg: #eef2fb; --surface: #ffffff; --surface-2: #e6ebf7; --line: #d5ddef; --fg: #0b1330; --muted: #5b6687;
+  --accent: #16a34a; --accent-ink: #ffffff; --accent-soft: #dcf5e5; --hi: #d97706; --hi-soft: #fdf0d9; --ok: #16a34a; --warn: #c2410c;
+  --q1: #e5484d; --q2: #2563eb; --q3: #d99a12; --q4: #7b8494; --purple: #7c3aed;
+  --f-display: "Space Grotesk", "Inter", system-ui, sans-serif; --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #060a17; --surface: #0d1430; --surface-2: #161f42; --line: #222d57; --fg: #eef2ff; --muted: #8e9ac4; --accent: #2fd68a; --accent-ink: #04140b; --accent-soft: #0f3326; --hi: #ffb547; --hi-soft: #3a2a12; --ok: #2fd68a; --warn: #ff8a4c; --q1: #ff6b7a; --q2: #4da3ff; --q3: #ffc23d; --q4: #8e9ac4; --purple: #8b5cff; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #060a17; --surface: #0d1430; --surface-2: #161f42; --line: #222d57; --fg: #eef2ff; --muted: #8e9ac4; --accent: #2fd68a; --accent-ink: #04140b; --accent-soft: #0f3326; --hi: #ffb547; --hi-soft: #3a2a12; --ok: #2fd68a; --warn: #ff8a4c; --q1: #ff6b7a; --q2: #4da3ff; --q3: #ffc23d; --q4: #8e9ac4; --purple: #8b5cff; color-scheme: dark; }
+body { font-family: var(--f-body); }
+/* Header: the suite switcher is the brand; the date sits under it. */
+.gp-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+header.top { align-items: center; margin-bottom: 16px; }
+header.top .date { margin-top: 6px; }
+/* Cards like Athlete OS */
+.card { border-radius: 18px; box-shadow: 0 1px 2px rgba(20, 30, 70, .06); }
+:root[data-theme="dark"] .card, :root:not([data-theme="light"]) .card { background: linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, 0) 40%), var(--surface); border-color: rgba(120, 140, 255, .16); box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 12px 30px -18px rgba(0, 0, 0, .8); }
+.card-head h2, .sched-bar h2 { font-family: var(--f-display); text-transform: none; letter-spacing: -.2px; font-size: 18px; font-weight: 700; }
+.eyebrow { letter-spacing: .06em; }
+.scoreboard { background: linear-gradient(135deg, #15803d, #0f766e); color: #fff; border-color: transparent; }
+:root[data-theme="dark"] .scoreboard, :root:not([data-theme="light"]) .scoreboard { background: linear-gradient(135deg, #0f5132, #0b3a4a); border-color: rgba(47, 214, 138, .3); }
+.scoreboard .now, .ring b, .timer .clock, .moon .big, .streak, .quad h3, .top3 .rank, .breakdown b { font-family: var(--f-display); text-transform: none; letter-spacing: -.5px; }
+.scoreboard .now { font-size: 21px; }
+.btn { border-radius: 12px; }
+.btn.primary { background: linear-gradient(135deg, #16a34a, #0d9488); border-color: transparent; color: #fff; box-shadow: 0 8px 22px -10px rgba(22, 163, 74, .6); }
+:root[data-theme="dark"] .btn.primary, :root:not([data-theme="light"]) .btn.primary { background: linear-gradient(135deg, #22c55e, #14b8a6); color: #04140b; }
+/* Tab bar like Athlete OS */
+nav.tabs { padding-top: 6px; }
+:root[data-theme="dark"] nav.tabs, :root:not([data-theme="light"]) nav.tabs { background: rgba(9, 14, 34, .86); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); border-top-color: rgba(120, 140, 255, .14); }
+.tab[aria-current="page"] svg { filter: drop-shadow(0 0 6px rgba(47, 214, 138, .45)); }
+dialog.sheet { border-radius: 22px 22px 0 0; }

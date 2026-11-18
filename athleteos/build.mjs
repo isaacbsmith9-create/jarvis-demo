@@ -1,4 +1,8 @@
-// Builds the Athlete OS artifact: dist/index.html (Athlete OS) + dist/macrolens.html (MacroLens) + dist/gameplan.html (Gameplan), one database.
+// Builds the Athlete suite artifact, one bundle with one shared database:
+//   dist/index.html     Athlete OS        (src/)
+//   dist/macrolens.html MacroLens copy    (vendor/macrolens.html = macrolens/artifact.html from the MacroLens branch, unchanged)
+//   dist/gameplan.html  Gameplan copy     (vendor/gameplan.html  = gameplan/artifact.html, restyled with the suite look)
+// Every page gets the same app switcher (src/suite/suite.js + suite.css) in place of its brand, and one theme setting.
 // Usage: node athleteos/build.mjs
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -6,27 +10,30 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const src = (f) => readFileSync(join(here, 'src', f), 'utf8');
+const vendor = (f) => readFileSync(join(here, 'vendor', f), 'utf8');
 const SKELETON = '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>\n';
-const JS = ['icons.js', 'store.js', 'data.js', 'charts.js', 'shell.js', 'home.js', 'analytics.js', 'hoops.js', 'tests.js', 'coach.js', 'sheets.js', 'library.js', 'intel.js', 'train.js', 'calendar.js', 'routines.js', 'load.js', 'goals.js', 'mind.js', 'hoops2.js', 'analytics2.js', 'director.js', 'profile.js', 'hub.js', 'gameplan.js', 'intel2.js', 'labengine.js', 'lab.js', 'lab2.js', 'main.js'];
-
+const JS = ['icons.js', 'store.js', 'data.js', 'charts.js', 'shell.js', 'home.js', 'analytics.js', 'hoops.js', 'tests.js', 'coach.js', 'sheets.js', 'library.js', 'intel.js', 'train.js', 'calendar.js', 'routines.js', 'load.js', 'goals.js', 'mind.js', 'hoops2.js', 'analytics2.js', 'director.js', 'profile.js', 'hub.js', 'gameplan.js', 'intel2.js', 'labengine.js', 'lab.js', 'lab2.js', 'signals.js', 'main.js'];
+const SUITE_JS = src('suite/suite.js'), SUITE_CSS = src('suite/suite.css');
 const out = join(here, 'dist');
 mkdirSync(out, { recursive: true });
-const page = src('index.html').replace('/*CSS*/', () => src('os.css')).replace('/*JS*/', () => JS.map((f) => `// ---- ${f} ----\n${src(f)}`).join('\n'));
+const swap = (html, from, to, what) => { if (!html.includes(from)) throw new Error(`${what}: anchor not found`); return html.replace(from, () => to); };
+const beforeLastScript = (html, add) => { const i = html.lastIndexOf('</script>') + '</script>'.length; return html.slice(0, i) + '\n' + add + html.slice(i); };
+
+// ---------- Athlete OS ----------
+const page = src('index.html')
+  .replace('/*CSS*/', () => src('os.css') + '\n' + SUITE_CSS)
+  .replace('/*JS*/', () => `// ---- suite.js ----\n${SUITE_JS}\n` + JS.map((f) => `// ---- ${f} ----\n${src(f)}`).join('\n'));
 writeFileSync(join(out, 'index.html'), SKELETON + page + '\n</body></html>\n');
 
-// MacroLens: the live build plus a way back to Athlete OS and #view-group deep links (e.g. macrolens.html#coach-schedule).
-let ml = readFileSync(join(here, '..', 'macrolens', 'live', 'index.html'), 'utf8');
-const brand = '<div class="brand">Macro<i>Lens</i></div>';
-if (!ml.includes(brand)) throw new Error('MacroLens brand anchor not found');
-ml = ml.replace(brand, '<div class="brand"><a class="os-back" href="index.html" aria-label="Back to Athlete OS">‹ OS</a>Macro<i>Lens</i></div>');
-const bridge = `<style>.os-back{display:inline-flex;align-items:center;margin-right:8px;padding:4px 9px;border-radius:9px;font:600 12px var(--f-body);text-decoration:none;color:#fff;background:linear-gradient(135deg,var(--accent),var(--purple));vertical-align:2px}</style>
+// ---------- MacroLens (unchanged app; only its brand becomes the suite switcher) ----------
+let ml = vendor('macrolens.html');
+ml = swap(ml, '<div class="brand">Macro<i>Lens</i></div>', '<div class="brand" id="suite-host"><span class="suite-fallback">Macro<i>Lens</i></span></div>', 'MacroLens brand');
+ml = beforeLastScript(ml, `<style>${SUITE_CSS}
+@media (max-width: 430px) { #suite-host .suite-mark { display: none; } #suite-host .suite-btn { gap: 4px; font-size: 17px; } }</style>
 <script>
-// Athlete OS bridge: save before leaving, and open a section from the link that brought you here.
-document.querySelector('.os-back').addEventListener('click', async (e) => {
-  e.preventDefault();
-  try { await Promise.race([flush(), new Promise((r) => setTimeout(r, 2500))]); } catch {}
-  location.href = 'index.html';
-});
+${SUITE_JS}
+// Suite bridge: switcher (saves before leaving), and open a section from the link that brought you here (macrolens.html#coach-schedule).
+Suite.mount(document.getElementById('suite-host'), 'ml', () => flush());
 window.addEventListener('pagehide', () => { try { if (pending.size) flush(); } catch {} });
 (function openFromHash() {
   const [v, g] = location.hash.slice(1).split('-');
@@ -34,33 +41,30 @@ window.addEventListener('pagehide', () => { try { if (pending.size) flush(); } c
   showView(v);
   if (v === 'coach' && g && typeof setCoachGroup === 'function') setCoachGroup(g);
 })();
-</script>
-`;
-const end = ml.lastIndexOf('</body>');
-ml = ml.slice(0, end) + bridge + ml.slice(end);
-writeFileSync(join(out, 'macrolens.html'), ml);
+</script>`);
+writeFileSync(join(out, 'macrolens.html'), SKELETON + ml + '\n</body></html>\n');
 
-// Gameplan: the Gameplan build (vendor/gameplan.html, from gameplan/artifact.html) told to share this artifact's storage,
-// with a way back to Athlete OS. Its keys become "ml:gp-…" and its docs "gp-…", so Athlete OS can read its schedule.
-let gp = readFileSync(join(here, 'vendor', 'gameplan.html'), 'utf8');
-const gpBrand = '<div><h1>Game<span>plan</span></h1>';
-if (!gp.includes(gpBrand) || !gp.includes('\n<script>\n')) throw new Error('Gameplan anchors not found');
-gp = gp.replace(gpBrand, '<div><a class="os-back" href="index.html" aria-label="Back to Athlete OS">‹ OS</a><h1>Game<span>plan</span></h1>');
-gp = gp.replace('\n<script>\n', `\n<style>.os-back{display:inline-flex;align-items:center;margin-bottom:6px;padding:4px 10px;border-radius:9px;font:600 12px var(--f-body);text-decoration:none;color:var(--accent-ink);background:var(--accent)}</style>
-<script>window.GP_EMBED = { prefix: 'ml:gp-', docPrefix: 'gp-', aosKey: 'ml:aos-plan' };</script>
-<script>\n`);
-const gpBridge = `<script>
-// Athlete OS bridge: finish saving before going back so Athlete OS loads the newest schedule.
-document.querySelector('.os-back').addEventListener('click', async (e) => {
-  e.preventDefault();
-  const t0 = Date.now();
-  try { flush(); while ((pending.size || flushing) && Date.now() - t0 < 2500) { await new Promise((r) => setTimeout(r, 100)); if (pending.size && !flushing) flush(); } } catch {}
-  location.href = 'index.html';
-});
-window.addEventListener('pagehide', () => { try { if (pending.size) flush(); } catch {} });
-</script>
-`;
-const gEnd = gp.lastIndexOf('</script>') + '</script>'.length;
-gp = SKELETON + gp.slice(0, gEnd) + '\n' + gpBridge + gp.slice(gEnd) + '\n</body></html>\n';
-writeFileSync(join(out, 'gameplan.html'), gp);
-console.log('built', join(out, 'index.html'), join(out, 'macrolens.html'), join(out, 'gameplan.html'));
+// ---------- Gameplan (shares this artifact's storage: keys "ml:gp-…", docs "gp-…"; restyled with the suite look) ----------
+let gp = vendor('gameplan.html');
+gp = swap(gp, '<div><h1>Game<span>plan</span></h1>', '<div><div id="suite-host" class="gp-suite"></div><h1 class="gp-sr">Gameplan</h1>', 'Gameplan brand');
+gp = swap(gp, '</style>', `</style>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">\n<style>${src('suite/gameplan-skin.css')}\n${SUITE_CSS}</style>`, 'Gameplan style');
+gp = swap(gp, '\n<script>\n', `\n<script>\n${SUITE_JS}\nSuite.theme();\nwindow.GP_EMBED = { prefix: 'ml:gp-', docPrefix: 'gp-', aosKey: 'ml:aos-plan' };\n</script>\n<script>\n`, 'Gameplan script');
+gp = beforeLastScript(gp, `<script>
+// Suite bridge: the switcher finishes saving before leaving, and Gameplan publishes its weekly signals (doc "gp-sig").
+async function gpSave() { const t0 = Date.now(); flush(); while ((pending.size || flushing) && Date.now() - t0 < 2500) { await new Promise((r) => setTimeout(r, 100)); if (pending.size && !flushing) flush(); } }
+Suite.mount(document.getElementById('suite-host'), 'gp', gpSave);
+function gpSignals() {
+  try {
+    const t = todayIso(), mon = mondayOf(t), days = Array.from({ length: 7 }, (_, i) => shiftIso(mon, i));
+    const busy = Object.fromEntries(days.map((d) => [d, (day(d, false)?.blocks || []).filter((b) => b.type !== 'sleep').reduce((a, b) => a + (Number(b.mins) || 0), 0)]));
+    const school = Object.fromEntries(days.map((d) => [d, (day(d, false)?.blocks || []).filter((b) => b.type === 'school' || b.type === 'focus').reduce((a, b) => a + (Number(b.mins) || 0), 0)]));
+    const s = { v: 1, app: 'gp', week: mon, updated: t, busyMinsByDay: busy, schoolMinsByDay: school, openTasks: core().tasks.filter((x) => !x.done).length, top3Today: topFor(t).map((x) => x.title).slice(0, 3), bed: core().routine.bed, wake: core().routine.wake };
+    const cur = doc('sig') || {}; if (JSON.stringify({ ...cur, updated: 0 }) === JSON.stringify({ ...s, updated: 0 })) return;
+    cache.sig = s; persist('sig');
+  } catch (e) { console.error(e); }
+}
+setTimeout(gpSignals, 1500);
+window.addEventListener('pagehide', () => { try { gpSignals(); if (pending.size) flush(); } catch {} });
+</script>`);
+writeFileSync(join(out, 'gameplan.html'), SKELETON + gp + '\n</body></html>\n');
+console.log('built', ['index.html', 'macrolens.html', 'gameplan.html'].map((f) => join(out, f)).join(' '));

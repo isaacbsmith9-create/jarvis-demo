@@ -501,11 +501,35 @@ a.tlev { text-decoration: none; }
 .cmp-b > div { height: 10px; background: var(--surface-2); border-radius: 6px; overflow: hidden; } .cmp-b > div i { display: block; height: 100%; border-radius: 6px; }
 .cmp-b b { text-align: right; }
 @media (max-width: 430px) { .lab-table.lab-cmp { font-size: 11.5px; } .cmp-b { grid-template-columns: 84px minmax(0, 1fr) 48px; } }
+/* Brand = suite switcher */
+.brand#suite-host { gap: 0; }
+
+/* Athlete suite: the app switcher, identical on every page. Uses each page's own tokens (--fg, --muted, --surface…). */
+.suite { position: relative; display: inline-flex; min-width: 0; z-index: 30; }
+.suite-btn { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; color: var(--fg); cursor: pointer; padding: 4px 6px 4px 0; border-radius: 12px; font: 700 18px/1.1 var(--f-display); letter-spacing: -.2px; min-width: 0; }
+.suite-btn .suite-name { white-space: nowrap; }
+.suite-btn .suite-name i { font-style: normal; color: var(--suite-c); }
+.suite-btn svg { color: var(--muted); flex: none; transition: transform .15s; }
+.suite-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.suite-btn:focus-visible { outline: 2px solid var(--suite-c); outline-offset: 2px; }
+.suite-mark { width: 26px; height: 26px; border-radius: 8px; flex: none; background: linear-gradient(135deg, var(--suite-c), color-mix(in srgb, var(--suite-c) 55%, #7c3aed)); box-shadow: 0 6px 16px -8px var(--suite-c); position: relative; }
+.suite-mark::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .9); }
+.suite-menu { position: absolute; left: 0; top: calc(100% + 8px); width: min(300px, calc(100vw - 32px)); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 16px; padding: 6px; box-shadow: 0 18px 40px -12px rgba(0, 0, 0, .45); }
+.suite-head { font: 600 11px var(--f-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 8px 10px 6px; }
+.suite-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; color: var(--fg); text-decoration: none; }
+.suite-item:hover, .suite-item:focus-visible { background: var(--surface-2); outline: none; }
+.suite-item i { width: 10px; height: 34px; border-radius: 5px; background: var(--c); flex: none; }
+.suite-item span { min-width: 0; flex: 1; }
+.suite-item b { display: block; font: 600 15px var(--f-body); }
+.suite-item small { display: block; color: var(--muted); font: 400 12.5px/1.3 var(--f-body); }
+.suite-item em { font: 600 11px var(--f-body); font-style: normal; color: var(--c); }
+.suite-item.on { background: color-mix(in srgb, var(--c) 12%, transparent); }
+.suite-item.going { opacity: .6; }
 
 </style>
 <div class="wrap">
   <header class="topbar">
-    <div class="brand"><span class="mark" id="brand-mark"></span><span>Athlete<i>OS</i></span></div>
+    <div class="brand" id="suite-host"></div>
     <div class="top-actions">
       <span class="sync" id="sync" data-s="local">This device</span>
       <a class="fuel-link" data-ml href="macrolens.html">MacroLens</a>
@@ -529,6 +553,46 @@ a.tlev { text-decoration: none; }
 <dialog class="sheet" id="sheet" aria-label="Form"></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
+// ---- suite.js ----
+// ===================== Athlete suite: shared across every page of the bundle =====================
+// One app switcher (the app's name, top-left, on every page), one theme setting, one list of apps.
+// Each page calls Suite.mount(el, '<app id>', beforeLeave) — beforeLeave saves pending changes before navigating.
+(function () {
+  const APPS = [
+    { id: 'aos', name: 'Athlete<i>OS</i>', plain: 'Athlete OS', href: 'index.html', desc: 'Training, performance, load and the Lab', color: '#3d8bff' },
+    { id: 'gp', name: 'Game<i>plan</i>', plain: 'Gameplan', href: 'gameplan.html', desc: 'Your day hour by hour, Top 3, night routine', color: '#22c55e' },
+    { id: 'ml', name: 'Macro<i>Lens</i>', plain: 'MacroLens', href: 'macrolens.html', desc: 'Food, macros, water and game-day fuel', color: '#f59e0b' },
+  ];
+  const THEME_KEY = 'macrolens-theme';
+  function theme() {
+    let c = 'dark'; try { c = localStorage.getItem(THEME_KEY) || 'dark'; } catch {}
+    if (c === 'light' || c === 'dark') document.documentElement.setAttribute('data-theme', c); else document.documentElement.removeAttribute('data-theme');
+  }
+  const chev = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  function mount(el, current, beforeLeave) {
+    if (!el) return;
+    const me = APPS.find((a) => a.id === current) || APPS[0];
+    el.classList.add('suite');
+    el.style.setProperty('--suite-c', me.color);
+    el.innerHTML = `<button type="button" class="suite-btn" aria-haspopup="menu" aria-expanded="false" aria-label="${me.plain}: switch app"><span class="suite-mark" aria-hidden="true"></span><span class="suite-name">${me.name}</span>${chev}</button>
+      <div class="suite-menu" role="menu" hidden><div class="suite-head">Your apps · same data</div>${APPS.map((a) => `<a role="menuitem" class="suite-item${a.id === me.id ? ' on' : ''}" href="${a.href}" data-suite="${a.id}" style="--c:${a.color}" ${a.id === me.id ? 'aria-current="page"' : ''}><i></i><span><b>${a.plain}</b><small>${a.desc}</small></span>${a.id === me.id ? '<em>Here</em>' : ''}</a>`).join('')}</div>`;
+    const btn = el.querySelector('.suite-btn'), menu = el.querySelector('.suite-menu');
+    const set = (open) => { menu.hidden = !open; btn.setAttribute('aria-expanded', String(open)); if (open) menu.querySelector('.suite-item:not(.on)')?.focus(); };
+    btn.addEventListener('click', (e) => { e.stopPropagation(); set(menu.hidden); });
+    document.addEventListener('click', (e) => { if (!el.contains(e.target)) set(false); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { set(false); btn.focus(); } });
+    menu.addEventListener('click', async (e) => {
+      const a = e.target.closest('[data-suite]'); if (!a) return;
+      e.preventDefault(); e.stopPropagation();
+      if (a.dataset.suite === me.id) return set(false);
+      a.classList.add('going');
+      try { await Promise.race([Promise.resolve(beforeLeave?.()), new Promise((r) => setTimeout(r, 2500))]); } catch {}
+      location.href = a.getAttribute('href');
+    });
+  }
+  window.Suite = { APPS, mount, theme, THEME_KEY };
+})();
+
 // ---- icons.js ----
 // Line icons (24px grid, 1.8 stroke) shared across the app.
 const ic = (d, extra = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${d}</svg>`;
@@ -5628,17 +5692,45 @@ ACTIONS['lab-goal'] = (b) => {
   const o = ui('labOpen', {}); delete o.ath; setUi('labOpen', o); saveDraft('ath', d); go('lab', 'ath');
 };
 
+// ---- signals.js ----
+// ===================== Suite signals =====================
+// Each app in the bundle publishes one small weekly summary that the other apps may read (never write).
+// Athlete OS owns "aos-signals". Gameplan owns "gp-sig". See athleteos/CONTRACT.md.
+BLANK['aos-signals'] = () => ({});
+function aosSignals() {
+  const t = todayIso(), mon = mondayOf(t), wk = Array.from({ length: 7 }, (_, i) => shiftIso(mon, i)), past = wk.filter((d) => d <= t), ls = loadStats(t);
+  let rd = null; try { rd = readiness(t)?.score ?? null; } catch {}
+  const planned = wk.map((d) => itemsOn(d).filter((x) => x.type !== 'routine').length);
+  return {
+    v: 1, app: 'aos', week: mon, updated: t,
+    acuteLoad: ls.acute, chronicLoad: ls.chronic, acwr: ls.acwr, readiness: rd,
+    trainDays: past.filter(isActive).length, trainMins: sum(past.flatMap((d) => exList(d).map((x) => Number(x.mins) || 0))),
+    plannedByDay: Object.fromEntries(wk.map((d, i) => [d, planned[i]])),
+    nextGame: aos().profile?.nextGame || (core().game?.date >= t ? core().game.date : null),
+  };
+}
+function writeSignals() {
+  try {
+    const s = aosSignals(), cur = doc('aos-signals') || {};
+    if (JSON.stringify({ ...cur, updated: 0 }) === JSON.stringify({ ...s, updated: 0 })) return;
+    cache['aos-signals'] = s; persist('aos-signals');
+  } catch (e) { console.error(e); }
+}
+/** Read another app's summary (read-only). */
+const suiteSignal = (key) => doc(key) || null;
+
 // ---- main.js ----
 // ===================== boot =====================
 $('#tabbar').innerHTML = `<div class="tabbar-inner">${VIEWS.filter((v) => !v[3]).map(([k, l, i]) => `<button type="button" class="tab" data-view="${k}">${ICONS[i]}${l}</button>`).join('')}</div>`;
 $('#tabbar').addEventListener('click', (e) => { const t = e.target.closest('.tab'); if (t) go(t.dataset.view); });
-$('#brand-mark').innerHTML = ICONS.logo;
+Suite.mount($('#suite-host'), 'aos', () => flush());
 $('#btn-apps').innerHTML = ICONS.grid;
 $('#btn-settings').innerHTML = ICONS.user;
 parseHash();
 mirrorCourtLab();
 render();
-connectStore(() => { mirrorCourtLab(); refresh(); });
+connectStore(() => { mirrorCourtLab(); refresh(); writeSignals(); });
+setTimeout(writeSignals, 1500);
 (async () => {
   if (!window.claude?.use) return;
   try { ai = await claude.use('sample'); } catch { ai = null; }

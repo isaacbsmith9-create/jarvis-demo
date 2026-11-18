@@ -219,10 +219,68 @@ input[type=text], input[type=time], input[type=date], input[type=number], select
 .toast.show { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>/* Gameplan inside the Athlete suite: the same palette, fonts, cards and tab bar as Athlete OS, with a green accent.
+   Overrides Gameplan's own tokens (same selectors, later in the page), so its layout and features stay as they are. */
+:root {
+  --bg: #eef2fb; --surface: #ffffff; --surface-2: #e6ebf7; --line: #d5ddef; --fg: #0b1330; --muted: #5b6687;
+  --accent: #16a34a; --accent-ink: #ffffff; --accent-soft: #dcf5e5; --hi: #d97706; --hi-soft: #fdf0d9; --ok: #16a34a; --warn: #c2410c;
+  --q1: #e5484d; --q2: #2563eb; --q3: #d99a12; --q4: #7b8494; --purple: #7c3aed;
+  --f-display: "Space Grotesk", "Inter", system-ui, sans-serif; --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #060a17; --surface: #0d1430; --surface-2: #161f42; --line: #222d57; --fg: #eef2ff; --muted: #8e9ac4; --accent: #2fd68a; --accent-ink: #04140b; --accent-soft: #0f3326; --hi: #ffb547; --hi-soft: #3a2a12; --ok: #2fd68a; --warn: #ff8a4c; --q1: #ff6b7a; --q2: #4da3ff; --q3: #ffc23d; --q4: #8e9ac4; --purple: #8b5cff; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #060a17; --surface: #0d1430; --surface-2: #161f42; --line: #222d57; --fg: #eef2ff; --muted: #8e9ac4; --accent: #2fd68a; --accent-ink: #04140b; --accent-soft: #0f3326; --hi: #ffb547; --hi-soft: #3a2a12; --ok: #2fd68a; --warn: #ff8a4c; --q1: #ff6b7a; --q2: #4da3ff; --q3: #ffc23d; --q4: #8e9ac4; --purple: #8b5cff; color-scheme: dark; }
+body { font-family: var(--f-body); }
+/* Header: the suite switcher is the brand; the date sits under it. */
+.gp-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+header.top { align-items: center; margin-bottom: 16px; }
+header.top .date { margin-top: 6px; }
+/* Cards like Athlete OS */
+.card { border-radius: 18px; box-shadow: 0 1px 2px rgba(20, 30, 70, .06); }
+:root[data-theme="dark"] .card, :root:not([data-theme="light"]) .card { background: linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, 0) 40%), var(--surface); border-color: rgba(120, 140, 255, .16); box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 12px 30px -18px rgba(0, 0, 0, .8); }
+.card-head h2, .sched-bar h2 { font-family: var(--f-display); text-transform: none; letter-spacing: -.2px; font-size: 18px; font-weight: 700; }
+.eyebrow { letter-spacing: .06em; }
+.scoreboard { background: linear-gradient(135deg, #15803d, #0f766e); color: #fff; border-color: transparent; }
+:root[data-theme="dark"] .scoreboard, :root:not([data-theme="light"]) .scoreboard { background: linear-gradient(135deg, #0f5132, #0b3a4a); border-color: rgba(47, 214, 138, .3); }
+.scoreboard .now, .ring b, .timer .clock, .moon .big, .streak, .quad h3, .top3 .rank, .breakdown b { font-family: var(--f-display); text-transform: none; letter-spacing: -.5px; }
+.scoreboard .now { font-size: 21px; }
+.btn { border-radius: 12px; }
+.btn.primary { background: linear-gradient(135deg, #16a34a, #0d9488); border-color: transparent; color: #fff; box-shadow: 0 8px 22px -10px rgba(22, 163, 74, .6); }
+:root[data-theme="dark"] .btn.primary, :root:not([data-theme="light"]) .btn.primary { background: linear-gradient(135deg, #22c55e, #14b8a6); color: #04140b; }
+/* Tab bar like Athlete OS */
+nav.tabs { padding-top: 6px; }
+:root[data-theme="dark"] nav.tabs, :root:not([data-theme="light"]) nav.tabs { background: rgba(9, 14, 34, .86); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); border-top-color: rgba(120, 140, 255, .14); }
+.tab[aria-current="page"] svg { filter: drop-shadow(0 0 6px rgba(47, 214, 138, .45)); }
+dialog.sheet { border-radius: 22px 22px 0 0; }
+
+/* Athlete suite: the app switcher, identical on every page. Uses each page's own tokens (--fg, --muted, --surface…). */
+.suite { position: relative; display: inline-flex; min-width: 0; z-index: 30; }
+.suite-btn { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; color: var(--fg); cursor: pointer; padding: 4px 6px 4px 0; border-radius: 12px; font: 700 18px/1.1 var(--f-display); letter-spacing: -.2px; min-width: 0; }
+.suite-btn .suite-name { white-space: nowrap; }
+.suite-btn .suite-name i { font-style: normal; color: var(--suite-c); }
+.suite-btn svg { color: var(--muted); flex: none; transition: transform .15s; }
+.suite-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.suite-btn:focus-visible { outline: 2px solid var(--suite-c); outline-offset: 2px; }
+.suite-mark { width: 26px; height: 26px; border-radius: 8px; flex: none; background: linear-gradient(135deg, var(--suite-c), color-mix(in srgb, var(--suite-c) 55%, #7c3aed)); box-shadow: 0 6px 16px -8px var(--suite-c); position: relative; }
+.suite-mark::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .9); }
+.suite-menu { position: absolute; left: 0; top: calc(100% + 8px); width: min(300px, calc(100vw - 32px)); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 16px; padding: 6px; box-shadow: 0 18px 40px -12px rgba(0, 0, 0, .45); }
+.suite-head { font: 600 11px var(--f-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 8px 10px 6px; }
+.suite-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; color: var(--fg); text-decoration: none; }
+.suite-item:hover, .suite-item:focus-visible { background: var(--surface-2); outline: none; }
+.suite-item i { width: 10px; height: 34px; border-radius: 5px; background: var(--c); flex: none; }
+.suite-item span { min-width: 0; flex: 1; }
+.suite-item b { display: block; font: 600 15px var(--f-body); }
+.suite-item small { display: block; color: var(--muted); font: 400 12.5px/1.3 var(--f-body); }
+.suite-item em { font: 600 11px var(--f-body); font-style: normal; color: var(--c); }
+.suite-item.on { background: color-mix(in srgb, var(--c) 12%, transparent); }
+.suite-item.going { opacity: .6; }
+</style>
 
 <div class="wrap">
   <header class="top">
-    <div><a class="os-back" href="index.html" aria-label="Back to Athlete OS">‹ OS</a><h1>Game<span>plan</span></h1><div class="date" id="date-label"></div></div>
+    <div><div id="suite-host" class="gp-suite"></div><h1 class="gp-sr">Gameplan</h1><div class="date" id="date-label"></div></div>
     <span class="pill" id="sync" data-s="local">This device</span>
   </header>
 
@@ -391,8 +449,49 @@ input[type=text], input[type=time], input[type=date], input[type=number], select
 
 <div class="toast" id="toast" role="status"></div>
 
-<style>.os-back{display:inline-flex;align-items:center;margin-bottom:6px;padding:4px 10px;border-radius:9px;font:600 12px var(--f-body);text-decoration:none;color:var(--accent-ink);background:var(--accent)}</style>
-<script>window.GP_EMBED = { prefix: 'ml:gp-', docPrefix: 'gp-', aosKey: 'ml:aos-plan' };</script>
+<script>
+// ===================== Athlete suite: shared across every page of the bundle =====================
+// One app switcher (the app's name, top-left, on every page), one theme setting, one list of apps.
+// Each page calls Suite.mount(el, '<app id>', beforeLeave) — beforeLeave saves pending changes before navigating.
+(function () {
+  const APPS = [
+    { id: 'aos', name: 'Athlete<i>OS</i>', plain: 'Athlete OS', href: 'index.html', desc: 'Training, performance, load and the Lab', color: '#3d8bff' },
+    { id: 'gp', name: 'Game<i>plan</i>', plain: 'Gameplan', href: 'gameplan.html', desc: 'Your day hour by hour, Top 3, night routine', color: '#22c55e' },
+    { id: 'ml', name: 'Macro<i>Lens</i>', plain: 'MacroLens', href: 'macrolens.html', desc: 'Food, macros, water and game-day fuel', color: '#f59e0b' },
+  ];
+  const THEME_KEY = 'macrolens-theme';
+  function theme() {
+    let c = 'dark'; try { c = localStorage.getItem(THEME_KEY) || 'dark'; } catch {}
+    if (c === 'light' || c === 'dark') document.documentElement.setAttribute('data-theme', c); else document.documentElement.removeAttribute('data-theme');
+  }
+  const chev = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  function mount(el, current, beforeLeave) {
+    if (!el) return;
+    const me = APPS.find((a) => a.id === current) || APPS[0];
+    el.classList.add('suite');
+    el.style.setProperty('--suite-c', me.color);
+    el.innerHTML = `<button type="button" class="suite-btn" aria-haspopup="menu" aria-expanded="false" aria-label="${me.plain}: switch app"><span class="suite-mark" aria-hidden="true"></span><span class="suite-name">${me.name}</span>${chev}</button>
+      <div class="suite-menu" role="menu" hidden><div class="suite-head">Your apps · same data</div>${APPS.map((a) => `<a role="menuitem" class="suite-item${a.id === me.id ? ' on' : ''}" href="${a.href}" data-suite="${a.id}" style="--c:${a.color}" ${a.id === me.id ? 'aria-current="page"' : ''}><i></i><span><b>${a.plain}</b><small>${a.desc}</small></span>${a.id === me.id ? '<em>Here</em>' : ''}</a>`).join('')}</div>`;
+    const btn = el.querySelector('.suite-btn'), menu = el.querySelector('.suite-menu');
+    const set = (open) => { menu.hidden = !open; btn.setAttribute('aria-expanded', String(open)); if (open) menu.querySelector('.suite-item:not(.on)')?.focus(); };
+    btn.addEventListener('click', (e) => { e.stopPropagation(); set(menu.hidden); });
+    document.addEventListener('click', (e) => { if (!el.contains(e.target)) set(false); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { set(false); btn.focus(); } });
+    menu.addEventListener('click', async (e) => {
+      const a = e.target.closest('[data-suite]'); if (!a) return;
+      e.preventDefault(); e.stopPropagation();
+      if (a.dataset.suite === me.id) return set(false);
+      a.classList.add('going');
+      try { await Promise.race([Promise.resolve(beforeLeave?.()), new Promise((r) => setTimeout(r, 2500))]); } catch {}
+      location.href = a.getAttribute('href');
+    });
+  }
+  window.Suite = { APPS, mount, theme, THEME_KEY };
+})();
+
+Suite.theme();
+window.GP_EMBED = { prefix: 'ml:gp-', docPrefix: 'gp-', aosKey: 'ml:aos-plan' };
+</script>
 <script>
 // ===================== helpers =====================
 const $ = (s, r = document) => r.querySelector(s);
@@ -967,15 +1066,21 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) rend
 syncQaFlags(); tidy(); route(); connectStore();
 </script>
 <script>
-// Athlete OS bridge: finish saving before going back so Athlete OS loads the newest schedule.
-document.querySelector('.os-back').addEventListener('click', async (e) => {
-  e.preventDefault();
-  const t0 = Date.now();
-  try { flush(); while ((pending.size || flushing) && Date.now() - t0 < 2500) { await new Promise((r) => setTimeout(r, 100)); if (pending.size && !flushing) flush(); } } catch {}
-  location.href = 'index.html';
-});
-window.addEventListener('pagehide', () => { try { if (pending.size) flush(); } catch {} });
+// Suite bridge: the switcher finishes saving before leaving, and Gameplan publishes its weekly signals (doc "gp-sig").
+async function gpSave() { const t0 = Date.now(); flush(); while ((pending.size || flushing) && Date.now() - t0 < 2500) { await new Promise((r) => setTimeout(r, 100)); if (pending.size && !flushing) flush(); } }
+Suite.mount(document.getElementById('suite-host'), 'gp', gpSave);
+function gpSignals() {
+  try {
+    const t = todayIso(), mon = mondayOf(t), days = Array.from({ length: 7 }, (_, i) => shiftIso(mon, i));
+    const busy = Object.fromEntries(days.map((d) => [d, (day(d, false)?.blocks || []).filter((b) => b.type !== 'sleep').reduce((a, b) => a + (Number(b.mins) || 0), 0)]));
+    const school = Object.fromEntries(days.map((d) => [d, (day(d, false)?.blocks || []).filter((b) => b.type === 'school' || b.type === 'focus').reduce((a, b) => a + (Number(b.mins) || 0), 0)]));
+    const s = { v: 1, app: 'gp', week: mon, updated: t, busyMinsByDay: busy, schoolMinsByDay: school, openTasks: core().tasks.filter((x) => !x.done).length, top3Today: topFor(t).map((x) => x.title).slice(0, 3), bed: core().routine.bed, wake: core().routine.wake };
+    const cur = doc('sig') || {}; if (JSON.stringify({ ...cur, updated: 0 }) === JSON.stringify({ ...s, updated: 0 })) return;
+    cache.sig = s; persist('sig');
+  } catch (e) { console.error(e); }
+}
+setTimeout(gpSignals, 1500);
+window.addEventListener('pagehide', () => { try { gpSignals(); if (pending.size) flush(); } catch {} });
 </script>
-
 
 </body></html>
