@@ -134,7 +134,7 @@ const CARD_BODY = {
   distribution(R) {
     const I = intel(R), sc = I.rows.filter((x) => x.score != null && x.m.scored);
     if (!sc.length) return '<p class="muted small">No scored measures in this range.</p>';
-    const bands = [[80, 101, 'Elite range (80–100)'], [60, 80, 'Strong (60–79)'], [40, 60, 'Developing (40–59)'], [20, 40, 'Weak (20–39)'], [0, 20, 'Priority (0–19)']];
+    const bands = [[80, 101, '80–100 elite'], [60, 80, '60–79 strong'], [40, 60, '40–59 developing'], [20, 40, '20–39 weak'], [0, 20, '0–19 priority']];
     const max = Math.max(...bands.map(([a, b]) => sc.filter((x) => x.score >= a && x.score < b).length));
     return barsHTML(bands.map(([a, b, l]) => { const xs = sc.filter((x) => x.score >= a && x.score < b); return { label: l, value: max ? (100 * xs.length) / max : 0, display: xs.length, color: scoreColor(a + 10), tip: xs.map((x) => `${x.m.name}: ${x.score}`).join('<br>') || 'None' }; })) + `<p class="small muted">${sc.length} scored measures. Hover a band to see them.</p>`;
   },

@@ -239,7 +239,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 .legend.seq { gap: 3px; font-size: 11px; color: var(--ink-3); }
 .chart-empty { display: grid; place-items: center; color: var(--ink-3); font-size: 13px; border: 1px dashed var(--line-2); border-radius: 8px; background: var(--surface-2); }
 .hbars { display: flex; flex-direction: column; gap: 7px; }
-.hbar { display: grid; grid-template-columns: minmax(90px, 34%) 1fr 54px; gap: 10px; align-items: center; font-size: 13px; }
+.hbar { display: grid; grid-template-columns: minmax(90px, 34%) 1fr 74px; gap: 10px; align-items: center; font-size: 13px; }
 .hb-l { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hb-l small { color: var(--ink-3); margin-left: 6px; font-size: 11px; }
 .hb-t { position: relative; height: 12px; border-radius: 3px; background: var(--surface-3); }

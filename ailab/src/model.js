@@ -12,7 +12,7 @@ const fmtHeight = (inch) => (inch ? `${Math.floor(inch / 12)}′${Math.round(inc
 // ---------- record access (current athlete, optional date range) ----------
 const inRange = (iso, R) => (!R?.from || iso >= R.from) && (!R?.to || iso <= R.to);
 const byDate = (a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : (a.ts || 0) - (b.ts || 0));
-const listOf = (k, R, aid = AID()) => doc(k).list.filter((r) => r.aid === aid && inRange(r.date, R)).sort(byDate);
+const listOf = (k, R, aid = AID()) => doc(k).list.filter((r) => r.aid === aid && inRange(r.date, R) && (!R?.ctx || !r.ctx || r.ctx === R.ctx)).sort(byDate);
 const allTests = () => [...TESTS, ...doc('meta').customTests];
 const testDef = (id) => TEST[id] || doc('meta').customTests.find((t) => t.id === id);
 
@@ -187,7 +187,7 @@ function trendOf(m, s) {
 }
 /** Projection: extend the least-squares line 30 and 90 days past the last result. Estimate only; needs 3+ points over 21+ days. */
 function projection(m, R) {
-  const s = m.series(R), tr = trendOf(m, s); if (!tr || tr.span < 21) return null;
+  const s0 = m.series(R), s = m.pct && m.pool ? s0.filter((p) => (p.n || 0) >= 10) : s0, tr = trendOf(m, s); if (!tr || tr.span < 21) return null;
   const last = s[s.length - 1], lastX = (dms(last.date) - tr.x0) / DAY;
   const at = (d) => tr.fit.intercept + tr.fit.slope * (lastX + d);
   let p30 = at(30), p90 = at(90);
@@ -202,7 +202,9 @@ function intel(R, a = curAthlete()) {
   const strengths = [], weaknesses = [], imbalances = [], missing = [], rows = [];
   const goals = new Set(a?.goals || []), w = POS_WEIGHTS[posGroup(a?.pos)];
   for (const m of metrics()) {
-    const cur = current(m, R), s = m.series(R);
+    const cur = current(m, R), s0 = m.series(R);
+    // Rates are judged on sessions with 10+ attempts only; small sessions are too noisy for trends or consistency.
+    const s = m.pct && m.pool ? s0.filter((p) => (p.n || 0) >= 10) : s0;
     if (!cur.ok) {
       if (m.scored || (m.kind === 'test' && !m.test?.custom)) missing.push({ m, have: cur.n || 0, need: cur.need });
       continue;
@@ -210,7 +212,7 @@ function intel(R, a = curAthlete()) {
     const score = refOf(m) ? benchScore(m, cur.v) : null;
     const tr = trendOf(m, s);
     const recent = s.slice(-6).map((p) => p.v);
-    const cons = recent.length >= 3 ? cv(recent) : null;
+    const cons = recent.length >= 3 && m.kind !== 'games' ? cv(recent) : null;
     const best = bestOf(m, R), prev = s.slice(0, -1).map((p) => p.v);
     const isPR = m.kind === 'test' && s.length >= 2 && best && best.date === s[s.length - 1].date && prev.length && (m.dir === 'lower' ? s[s.length - 1].v < Math.min(...prev) : s[s.length - 1].v > Math.max(...prev));
     const row = { m, cur, score, tr, cons, isPR, n: s.length };
@@ -223,8 +225,12 @@ function intel(R, a = curAthlete()) {
     if (score != null && score < 40) weaknesses.push({ ...ev(`${fmtVal(m, cur.v)} scores ${score} on the benchmark scale.`), kind: 'Low performer', rank: 100 - score });
     if (tr && tr.span >= 45 && Math.abs(tr.per30) < 0.005 && (score == null || score < 80)) weaknesses.push({ ...ev(`No meaningful change over ${tr.span} days (${tr.n} results, ${(tr.per30 * 100).toFixed(2)}%/month).`), kind: 'Stagnant', rank: 55 });
     if (tr && tr.per30 <= -0.02) weaknesses.push({ ...ev(`Declining ${Math.abs(tr.per30 * 100).toFixed(1)}% per month over ${tr.n} results.`), kind: 'Regressing', rank: 70 + Math.abs(tr.per30) * 300 });
-    const cvLim = m.pct ? 0.2 : 0.08;
-    if (cons != null && cons >= cvLim) weaknesses.push({ ...ev(`Results swing ${(cons * 100).toFixed(1)}% (CV over last ${recent.length}).`), kind: 'Inconsistent', rank: 50 + cons * 100 });
+    if (m.pct && m.pool) {
+      // Rates: compare the session-to-session spread with the spread pure chance would give at these sample sizes.
+      const L = s.slice(-8);
+      if (L.length >= 4) { const p = mean(L.map((x) => x.v)), nb = mean(L.map((x) => x.n)), exp = Math.sqrt((p * (1 - p)) / nb), od = exp ? sd(L.map((x) => x.v)) / exp : 0;
+        row.od = od; if (od >= 1.5) weaknesses.push({ ...ev(`Session-to-session swings are ${od.toFixed(1)}× what chance alone would produce (last ${L.length} sessions, ~${Math.round(nb)} attempts each).`), kind: 'Inconsistent', rank: 50 + od * 10 }); }
+    } else if (cons != null && cons >= 0.08 && !m.pct && m.kind !== 'derived') weaknesses.push({ ...ev(`Results swing ${(cons * 100).toFixed(1)}% (CV over last ${recent.length}).`), kind: 'Inconsistent', rank: 50 + cons * 100 });
   }
   // Imbalances (only when both sides have enough data).
   const l = metric('finL'), r = metric('finR'), lc = current(l, R), rc = current(r, R);
