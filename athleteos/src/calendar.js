@@ -75,14 +75,20 @@ function calBody(el, view, sel) {
   }
 }
 function timeline(date) {
-  const its = itemsOn(date), timed = its.filter((x) => x.time), untimed = its.filter((x) => !x.time);
-  if (!its.length) return emptyState('Nothing scheduled', 'Add a practice, workout, routine or reminder for this day.', 'calendar', `<button type="button" class="btn sm primary" data-act="event" data-date="${date}">＋ Add event</button>`);
-  const h0 = Math.min(7, ...timed.map((x) => Math.floor(toMinT(x.time) / 60))), h1 = Math.max(21, ...timed.map((x) => Math.ceil((toMinT(x.time) + (x.mins || 30)) / 60)));
+  const its = itemsOn(date), timed = its.filter((x) => x.time), untimed = its.filter((x) => !x.time), gp = gpBlocks(date, its);
+  if (!its.length && !gp.length) return emptyState('Nothing scheduled', 'Add a practice, workout, routine or reminder for this day, or plan it in Gameplan.', 'calendar', `<div class="row" style="justify-content:center"><button type="button" class="btn sm primary" data-act="event" data-date="${date}">＋ Add event</button><a class="btn sm" data-ml href="gameplan.html">Open Gameplan</a></div>`);
+  const h0 = Math.min(7, ...timed.map((x) => Math.floor(toMinT(x.time) / 60)), ...gp.map((b) => Math.floor(b.st / 60))), h1 = Math.min(24, Math.max(21, ...timed.map((x) => Math.ceil((toMinT(x.time) + (x.mins || 30)) / 60)), ...gp.map((b) => Math.ceil((b.st + b.mins) / 60))));
   const px = 44, now = date === todayIso() ? nowM() : null;
+  // Calendar items and Gameplan blocks that overlap share the row: calendar on the left half, Gameplan on the right.
+  const hits = (s, m, s2, m2) => s < s2 + m2 && s2 < s + m;
+  const half = (x) => gp.some((b) => hits(toMinT(x.time), x.mins || 30, b.st, b.mins)) ? 'right:calc(50% + 2px);' : '';
+  const gpHalf = (b) => timed.some((x) => hits(toMinT(x.time), x.mins || 30, b.st, b.mins)) ? 'left:calc(50% + 2px);' : '';
+  const gpEv = gp.map((b) => { const top = ((b.st - h0 * 60) / 60) * px, h = Math.max(24, Math.min(b.mins, h1 * 60 - b.st) / 60 * px - 2), [l, c] = gpType(b.type), s = gpState(date, b);
+    return `<a class="tlev gp ${b.done ? 'done' : ''} ${s ? 'gp-' + s : ''}" data-ml href="gameplan.html" style="${gpHalf(b)}top:${top}px;height:${h}px;--c:${c}" aria-label="${esc(b.title)}, Gameplan, edit in Gameplan"><b>${esc(b.title)}</b><span class="tiny">${fmtClock(b.start)}–${fmtClock(b.end)} · ${esc(l)} · Gameplan</span></a>`; }).join('');
   return `${untimed.length ? `<div class="chips" style="margin-bottom:8px">${untimed.map((x) => `<span class="tag" style="border-left:3px solid ${evType(x.type)[2]}">${esc(x.title)}</span>`).join('')}</div>` : ''}
     <div class="tlday" style="height:${(h1 - h0) * px}px">${Array.from({ length: h1 - h0 }, (_, i) => `<div class="tlh" style="top:${i * px}px"><span>${fmtClock(String(h0 + i).padStart(2, '0') + ':00')}</span></div>`).join('')}
     ${now != null && now / 60 >= h0 && now / 60 <= h1 ? `<div class="tlnow" style="top:${((now - h0 * 60) / 60) * px}px"></div>` : ''}
-    ${timed.map((x) => { const top = ((toMinT(x.time) - h0 * 60) / 60) * px, h = Math.max(24, ((x.mins || 30) / 60) * px - 2); return `<button type="button" class="tlev ${isChecked(date, x.key) ? 'done' : ''}" style="top:${top}px;height:${h}px;--c:${evType(x.type)[2]}" ${x.ev ? `data-act="event" data-id="${x.ev.id}" data-date="${date}"` : x.routine ? `data-act="run-routine" data-id="${x.routine.id}" data-date="${date}"` : ''}><b>${esc(x.title)}</b><span class="tiny">${fmtClock(x.time)}${x.end ? '–' + fmtClock(x.end) : ''} · ${esc(evType(x.type)[1])}</span></button>`; }).join('')}</div>`;
+    ${timed.map((x) => { const top = ((toMinT(x.time) - h0 * 60) / 60) * px, h = Math.max(24, ((x.mins || 30) / 60) * px - 2); return `<button type="button" class="tlev ${isChecked(date, x.key) ? 'done' : ''}" style="${half(x)}top:${top}px;height:${h}px;--c:${evType(x.type)[2]}" ${x.ev ? `data-act="event" data-id="${x.ev.id}" data-date="${date}"` : x.routine ? `data-act="run-routine" data-id="${x.routine.id}" data-date="${date}"` : ''}><b>${esc(x.title)}</b><span class="tiny">${fmtClock(x.time)}${x.end ? '–' + fmtClock(x.end) : ''} · ${esc(evType(x.type)[1])}</span></button>`; }).join('')}${gpEv}</div>`;
 }
 const nowM = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
 document.addEventListener('click', (e) => {
@@ -95,7 +101,7 @@ function checklistHtml(date, items) {
 function dayCard(el, d) {
   const items = itemsOn(d), a = adherence([d]);
   el.innerHTML = `<div class="card-head"><div><h3>${esc(fmtDL(d))}</h3><span class="sub">${items.length ? `${a.done} of ${a.sched || items.length} done${a.missed ? ` · ${a.missed} missed` : ''}` : 'Nothing scheduled'}</span></div><button type="button" class="btn sm" data-act="event" data-date="${d}">＋ Add</button></div>
-    ${items.length ? checklistHtml(d, items) : '<p class="muted small">Open day.</p>'}${exList(d).length ? `<div class="hr"></div><p class="muted small">Logged: ${exList(d).map((x) => `${esc(x.name)} (${fmtDur(x.mins)})`).join(', ')}</p>` : ''}`;
+    ${items.length ? checklistHtml(d, items) : gpBlocks(d, items).length ? '' : '<p class="muted small">Open day.</p>'}<div class="hr"></div>${gpSection(d, items)}${exList(d).length ? `<div class="hr"></div><p class="muted small">Logged: ${exList(d).map((x) => `${esc(x.name)} (${fmtDur(x.mins)})`).join(', ')}</p>` : ''}`;
 }
 document.addEventListener('change', (e) => {
   const c = e.target.closest('[data-chk]'); if (!c) return;

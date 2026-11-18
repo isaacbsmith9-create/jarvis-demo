@@ -109,7 +109,7 @@ const APPS = [
   ['MacroLens', 'Food diary, AI photo scan, eating schedule, bowl builder, snacks', ML(''), true],
   ['ReadyUp', 'Readiness check-ins and recovery routines', 'https://claude.ai/artifact/S9xPngi3ZUsD6okgc7jqwG', false],
   ['Weekboard', 'Your week of school, practice and work', 'https://claude.ai/artifact/CT9KqYWe3FPY9a9n5EeLDN', false],
-  ['Gameplan', 'Today at a glance, Top 3, focus timer', 'https://claude.ai/artifact/H3zsNQoe2ytrjRtUL9Jfhx', false],
+  ['Gameplan', 'Plan my day by voice, hour-by-hour schedule, Top 3, time tracker, night routine', 'gameplan.html', true],
   ['Charla', 'Daily Spanish conversation practice', 'https://claude.ai/artifact/Ya3DWBwNJ7gtNNvZ1Ndgvz', false],
   ['Baseline', 'All-in-one daily app', 'https://claude.ai/artifact/6yejSST4C1k4pprwDigbJc', false],
 ];

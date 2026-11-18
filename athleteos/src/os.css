@@ -426,3 +426,13 @@ details > summary::-webkit-details-marker { display: none; }
 .prio.top { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
 .prio summary { display: flex; gap: 10px; align-items: center; cursor: pointer; }
 .prio-n { flex: none; width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; font-family: var(--f-display); font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--purple)); color: #fff; }
+/* Gameplan blocks (read from the bundled Gameplan page) */
+.gp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin: 2px 0 6px; }
+.gp-li.gp-now { background: color-mix(in srgb, var(--accent) 14%, transparent); border-radius: 10px; padding-inline: 8px; box-shadow: inset 3px 0 0 var(--accent); }
+.gp-li.gp-past .t { color: var(--muted); }
+.gp-tag { display: inline-block; margin-right: 6px; padding: 1px 6px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; background: var(--accent); color: #fff; vertical-align: 1px; }
+a.tlev { text-decoration: none; }
+.tlev.gp { border-left-style: dashed; background: color-mix(in srgb, var(--c) 14%, var(--surface)); }
+.tlev.gp.gp-now { box-shadow: 0 0 0 2px var(--c); z-index: 1; }
+.tlev.gp.gp-past { opacity: .6; }
+.gp-head a.chip { text-decoration: none; }

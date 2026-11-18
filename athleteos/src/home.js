@@ -41,14 +41,15 @@ function homeToday(el) {
   if (pr?.start) rows.push({ t: pr.start, title: `${pr.type === 'game' ? 'Game' : 'Practice'} · ${fmtDur(Number(pr.mins) || 120)}`, s: `Ends ${fmtClock(addMin(pr.start, Number(pr.mins) || 120))}`, c: 'var(--hb)' });
   if (sch?.on) for (const [k, l] of [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner']]) if (sch[k]) rows.push({ t: sch[k], title: l, s: 'Eating schedule', c: 'var(--good)' });
   rows.sort((a, b) => a.t.localeCompare(b.t));
-  const done = exList(today);
+  const done = exList(today), gp = gpBlocks(today);
   el.innerHTML = `<div class="card-head"><div><h3>Today's schedule</h3><span class="sub">${done.length ? `${done.length} workout${done.length > 1 ? 's' : ''} logged · ${fmtDur(trainingOf(today).mins)}` : d.type === 'rest' ? 'Rest day' : 'Nothing logged yet'}</span></div>
     <div class="row"><button type="button" class="btn sm" data-act="plan-practice">Plan practice</button><button type="button" class="btn sm primary" data-act="log-workout">＋ Workout</button></div></div>
     <div class="list">
       ${rows.map((r) => `<div class="li"><div class="row" style="flex-wrap:nowrap"><span class="dot" style="background:${r.c}"></span><div><div class="t">${esc(r.title)}</div><div class="s">${esc(r.s)}</div></div></div><span class="v small">${fmtClock(r.t)}</span></div>`).join('')}
       ${done.map((x) => `<div class="li"><div class="row" style="flex-wrap:nowrap"><span class="dot" style="background:${CATS.find((c) => c[0] === catOf(x.type))[2]}"></span><div><div class="t">✓ ${esc(x.name || 'Workout')}</div><div class="s">${fmtDur(x.mins)} · ${esc(x.int || 'moderate')}${x.source === 'apple-health' ? ' · Apple Health' : ''}</div></div></div><span class="v small">${x.time ? fmtClock(x.time) : ''}</span></div>`).join('')}
     </div>
-    ${!rows.length && !done.length ? emptyState('No plan for today yet', 'Plan a practice or game, or turn on the smart eating schedule in MacroLens to see meal times here.', 'calendar', `<div class="row" style="justify-content:center">${mlLink('coach-schedule', 'Eating schedule')}</div>`) : ''}`;
+    <div class="hr"></div>${gpSection(today)}
+    ${!rows.length && !done.length && !gp.length ? emptyState('No plan for today yet', 'Plan a practice or game, or turn on the smart eating schedule in MacroLens to see meal times here.', 'calendar', `<div class="row" style="justify-content:center">${mlLink('coach-schedule', 'Eating schedule')}</div>`) : ''}`;
 }
 
 function homeRecovery(el) {

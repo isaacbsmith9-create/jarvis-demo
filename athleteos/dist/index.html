@@ -433,6 +433,16 @@ details > summary::-webkit-details-marker { display: none; }
 .prio.top { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
 .prio summary { display: flex; gap: 10px; align-items: center; cursor: pointer; }
 .prio-n { flex: none; width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; font-family: var(--f-display); font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--purple)); color: #fff; }
+/* Gameplan blocks (read from the bundled Gameplan page) */
+.gp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin: 2px 0 6px; }
+.gp-li.gp-now { background: color-mix(in srgb, var(--accent) 14%, transparent); border-radius: 10px; padding-inline: 8px; box-shadow: inset 3px 0 0 var(--accent); }
+.gp-li.gp-past .t { color: var(--muted); }
+.gp-tag { display: inline-block; margin-right: 6px; padding: 1px 6px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; background: var(--accent); color: #fff; vertical-align: 1px; }
+a.tlev { text-decoration: none; }
+.tlev.gp { border-left-style: dashed; background: color-mix(in srgb, var(--c) 14%, var(--surface)); }
+.tlev.gp.gp-now { box-shadow: 0 0 0 2px var(--c); z-index: 1; }
+.tlev.gp.gp-past { opacity: .6; }
+.gp-head a.chip { text-decoration: none; }
 
 </style>
 <div class="wrap">
@@ -1356,14 +1366,15 @@ function homeToday(el) {
   if (pr?.start) rows.push({ t: pr.start, title: `${pr.type === 'game' ? 'Game' : 'Practice'} · ${fmtDur(Number(pr.mins) || 120)}`, s: `Ends ${fmtClock(addMin(pr.start, Number(pr.mins) || 120))}`, c: 'var(--hb)' });
   if (sch?.on) for (const [k, l] of [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner']]) if (sch[k]) rows.push({ t: sch[k], title: l, s: 'Eating schedule', c: 'var(--good)' });
   rows.sort((a, b) => a.t.localeCompare(b.t));
-  const done = exList(today);
+  const done = exList(today), gp = gpBlocks(today);
   el.innerHTML = `<div class="card-head"><div><h3>Today's schedule</h3><span class="sub">${done.length ? `${done.length} workout${done.length > 1 ? 's' : ''} logged · ${fmtDur(trainingOf(today).mins)}` : d.type === 'rest' ? 'Rest day' : 'Nothing logged yet'}</span></div>
     <div class="row"><button type="button" class="btn sm" data-act="plan-practice">Plan practice</button><button type="button" class="btn sm primary" data-act="log-workout">＋ Workout</button></div></div>
     <div class="list">
       ${rows.map((r) => `<div class="li"><div class="row" style="flex-wrap:nowrap"><span class="dot" style="background:${r.c}"></span><div><div class="t">${esc(r.title)}</div><div class="s">${esc(r.s)}</div></div></div><span class="v small">${fmtClock(r.t)}</span></div>`).join('')}
       ${done.map((x) => `<div class="li"><div class="row" style="flex-wrap:nowrap"><span class="dot" style="background:${CATS.find((c) => c[0] === catOf(x.type))[2]}"></span><div><div class="t">✓ ${esc(x.name || 'Workout')}</div><div class="s">${fmtDur(x.mins)} · ${esc(x.int || 'moderate')}${x.source === 'apple-health' ? ' · Apple Health' : ''}</div></div></div><span class="v small">${x.time ? fmtClock(x.time) : ''}</span></div>`).join('')}
     </div>
-    ${!rows.length && !done.length ? emptyState('No plan for today yet', 'Plan a practice or game, or turn on the smart eating schedule in MacroLens to see meal times here.', 'calendar', `<div class="row" style="justify-content:center">${mlLink('coach-schedule', 'Eating schedule')}</div>`) : ''}`;
+    <div class="hr"></div>${gpSection(today)}
+    ${!rows.length && !done.length && !gp.length ? emptyState('No plan for today yet', 'Plan a practice or game, or turn on the smart eating schedule in MacroLens to see meal times here.', 'calendar', `<div class="row" style="justify-content:center">${mlLink('coach-schedule', 'Eating schedule')}</div>`) : ''}`;
 }
 
 function homeRecovery(el) {
@@ -2455,7 +2466,7 @@ const APPS = [
   ['MacroLens', 'Food diary, AI photo scan, eating schedule, bowl builder, snacks', ML(''), true],
   ['ReadyUp', 'Readiness check-ins and recovery routines', 'https://claude.ai/artifact/S9xPngi3ZUsD6okgc7jqwG', false],
   ['Weekboard', 'Your week of school, practice and work', 'https://claude.ai/artifact/CT9KqYWe3FPY9a9n5EeLDN', false],
-  ['Gameplan', 'Today at a glance, Top 3, focus timer', 'https://claude.ai/artifact/H3zsNQoe2ytrjRtUL9Jfhx', false],
+  ['Gameplan', 'Plan my day by voice, hour-by-hour schedule, Top 3, time tracker, night routine', 'gameplan.html', true],
   ['Charla', 'Daily Spanish conversation practice', 'https://claude.ai/artifact/Ya3DWBwNJ7gtNNvZ1Ndgvz', false],
   ['Baseline', 'All-in-one daily app', 'https://claude.ai/artifact/6yejSST4C1k4pprwDigbJc', false],
 ];
@@ -2982,14 +2993,20 @@ function calBody(el, view, sel) {
   }
 }
 function timeline(date) {
-  const its = itemsOn(date), timed = its.filter((x) => x.time), untimed = its.filter((x) => !x.time);
-  if (!its.length) return emptyState('Nothing scheduled', 'Add a practice, workout, routine or reminder for this day.', 'calendar', `<button type="button" class="btn sm primary" data-act="event" data-date="${date}">＋ Add event</button>`);
-  const h0 = Math.min(7, ...timed.map((x) => Math.floor(toMinT(x.time) / 60))), h1 = Math.max(21, ...timed.map((x) => Math.ceil((toMinT(x.time) + (x.mins || 30)) / 60)));
+  const its = itemsOn(date), timed = its.filter((x) => x.time), untimed = its.filter((x) => !x.time), gp = gpBlocks(date, its);
+  if (!its.length && !gp.length) return emptyState('Nothing scheduled', 'Add a practice, workout, routine or reminder for this day, or plan it in Gameplan.', 'calendar', `<div class="row" style="justify-content:center"><button type="button" class="btn sm primary" data-act="event" data-date="${date}">＋ Add event</button><a class="btn sm" data-ml href="gameplan.html">Open Gameplan</a></div>`);
+  const h0 = Math.min(7, ...timed.map((x) => Math.floor(toMinT(x.time) / 60)), ...gp.map((b) => Math.floor(b.st / 60))), h1 = Math.min(24, Math.max(21, ...timed.map((x) => Math.ceil((toMinT(x.time) + (x.mins || 30)) / 60)), ...gp.map((b) => Math.ceil((b.st + b.mins) / 60))));
   const px = 44, now = date === todayIso() ? nowM() : null;
+  // Calendar items and Gameplan blocks that overlap share the row: calendar on the left half, Gameplan on the right.
+  const hits = (s, m, s2, m2) => s < s2 + m2 && s2 < s + m;
+  const half = (x) => gp.some((b) => hits(toMinT(x.time), x.mins || 30, b.st, b.mins)) ? 'right:calc(50% + 2px);' : '';
+  const gpHalf = (b) => timed.some((x) => hits(toMinT(x.time), x.mins || 30, b.st, b.mins)) ? 'left:calc(50% + 2px);' : '';
+  const gpEv = gp.map((b) => { const top = ((b.st - h0 * 60) / 60) * px, h = Math.max(24, Math.min(b.mins, h1 * 60 - b.st) / 60 * px - 2), [l, c] = gpType(b.type), s = gpState(date, b);
+    return `<a class="tlev gp ${b.done ? 'done' : ''} ${s ? 'gp-' + s : ''}" data-ml href="gameplan.html" style="${gpHalf(b)}top:${top}px;height:${h}px;--c:${c}" aria-label="${esc(b.title)}, Gameplan, edit in Gameplan"><b>${esc(b.title)}</b><span class="tiny">${fmtClock(b.start)}–${fmtClock(b.end)} · ${esc(l)} · Gameplan</span></a>`; }).join('');
   return `${untimed.length ? `<div class="chips" style="margin-bottom:8px">${untimed.map((x) => `<span class="tag" style="border-left:3px solid ${evType(x.type)[2]}">${esc(x.title)}</span>`).join('')}</div>` : ''}
     <div class="tlday" style="height:${(h1 - h0) * px}px">${Array.from({ length: h1 - h0 }, (_, i) => `<div class="tlh" style="top:${i * px}px"><span>${fmtClock(String(h0 + i).padStart(2, '0') + ':00')}</span></div>`).join('')}
     ${now != null && now / 60 >= h0 && now / 60 <= h1 ? `<div class="tlnow" style="top:${((now - h0 * 60) / 60) * px}px"></div>` : ''}
-    ${timed.map((x) => { const top = ((toMinT(x.time) - h0 * 60) / 60) * px, h = Math.max(24, ((x.mins || 30) / 60) * px - 2); return `<button type="button" class="tlev ${isChecked(date, x.key) ? 'done' : ''}" style="top:${top}px;height:${h}px;--c:${evType(x.type)[2]}" ${x.ev ? `data-act="event" data-id="${x.ev.id}" data-date="${date}"` : x.routine ? `data-act="run-routine" data-id="${x.routine.id}" data-date="${date}"` : ''}><b>${esc(x.title)}</b><span class="tiny">${fmtClock(x.time)}${x.end ? '–' + fmtClock(x.end) : ''} · ${esc(evType(x.type)[1])}</span></button>`; }).join('')}</div>`;
+    ${timed.map((x) => { const top = ((toMinT(x.time) - h0 * 60) / 60) * px, h = Math.max(24, ((x.mins || 30) / 60) * px - 2); return `<button type="button" class="tlev ${isChecked(date, x.key) ? 'done' : ''}" style="${half(x)}top:${top}px;height:${h}px;--c:${evType(x.type)[2]}" ${x.ev ? `data-act="event" data-id="${x.ev.id}" data-date="${date}"` : x.routine ? `data-act="run-routine" data-id="${x.routine.id}" data-date="${date}"` : ''}><b>${esc(x.title)}</b><span class="tiny">${fmtClock(x.time)}${x.end ? '–' + fmtClock(x.end) : ''} · ${esc(evType(x.type)[1])}</span></button>`; }).join('')}${gpEv}</div>`;
 }
 const nowM = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
 document.addEventListener('click', (e) => {
@@ -3002,7 +3019,7 @@ function checklistHtml(date, items) {
 function dayCard(el, d) {
   const items = itemsOn(d), a = adherence([d]);
   el.innerHTML = `<div class="card-head"><div><h3>${esc(fmtDL(d))}</h3><span class="sub">${items.length ? `${a.done} of ${a.sched || items.length} done${a.missed ? ` · ${a.missed} missed` : ''}` : 'Nothing scheduled'}</span></div><button type="button" class="btn sm" data-act="event" data-date="${d}">＋ Add</button></div>
-    ${items.length ? checklistHtml(d, items) : '<p class="muted small">Open day.</p>'}${exList(d).length ? `<div class="hr"></div><p class="muted small">Logged: ${exList(d).map((x) => `${esc(x.name)} (${fmtDur(x.mins)})`).join(', ')}</p>` : ''}`;
+    ${items.length ? checklistHtml(d, items) : gpBlocks(d, items).length ? '' : '<p class="muted small">Open day.</p>'}<div class="hr"></div>${gpSection(d, items)}${exList(d).length ? `<div class="hr"></div><p class="muted small">Logged: ${exList(d).map((x) => `${esc(x.name)} (${fmtDur(x.mins)})`).join(', ')}</p>` : ''}`;
 }
 document.addEventListener('change', (e) => {
   const c = e.target.closest('[data-chk]'); if (!c) return;
@@ -4321,6 +4338,33 @@ ACHIEVEMENTS.push(
   ['milestone', 'Step by step', 'Complete a goal milestone', () => goals().some((g) => (g.milestones || []).some((m) => m.done))],
   ['plan-week', 'Followed the plan', '100% calendar adherence for a week (5+ items)', () => { for (let i = 1; i <= 8; i++) { const a = adherence(lastNDays(7, shiftIso(todayIso(), -7 * (i - 1)))); if (a.sched >= 5 && a.done === a.sched) return true; } return false; }],
 );
+
+// ---- gameplan.js ----
+// ===================== GAMEPLAN (bundled page, same database) =====================
+// Gameplan runs as gameplan.html in this artifact and saves each day as doc "gp-d-YYYY-MM-DD" ({ blocks: [{ id, title,
+// start 'HH:MM', mins, type, done }] }). Athlete OS only reads those blocks; editing happens in Gameplan.
+// Gameplan already shows Athlete OS calendar events on its own schedule (read-only), and never saves them as blocks.
+const GP_TYPES = { school: ['School', '#64748b'], practice: ['Practice / game', '#e8590c'], train: ['Workout', '#7c3aed'], focus: ['Homework', '#d99a0b'], meal: ['Meal', '#16a34a'], work: ['Business', '#0d9488'], life: ['Life', '#db2777'], free: ['Free time', '#0ea5e9'], sleep: ['Sleep', '#475569'] };
+const gpType = (t) => GP_TYPES[t] || GP_TYPES.life;
+const normT = (s) => String(s || '').trim().toLowerCase();
+/** Gameplan blocks for a date, sorted, minus any that repeat a calendar item (same start time and title). */
+function gpBlocks(date, its = itemsOn(date)) {
+  const d = doc('gp-d-' + date), list = Array.isArray(d?.blocks) ? d.blocks : [];
+  return list.filter((b) => b && /^\d{1,2}:\d{2}$/.test(b.start || '') && b.title)
+    .filter((b) => !its.some((x) => x.time && toMinT(x.time) === toMinT(b.start) && normT(x.title) === normT(b.title)))
+    .map((b) => { const mins = Math.max(5, Number(b.mins) || 60); return { ...b, mins, st: toMinT(b.start), end: addMin(b.start, mins) }; })
+    .sort((a, b) => a.st - b.st);
+}
+const gpState = (date, b) => { if (date !== todayIso()) return ''; const n = nowM(); return b.st <= n && n < b.st + b.mins ? 'now' : b.st + b.mins <= n ? 'past' : ''; };
+function gpListHtml(date, blocks) {
+  return `<div class="list">${blocks.map((b) => { const [l, c] = gpType(b.type), s = gpState(date, b);
+    return `<div class="li gp-li ${s ? 'gp-' + s : ''}"><div class="row" style="flex-wrap:nowrap;min-width:0"><span class="dot" style="background:${c}"></span><div style="min-width:0"><div class="t" style="${b.done ? 'text-decoration:line-through;opacity:.6' : ''}">${s === 'now' ? '<span class="gp-tag">Now</span>' : ''}${esc(b.title)}</div><div class="s">${esc(l)} · ${fmtDur(b.mins)} · until ${fmtClock(b.end)}</div></div></div><span class="v small">${fmtClock(b.start)}</span></div>`; }).join('')}</div>`;
+}
+/** The Gameplan part of a day: header with the link, then the blocks. */
+function gpSection(date, its) {
+  const gp = gpBlocks(date, its);
+  return `<div class="gp-head"><span class="tiny muted">FROM GAMEPLAN${gp.length ? ` · ${gp.length} block${gp.length > 1 ? 's' : ''}` : ''}</span><a class="chip" data-ml href="gameplan.html">${gp.length ? 'Edit in Gameplan' : 'Plan this day in Gameplan'} ›</a></div>${gp.length ? gpListHtml(date, gp) : ''}`;
+}
 
 // ---- intel2.js ----
 // ===================== ATHLETE INTELLIGENCE CENTER =====================
