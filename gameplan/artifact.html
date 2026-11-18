@@ -118,6 +118,13 @@ header.top .date { color: var(--muted); font-size: 13px; margin-top: 4px; }
 .repdays .mini { width: auto; height: auto; border-radius: 99px; padding: 5px 10px; font-size: 12px; font-weight: 700; }
 .rep-ic { font-size: 11px; opacity: .75; margin-left: 4px; }
 .inbox-note { background: var(--accent-soft); border-radius: 12px; padding: 10px 12px; font-size: 14px; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.sch-row { display: grid; grid-template-columns: 6px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+.sch-row:first-of-type { border-top: 0; }
+.sch-row i { width: 6px; height: 32px; border-radius: 3px; background: var(--c); }
+.sch-row b { display: block; font-size: 14px; overflow-wrap: anywhere; }
+.sch-row small { color: var(--muted); font-size: 12px; }
+.sch-due { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 99px; background: var(--surface-2); white-space: nowrap; }
+.sch-due.hot { background: color-mix(in srgb, var(--q1) 20%, transparent); color: var(--q1); }
 .btypes { display: flex; flex-wrap: wrap; gap: 6px; }
 .btypes button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 6px 11px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
 .btypes button i { width: 9px; height: 9px; border-radius: 3px; background: var(--c); }
@@ -246,6 +253,7 @@ input[type=text], input[type=time], input[type=date], input[type=number], select
       <div id="pb-help"></div>
       <div id="pb-preview"></div>
     </div>
+    <div class="card" id="school-card" hidden></div>
     <div class="card">
       <div class="sched-bar"><h2>Schedule</h2><div class="row" style="gap:6px"><div class="mini-seg" id="sd-day"><button type="button" data-sd="0">Today</button><button type="button" data-sd="1">Tomorrow</button></div><button class="btn primary" id="add-block">＋</button></div></div>
       <div class="sched-bar" style="margin-top:-2px"><div class="mini-seg" id="sd-view"><button type="button" data-sv="tl">Hour by hour</button><button type="button" data-sv="list">List</button></div><span class="small muted num" id="sd-sum"></span></div>
@@ -630,6 +638,7 @@ function renderSchedule() {
 }
 function renderToday() {
   const iso = todayIso(), s = scoreFor(iso);
+  renderSchool();
   $('#inbox-note').innerHTML = inboxMsg ? `<div class="inbox-note"><span>📥 ${esc(inboxMsg)}</span><button type="button" class="btn ghost" data-inbox-ok>OK</button></div>` : '';
   $('#score').textContent = s.total; $('#ring-fill').style.strokeDashoffset = String(264 - 264 * s.total / 100);
   $('#breakdown').innerHTML = [['Top 3', s.topPts, 40], ['Night', s.nightPts, 20], ['Blocks', s.blockPts, 20], ['Phone', s.phonePts, 20]].map(([l, v, m]) => `<div><b class="num">${v}<small style="font-size:12px;color:var(--muted)">/${m}</small></b>${l}</div>`).join('');
@@ -649,8 +658,10 @@ function renderMatrix() {
   const today = todayIso();
   $('#matrix').innerHTML = QUADS.map((q) => {
     const list = open.filter((t) => quadOf(t) === q).sort((a, b) => (a.due || '9') .localeCompare(b.due || '9'));
+    const sch = q.id === 'do' ? schoolDue(1) : q.id === 'plan' ? schoolDue(7).filter((x) => x.due > shiftIso(today, 1)) : [];
+    const schHtml = sch.map((x) => `<div class="task"><span class="check" style="opacity:.35" aria-hidden="true"></span><span class="tt" style="font-weight:600">${esc(x.title)} <span class="star" style="color:var(--muted)">School</span><span class="due ${x.late ? 'late' : ''}">${x.late ? 'Late' : 'Due ' + dueLabel(x.due).toLowerCase()}</span></span></div>`).join('');
     return `<div class="quad" style="--qc:${q.c}"><header><div><h3>${q.name}</h3><div class="sub">${q.sub}</div></div><button class="add" data-quad-add="${q.id}" aria-label="Add to ${q.name}">＋</button></header>
-      ${list.length ? list.map((t) => `<div class="task"><button class="check" data-task-check="${t.id}" aria-label="Done">${CHECK}</button><button class="tt" data-task-open="${t.id}">${esc(t.title)}${t.top === today ? ' <span class="star">★ today</span>' : t.top === shiftIso(today, 1) ? ' <span class="star">★ tmrw</span>' : ''}${t.due ? `<span class="due ${t.due < today ? 'late' : ''}">${t.due < today ? 'Late · ' : 'Due '}${t.due === today ? 'today' : dayName(t.due) + ' ' + t.due.slice(5).replace('-', '/')}</span>` : ''}</button></div>`).join('') : `<p class="empty small">${q.id === 'do' ? 'Due soon and it matters.' : q.id === 'plan' ? 'Workouts, study, long goals.' : q.id === 'quick' ? 'Small asks with a deadline.' : 'Stuff you can let go.'}</p>`}</div>`;
+      ${schHtml}${list.length || schHtml ? list.map((t) => `<div class="task"><button class="check" data-task-check="${t.id}" aria-label="Done">${CHECK}</button><button class="tt" data-task-open="${t.id}">${esc(t.title)}${t.top === today ? ' <span class="star">★ today</span>' : t.top === shiftIso(today, 1) ? ' <span class="star">★ tmrw</span>' : ''}${t.due ? `<span class="due ${t.due < today ? 'late' : ''}">${t.due < today ? 'Late · ' : 'Due '}${t.due === today ? 'today' : dayName(t.due) + ' ' + t.due.slice(5).replace('-', '/')}</span>` : ''}</button></div>`).join('') : `<p class="empty small">${q.id === 'do' ? 'Due soon and it matters.' : q.id === 'plan' ? 'Workouts, study, long goals.' : q.id === 'quick' ? 'Small asks with a deadline.' : 'Stuff you can let go.'}</p>`}</div>`;
   }).join('');
   $('#done-card').hidden = !done.length;
   $('#done-list').innerHTML = done.slice(-8).reverse().map((t) => `<div class="task"><button class="check on" data-task-check="${t.id}" aria-label="Not done">${CHECK}</button><span class="done-text grow small">${esc(t.title)}</span></div>`).join('');
@@ -871,6 +882,63 @@ $('#add-block').addEventListener('click', () => openBlock(null));
 $('#pick-today').addEventListener('click', () => openPicker('today'));
 $('#pick-tomorrow').addEventListener('click', () => openPicker('tomorrow'));
 
+
+// ===================== School (Athlete OS School screen, read-only) =====================
+// Inside Athlete OS the School screen keeps homework, quizzes, tests and projects in "life-school". Gameplan only reads it:
+// due work shows on Today and in the matrix, and "Plan study time" fits study blocks into free time.
+const SCHOOL_KEY = EMBED ? EMBED.schoolKey || 'ml:life-school' : null;
+const SCH_TYPES = { hw: ['Homework', 30], quiz: ['Quiz', 30], test: ['Test', 60], exam: ['Exam', 90], project: ['Project', 60], essay: ['Essay', 60], other: ['Assignment', 30] };
+function schoolData() { if (!SCHOOL_KEY) return null; try { return JSON.parse(localStorage.getItem(SCHOOL_KEY) || 'null'); } catch { return null; } }
+function schoolDue(days = 7) {
+  const S = schoolData(); if (!S) return [];
+  const t = todayIso(), until = shiftIso(t, days), cls = Object.fromEntries((S.classes || []).map((c) => [c.id, c]));
+  return (S.items || []).filter((x) => !x.done && x.due && x.due <= until).map((x) => ({ ...x, cl: cls[x.cls] || null, late: x.due < t, kind: SCH_TYPES[x.type] || SCH_TYPES.other }))
+    .sort((a, b) => a.due.localeCompare(b.due) || (a.time || '99').localeCompare(b.time || '99'));
+}
+const dueLabel = (d) => { const t = todayIso(); return d < t ? 'Late' : d === t ? 'Today' : d === shiftIso(t, 1) ? 'Tomorrow' : dayName(d); };
+// Study minutes each item needs: its own estimate, or a default by type. Tests and exams get split over the days before.
+const studyMins = (x) => Math.max(15, Math.min(120, Number(x.mins) || x.kind[1]));
+function freeGaps(iso, fromMin, toMin2) {
+  const busy = [...ownBlocks(iso), ...extItems(iso)].filter((b) => b.type !== 'sleep').map((b) => [toMin(b.start), toMin(b.start) + b.mins]).sort((a, b) => a[0] - b[0]);
+  const gaps = []; let cur = fromMin;
+  for (const [a, b] of busy) { if (b <= cur) continue; if (a > cur) gaps.push([cur, Math.min(a, toMin2)]); cur = Math.max(cur, b); if (cur >= toMin2) break; }
+  if (cur < toMin2) gaps.push([cur, toMin2]);
+  return gaps.filter(([a, b]) => b - a >= 20);
+}
+function planStudy() {
+  const due = schoolDue(7); if (!due.length) return toast('Nothing due in the next week');
+  const iso = schedIso(), isToday = iso === todayIso(), bed = toMin(core().routine?.bed || '22:30');
+  const start = Math.max(isToday ? Math.ceil((nowMin() + 10) / 15) * 15 : 15 * 60, 15 * 60), end = Math.min(bed - 30, 23 * 60);
+  const gaps = freeGaps(iso, start, end), out = [];
+  for (const x of due) {
+    if (x.due < iso && !x.late) continue;
+    // Already planned? Tests and exams get one prep block a day; everything else only once.
+    const planned = []; for (let d = todayIso(); d <= (x.due > iso ? x.due : iso); d = shiftIso(d, 1)) for (const b of day(d, false)?.blocks || []) if (b.sid === x.id) planned.push(d);
+    if ((x.type === 'test' || x.type === 'exam') ? planned.includes(iso) : planned.length) continue;
+    let need = studyMins(x);
+    if ((x.type === 'test' || x.type === 'exam') && x.due > iso) need = Math.min(need, 45); // spread test prep across days
+    for (let gi = 0; gi < gaps.length && need > 0;) {
+      const g = gaps[gi], len = Math.min(need, 60, g[1] - g[0]); if (len < 20) { gi++; continue; }
+      out.push({ id: uid(), title: `${x.kind[0] === 'Homework' ? '' : x.kind[0] + ' prep: '}${x.title}${x.cl ? ` (${x.cl.name})` : ''}`.slice(0, 60), start: `${pad(Math.floor(g[0] / 60))}:${pad(g[0] % 60)}`, mins: len, type: 'focus', done: false, src: 'school', sid: x.id });
+      g[0] += len + 10; need -= len;
+      if (need > 0 && need < 20) need = 0;
+    }
+    if (out.length >= 6) break;
+  }
+  if (!out.length) return toast(`No free time left ${isToday ? 'today' : 'tomorrow'} before bed`);
+  pbDraft = { blocks: out, miss: [], ai: false, school: true }; $('#pb-help').innerHTML = ''; renderPreview();
+  $('#planbox').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function renderSchool() {
+  const el = $('#school-card'); if (!SCHOOL_KEY) { el.hidden = true; return; }
+  const due = schoolDue(7);
+  el.hidden = false;
+  el.innerHTML = `<div class="card-head"><h2>School</h2><span class="small muted">${due.length ? `${due.length} due this week` : 'All caught up'}</span></div>
+    ${due.length ? due.slice(0, 6).map((x) => `<div class="sch-row" style="--c:${esc(x.cl?.color || '#64748b')}"><i></i><span><b>${esc(x.title)}</b><small>${esc(x.kind[0])}${x.cl ? ' · ' + esc(x.cl.name) : ''}${x.mins ? ' · ~' + fmtDur(x.mins) : ''}</small></span><span class="sch-due${x.late || x.due <= shiftIso(todayIso(), 1) ? ' hot' : ''}">${dueLabel(x.due)}${x.time ? ' ' + fmt12(x.time) : ''}</span></div>`).join('') + (due.length > 6 ? `<p class="small muted" style="margin:6px 0 0">+${due.length - 6} more in School</p>` : '')
+      + `<button type="button" class="btn primary wide" id="study-plan" style="margin-top:10px">Plan study time ${sdOff ? 'tomorrow' : 'today'}</button>` : '<p class="empty">Nothing due in the next 7 days. Add homework and tests in School.</p>'}`;
+}
+document.addEventListener('click', (e) => { if (e.target.closest('#study-plan')) planStudy(); });
+
 // ===================== Plan my day: words -> schedule =====================
 const NUMWORDS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
 const CAT_RULES = [
@@ -958,7 +1026,7 @@ function renderPreview() {
   const { blocks, miss, ai } = pbDraft, iso = schedIso(), existing = (day(iso, false)?.blocks || []).length;
   const anyRep = blocks.some((b) => b.days);
   const clash = []; for (let i = 0; i < blocks.length; i++) for (let j = i + 1; j < blocks.length; j++) { const a = blocks[i], b = blocks[j]; if (toMin(b.start) < toMin(a.start) + a.mins && toMin(a.start) < toMin(b.start) + b.mins && a.type !== 'sleep' && b.type !== 'sleep') clash.push(`${a.title} and ${b.title}`); }
-  el.innerHTML = blocks.length ? `<div class="hint" style="background:var(--surface-2)"><div class="card-head" style="margin-bottom:4px"><b>${blocks.length} block${blocks.length === 1 ? '' : 's'} for ${sdOff ? 'tomorrow' : 'today'}</b><span class="small muted">${ai ? 'Read by AI' : 'No AI needed'} · check it</span></div>
+  el.innerHTML = blocks.length ? `<div class="hint" style="background:var(--surface-2)"><div class="card-head" style="margin-bottom:4px"><b>${blocks.length} block${blocks.length === 1 ? '' : 's'} for ${sdOff ? 'tomorrow' : 'today'}</b><span class="small muted">${pbDraft.school ? 'Study time from School' : ai ? 'Read by AI' : 'No AI needed'} · check it</span></div>
       ${blocks.map((b, i) => `<div class="pv-row" style="--c:${btype(b.type).c}"><i></i><span><b>${esc(b.title)}</b><small>${fmt12(b.start)}–${fmt12(toMin(b.start) + b.mins)} · ${fmtDur(b.mins)}${b.days ? ` · ↻ ${daysLabel(b.days)}` : ''}</small></span><span class="row" style="gap:4px"><select data-pv-type="${i}" aria-label="Type for ${esc(b.title)}">${BTYPES.map((t) => `<option value="${t.id}"${t.id === b.type ? ' selected' : ''}>${t.name}</option>`).join('')}</select><button type="button" class="x" data-pv-del="${i}" aria-label="Remove ${esc(b.title)}">✕</button></span></div>`).join('')}
       ${clash.length ? `<p class="small" style="margin:8px 0 0;color:var(--warn)">Overlaps: ${esc(clash.slice(0, 2).join('; '))}. Fine if that's right, or fix the times after.</p>` : ''}
       ${miss.length ? `<p class="small muted" style="margin:8px 0 0">Couldn't read: “${esc(miss.join('”, “'))}”. Add it with ＋.</p>` : ''}
