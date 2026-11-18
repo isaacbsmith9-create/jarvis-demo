@@ -1,13 +1,17 @@
 // ===================== GAMEPLAN (bundled page, same database) =====================
 // Gameplan runs as gameplan.html in this artifact and saves each day as doc "gp-d-YYYY-MM-DD" ({ blocks: [{ id, title,
-// start 'HH:MM', mins, type, done }] }). Athlete OS only reads those blocks; editing happens in Gameplan.
+// start 'HH:MM', mins, type, done }] }) and repeating blocks in gp-core.repeats. Athlete OS only reads them; editing happens in Gameplan.
 // Gameplan already shows Athlete OS calendar events on its own schedule (read-only), and never saves them as blocks.
 const GP_TYPES = { school: ['School', '#64748b'], practice: ['Practice / game', '#e8590c'], train: ['Workout', '#7c3aed'], focus: ['Homework', '#d99a0b'], meal: ['Meal', '#16a34a'], work: ['Business', '#0d9488'], life: ['Life', '#db2777'], free: ['Free time', '#0ea5e9'], sleep: ['Sleep', '#475569'] };
 const gpType = (t) => GP_TYPES[t] || GP_TYPES.life;
 const normT = (s) => String(s || '').trim().toLowerCase();
 /** Gameplan blocks for a date, sorted, minus any that repeat a calendar item (same start time and title). */
 function gpBlocks(date, its = itemsOn(date)) {
-  const d = doc('gp-d-' + date), list = Array.isArray(d?.blocks) ? d.blocks : [];
+  const d = doc('gp-d-' + date), wd = parseIso(date).getDay();
+  // One-day blocks plus repeating blocks (gp-core.repeats: days 0-6 Sun=0, from, skip; done per day in rdone).
+  const reps = (doc('gp-core')?.repeats || []).filter((r) => r && Array.isArray(r.days) && r.days.includes(wd) && (!r.from || date >= r.from) && !(r.skip || []).includes(date))
+    .map((r) => ({ id: 'r:' + r.id, title: r.title, start: r.start, mins: r.mins, type: r.type, done: !!d?.rdone?.[r.id], repeat: true }));
+  const list = [...(Array.isArray(d?.blocks) ? d.blocks : []), ...reps];
   return list.filter((b) => b && /^\d{1,2}:\d{2}$/.test(b.start || '') && b.title)
     .filter((b) => !its.some((x) => x.time && toMinT(x.time) === toMinT(b.start) && normT(x.title) === normT(b.title)))
     .map((b) => { const mins = Math.max(5, Number(b.mins) || 60); return { ...b, mins, st: toMinT(b.start), end: addMin(b.start, mins) }; })

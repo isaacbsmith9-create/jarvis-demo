@@ -113,6 +113,12 @@ header.top .date { color: var(--muted); font-size: 13px; margin-top: 4px; }
 .pv-row small { color: var(--muted); font-size: 12px; }
 .pv-row select { font-size: 12px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: inherit; max-width: 112px; }
 .hint { background: var(--hi-soft); border-radius: 12px; padding: 8px 12px; font-size: 13px; margin-top: 8px; }
+.repdays { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+.repdays button { width: 36px; height: 36px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface-2); font-weight: 700; font-size: 13px; }
+.repdays button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.repdays .mini { width: auto; height: auto; border-radius: 99px; padding: 5px 10px; font-size: 12px; font-weight: 700; }
+.rep-ic { font-size: 11px; opacity: .75; margin-left: 4px; }
+.inbox-note { background: var(--accent-soft); border-radius: 12px; padding: 10px 12px; font-size: 14px; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 .btypes { display: flex; flex-wrap: wrap; gap: 6px; }
 .btypes button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 6px 11px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
 .btypes button i { width: 9px; height: 9px; border-radius: 3px; background: var(--c); }
@@ -290,6 +296,7 @@ dialog.sheet { border-radius: 22px 22px 0 0; }
       <div class="ring" aria-label="Day score"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="10"/><circle id="ring-fill" cx="50" cy="50" r="42" fill="none" stroke="var(--hi)" stroke-width="10" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264"/></svg><b id="score" class="num">0</b></div>
       <div style="min-width:0"><div class="eyebrow" id="now-label">Right now</div><div class="now" id="now-title">Free time</div><div class="next" id="next-title"></div></div>
     </div>
+    <div id="inbox-note"></div>
     <div class="card planbox" id="planbox">
       <div class="card-head"><h2>Plan my day</h2><span class="small muted" id="pb-sub">Say it or type it</span></div>
       <p class="small muted" style="margin:0 0 8px">Tell it what you have and it builds your hour-by-hour schedule. Example: “School 8 to 3, practice 3:30 to 5:30, dinner at 6, homework for an hour, shoot at 8, bed at 10:30.”</p>
@@ -400,7 +407,9 @@ dialog.sheet { border-radius: 22px 22px 0 0; }
     <label class="field"><span>Length</span><select id="b-mins"><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60" selected>1 hr</option><option value="90">1.5 hr</option><option value="120">2 hr</option><option value="150">2.5 hr</option><option value="180">3 hr</option><option value="240">4 hr</option><option value="300">5 hr</option><option value="420">7 hr</option><option value="480">8 hr</option></select></label>
   </div>
   <div class="field"><span>Type</span><div class="btypes" id="b-types"></div></div>
+  <div class="field"><span>Repeats</span><div class="repdays" id="b-rep"></div><span class="small muted" id="b-rep-note" style="margin-top:4px"></span></div>
   <button class="btn primary wide" id="b-save">Add to today</button>
+  <button type="button" class="btn wide" id="b-skip" hidden>Skip just this day</button>
   <button type="button" class="btn danger wide" id="b-delete" hidden>Delete</button>
 </form></dialog>
 
@@ -590,6 +599,42 @@ function weekboardItems(date) {
   } catch { return []; }
 }
 
+// Other apps on this website (MacroLens, Court Lab, Life Score...) can check off tasks or add blocks. Re-read when they do.
+function reloadLocal() { if (remote) return; for (const k of Object.keys(cache)) delete cache[k]; }
+window.addEventListener('storage', (e) => { if (!remote && (!e.key || e.key.startsWith(PREFIX))) { reloadLocal(); if (!$$('dialog[open]').length) { takeInbox(); render(); } } });
+
+// ===================== Repeating blocks =====================
+// core().repeats: [{ id, title, start, mins, type, days: [0-6, Sun = 0], from, skip: [dates] }]. Done marks live per day in day.rdone.
+const DOW = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const repeats = () => (core().repeats ||= []);
+function repeatsOn(date) { const wd = new Date(date + 'T12:00:00').getDay(); return repeats().filter((r) => r.days.includes(wd) && (!r.from || date >= r.from) && !(r.skip || []).includes(date)); }
+const repItems = (date) => repeatsOn(date).map((r) => ({ id: 'r:' + r.id, rid: r.id, title: r.title, start: r.start, mins: r.mins, type: r.type, done: !!day(date, false)?.rdone?.[r.id], repeat: r.days }));
+const daysLabel = (days) => { const d = [...days].sort(); const k = d.join(''); return k === '0123456' ? 'every day' : k === '12345' ? 'weekdays' : k === '06' ? 'weekends' : d.map((x) => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][x]).join(', '); };
+const ownBlocks = (date) => [...(day(date, false)?.blocks || []), ...repItems(date)];
+
+// ===================== Inbox: blocks and tasks other apps send here =====================
+let inboxMsg = '';
+function takeInbox() {
+  let q; try { q = JSON.parse(localStorage.getItem('gp:inbox') || '[]'); } catch { q = []; }
+  if (!q.length || EMBED) return;
+  const from = new Set();
+  for (const it of q) {
+    if (it.kind === 'block' && it.title && it.start && it.date) { const d = day(it.date); if (!d.blocks.some((b) => b.title === it.title && b.start === it.start)) { d.blocks.push({ id: uid(), title: String(it.title).slice(0, 60), start: it.start, mins: Number(it.mins) || 60, type: btype(it.type).id, done: false, src: it.from || 'app' }); saveDay(it.date); } }
+    if (it.kind === 'task' && it.title) addTask(String(it.title), it.quad !== 'plan' && it.quad !== 'drop', it.quad !== 'quick' && it.quad !== 'drop', it.top || null);
+    if (it.from) from.add(it.from);
+  }
+  try { localStorage.removeItem('gp:inbox'); } catch {}
+  inboxMsg = `${q.length} new item${q.length === 1 ? '' : 's'} from ${[...from].join(' and ') || 'your other apps'}`;
+}
+// What other apps read: a snapshot of today and tomorrow plus open tasks (the live data stays in gp:core / gp:d-*).
+function writeHub() {
+  if (EMBED) return;
+  try {
+    const t = todayIso(), sched = (d) => [...ownBlocks(d)].sort((a, b) => toMin(a.start) - toMin(b.start)).map((b) => ({ title: b.title, start: b.start, mins: b.mins, type: b.type, done: !!b.done }));
+    localStorage.setItem('hub:gameplan', JSON.stringify({ at: Date.now(), today: t, schedule: { [t]: sched(t), [shiftIso(t, 1)]: sched(shiftIso(t, 1)) }, tasks: core().tasks.filter((x) => !x.done).map((x) => ({ id: x.id, title: x.title, quad: quadOf(x).id, top: x.top, due: x.due })) }));
+  } catch {}
+}
+
 // ===================== Athlete OS calendar (when Gameplan runs inside Athlete OS) =====================
 function aosItems(date) {
   if (!EMBED?.aosKey) return [];
@@ -611,7 +656,7 @@ function minsBy(iso) { const out = {}; for (const e of day(iso, false)?.entries 
 function scoreFor(iso) {
   const tops = topFor(iso); const topPts = tops.length ? Math.round(40 * tops.filter((t) => t.done).length / Math.max(3, tops.length)) : 0;
   const ns = nightState(iso); const nightPts = ns.total ? Math.round(20 * ns.done / ns.total) : 0;
-  const blocks = [...(day(iso, false)?.blocks || []), ...(iso === todayIso() ? extItems(iso) : [])].filter((b) => b.type !== 'sleep' && b.type !== 'meal');
+  const blocks = [...ownBlocks(iso), ...(iso === todayIso() ? extItems(iso) : [])].filter((b) => b.type !== 'sleep' && b.type !== 'meal');
   const blockPts = blocks.length ? Math.round(20 * blocks.filter((b) => b.done).length / blocks.length) : 0;
   const goal = core().settings.phoneGoal || 120; const phone = minsBy(iso).phone || 0;
   const phonePts = Math.round(20 * Math.max(0, Math.min(1, 1 - (phone - goal) / goal)));
@@ -625,6 +670,7 @@ function route() { const h = location.hash.slice(1); view = VIEWS.includes(h) ? 
 
 // ===================== render =====================
 function render() {
+  writeHub();
   $('#date-label').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
   if (view === 'today') renderToday(); else if (view === 'matrix') renderMatrix(); else if (view === 'time') renderTime(); else renderNight();
 }
@@ -658,14 +704,14 @@ function timelineHtml(iso, items) {
     const b = it.b, top = px(it.st), h = Math.max(22, px(Math.min(it.en, h1 * 60)) - top - 2), t = btype(b.type);
     const w = `calc((100% - 50px) / ${it.cols})`, left = `calc(50px + (100% - 50px) / ${it.cols} * ${it.col})`;
     const state = isToday ? (it.en <= nm ? ' past' : it.st <= nm ? ' now' : '') : '';
-    const label = `${fmt12(it.st)}–${fmt12(it.st + b.mins)}${b.ext ? ' · ' + b.ext : ''}`;
+    const label = `${fmt12(it.st)}–${fmt12(it.st + b.mins)}${b.ext ? ' · ' + b.ext : b.repeat ? ' · ↻ ' + daysLabel(b.repeat) : ''}`;
     g += `<button type="button" class="tl-b${h < 40 ? ' short' : ''}${b.ext ? ' ext' : ''}${b.done ? ' done' : ''}${state}" style="--c:${t.c};top:${top + 1}px;height:${h}px;left:${left};width:calc(${w} - 3px)" ${b.ext ? 'data-ext="1"' : `data-block-open="${b.id}"`} aria-label="${esc(b.title)}, ${label}"><b>${esc(b.title)}</b><small>${label}</small></button>`;
   }
   if (isToday && nm >= h0 * 60 && nm <= h1 * 60) g += `<div class="tl-now" style="top:${px(nm)}px" aria-hidden="true"></div>`;
   return `<div class="tl" style="height:${(h1 - h0) * HH}px">${g}</div>`;
 }
 function renderSchedule() {
-  const iso = schedIso(), items = [...(day(iso, false)?.blocks || []), ...extItems(iso)].sort((a, b) => toMin(a.start) - toMin(b.start));
+  const iso = schedIso(), items = [...ownBlocks(iso), ...extItems(iso)].sort((a, b) => toMin(a.start) - toMin(b.start));
   $$('#sd-day button').forEach((b) => b.classList.toggle('on', Number(b.dataset.sd) === sdOff));
   $$('#sd-view button').forEach((b) => b.classList.toggle('on', b.dataset.sv === sdView));
   const busy = items.filter((b) => b.type !== 'sleep').reduce((a, b) => a + b.mins, 0);
@@ -679,17 +725,18 @@ function renderSchedule() {
     const st = toMin(b.start), en = st + b.mins;
     if (!placed && st > nm) { html += `<div class="nowline">Now ${fmt12(nm)}</div>`; placed = true; }
     const state = isToday ? (en <= nm ? 'past' : st <= nm ? 'current' : '') : '';
-    html += `<div class="block ${state}"><span class="time">${fmt12(st)}</span><div style="min-width:0">${b.ext ? `<span class="title ${b.done ? 'done-text' : ''}">${esc(b.title)}</span>` : `<button class="title ${b.done ? 'done-text' : ''}" data-block-open="${b.id}">${esc(b.title)}</button>`}<div class="meta"><span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:3px;background:${btype(b.type).c}"></span><span>${fmtDur(b.mins)} · til ${fmt12(en)}</span>${b.ext ? `<span class="tag">${esc(b.ext)}</span>` : `<span class="tag">${esc(btype(b.type).name)}</span>`}</div></div>${b.ext ? '' : `<button class="check ${b.done ? 'on' : ''}" data-block-check="${b.id}" aria-label="Done">${CHECK}</button>`}</div>`;
+    html += `<div class="block ${state}"><span class="time">${fmt12(st)}</span><div style="min-width:0">${b.ext ? `<span class="title ${b.done ? 'done-text' : ''}">${esc(b.title)}</span>` : `<button class="title ${b.done ? 'done-text' : ''}" data-block-open="${b.id}">${esc(b.title)}</button>`}<div class="meta"><span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:3px;background:${btype(b.type).c}"></span><span>${fmtDur(b.mins)} · til ${fmt12(en)}</span>${b.ext ? `<span class="tag">${esc(b.ext)}</span>` : `<span class="tag">${esc(btype(b.type).name)}</span>`}${b.repeat ? `<span class="tag">↻ ${esc(daysLabel(b.repeat))}</span>` : ''}</div></div>${b.ext ? '' : `<button class="check ${b.done ? 'on' : ''}" data-block-check="${b.id}" aria-label="Done">${CHECK}</button>`}</div>`;
   }
   if (!placed) html += `<div class="nowline">Now ${fmt12(nm)}</div>`;
   $('#agenda').innerHTML = html;
 }
 function renderToday() {
   const iso = todayIso(), s = scoreFor(iso);
+  $('#inbox-note').innerHTML = inboxMsg ? `<div class="inbox-note"><span>📥 ${esc(inboxMsg)}</span><button type="button" class="btn ghost" data-inbox-ok>OK</button></div>` : '';
   $('#score').textContent = s.total; $('#ring-fill').style.strokeDashoffset = String(264 - 264 * s.total / 100);
   $('#breakdown').innerHTML = [['Top 3', s.topPts, 40], ['Night', s.nightPts, 20], ['Blocks', s.blockPts, 20], ['Phone', s.phonePts, 20]].map(([l, v, m]) => `<div><b class="num">${v}<small style="font-size:12px;color:var(--muted)">/${m}</small></b>${l}</div>`).join('');
   $('#top3').innerHTML = s.tops.length ? s.tops.map((t, i) => taskRow(t, i + 1)).join('') : '<p class="empty">No Top 3 yet. Tap Pick to choose the 3 things that make today a win.</p>';
-  const items = [...(day(iso, false)?.blocks || []), ...extItems(iso)].sort((a, b) => toMin(a.start) - toMin(b.start));
+  const items = [...ownBlocks(iso), ...extItems(iso)].sort((a, b) => toMin(a.start) - toMin(b.start));
   const nm = nowMin(); let cur = null, next = null;
   for (const b of items) { const st = toMin(b.start), en = st + b.mins; if (st <= nm && en > nm && !cur) cur = b; if (st > nm && !next) next = b; }
   renderSchedule();
@@ -826,14 +873,25 @@ $('#ps-add').addEventListener('click', () => { const v = $('#ps-new').value.trim
 $('#ps-new').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('#ps-add').click(); } });
 
 // ===================== actions: blocks =====================
-let editBlock = null, bType = 'train';
+let editBlock = null, bType = 'train', bRep = [], editRep = null;
+function syncRep() {
+  const k = [...bRep].sort().join('');
+  $('#b-rep').innerHTML = DOW.map((l, i) => `<button type="button" data-rd="${i}" class="${bRep.includes(i) ? 'on' : ''}" aria-pressed="${bRep.includes(i)}" aria-label="${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][i]}">${l}</button>`).join('')
+    + `<button type="button" class="mini${k === '12345' ? ' on' : ''}" data-rp="12345">Weekdays</button><button type="button" class="mini${k === '0123456' ? ' on' : ''}" data-rp="0123456">Every day</button><button type="button" class="mini${!k ? ' on' : ''}" data-rp="">Once</button>`;
+  $('#b-rep-note').textContent = bRep.length ? `Shows up ${daysLabel(bRep)}, starting ${schedIso() === todayIso() ? 'today' : 'tomorrow'}.` : `Just ${schedIso() === todayIso() ? 'today' : 'tomorrow'}.`;
+}
+$('#b-rep').addEventListener('click', (e) => { const d = e.target.closest('[data-rd]'), pr = e.target.closest('[data-rp]'); if (d) { const i = Number(d.dataset.rd); bRep = bRep.includes(i) ? bRep.filter((x) => x !== i) : [...bRep, i]; } else if (pr) bRep = pr.dataset.rp.split('').filter(Boolean).map(Number); else return; syncRep(); });
 function openBlock(id) {
-  const b = id ? day(schedIso()).blocks.find((x) => x.id === id) : null; editBlock = b;
+  editRep = id && String(id).startsWith('r:') ? repeats().find((r) => r.id === id.slice(2)) || null : null;
+  const b = editRep || (id ? day(schedIso()).blocks.find((x) => x.id === id) : null); editBlock = editRep ? null : b;
+  bRep = editRep ? [...editRep.days] : [];
+  $('#b-skip').hidden = !editRep; $('#b-skip').textContent = `Skip just ${schedIso() === todayIso() ? 'today' : 'tomorrow'}`;
   $('#bs-title').textContent = b ? 'Edit block' : 'Add block'; $('#b-title').value = b?.title || '';
   const nm = nowMin(); $('#b-start').value = b?.start || slotStart || `${pad(Math.min(23, sdOff ? 16 : Math.floor(nm / 60) + 1))}:00`;
   const mins = String(b?.mins || 60); if (![...$('#b-mins').options].some((o) => o.value === mins)) $('#b-mins').add(new Option(fmtDur(Number(mins)), mins)); $('#b-mins').value = mins; bType = b?.type || 'train'; slotStart = null;
-  $('#b-save').textContent = b ? 'Save' : sdOff ? 'Add to tomorrow' : 'Add to today'; $('#b-delete').hidden = !b; $('#b-delete').dataset.confirm = ''; $('#b-delete').textContent = 'Delete';
-  syncBTypes(); $('#block-sheet').showModal(); if (!b) setTimeout(() => $('#b-title').focus(), 50);
+  $('#b-save').textContent = b ? (editRep ? 'Save for every day it repeats' : 'Save') : sdOff ? 'Add to tomorrow' : 'Add to today';
+  $('#bs-title').textContent = editRep ? 'Edit repeating block' : b ? 'Edit block' : 'Add block'; $('#b-delete').hidden = !b; $('#b-delete').dataset.confirm = ''; $('#b-delete').textContent = 'Delete';
+  syncBTypes(); syncRep(); $('#block-sheet').showModal(); if (!b) setTimeout(() => $('#b-title').focus(), 50);
 }
 let slotStart = null;
 function syncBTypes() { $('#b-types').innerHTML = BTYPES.map((t) => `<button type="button" data-bt="${t.id}" class="${t.id === bType ? 'on' : ''}" style="--c:${t.c}"><i></i>${t.name}</button>`).join(''); }
@@ -841,11 +899,26 @@ $('#b-types').addEventListener('click', (e) => { const b = e.target.closest('[da
 $('#block-form').addEventListener('submit', (e) => {
   e.preventDefault(); const title = $('#b-title').value.trim(); if (!title) return toast('Name the block');
   const start = $('#b-start').value || '16:00', mins = Number($('#b-mins').value), iso = schedIso(), d = day(iso);
+  if (bRep.length) {
+    // Repeating: update the series, or turn a one-day block into one.
+    if (editRep) Object.assign(editRep, { title, start, mins, type: bType, days: [...bRep].sort() });
+    else { repeats().push({ id: uid(), title, start, mins, type: bType, days: [...bRep].sort(), from: iso, skip: [] }); if (editBlock) d.blocks = d.blocks.filter((x) => x !== editBlock); }
+    saveCore(); saveDay(iso); $('#block-sheet').close(); render(); return toast(`${title} repeats ${daysLabel(bRep)}`);
+  }
+  if (editRep) { // "Once" on a repeating block: keep this day as a one-off, stop the series from today
+    editRep.skip = [...(editRep.skip || []), iso]; d.blocks.push({ id: uid(), title, start, mins, type: bType, done: false }); saveCore(); saveDay(iso); $('#block-sheet').close(); render(); return toast('Changed just this day');
+  }
   if (editBlock) Object.assign(editBlock, { title, start, mins, type: bType }); else d.blocks.push({ id: uid(), title, start, mins, type: bType, done: false });
   const st = toMin(start), clash = [...d.blocks, ...extItems(iso)].find((x) => x !== editBlock && x.title !== title && toMin(x.start) < st + mins && st < toMin(x.start) + x.mins);
   saveDay(iso); $('#block-sheet').close(); render(); toast(clash ? `Saved. Overlaps with ${clash.title}.` : 'Saved');
 });
-$('#b-delete').addEventListener('click', (e) => { if (!confirmTap(e.currentTarget)) return; const iso = schedIso(), d = day(iso); d.blocks = d.blocks.filter((b) => b !== editBlock); saveDay(iso); $('#block-sheet').close(); render(); });
+$('#b-delete').addEventListener('click', (e) => {
+  if (!confirmTap(e.currentTarget, editRep ? 'Tap again: delete every day' : 'Tap again to delete')) return;
+  const iso = schedIso(), d = day(iso);
+  if (editRep) { core().repeats = repeats().filter((r) => r !== editRep); saveCore(); } else { d.blocks = d.blocks.filter((b) => b !== editBlock); saveDay(iso); }
+  $('#block-sheet').close(); render();
+});
+$('#b-skip').addEventListener('click', () => { if (!editRep) return; const iso = schedIso(); editRep.skip = [...new Set([...(editRep.skip || []), iso])].slice(-120); saveCore(); $('#block-sheet').close(); render(); toast(`Skipped ${editRep.title} ${iso === todayIso() ? 'today' : 'tomorrow'}`); });
 
 // ===================== actions: time =====================
 function stopTimer() { const c = core(), r = c.running; if (!r) return; const mins = Math.round((Date.now() - r.start) / 60000); c.running = null; saveCore();
@@ -885,7 +958,10 @@ document.addEventListener('click', (e) => {
   const tc = t.closest('[data-task-check]'); if (tc) return toggleTask(tc.dataset.taskCheck);
   const to = t.closest('[data-task-open]'); if (to) return openTask(to.dataset.taskOpen);
   const qa = t.closest('[data-quad-add]'); if (qa) return openTask(null, qa.dataset.quadAdd);
-  const bc = t.closest('[data-block-check]'); if (bc) { const iso = schedIso(), b = day(iso).blocks.find((x) => x.id === bc.dataset.blockCheck); if (b) { b.done = !b.done; saveDay(iso); render(); } return; }
+  const bc = t.closest('[data-block-check]'); if (bc) { const iso = schedIso(), id = bc.dataset.blockCheck, d = day(iso);
+    if (id.startsWith('r:')) { d.rdone = d.rdone || {}; d.rdone[id.slice(2)] = !d.rdone[id.slice(2)]; saveDay(iso); render(); return; }
+    const b = d.blocks.find((x) => x.id === id); if (b) { b.done = !b.done; saveDay(iso); render(); } return; }
+  if (t.closest('[data-inbox-ok]')) { inboxMsg = ''; return render(); }
   const sl = t.closest('[data-slot]'); if (sl) { slotStart = sl.dataset.slot; return openBlock(null); }
   if (t.closest('[data-ext]')) return toast(EMBED ? 'This one comes from your Athlete OS calendar. Edit it there.' : 'This one comes from Weekboard. Edit it there.');
   const bo = t.closest('[data-block-open]'); if (bo) return openBlock(bo.dataset.blockOpen);
@@ -921,7 +997,7 @@ function normWords(text) {
   t = t.replace(/\b(till|til|until|through|thru)\b/g, 'to');
   t = t.replace(/\bninety (minutes?|mins?)\b/g, '90 $1').replace(/\bforty[- ]?five (minutes?|mins?)\b/g, '45 $1').replace(/\bthirty (minutes?|mins?)\b/g, '30 $1').replace(/\bfifteen (minutes?|mins?)\b/g, '15 $1').replace(/\btwenty (minutes?|mins?)\b/g, '20 $1')
     .replace(/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve) (hours?|hrs?)\b/g, (m, n, u) => `${NUMWORDS[n]} ${u}`);
-  t = t.replace(/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow|tonight)\b:?/g, ' ');
+  t = t.replace(/(\bevery\s+)?\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?\b(\s*(?:to|-|through)\s*(friday))?:?/g, (m, ev, d, rng) => (ev || rng ? m : ' ')).replace(/\b(today|tomorrow|tonight)\b:?/g, ' ');
   return t;
 }
 function toMins(h, m, ap, prevEnd, chunk, isEnd, startMin) {
@@ -932,7 +1008,7 @@ function toMins(h, m, ap, prevEnd, chunk, isEnd, startMin) {
   if (h === 12) return 720 + m;
   if (MORNING.test(chunk) && h >= 5 && h <= 11) return h * 60 + m;
   const am = h * 60 + m, pm = am + 720;
-  if (h >= 7 && h <= 11) return prevEnd > am + 30 ? pm : am;
+  if (h >= 7 && h <= 11) return /\b(sleep|bed|bedtime|lights out|night|nightly|tonight|evening|dinner)\b/.test(chunk) ? pm : prevEnd > am + 30 ? pm : am;
   if (h >= 5 && prevEnd > 300 && prevEnd <= 9 * 60) return am; // right after an early-morning block
   return pm; // 1-6 with no am/pm: afternoon or evening
 }
@@ -968,7 +1044,10 @@ function parseDay(text) {
     if (en == null || en <= st) en = st + (mins || (cat === 'school' ? Math.max(60, 15 * 60 - st) : DEF_MINS[cat]));
     if (cat === 'sleep') en = Math.min(en, 24 * 60);
     if (st < 0 || st >= 24 * 60) { miss.push(chunk); continue; }
-    const block = { id: uid(), title: title.slice(0, 60), start: `${pad(Math.floor(st / 60))}:${pad(st % 60)}`, mins: Math.max(5, Math.min(24 * 60 - st, en - st)), type: cat, done: false, src: 'voice' };
+    const repWords = chunk.match(/\b(every ?day|everyday|daily|every night|nightly|every morning|weekdays|every weekday|monday (?:to|-) friday|mon(?:day)?-fri(?:day)?|on school days|school days|weekends|every weekend|every (sunday|monday|tuesday|wednesday|thursday|friday|saturday)s?)\b/);
+    let days = null;
+    if (repWords) { const w = repWords[0]; days = /every ?day|everyday|daily|night|morning/.test(w) ? [0, 1, 2, 3, 4, 5, 6] : /weekend/.test(w) ? [0, 6] : /every (\w+)/.test(w) && !/weekday/.test(w) ? [['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(w.match(/every (\w+?)s?$/)[1])] : [1, 2, 3, 4, 5]; title = title.replace(new RegExp(repWords[0].replace(/[-]/g, '\\-'), 'i'), '').replace(/\s+/g, ' ').trim(); if (!title) title = cat === 'sleep' ? 'Sleep' : 'Block'; title = title.charAt(0).toUpperCase() + title.slice(1); }
+    const block = { id: uid(), days, title: title.slice(0, 60), start: `${pad(Math.floor(st / 60))}:${pad(st % 60)}`, mins: Math.max(5, Math.min(24 * 60 - st, en - st)), type: cat, done: false, src: 'voice' };
     out.push(block); prevEnd = Math.max(prevEnd, toMin(block.start) + block.mins);
   }
   return { blocks: out.sort((a, b) => toMin(a.start) - toMin(b.start)), miss };
@@ -977,13 +1056,14 @@ let pbDraft = null;
 function renderPreview() {
   const el = $('#pb-preview'); if (!pbDraft) { el.innerHTML = ''; return; }
   const { blocks, miss, ai } = pbDraft, iso = schedIso(), existing = (day(iso, false)?.blocks || []).length;
+  const anyRep = blocks.some((b) => b.days);
   const clash = []; for (let i = 0; i < blocks.length; i++) for (let j = i + 1; j < blocks.length; j++) { const a = blocks[i], b = blocks[j]; if (toMin(b.start) < toMin(a.start) + a.mins && toMin(a.start) < toMin(b.start) + b.mins && a.type !== 'sleep' && b.type !== 'sleep') clash.push(`${a.title} and ${b.title}`); }
   el.innerHTML = blocks.length ? `<div class="hint" style="background:var(--surface-2)"><div class="card-head" style="margin-bottom:4px"><b>${blocks.length} block${blocks.length === 1 ? '' : 's'} for ${sdOff ? 'tomorrow' : 'today'}</b><span class="small muted">${ai ? 'Read by AI' : 'No AI needed'} · check it</span></div>
-      ${blocks.map((b, i) => `<div class="pv-row" style="--c:${btype(b.type).c}"><i></i><span><b>${esc(b.title)}</b><small>${fmt12(b.start)}–${fmt12(toMin(b.start) + b.mins)} · ${fmtDur(b.mins)}</small></span><span class="row" style="gap:4px"><select data-pv-type="${i}" aria-label="Type for ${esc(b.title)}">${BTYPES.map((t) => `<option value="${t.id}"${t.id === b.type ? ' selected' : ''}>${t.name}</option>`).join('')}</select><button type="button" class="x" data-pv-del="${i}" aria-label="Remove ${esc(b.title)}">✕</button></span></div>`).join('')}
+      ${blocks.map((b, i) => `<div class="pv-row" style="--c:${btype(b.type).c}"><i></i><span><b>${esc(b.title)}</b><small>${fmt12(b.start)}–${fmt12(toMin(b.start) + b.mins)} · ${fmtDur(b.mins)}${b.days ? ` · ↻ ${daysLabel(b.days)}` : ''}</small></span><span class="row" style="gap:4px"><select data-pv-type="${i}" aria-label="Type for ${esc(b.title)}">${BTYPES.map((t) => `<option value="${t.id}"${t.id === b.type ? ' selected' : ''}>${t.name}</option>`).join('')}</select><button type="button" class="x" data-pv-del="${i}" aria-label="Remove ${esc(b.title)}">✕</button></span></div>`).join('')}
       ${clash.length ? `<p class="small" style="margin:8px 0 0;color:var(--warn)">Overlaps: ${esc(clash.slice(0, 2).join('; '))}. Fine if that's right, or fix the times after.</p>` : ''}
       ${miss.length ? `<p class="small muted" style="margin:8px 0 0">Couldn't read: “${esc(miss.join('”, “'))}”. Add it with ＋.</p>` : ''}
       <div class="row2" style="margin-top:10px">${existing ? '<button type="button" class="btn" id="pb-add" style="flex:1">Add to my day</button><button type="button" class="btn primary" id="pb-replace" style="flex:1">Replace my day</button>' : '<button type="button" class="btn primary" id="pb-add" style="flex:1">Put it on my schedule</button>'}</div>
-      ${existing ? `<p class="small muted" style="margin:6px 0 0">Replace keeps blocks you added by hand and swaps out the ones from Plan my day.</p>` : ''}</div>`
+      ${existing ? `<p class="small muted" style="margin:6px 0 0">Replace keeps blocks you added by hand and swaps out the ones from Plan my day.</p>` : ''}${anyRep ? '<p class="small muted" style="margin:6px 0 0">↻ blocks repeat on those days from now on. Edit or skip a day by tapping it on the schedule.</p>' : ''}</div>`
     : `<div class="hint">Couldn't find times in that. Try: “School 8 to 3, practice 3:30 to 5:30, dinner at 6, homework for an hour.”</div>`;
 }
 $('#pb-go').addEventListener('click', () => {
@@ -999,7 +1079,12 @@ $('#pb-preview').addEventListener('click', (e) => {
   const add = e.target.closest('#pb-add'), repl = e.target.closest('#pb-replace'); if (!add && !repl) return;
   const iso = schedIso(), dd = day(iso);
   if (repl) dd.blocks = dd.blocks.filter((b) => b.src !== 'voice');
-  dd.blocks.push(...pbDraft.blocks.map((b) => ({ ...b, id: uid() })));
+  for (const b of pbDraft.blocks) {
+    const { days, ...blk } = b;
+    if (days?.length) { const ex = repeats().find((r) => r.title.toLowerCase() === blk.title.toLowerCase()); if (ex) Object.assign(ex, { start: blk.start, mins: blk.mins, type: blk.type, days }); else repeats().push({ id: uid(), title: blk.title, start: blk.start, mins: blk.mins, type: blk.type, days, from: iso, skip: [] }); }
+    else dd.blocks.push({ ...blk, id: uid() });
+  }
+  saveCore();
   const n = pbDraft.blocks.length; saveDay(iso); pbDraft = null; $('#pb-text').value = ''; $('#pb-help').innerHTML = ''; renderPreview(); render();
   if (sdView !== 'tl') { sdView = 'tl'; try { localStorage.setItem(PREFIX + 'view', 'tl'); } catch {} render(); }
   $('#agenda').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1063,8 +1148,8 @@ function tidy() { const today = todayIso(); let changed = false; for (const t of
 window.addEventListener('hashchange', route);
 setInterval(() => { if (view === 'time' && core().running) { const r = core().running, sec = Math.floor((Date.now() - r.start) / 1000), c = $('#clock'); if (c) c.textContent = `${Math.floor(sec / 3600)}:${pad(Math.floor(sec / 60) % 60)}:${pad(sec % 60)}`; } }, 1000);
 setInterval(() => { if (!$$('dialog[open]').length) render(); }, 30000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
-syncQaFlags(); tidy(); route(); connectStore();
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { reloadLocal(); takeInbox(); render(); } });
+syncQaFlags(); tidy(); takeInbox(); route(); connectStore();
 </script>
 <script>
 // Suite bridge: the switcher finishes saving before leaving, and Gameplan publishes its weekly signals (doc "gp-sig").

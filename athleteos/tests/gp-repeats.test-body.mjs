@@ -1,0 +1,12 @@
+await page.evaluate(() => { const t = todayIso(), wd = parseIso(t).getDay();
+  localStorage.setItem('ml:gp-core', JSON.stringify({ tasks: [], routine: { steps: [], bed: '22:30', wake: '06:45', wind: 45 }, running: null, settings: { phoneGoal: 120 }, repeats: [{ id: 'rp1', title: 'School', start: '08:00', mins: 420, type: 'school', days: [wd], from: shiftIso(t, -3), skip: [] }, { id: 'rp2', title: 'Lift', start: '18:30', mins: 60, type: 'train', days: [wd], from: t, skip: [t] }] }));
+  localStorage.setItem('ml:gp-d-' + t, JSON.stringify({ blocks: [{ id: 'g1', title: 'Homework', start: '16:00', mins: 60, type: 'focus', done: false }], rdone: { rp1: true }, entries: [], night: { done: {} } }));
+  delete cache['gp-core']; delete cache['gp-d-' + t]; go('home'); });
+await page.waitForTimeout(300);
+const r = await page.evaluate(() => gpBlocks(todayIso()).map((b) => b.title + (b.done ? '✓' : '')));
+ok(r.join() === 'School✓,Homework', 'repeating blocks show (skip honored, done per day): ' + r.join());
+ok(await page.evaluate(() => gpBlocks(shiftIso(todayIso(), 7)).some((b) => b.title === 'Lift')), 'repeat shows next week');
+ok((await page.locator('[data-widget="upnext"]').innerText()).includes('Homework'), 'Up next uses them');
+await page.goto(base + 'gameplan.html'); await page.waitForTimeout(700);
+ok((await page.locator('#agenda').innerText()).includes('School'), 'bundled Gameplan shows the repeating block');
+ok(await page.locator('#b-rep').count() === 1, 'bundled Gameplan has the new repeat picker');
