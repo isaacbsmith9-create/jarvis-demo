@@ -391,6 +391,9 @@ dialog.full::backdrop { background: rgba(0, 0, 0, .7); }
   <div class="chips" id="ss-where"><button type="button" class="chip" data-v="gym">Gym</button><button type="button" class="chip" data-v="driveway">Driveway hoop</button><button type="button" class="chip" data-v="none">No hoop</button></div>
   <div class="label">You have</div>
   <div class="chips" id="ss-eq"><button type="button" class="chip" data-v="ball2">2 basketballs</button><button type="button" class="chip" data-v="cones">Cones or chairs</button><button type="button" class="chip" data-v="rebounder">Rebounder or partner</button></div>
+  <div class="label">Gameplan schedule</div>
+  <div class="row" style="flex-wrap:wrap"><label class="f" style="flex:1;min-width:140px">Usual start time<input type="time" id="ss-time" value="16:00"></label><button type="button" class="chip" id="ss-gp" aria-pressed="true" style="align-self:flex-end">Put sessions on my schedule</button></div>
+  <p class="muted small" style="margin:6px 0 0">Each training day gets the next session (Attack, Shooter…) as a block in Gameplan, and it checks off when you finish.</p>
   <button type="button" class="btn primary wide" id="ss-save" style="margin-top:18px">Start the program</button>
   <button type="button" class="btn wide danger" id="ss-reset" style="margin-top:8px" hidden>Restart from week 1</button>
 </dialog>
@@ -578,7 +581,7 @@ const TESTS = [
   { id: 'shuttle', n: '5-10-5 shuttle', how: 'Lines 5 yards to each side. Sprint 5 one way, 10 back, 5 to the middle. Use the stopwatch. Best of 2.', unit: 'sec', max: 15, dir: -1, eq: [] },
   { id: 'vert', n: 'Vertical jump', how: 'Reach up on a wall and mark it. Jump and mark. The gap in inches. Best of 3.', unit: 'in', max: 50, dir: 1, eq: [] },
 ];
-const DEFAULT_PROG = { start: null, nDays: 4, days: [1, 2, 4, 6], len: 45, eq: { where: 'gym', ball2: false, cones: false, rebounder: false }, done: {}, tests: [], seeds: {}, swaps: {} };
+const DEFAULT_PROG = { start: null, nDays: 4, days: [1, 2, 4, 6], len: 45, time: '16:00', toGameplan: true, eq: { where: 'gym', ball2: false, cones: false, rebounder: false }, done: {}, tests: [], seeds: {}, swaps: {} };
 let prog = rd('prog', null);
 const progOn = () => !!prog?.start;
 function schedule() {
@@ -824,7 +827,7 @@ function finishPlayer(completed) {
     h.unshift({ at: Date.now(), name: pl.meta.name, done: Math.min(pl.done, pl.items.length), total: pl.items.length, secs: pl.secs, makes: pl.makes, att: pl.atts, prog: pl.meta.progKey || null });
     wr('soloHist', h.slice(0, 400));
     if (pl.meta.progKey && (completed || pl.done >= Math.ceil(pl.items.length * 0.6))) { prog.done[pl.meta.progKey] = { at: Date.now(), secs: pl.secs, makes: pl.makes, att: pl.atts }; wr('prog', prog); }
-    writeHub();
+    writeHub(); syncGameplan();
   }
   if (!worth) { closePlayer(); return; }
   const t = totals();
@@ -1199,6 +1202,7 @@ function renderShotsWork() {
 //   GPLINK.toggle(id)               check a task off (or back on)
 //   GPLINK.add(title, quad, opts)   add a task; opts: { top: 'YYYY-MM-DD', due, from: 'App name' }
 //   GPLINK.schedule(iso)            that day's blocks, repeats included, sorted
+//   GPLINK.setBlocks(src, from, to, blocks)  an app keeps its own blocks on the schedule (replaced each time)
 //   GPLINK.push(item)               send a block to Gameplan's inbox: { kind: 'block', title, date, start, mins, type, from }
 //   GPLINK.card(el, opts)           draws the standard Gameplan card into el (opts.app names the app)
 // Gameplan picks up inbox items the next time it opens and says where they came from.
@@ -1230,6 +1234,20 @@ const GPLINK = (() => {
     const c = rd('gp:core'), d = rd('gp:d-' + date) || {};
     const reps = repeatsOn(date, c).map((r) => ({ id: 'r:' + r.id, title: r.title, start: r.start, mins: r.mins, type: r.type, done: !!d.rdone?.[r.id], repeat: true }));
     return [...(d.blocks || []), ...reps].filter((b) => b.start).sort((a, b) => toMin(a.start) - toMin(b.start));
+  }
+  /** An app keeps its own blocks on Gameplan's schedule: replaces every block tagged `src` from `from` to `to`
+   *  (inclusive) with `blocks` ([{ date, title, start, mins, type, done, link }]). Other blocks are never touched. */
+  function setBlocks(src, from, to, blocks) {
+    const shift = (d, n) => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + n); return iso(x); };
+    for (let d = from; d <= to; d = shift(d, 1)) {
+      const k = 'gp:d-' + d, cur = rd(k), mine = blocks.filter((b) => b.date === d);
+      if (!cur && !mine.length) continue;
+      const doc = cur || { blocks: [], entries: [], night: { done: {}, completedAt: null } };
+      const before = JSON.stringify(doc.blocks || []);
+      doc.blocks = [...(doc.blocks || []).filter((b) => b.src !== src), ...mine.map(({ date, ...b }) => ({ id: src + '-' + d + '-' + uid(), done: false, ...b, src }))];
+      const strip = (arr) => JSON.stringify(arr.map(({ id, ...b }) => b));
+      if (strip(JSON.parse(before)) !== strip(doc.blocks)) wr(k, doc);
+    }
   }
   function push(item) { const q = rd('gp:inbox') || []; q.push({ ...item, id: uid(), at: Date.now() }); return wr('gp:inbox', q.slice(-50)); }
   function nowNext(date = today()) {
@@ -1267,7 +1285,7 @@ const GPLINK = (() => {
     }
     draw();
   }
-  return { has, tasks, toggle, add, schedule, push, nowNext, card, quadOf, QUADS, COLORS };
+  return { has, tasks, toggle, add, schedule, setBlocks, push, nowNext, card, quadOf, QUADS, COLORS };
 })();
 // ===== GPLINK END =====
 
@@ -1317,7 +1335,7 @@ function renderProgram() {
   const sch = schedule(), nx = nextSess(), doneN = sch.filter((s) => isDone(s.key)).length, wkNow = nx ? nx.wk : 8;
   const phPct = (i) => { const [a, b] = PHASES[i].wk, ss = sch.filter((s) => s.wk >= a && s.wk <= b); return Math.round((ss.filter((s) => isDone(s.key)).length / ss.length) * 100); };
   top.innerHTML = `<div class="card"><div class="between"><div><div class="kicker">Elite Guard Program</div><h2>Week ${wkNow} of 8</h2></div><button type="button" class="btn sm" data-open-setup>Settings</button></div>
-    <p class="muted small" style="margin:6px 0 0">${prog.nDays} days a week (${prog.days.map((d) => DAYS[d]).join(', ')}) · ${prog.len} min · ${{ gym: 'gym', driveway: 'driveway hoop', none: 'no hoop' }[prog.eq.where]}. ${doneN} of ${sch.length} sessions done.</p>
+    <p class="muted small" style="margin:6px 0 0">${prog.nDays} days a week (${prog.days.map((d) => DAYS[d]).join(', ')}) · ${prog.len} min · ${{ gym: 'gym', driveway: 'driveway hoop', none: 'no hoop' }[prog.eq.where]}. ${doneN} of ${sch.length} sessions done.${prog.toGameplan !== false && typeof GPLINK !== 'undefined' && GPLINK.has() ? ` On your <a href="../gameplan/#today" style="color:var(--accent)">Gameplan schedule</a> at ${new Date('2000-01-01T' + (prog.time || '16:00')).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}.` : ''}</p>
     <div class="phase-bar">${PHASES.map((p, i) => `<div><span style="width:${phPct(i)}%"></span></div>`).join('')}</div><div class="phase-names">${PHASES.map((p) => `<span>${p.n}</span>`).join('')}</div>
     <p class="small" style="margin:10px 0 0"><b>${PHASES[phaseOf(wkNow) - 1].n}:</b> ${esc(PHASES[phaseOf(wkNow) - 1].about)}</p></div>`;
   let html = '';
@@ -1385,6 +1403,32 @@ function renderSetupSheet() {
   $$('#ss-len .chip').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.v) === draft.len)));
   $$('#ss-where .chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === draft.eq.where)));
   $$('#ss-eq .chip').forEach((b) => b.setAttribute('aria-pressed', String(!!draft.eq[b.dataset.v])));
+  $('#ss-time').value = draft.time || '16:00'; $('#ss-gp').setAttribute('aria-pressed', String(draft.toGameplan !== false));
+}
+$('#ss-gp').addEventListener('click', () => { draft.toGameplan = draft.toGameplan === false; renderSetupSheet(); });
+$('#ss-time').addEventListener('change', (e) => { if (e.target.value) draft.time = e.target.value; });
+
+// ===================== Program -> Gameplan schedule =====================
+// The next 14 days: every training day gets the next session in order. A session finished today shows as done today.
+const GP_SRC = 'courtlab';
+function programBlocks() {
+  if (!progOn() || prog.toGameplan === false) return [];
+  const t = todayIso(), out = [], time = prog.time || '16:00', mins = prog.len || 45;
+  const sch = schedule(), doneToday = sch.filter((s) => { const at = s.test ? prog.tests?.find((x) => x.key === s.key)?.at : prog.done?.[s.key]?.at; return at && isoDate(new Date(at)) === t; });
+  const pending = sch.filter((s) => !isDone(s.key));
+  const title = (s) => (s.test ? `Court Lab: ${s.label}` : `Court Lab: ${STYPES[s.type].name} (Wk ${s.wk})`);
+  for (const s of doneToday) out.push({ date: t, title: title(s), start: time, mins, type: 'train', done: true, link: '../court/#program' });
+  let k = 0;
+  for (let i = 0; i < 14 && k < pending.length; i++) {
+    const d = shiftIso(t, i); if (!prog.days.includes(new Date(d + 'T12:00:00').getDay())) continue;
+    if (i === 0 && doneToday.length) continue;
+    const s = pending[k++]; out.push({ date: d, title: title(s), start: time, mins: s.test ? 40 : mins, type: 'train', done: false, link: '../court/#home' });
+  }
+  return out;
+}
+function syncGameplan() {
+  if (typeof GPLINK === 'undefined' || !GPLINK.has()) return; // no Gameplan on this device yet
+  try { const t = todayIso(); GPLINK.setBlocks(GP_SRC, t, shiftIso(t, 13), programBlocks()); } catch {}
 }
 $('#setup-sheet').addEventListener('click', (e) => {
   const c = e.target.closest('.chip'); if (!c) return; const grp = c.parentElement.id, v = c.dataset.v;
@@ -1398,12 +1442,14 @@ $('#setup-sheet').addEventListener('click', (e) => {
 $('#ss-save').addEventListener('click', () => {
   if (draft.days.length !== draft.nDays) return toast(`Pick exactly ${draft.nDays} days (you have ${draft.days.length})`);
   const first = !progOn(); if (first) draft.start = todayIso();
-  prog = draft; wr('prog', prog); $('#setup-sheet').close(); route();
-  toast(first ? 'Program started. First up: the baseline test.' : 'Program updated');
+  if (!draft.time) draft.time = '16:00';
+  prog = draft; wr('prog', prog); $('#setup-sheet').close(); syncGameplan(); route();
+  const onGp = prog.toGameplan !== false && typeof GPLINK !== 'undefined' && GPLINK.has();
+  toast(first ? `Program started. First up: the baseline test.${onGp ? ' Sessions are on your Gameplan schedule.' : ''}` : onGp ? 'Program updated on your Gameplan schedule too' : 'Program updated');
 });
 $('#ss-reset').addEventListener('click', () => {
   const b = $('#ss-reset'); if (b.dataset.confirm !== '1') { b.dataset.confirm = '1'; b.textContent = 'Tap again: progress resets (records stay)'; return; }
-  prog = { ...draft, start: todayIso(), done: {}, tests: [], seeds: {}, swaps: {} }; wr('prog', prog); $('#setup-sheet').close(); route(); toast('Restarted at week 1');
+  prog = { ...draft, start: todayIso(), done: {}, tests: [], seeds: {}, swaps: {} }; wr('prog', prog); $('#setup-sheet').close(); syncGameplan(); route(); toast('Restarted at week 1');
 });
 
 // test day
@@ -1428,7 +1474,7 @@ $('#ts-save').addEventListener('click', () => {
   prog.tests = [...(prog.tests || []).filter((t) => t.key !== tsKey), { key: tsKey, wk: s.wk, at: Date.now(), res }].sort((a, b) => a.wk - b.wk);
   wr('prog', prog);
   for (const [id, v] of Object.entries(res)) { const T = TESTS.find((x) => x.id === id); if (setPR('test_' + id, v, T.dir) === 'pr') prs.push(T.n); }
-  writeHub(); $('#test-sheet').close(); swReset(); route();
+  writeHub(); syncGameplan(); $('#test-sheet').close(); swReset(); route();
   toast(prs.length ? `🏆 New best: ${prs.join(', ')}` : 'Test saved');
 });
 
@@ -1581,6 +1627,8 @@ if (!location.hash) history.replaceState(null, '', '#home');
 lastRoute = location.hash.split('/')[0];
 route();
 writeHub();
+syncGameplan();
+document.addEventListener('visibilitychange', () => { if (!document.hidden) syncGameplan(); });
 </script>
 
 </body>
