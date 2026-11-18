@@ -45,7 +45,7 @@ function addWater(oz) {
 // ===================== training =====================
 // MacroLens workout types, grouped into the categories the charts stack.
 const EX_TYPES = [
-  ['practice', 'Practice', 6.5, 'hoops'], ['game', 'Game', 8, 'hoops'], ['skill', 'Skill workout', 5.5, 'hoops'], ['shooting', 'Shooting', 4.5, 'hoops'],
+  ['practice', 'Practice', 6.5, 'hoops'], ['game', 'Game', 8, 'hoops'], ['skill', 'Skill workout', 5.5, 'hoops'], ['shooting', 'Shooting', 4.5, 'hoops'], ['handles', 'Ball handling', 5, 'hoops'], ['finishing', 'Finishing', 6, 'hoops'],
   ['lift', 'Lifting', 5, 'strength'], ['conditioning', 'Conditioning', 9, 'cond'], ['run', 'Running', 9.8, 'cond'], ['bike', 'Biking', 7, 'cond'],
   ['speed', 'Speed / agility', 8, 'cond'], ['recovery', 'Recovery / mobility', 2.5, 'other'], ['walk', 'Walking', 3.5, 'other'], ['other', 'Other', 5, 'other'],
 ];

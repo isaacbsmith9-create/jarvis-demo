@@ -1,30 +1,4 @@
 // ===================== forms (sheets) =====================
-function openWorkoutSheet(o = {}) {
-  const date = o.date || todayIso();
-  let type = o.type || 'practice', int = o.int || 'moderate', rating = 0, rpe = 0;
-  openSheet('Log a workout', `<p class="muted small" style="margin-top:-4px">Saved to the same diary as MacroLens, so your calorie targets update too.</p>
-    <div class="chips" id="ws-types">${EX_TYPES.map(([k, l]) => `<button type="button" class="chip ${k === type ? 'on' : ''}" data-wt="${k}">${l}</button>`).join('')}</div>
-    <div class="fields"><label class="full">Name<input id="ws-name" maxlength="40" value="${esc(o.name || '')}" placeholder="Optional"></label>
-      <label>Minutes<input type="number" id="ws-mins" min="5" max="480" value="${o.mins || 60}" inputmode="numeric"></label><label>Start time<input type="time" id="ws-time"></label>
-      <label>Date<input type="date" id="ws-date" value="${date}" max="${todayIso()}"></label><label>Intensity<select id="ws-int">${['light', 'moderate', 'hard'].map((k) => `<option ${k === int ? 'selected' : ''}>${k}</option>`).join('')}</select></label></div>
-    <div><p class="muted small" style="margin-bottom:6px">Session RPE: how hard was it overall? (1 easy, 10 max)</p><div class="scale" id="ws-rpe" style="flex-wrap:wrap">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => `<button type="button" data-rpe="${n}" style="flex:1 0 8%">${n}</button>`).join('')}</div></div>
-    <div><p class="muted small" style="margin-bottom:6px">How did it go? (optional, used for correlations)</p><div class="scale" id="ws-rate">${[1, 2, 3, 4, 5].map((n) => `<button type="button" data-r="${n}">${n}</button>`).join('')}</div></div>
-    <label>Notes<input id="ws-notes" maxlength="200" placeholder="Optional"></label>
-    <p class="muted small" id="ws-kcal"></p>
-    <button type="button" class="btn primary" id="ws-save">Save workout</button>`, (d) => {
-    const kc = () => { $('#ws-kcal', d).textContent = `About ${exBurn(type, $('#ws-mins', d).value, $('#ws-int', d).value).toLocaleString()} kcal burned (estimate from MacroLens's formula)${rpe ? ` · training load ${rpe * (Number($('#ws-mins', d).value) || 0)}` : ''}`; };
-    kc(); ['#ws-mins', '#ws-int'].forEach((s) => $(s, d).addEventListener('input', kc));
-    $('#ws-types', d).addEventListener('click', (e) => { const b = e.target.closest('[data-wt]'); if (!b) return; type = b.dataset.wt; $$('[data-wt]', d).forEach((x) => x.classList.toggle('on', x === b)); kc(); });
-    $('#ws-rpe', d).addEventListener('click', (e) => { const b = e.target.closest('[data-rpe]'); if (!b) return; rpe = rpe === Number(b.dataset.rpe) ? 0 : Number(b.dataset.rpe); $$('[data-rpe]', d).forEach((x) => x.classList.toggle('on', Number(x.dataset.rpe) === rpe)); kc(); });
-    $('#ws-rate', d).addEventListener('click', (e) => { const b = e.target.closest('[data-r]'); if (!b) return; rating = rating === Number(b.dataset.r) ? 0 : Number(b.dataset.r); $$('[data-r]', d).forEach((x) => x.classList.toggle('on', Number(x.dataset.r) === rating)); });
-    $('#ws-save', d).addEventListener('click', () => {
-      const mins = Math.round(Number($('#ws-mins', d).value)); if (!(mins >= 5 && mins <= 480)) return toast('Minutes must be 5 to 480');
-      const dt = $('#ws-date', d).value || todayIso(), name = $('#ws-name', d).value.trim() || EX_TYPES.find((x) => x[0] === type)[1];
-      addWorkout(dt, { type, name: name.slice(0, 40), mins, int: $('#ws-int', d).value, time: $('#ws-time', d).value || null, notes: $('#ws-notes', d).value.trim().slice(0, 200), rating: rating || null, rpe: rpe || null, workoutId: o.workoutId || null, source: 'athlete-os' });
-      o.after?.(); const fr = checkAchievements(); if (fr.length) setTimeout(() => toast(`Achievement unlocked: ${fr.join(', ')}`), 2700); closeSheet(); toast(`Logged ${name}`); refresh();
-    });
-  });
-}
 ACTIONS['log-workout'] = (b) => openWorkoutSheet({ date: b.dataset.date });
 ACTIONS['del-workout'] = (b) => confirmSheet('Delete this workout?', 'Delete', () => { const d = dayDoc(b.dataset.date); if (!d) return; d.exercise = (d.exercise || []).filter((x) => x.id !== b.dataset.id); persist('day-' + b.dataset.date); refresh(); toast('Workout deleted'); });
 ACTIONS['plan-practice'] = () => {

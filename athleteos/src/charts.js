@@ -281,3 +281,34 @@ function drawCombo(el, days, o = {}) {
 }
 /** Horizontal progress bar row (HTML). */
 const hbar = (pct, color = '') => `<div class="bar"><i style="width:${clamp(pct, 0, 100)}%${color ? ';background:' + color : ''}"></i></div>`;
+/** Several series on one date axis. series: [{name, color, pts:[{date,v,tip}], dash, area}]. opts: yMin, yMax, h, fmt, bands. */
+function drawMulti(el, series, o = {}) {
+  if (!el) return;
+  series = series.filter((s) => s.pts.length);
+  if (!series.length) { el.innerHTML = ''; return; }
+  const W = widthOf(el), H = o.h || 200, L = 40, R = 14, T = 14, B = 24, all = series.flatMap((s) => s.pts);
+  const dates = [...new Set(all.map((p) => p.date))].sort(), t0 = parseIso(dates[0]).getTime(), t1 = parseIso(dates[dates.length - 1]).getTime();
+  const xs = (d) => (t1 === t0 ? (L + W - R) / 2 : L + ((parseIso(d).getTime() - t0) / (t1 - t0)) * (W - L - R));
+  let lo = o.yMin ?? Math.min(...all.map((p) => p.v)), hi = o.yMax ?? Math.max(...all.map((p) => p.v));
+  if (o.yMin == null || o.yMax == null) { const pad = (hi - lo || 1) * 0.12; if (o.yMin == null) lo -= pad; if (o.yMax == null) hi += pad; }
+  const ticks = niceTicks(lo, hi, 4); if (o.yMin == null) lo = ticks[0]; if (o.yMax == null) hi = ticks[ticks.length - 1];
+  const ys = (v) => T + (1 - (v - lo) / (hi - lo || 1)) * (H - T - B);
+  const nL = Math.min(5, dates.length), labs = []; for (let i = 0; i < nL; i++) { const k = nL === 1 ? 0 : Math.round((i * (dates.length - 1)) / (nL - 1)); if (!labs.includes(k)) labs.push(k); }
+  const bands = (o.bands || []).map(([a, b, c]) => `<rect x="${L}" y="${r1(ys(Math.min(b, hi)))}" width="${W - L - R}" height="${r1(ys(Math.max(a, lo)) - ys(Math.min(b, hi)))}" fill="${c}" opacity=".08"/>`).join('');
+  const fmt = o.fmt || ((v) => nf(v, 1)), id = 'm' + ++gradN;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(o.label || series.map((s) => s.name).join(', '))}">
+    <defs>${series.map((s, i) => `<linearGradient id="${id}${i}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${s.color}" stop-opacity=".28"/><stop offset="1" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`).join('')}</defs>
+    ${bands}<g class="grid">${ticks.filter((v) => v >= lo && v <= hi).map((v) => `<line x1="${L}" x2="${W - R}" y1="${r1(ys(v))}" y2="${r1(ys(v))}"/>`).join('')}</g>
+    <g class="axis">${ticks.filter((v) => v >= lo && v <= hi).map((v) => `<text x="${L - 6}" y="${r1(ys(v)) + 3.5}" text-anchor="end">${esc(o.tick ? o.tick(v) : nf(v, tickDec(ticks)))}</text>`).join('')}
+    ${labs.map((k) => `<text x="${r1(xs(dates[k]))}" y="${H - 6}" text-anchor="${k === 0 && labs.length > 1 ? 'start' : k === dates.length - 1 && labs.length > 1 ? 'end' : 'middle'}">${esc(fmtD(dates[k]))}</text>`).join('')}</g>
+    ${series.map((s, i) => { const P = s.pts.map((p) => [r1(xs(p.date)), r1(ys(p.v))]); const line = smoothPath(P); return `${s.area && P.length > 1 ? `<path d="${line}L${P[P.length - 1][0]},${H - B}L${P[0][0]},${H - B}Z" fill="url(#${id}${i})"/>` : ''}${P.length > 1 ? `<path d="${line}" fill="none" stroke="${s.color}" stroke-width="${s.dash ? 2 : 2.6}" ${s.dash ? 'stroke-dasharray="6 5"' : ''} stroke-linecap="round"/>` : ''}${P.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${s.pts.length > 30 ? 1.8 : 3}" fill="var(--surface)" stroke="${s.color}" stroke-width="2"/>`).join('')}`; }).join('')}
+    ${series.flatMap((s) => s.pts.map((p) => `<circle class="hit" cx="${r1(xs(p.date))}" cy="${r1(ys(p.v))}" r="10" fill="transparent" data-tip="${esc(`${s.name}: ${p.tip || fmt(p.v)}`)}|${esc(fmtDL(p.date))}"/>`)).join('')}
+  </svg>`;
+  if (o.legend !== false) el.insertAdjacentHTML('beforeend', `<div class="legend">${series.map((s) => `<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('')}</div>`);
+}
+/** Donut (HTML string) for distributions. parts: [{label, v, color}] */
+function donut(parts, o = {}) {
+  const S = o.size || 140, r = S / 2 - 12, c = 2 * Math.PI * r, tot = sum(parts.map((p) => p.v)) || 1; let acc = 0;
+  return `<div class="row" style="gap:14px;flex-wrap:nowrap;align-items:center"><svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}" style="flex:none;transform:rotate(-90deg)" role="img" aria-label="${esc(o.label || 'Distribution')}"><circle cx="${S / 2}" cy="${S / 2}" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="18"/>${parts.filter((p) => p.v > 0).map((p) => { const len = (p.v / tot) * c, s = `<circle cx="${S / 2}" cy="${S / 2}" r="${r}" fill="none" stroke="${p.color}" stroke-width="18" stroke-dasharray="${r1(Math.max(0, len - 2))} ${r1(c)}" stroke-dashoffset="${r1(-acc)}"/>`; acc += len; return s; }).join('')}</svg>
+    <div class="stack" style="gap:5px;min-width:0">${parts.filter((p) => p.v > 0).map((p) => `<span class="small"><i class="dot" style="background:${p.color};margin-right:6px"></i>${esc(p.label)} <b class="num">${Math.round((p.v / tot) * 100)}%</b> <span class="muted tiny">${esc(o.fmt ? o.fmt(p.v) : nf(p.v))}</span></span>`).join('')}</div></div>`;
+}

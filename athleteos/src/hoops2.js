@@ -66,7 +66,7 @@ ACTIONS['add-handles'] = () => {
       if (!(mins >= 5)) return toast('Minutes must be 5 or more'); if (weak > mins) return toast('Weak-hand minutes can\'t exceed the total');
       const s = { id: uid('h'), date: $('#bh-date', d).value || todayIso(), mins, weakMins: weak, losses: Math.round(Number($('#bh-loss', d).value) || 0), cod, combos: $$('[data-combo].on', d).map((x) => x.dataset.combo), drills: $$('[data-drill].on', d).map((x) => x.dataset.drill), note: $('#bh-note', d).value.trim().slice(0, 160) };
       const H = doc('aos-handles'); H.sessions = [...(H.sessions || []), s]; persist('aos-handles');
-      if ($('#bh-ex', d).checked) addWorkout(s.date, { type: 'skill', name: 'Ball handling', mins, int: 'moderate', notes: s.combos.join(', '), source: 'athlete-os' });
+      if ($('#bh-ex', d).checked) addWorkout(s.date, { type: 'handles', name: 'Ball handling', mins, int: 'moderate', notes: s.combos.join(', '), source: 'athlete-os' });
       if (cod) { const prev = handleSessions().filter((x) => x.id !== s.id && x.cod).map((x) => x.cod); if (prev.length && cod < Math.min(...prev)) celebrate('Fastest cone drill', cod + 's', `Previous best ${Math.min(...prev)}s`); }
       closeSheet(); toast('Session saved'); refresh();
     });
@@ -105,7 +105,7 @@ ACTIONS['add-finish'] = () => openSheet('Finishing session', `<div class="fields
     if (!Object.keys(rows).length) return toast('Enter at least one row');
     const s = { id: uid('f'), date: $('#fi-date', d).value || todayIso(), rows, note: $('#fi-note', d).value.trim().slice(0, 160) };
     const F = doc('aos-finish'); F.sessions = [...(F.sessions || []), s]; persist('aos-finish');
-    const mins = Number($('#fi-mins', d).value); if (mins >= 5) addWorkout(s.date, { type: 'skill', name: 'Finishing', mins: Math.round(mins), int: 'moderate', source: 'athlete-os' });
+    const mins = Number($('#fi-mins', d).value); if (mins >= 5) addWorkout(s.date, { type: 'finishing', name: 'Finishing', mins: Math.round(mins), int: 'moderate', source: 'athlete-os' });
     closeSheet(); toast('Finishing saved'); refresh();
   });
 });

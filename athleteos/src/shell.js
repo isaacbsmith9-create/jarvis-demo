@@ -1,9 +1,10 @@
 // ===================== shell: routing, sheets, theme =====================
-const VIEWS = [['home', 'Home', 'home'], ['analytics', 'Analytics', 'chart'], ['hoops', 'Hoops', 'ball'], ['train', 'Train', 'calendar'], ['coach', 'Coach', 'spark'], ['profile', 'Profile', 'trophy', true]];
+const VIEWS = [['home', 'Home', 'home'], ['analytics', 'Analytics', 'chart'], ['hoops', 'Hoops', 'ball'], ['train', 'Train', 'calendar'], ['mind', 'Mind', 'brain'], ['coach', 'Coach', 'spark'], ['profile', 'Profile', 'trophy', true]];
 const SUBS = {
   analytics: [['overview', 'Overview'], ['performance', 'Performance'], ['training', 'Training'], ['body', 'Body'], ['recovery', 'Recovery'], ['nutrition', 'Nutrition'], ['correlations', 'Correlations'], ['compare', 'Compare'], ['reports', 'Reports']],
   hoops: [['court', 'Shot chart'], ['categories', 'Shooting'], ['handles', 'Handles'], ['finishing', 'Finishing'], ['iq', 'IQ & film'], ['games', 'Games']],
-  train: [['plan', 'Calendar'], ['today', 'Checklist'], ['load', 'Load'], ['tests', 'Tests'], ['goals', 'Goals'], ['library', 'Library'], ['history', 'History']],
+  train: [['overview', 'Overview'], ['plan', 'Calendar'], ['routines', 'Routines'], ['load', 'Load'], ['goals', 'Goals'], ['tests', 'Tests'], ['library', 'Library'], ['history', 'History']],
+  mind: [['checkin', 'Check-in'], ['trends', 'Trends'], ['training', 'Mental training'], ['journal', 'Journal']],
   coach: [['director', 'Director'], ['workout', 'Workout'], ['program', 'S&C program'], ['devplan', 'Dev plan'], ['ask', 'Ask'], ['report', 'Weekly evaluation'], ['fuel', 'Fuel tools']],
 };
 const state = { view: 'home', sub: {} };
@@ -11,6 +12,7 @@ const RENDER = {};
 function parseHash() {
   let [v, s] = (location.hash.slice(1) || 'home').split(/[-/]/);
   if (v === 'tests') { v = 'train'; s = 'tests'; }
+  if (v === 'train' && s === 'today') s = 'routines';
   const view = VIEWS.some((x) => x[0] === v) ? v : 'home';
   state.view = view;
   if (s && SUBS[view]?.some((x) => x[0] === s)) state.sub[view] = s;

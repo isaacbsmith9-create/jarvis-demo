@@ -114,8 +114,8 @@ const POS_WEIGHT = { shooting: 1.25, handles: 1.2, iq: 1.15, finishing: 1.05, at
 function lastTrained(skill) {
   const ds = [];
   if (skill === 'shooting') ds.push(...shotSessions().map((s) => s.date), ...allDayKeys().filter((d) => exList(d).some((x) => x.type === 'shooting')));
-  if (skill === 'handles') ds.push(...handleSessions().map((s) => s.date));
-  if (skill === 'finishing') ds.push(...finishSessions().map((s) => s.date));
+  if (skill === 'handles') ds.push(...handleSessions().map((s) => s.date), ...allDayKeys().filter((d) => exList(d).some((x) => x.type === 'handles')));
+  if (skill === 'finishing') ds.push(...finishSessions().map((s) => s.date), ...allDayKeys().filter((d) => exList(d).some((x) => x.type === 'finishing')));
   if (skill === 'iq') ds.push(...filmEntries().map((f) => f.date));
   if (skill === 'strength') ds.push(...allDayKeys().filter((d) => exList(d).some((x) => x.type === 'lift')));
   if (skill === 'athleticism') ds.push(...allDayKeys().filter((d) => exList(d).some((x) => ['speed', 'lift'].includes(x.type))));
@@ -261,9 +261,15 @@ function goalCurrent(g) {
   const h = g.history || []; return h.length ? h[h.length - 1].v : g.start;
 }
 function goalState(g) {
-  const cur = goalCurrent(g), lower = g.better === 'lower', span = g.target - g.start;
-  const pct = span ? clamp(((cur - g.start) / span) * 100, 0, 100) : cur === g.target ? 100 : 0;
-  const reached = lower ? cur <= g.target : cur >= g.target;
+  let cur, pct, reached;
+  if (g.mode === 'ms') {
+    const ms = g.milestones || [], n = ms.filter((m) => m.done).length;
+    cur = n; pct = ms.length ? (n / ms.length) * 100 : 0; reached = ms.length > 0 && n === ms.length;
+  } else {
+    cur = goalCurrent(g); const lower = g.better === 'lower', span = g.target - g.start;
+    pct = span ? clamp(((cur - g.start) / span) * 100, 0, 100) : cur === g.target ? 100 : 0;
+    reached = lower ? cur <= g.target : cur >= g.target;
+  }
   const total = g.created && g.date ? Math.max(1, daysBetween(isoDate(new Date(g.created)), g.date)) : null;
   const elapsed = g.created ? daysBetween(isoDate(new Date(g.created)), todayIso()) : 0;
   const expected = total ? clamp((elapsed / total) * 100, 0, 100) : null;
@@ -278,7 +284,7 @@ function snapshotGoals() {
     const v = sourceValue(g.source); if (v == null) continue;
     g.history = g.history || []; const last = g.history[g.history.length - 1];
     if (last?.date === today) { if (last.v !== v) { last.v = v; changed = true; } } else if (!last || last.v !== v) { g.history.push({ date: today, v }); changed = true; }
-    for (const m of g.milestones || []) if (!m.done && (g.better === 'lower' ? v <= m.v : v >= m.v)) { m.done = today; changed = true; }
+    for (const m of g.milestones || []) if (!m.done && m.v != null && (g.better === 'lower' ? v <= m.v : v >= m.v)) { m.done = today; changed = true; }
   }
   if (changed) persist('aos-goals');
 }
