@@ -398,12 +398,32 @@ function applyChoice(S, opt, A) {
     beat(S, 0.8, { [opt.to]: RR(rim) }, { pass: [H, opt.to], bounce: 1 }, [{ type: 'cut', user: opt.to, from: m.p, basket: true }], `${opt.to} back-cuts, bounce pass`);
     return finishShot(S, opt.to, analyzeReceiver(S, opt.to), 'Backdoor layup');
   }
-  if (opt.kind === 'drive') {
-    const from = A.hp, to = RR(toward(T_HOOP, from, A.drive > 0.5 ? 6 : 11));
+  if (opt.kind === 'drive') return driveTo(S, A, H, RR(toward(T_HOOP, A.hp, A.drive > 0.5 ? 6 : 11)), r);
+  if (opt.kind === 'dribble') {
+    const from = A.hp, to = opt.at, dH = defOf(S, H);
+    // Another defender standing in the dribble path stops you (your own man slides with you, so he doesn't count).
+    const blk = DEF.filter((d) => d !== dH && dist(S.pos[d], from) > 2 && segDist(S.pos[d], from, to) < 2.2).sort((x, y) => dist(S.pos[x], from) - dist(S.pos[y], from))[0];
+    if (blk) {
+      if (!S.lookahead && r < (A.trapped ? 0.4 : 0.15)) { beat(S, 0.6, { [H]: RR(toward(S.pos[blk], from, 2.5)) }, { steal: [H, blk] }, [], `Dribbled into X${blk[1]}: stripped`); beat(S, 1, { [blk]: [S.pos[blk][0] * 0.5, 44] }, blk, [], 'Turnover'); return { result: 'tov', ended: true, txt: `X${blk[1]} was standing in your dribble path and poked the ball away.` }; }
+      beat(S, 0.7, { [H]: RR(toward(S.pos[blk], from, 3)) }, H, [], `${H} dribbles into X${blk[1]}: path blocked`);
+      return { result: 'cont', ended: false, txt: `X${blk[1]} was in your dribble path, so the dribble went nowhere.` };
+    }
+    if (opt.attack) return driveTo(S, A, H, to, r);
+    const escape = A.trapped && dist(to, from) >= 6;
+    beat(S, clamp(dist(from, to) / 14 + 0.3, 0.5, 1.3), { [H]: to }, H, [], `${H} dribbles to the ${SPOT_LABEL[spotName(to)]}`);
+    return { result: 'cont', ended: false, txt: escape ? 'You dribbled out of the trap; the defense had to reset.' : 'You moved the ball with the dribble. The defense shifted with you.' };
+  }
+  if (opt.kind === 'shoot') return finishShot(S, H, analyzeReceiver(S, H), A.three ? 'Three-point attempt' : 'Pull-up');
+  return applyRest(S, opt, A, H);
+}
+/** Drive toward `to`: the on-ball defender either stays in front (no advantage) or gets beaten (help rotates). */
+function driveTo(S, A, H, to, r) {
+  {
+    const from = A.hp;
     if (A.trapped && r < 0.45 && !S.lookahead) { const t2 = defOf(S, H); beat(S, 0.7, {}, { steal: [H, t2] }, [], 'Stripped in the trap'); beat(S, 1, { [t2]: [S.pos[t2][0] * 0.5, 44] }, t2, [], 'Turnover'); return { result: 'tov', ended: true, txt: 'Dribbling into a two-man trap: the ball was stripped.' }; }
     const beatHim = S.lookahead ? S.forceDrive : r < A.drive;
     if (!beatHim) { // the on-ball defender stays in front: no help needed, no advantage
-      const dH = defOf(S, H), stop = RR(toward(from, T_HOOP, 4));
+      const dH = defOf(S, H), stop = RR(toward(from, to, 4));
       beat(S, 0.8, { [H]: stop }, H, [], `${H} drives, ${dH ? 'X' + dH[1] : 'the defense'} cuts it off`, { defOverride: dH ? { [dH]: RR(toward(stop, T_HOOP, 2.2)) } : {} });
       return { result: 'cont', ended: false, txt: 'The drive was cut off: your defender stayed in front, so nobody had to help.' };
     }
@@ -411,7 +431,8 @@ function applyChoice(S, opt, A) {
     if (!S.lookahead && A.drive >= 0.75 && S.rng() < 0.6) return finishShot(S, H, analyzeReceiver(S, H), 'Layup off the drive');
     return { result: 'cont', ended: false, txt: 'The drive drew help. New read.' };
   }
-  if (opt.kind === 'shoot') return finishShot(S, H, analyzeReceiver(S, H), A.three ? 'Three-point attempt' : 'Pull-up');
+}
+function applyRest(S, opt, A, H) {
   if (opt.kind === 'script') { const st = S.cfg.play.steps[S.stepIdx]; runStep(S, st); S.stepIdx++; advanceScript(S); return { result: 'cont', ended: false, txt: `Ran: ${st.label}.` }; }
   if (opt.kind === 'call') { (S.calls ||= []).push(opt.call); S.offScript = true; runCall(S, opt.call); return { result: 'cont', ended: false, txt: `Called ${opt.label.replace('Call ', '')}.` }; }
   if (opt.kind === 'reset') { beat(S, 1.1, { [H]: [clamp(A.hp[0] * 0.5, -6, 6), 32] }, H, [], 'Reset the offense'); return { result: 'cont', ended: false, txt: 'Reset. The defense recovered.' }; }
@@ -462,4 +483,16 @@ function whyOpen(S, A) {
     out.push({ o: m.o, open: m.open >= 0.75 || m.backdoor, tag: m.backdoor ? 'backdoor' : m.open >= 0.75 ? 'open' : m.open >= 0.45 ? 'workable' : 'covered', txt: reasons.join('; ') });
   }
   return out.sort((a, b) => b.open - a.open);
+}
+
+/** A free dribble to a spot the player tapped (up to 14 ft per decision). Valued by playing it forward. */
+function dribbleOption(S, A, pt) {
+  const from = A.hp; let to = RR(clampCourt(pt));
+  if (dist(from, to) > 14) to = RR(toward(from, to, 14));
+  const attack = distHoop(to) < distHoop(from) - 3 && distHoop(to) < 16;
+  const o = { id: 'dribble', kind: 'dribble', at: to, attack, label: attack ? `Attack off the dribble toward the rim` : `Dribble to the ${SPOT_LABEL[spotName(to)]}` };
+  if (attack) { const win = lookValue(S, o, A, { forceDrive: true }), stall = lookValue(S, o, A, { forceDrive: false }); o.ev = A.drive * win + (1 - A.drive) * 0.93 * stall - (A.trapped ? 0.3 : 0); }
+  else o.ev = 0.95 * lookValue(S, o, A);
+  o.principle = (attack && A.drive >= 0.6) || (A.trapped && dist(to, from) >= 6 && !attack);
+  return o;
 }

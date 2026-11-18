@@ -416,3 +416,5 @@ details.bd summary { cursor: pointer; }
 @media (max-width: 959px) { body[data-v="teamsim"] .tabbar { display: none; } body[data-v="teamsim"] .main { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); } }
 
 .bd.rulebox h4 { color: var(--purple-2); }
+
+#ts-stage { scroll-margin-top: calc(8px + env(safe-area-inset-top, 0px)); }
