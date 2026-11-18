@@ -95,9 +95,10 @@ function defend(S, pos, holder, events = []) {
       if (cov.offBall !== 'switch' && dU) { m[dU] = add(e.from || pos[e.screener], [-(e.side || 1) * 0.5, 1.2]); roles[dU] = 'caught on the back screen'; notes.push({ t: 'back', txt: `X${dU[1]} got caught on ${nm(S, e.screener)}'s back screen; ${nm(S, e.user)} rolls free` }); if (dS && (cov.onBall === 'drop' || cov.onBall === 'over')) { m[dS] = lerpP(m[dS], pos[e.user], 0.55); roles[dS] = 'helping on the roll'; } }
     }
     if (e.type === 'drive') {
-      const D = dU; if (D) { m[D] = add(pos[e.user], mul(norm(sub(e.from, pos[e.user])), 2.2)); roles[D] = 'beaten, trailing'; }
+      const D = dU; if (D && !e.contained) { m[D] = add(pos[e.user], mul(norm(sub(e.from, pos[e.user])), 2.2)); roles[D] = 'beaten, trailing'; }
       const helper = nearestHelper(S, pos, assign, e.user, pos[e.user], [D]);
-      if (helper) { m[helper] = toward(pos[e.user], T_HOOP, 2.3); roles[helper] = 'helping on the drive'; notes.push({ t: 'help', txt: `X${helper[1]} left ${nm(S, assign[helper])} to stop the drive` }); }
+      if (helper && !e.contained) { m[helper] = toward(pos[e.user], T_HOOP, 2.3); roles[helper] = 'helping on the drive'; notes.push({ t: 'help', txt: `X${helper[1]} left ${nm(S, assign[helper])} to stop the drive` }); }
+      else if (helper) { m[helper] = lerpP(m[helper], toward(pos[e.user], T_HOOP, 2.3), 0.5); roles[helper] = 'showing help'; notes.push({ t: 'help', txt: `X${helper[1]} stepped off ${nm(S, assign[helper])} to show help on the drive` }); }
       if (cov.packline) { const h2 = nearestHelper(S, pos, assign, e.user, pos[e.user], [D, helper]); if (h2) { m[h2] = lerpP(m[h2], pos[e.user], 0.5); roles[h2] = 'pack-line help'; } }
     }
     if (e.type === 'cut' && dU) {
@@ -246,7 +247,7 @@ const rules = () => doc('playbook').rules;
 /** After a completed pass: find the team rule for (passer role → receiver role) and run its verbs. */
 function applyPassRules(S, passer, receiver, fromRole, toRole) {
   const r = rules().find((x) => x.on.type === 'pass' && (x.on.from === fromRole || x.on.from === 'any') && (x.on.to === toRole || x.on.to === 'any'));
-  if (!r) return null;
+  if (!r) { respace(S); return null; }
   for (const t of r.then) { const who = ruleWho(S, t.who, passer, receiver); if (who && VERB_FN[t.verb]) VERB_FN[t.verb](S, who); }
   return r;
 }
@@ -324,7 +325,7 @@ function analyze(S) {
 }
 
 // ---------------- options & values ----------------
-const makeBase = (d, three) => (d < 6 ? 0.6 : d < 14 ? 0.45 : three ? 0.36 : 0.4);
+const makeBase = (d, three) => (d < 6 ? 0.6 : d < 14 ? 0.45 : d > 25 ? 0.28 : three ? 0.36 : 0.4);
 function shotProb(d, closest, three, I) {
   const adj = closest >= 6 ? 0.04 : closest >= 4 ? 0 : closest >= 2.5 ? -0.08 : -0.16;
   return clamp(makeBase(d, three) + adj - (I - 2) * 0.02, 0.05, 0.75);
@@ -347,7 +348,8 @@ function optionsFor(S, A, depth = 0) {
     if (m.backdoor) opts.push({ id: 'bd-' + m.o, kind: 'backdoor', to: m.o, label: `Hit ${m.o}'s backdoor cut`, ev: 0.88 * 2 * clamp(0.62 - (m.bdClear < 6 ? 0.08 : 0), 0.3, 0.7), comp: 0.88, principle: true, open: 1 });
   }
   opts.push({ id: 'drive', kind: 'drive', label: 'Attack your defender (drive)', ev: 0.55 + 0.7 * A.drive - (A.trapped ? 0.4 : 0), principle: A.drive >= 0.6, drive: A.drive });
-  if (A.hd <= 25) { const p = shotProb(A.hd, A.closest, A.three, I); opts.push({ id: 'shoot', kind: 'shoot', label: A.three ? 'Shoot the three' : 'Pull up and shoot', ev: p * (A.three ? 3 : 2), p, principle: A.window === 'open' }); }
+  opts.push(rimOption(S, A));
+  if (A.hd <= 28) { const p = shotProb(A.hd, A.closest, A.three, I); opts.push({ id: 'shoot', kind: 'shoot', label: A.three ? 'Shoot the three' : 'Pull up and shoot', ev: p * (A.three ? 3 : 2), p, principle: A.window === 'open' }); }
   if (!S.offScript && nextStep && !nextStep.actions.some((a) => a.type === 'pass')) opts.push({ id: 'script', kind: 'script', label: `Run the next action: ${nextStep.label || 'step ' + (S.stepIdx + 1)}`, ev: 0.97, principle: true });
   for (const r of rules().filter((x) => x.on.type === 'call')) if (!S.calls?.includes(r.on.call)) opts.push({ id: 'call-' + r.on.call, kind: 'call', call: r.on.call, label: `Call ${r.name}`, ev: callEV(S, A, r), principle: true });
   opts.push({ id: 'reset', kind: 'reset', label: 'Reset: dribble out and restart', ev: A.trapped ? 0.55 : 0.8, principle: false });
@@ -357,8 +359,8 @@ function optionsFor(S, A, depth = 0) {
     else if (o.kind === 'call' || o.kind === 'script') { o.la = lookValue(S, o, A); o.ev = 0.96 * o.la; }
     else if (o.kind === 'reset') { o.la = lookValue(S, o, A); o.ev = Math.min(0.9 * o.la, A.trapped ? 0.6 : 0.95); }
     else if (o.kind === 'drive') {
-      const win = lookValue(S, o, A, { forceDrive: true }), stall = lookValue(S, o, A, { forceDrive: false }), fin = 2 * shotProb(6, 2.5, false, S.intensity);
-      o.la = win; o.ev = A.drive * (A.drive >= 0.75 ? 0.6 * fin + 0.4 * win : win) + (1 - A.drive) * 0.93 * stall - (A.trapped ? 0.45 : 0);
+      const p = drivePBeat(S, A, RR(toward(T_HOOP, A.hp, 7))), win = lookValue(S, o, A, { forceDrive: true }), stall = lookValue(S, o, A, { forceDrive: false });
+      o.la = win; o.ev = p * win + (1 - p) * 0.95 * stall - (A.trapped ? 0.35 : 0);
     }
   } else for (const o of opts) if (o.kind === 'call' || o.kind === 'script') o.ev = 0.9;
   return opts;
@@ -398,20 +400,45 @@ function applyChoice(S, opt, A) {
     beat(S, 0.8, { [opt.to]: RR(rim) }, { pass: [H, opt.to], bounce: 1 }, [{ type: 'cut', user: opt.to, from: m.p, basket: true }], `${opt.to} back-cuts, bounce pass`);
     return finishShot(S, opt.to, analyzeReceiver(S, opt.to), 'Backdoor layup');
   }
-  if (opt.kind === 'drive') {
-    const from = A.hp, to = RR(toward(T_HOOP, from, A.drive > 0.5 ? 6 : 11));
-    if (A.trapped && r < 0.45 && !S.lookahead) { const t2 = defOf(S, H); beat(S, 0.7, {}, { steal: [H, t2] }, [], 'Stripped in the trap'); beat(S, 1, { [t2]: [S.pos[t2][0] * 0.5, 44] }, t2, [], 'Turnover'); return { result: 'tov', ended: true, txt: 'Dribbling into a two-man trap: the ball was stripped.' }; }
-    const beatHim = S.lookahead ? S.forceDrive : r < A.drive;
-    if (!beatHim) { // the on-ball defender stays in front: no help needed, no advantage
-      const dH = defOf(S, H), stop = RR(toward(from, T_HOOP, 4));
-      beat(S, 0.8, { [H]: stop }, H, [], `${H} drives, ${dH ? 'X' + dH[1] : 'the defense'} cuts it off`, { defOverride: dH ? { [dH]: RR(toward(stop, T_HOOP, 2.2)) } : {} });
-      return { result: 'cont', ended: false, txt: 'The drive was cut off: your defender stayed in front, so nobody had to help.' };
-    }
-    beat(S, 0.9, { [H]: to }, H, [{ type: 'drive', user: H, from }], `${H} drives`);
-    if (!S.lookahead && A.drive >= 0.75 && S.rng() < 0.6) return finishShot(S, H, analyzeReceiver(S, H), 'Layup off the drive');
-    return { result: 'cont', ended: false, txt: 'The drive drew help. New read.' };
+  if (opt.kind === 'drive') return driveTo(S, A, H, RR(toward(T_HOOP, A.hp, 7)), r, false);
+  if (opt.kind === 'rim') return driveTo(S, A, H, opt.at, r, true);
+  if (opt.kind === 'dribble') {
+    if (opt.attack) return driveTo(S, A, H, opt.at, r, false);
+    const from = A.hp, dH = defOf(S, H);
+    if (A.trapped && !S.lookahead && r < 0.3 && dist(opt.at, from) < 8) { const t2 = defOf(S, H); beat(S, 0.6, {}, { steal: [H, t2] }, [], 'Stripped in the trap'); beat(S, 1, { [t2]: [S.pos[t2][0] * 0.5, 44] }, t2, [], 'Turnover'); return { result: 'tov', ended: true, txt: 'You tried to dribble through two defenders and lost it. Retreat farther or pass out of a trap.' }; }
+    let to = opt.at;
+    const blk = DEF.filter((d) => d !== dH && dist(S.pos[d], from) > 2 && segDist(S.pos[d], from, to) < 2).sort((x, y) => dist(S.pos[x], from) - dist(S.pos[y], from))[0];
+    if (blk) to = RR(toward(S.pos[blk], from, 3));
+    const escape = A.trapped && dist(to, from) >= 6;
+    beat(S, clamp(dist(from, to) / 16 + 0.3, 0.45, 1.5), { [H]: to }, H, [], `${H} dribbles to the ${SPOT_LABEL[spotName(to)]}`);
+    return { result: 'cont', ended: false, txt: blk ? `X${blk[1]} was in the way, so you pulled up short of him.` : escape ? 'You dribbled out of the trap; the defense had to reset.' : 'You moved the ball with the dribble. Your defender slid with you.' };
   }
   if (opt.kind === 'shoot') return finishShot(S, H, analyzeReceiver(S, H), A.three ? 'Three-point attempt' : 'Pull-up');
+  return applyRest(S, opt, A, H);
+}
+/** Chance to get past the on-ball defender: better when he is out of position, and when the drive goes around him instead of into him. */
+function drivePBeat(S, A, to) {
+  const dH = defOf(S, A.H), pD = dH && S.pos[dH], around = pD ? segDist(pD, A.hp, to) : 9;
+  return clamp(0.3 + 0.45 * A.drive + (around >= 1.6 ? 0.18 : -0.08) - (A.trapped ? 0.3 : 0), 0.12, 0.9);
+}
+/**
+ * Drive toward `to`. Beat your man: you get there and the help rotates (leaving his man). Contained: your defender
+ * stays in front but you still get most of the way downhill and the help shows. finish = take it all the way and shoot.
+ */
+function driveTo(S, A, H, to, r, finish) {
+  const from = A.hp, dH = defOf(S, H);
+  if (A.trapped && r < 0.35 && !S.lookahead) { const t2 = defOf(S, H); beat(S, 0.7, {}, { steal: [H, t2] }, [], 'Stripped in the trap'); beat(S, 1, { [t2]: [S.pos[t2][0] * 0.5, 44] }, t2, [], 'Turnover'); return { result: 'tov', ended: true, txt: 'Driving into a two-man trap: the ball was stripped.' }; }
+  const pBeat = drivePBeat(S, A, to), beatHim = S.lookahead ? S.forceDrive : r < pBeat;
+  let end = to;
+  const blk = DEF.filter((d) => d !== dH && dist(S.pos[d], from) > 2 && segDist(S.pos[d], from, end) < 2).sort((x, y) => dist(S.pos[x], from) - dist(S.pos[y], from))[0];
+  if (blk && !finish) end = RR(toward(S.pos[blk], from, 2.8));
+  if (!beatHim) end = RR(lerpP(from, end, finish ? 0.7 : 0.6));
+  const ev = [{ type: 'drive', user: H, from, contained: !beatHim }];
+  beat(S, clamp(dist(from, end) / 17 + 0.3, 0.5, 1.2), { [H]: end }, H, ev, beatHim ? `${H} beats his man off the dribble` : `${H} drives; ${dH ? 'X' + dH[1] : 'his man'} stays in front`, beatHim || !dH ? {} : { defOverride: { [dH]: RR(toward(end, T_HOOP, 2)) } });
+  if (finish) return finishShot(S, H, analyzeReceiver(S, H), beatHim ? 'Layup at the rim' : 'Contested floater');
+  return { result: 'cont', ended: false, txt: beatHim ? 'You got past your man and the help had to commit. Find who he left.' : 'Your man stayed in front, but you got downhill and the help showed. Kick or keep attacking.' };
+}
+function applyRest(S, opt, A, H) {
   if (opt.kind === 'script') { const st = S.cfg.play.steps[S.stepIdx]; runStep(S, st); S.stepIdx++; advanceScript(S); return { result: 'cont', ended: false, txt: `Ran: ${st.label}.` }; }
   if (opt.kind === 'call') { (S.calls ||= []).push(opt.call); S.offScript = true; runCall(S, opt.call); return { result: 'cont', ended: false, txt: `Called ${opt.label.replace('Call ', '')}.` }; }
   if (opt.kind === 'reset') { beat(S, 1.1, { [H]: [clamp(A.hp[0] * 0.5, -6, 6), 32] }, H, [], 'Reset the offense'); return { result: 'cont', ended: false, txt: 'Reset. The defense recovered.' }; }
@@ -430,7 +457,7 @@ function finishShot(S, who, a, cap) {
 const fmtFt = (v) => (v >= 20 ? '20+ ft' : v.toFixed(1) + ' ft');
 
 // ---------------- grading ----------------
-const TEAM_W = { recognition: 0.15, read: 0.35, timing: 0.1, awareness: 0.2, principles: 0.2 };
+const TEAM_W = { read: 0.4, timing: 0.1, awareness: 0.25, principles: 0.25 };
 function gradeTeamDecision(A, opts, choice, info) {
   const best = opts.reduce((a, b) => (b.ev > a.ev ? b : a)), worst = Math.min(...opts.map((o) => o.ev));
   const parts = {};
@@ -439,7 +466,6 @@ function gradeTeamDecision(A, opts, choice, info) {
   const chosenOpen = choice.to ? Math.max(A.mates[choice.to].open, choice.kind === 'backdoor' ? 1 : 0) : null;
   parts.awareness = choice.kind === 'hold' ? 0 : !openMates.length ? 90 : chosenOpen != null ? Math.round(60 + 40 * chosenOpen) : choice.ev >= best.ev - 0.04 ? 85 : 45;
   parts.principles = choice.kind === 'hold' ? 0 : choice.principle ? 100 : 55;
-  if (info.recognition != null) parts.recognition = info.recognition ? 100 : 0;
   if (info.timing != null) parts.timing = info.timing;
   let s = 0, w = 0; for (const [k, v] of Object.entries(parts)) { s += TEAM_W[k] * v; w += TEAM_W[k]; }
   return { score: Math.round(s / w), parts, best };
@@ -462,4 +488,38 @@ function whyOpen(S, A) {
     out.push({ o: m.o, open: m.open >= 0.75 || m.backdoor, tag: m.backdoor ? 'backdoor' : m.open >= 0.75 ? 'open' : m.open >= 0.45 ? 'workable' : 'covered', txt: reasons.join('; ') });
   }
   return out.sort((a, b) => b.open - a.open);
+}
+
+/** A free dribble to a spot the player tapped (up to 14 ft per decision). Valued by playing it forward. */
+function dribbleOption(S, A, pt) {
+  const from = A.hp; let to = RR(clampCourt(pt));
+  if (dist(from, to) > 22) to = RR(toward(from, to, 22));
+  const attack = distHoop(to) < distHoop(from) - 3 && distHoop(to) < 16;
+  const o = { id: 'dribble', kind: 'dribble', at: to, attack, label: attack ? 'Attack off the dribble toward the rim' : `Dribble to the ${SPOT_LABEL[spotName(to)]}` };
+  if (attack) { const p = drivePBeat(S, A, to), win = lookValue(S, o, A, { forceDrive: true }), stall = lookValue(S, o, A, { forceDrive: false }); o.ev = p * win + (1 - p) * 0.95 * stall - (A.trapped ? 0.3 : 0); }
+  else o.ev = 0.95 * lookValue(S, o, A);
+  o.principle = (attack && A.drive >= 0.5) || (A.trapped && dist(to, from) >= 6 && !attack);
+  return o;
+}
+/** Take it all the way: drive at the rim and finish (layup if you beat your man, contested floater if not). */
+function rimOption(S, A) {
+  const side = sgn(A.hp[0]), at = RR([side * 1.5, 7.5]), o = { id: 'rim', kind: 'rim', at, label: 'Drive and finish at the rim' };
+  if (S.lookahead) { o.ev = 0.8; return o; }
+  const p = drivePBeat(S, A, at), win = lookValue(S, o, A, { forceDrive: true }), stall = lookValue(S, o, A, { forceDrive: false });
+  o.ev = p * win + (1 - p) * stall - (A.trapped ? 0.35 : 0); o.principle = p >= 0.55;
+  return o;
+}
+
+/** Default continuity when no team rule covers a pass: off-ball perimeter players move to open four-out spots. */
+function respace(S) {
+  const spots = ['slotL', 'slotR', 'wingL', 'wingR', 'cornerL', 'cornerR'], taken = new Set(), moves = {};
+  const own = (o) => spots.slice().sort((x, y) => dist(S.pos[o], SPOTS[x]) - dist(S.pos[o], SPOTS[y]));
+  const H = S.ball; if (isPerim(S.pos[H])) taken.add(own(H)[0]);
+  const players = OFF.filter((o) => o !== H && isPerim(S.pos[o])).sort((a, b) => dist(S.pos[a], SPOTS[own(a)[0]]) - dist(S.pos[b], SPOTS[own(b)[0]]));
+  for (const o of players) {
+    const sp = own(o).find((x) => !taken.has(x) && !(x.startsWith('corner') && !players.some((p) => p !== o && dist(S.pos[p], SPOTS[x.replace('corner', 'wing')]) < 6)));
+    const pick = sp || own(o).find((x) => !taken.has(x)); if (!pick) continue;
+    taken.add(pick); if (dist(S.pos[o], SPOTS[pick]) > 3) moves[o] = SPOTS[pick];
+  }
+  if (Object.keys(moves).length) beat(S, 0.9, RR2(moves), H, [], 'Offense re-spaces');
 }

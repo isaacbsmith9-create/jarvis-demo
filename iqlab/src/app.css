@@ -416,3 +416,16 @@ details.bd summary { cursor: pointer; }
 @media (max-width: 959px) { body[data-v="teamsim"] .tabbar { display: none; } body[data-v="teamsim"] .main { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); } }
 
 .bd.rulebox h4 { color: var(--purple-2); }
+
+#ts-stage { scroll-margin-top: calc(8px + env(safe-area-inset-top, 0px)); }
+
+.last-read { border: 1px solid var(--line-2); border-radius: 12px; background: var(--panel-2); }
+.last-read summary { display: flex; align-items: center; gap: 10px; padding: 9px 12px; cursor: pointer; list-style: none; }
+.last-read summary::-webkit-details-marker { display: none; }
+.last-read .lr-score { font: 700 18px var(--f-display); min-width: 30px; text-align: center; }
+.last-read .lr-txt { font-size: 13px; color: var(--muted); min-width: 0; }
+.last-read .lr-txt b { color: var(--text); }
+.last-read .lr-body { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 12px; }
+.last-read.band-elite { border-color: rgba(47,214,138,.45); } .last-read.band-good { border-color: rgba(121,174,255,.45); } .last-read.band-ok { border-color: rgba(255,194,61,.45); } .last-read.band-bad { border-color: rgba(255,90,110,.45); }
+.pause-tog { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.pause-tog input { accent-color: var(--blue); }
