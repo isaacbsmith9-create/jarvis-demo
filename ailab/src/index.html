@@ -1,0 +1,44 @@
+<title>Athlete Intelligence Lab</title>
+<meta name="description" content="Sports-science analytics for one athlete or a roster: testing lab, basketball shot charts, benchmark scores with documented formulas, strengths, weaknesses and development priorities.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/*CSS*/
+</style>
+<div class="app">
+  <aside class="rail" aria-label="Sections">
+    <div class="brand"><span class="logo" aria-hidden="true"></span><span class="bt">Athlete<br>Intelligence Lab</span></div>
+    <nav class="rail-nav" id="rail-nav"></nav>
+    <div class="rail-foot"><span class="sync" id="sync" data-s="local">This device</span></div>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <div class="brand m"><span class="logo" aria-hidden="true"></span><span class="bt">AIL</span></div>
+      <button type="button" class="ath-chip" id="ath-chip" aria-label="Switch athlete"></button>
+      <div class="top-r">
+        <label class="range"><span class="sr">Date range</span><select id="range-sel"></select></label>
+        <span class="sync m" id="sync-m" data-s="local"></span>
+      </div>
+    </header>
+    <div class="custom-range" id="custom-range" hidden>
+      <label>From <input type="date" id="range-from"></label><label>To <input type="date" id="range-to"></label>
+    </div>
+    <main id="views">
+      <section id="view-command" class="view"></section>
+      <section id="view-data" class="view" hidden></section>
+      <section id="view-testing" class="view" hidden></section>
+      <section id="view-hoops" class="view" hidden></section>
+      <section id="view-analytics" class="view" hidden></section>
+      <section id="view-intel" class="view" hidden></section>
+      <section id="view-reports" class="view" hidden></section>
+      <section id="view-method" class="view" hidden></section>
+    </main>
+  </div>
+</div>
+<nav class="tabbar" id="tabbar" aria-label="Main"></nav>
+<dialog class="sheet" id="sheet" aria-label="Form"></dialog>
+<div class="toast" id="toast" role="status"></div>
+<script>
+/*JS*/
+</script>
