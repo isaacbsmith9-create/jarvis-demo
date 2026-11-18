@@ -17,6 +17,7 @@ account collection `data/users/<user id>`.
 | --- | --- | --- |
 | Athlete OS | `aos`, `aos-*` (tests, shots, games, body, coach, plan, goals, mind, intel, sim, signals) and **workouts** in `day-*` | Gameplan blocks, MacroLens meals, signals |
 | MacroLens | `core`, meals / water / feel in `day-*` (and game-day workouts it logs) | workouts in `day-*` |
+| School (Life OS) | `life-school` { classes [{id,name,teacher,period,level,core,color}], items [{id,title,cls,type: hw/quiz/test/exam/project/essay/other,due,time,mins,done}], grades [{id,cls,cat: test/quiz/hw,title,score,max,date}], snaps {date: gpa} } | calendar, signals |
 | Gameplan / Life OS | `gp-*` (`gp-core`, `gp-d-YYYY-MM-DD`, `gp-sig`); later `life-*` | `aos-plan` calendar events, signals |
 | Basketball Training Center | `btc-app` (its whole state: drills, workouts, plan, sessions, journal…), `btc-sync` (which sessions were exported), `btc-sig`, and **finished sessions as workouts** in `day-*` | `aos-signals` (load ratio, readiness), `aos-plan` (games, practices), `aos`, `core` |
 
@@ -58,7 +59,7 @@ Signals are rewritten only when something changed.
 ## App switcher
 
 Every page mounts the same switcher in place of its brand:
-`Suite.mount(el, '<app id>', () => save())`. App ids: `aos`, `gp`, `btc`, `ml`.
+`Suite.mount(el, '<app id>', () => save())`. App ids: `aos`, `gp`, `school`, `btc`, `ml`. School is `school.html` = the Athlete OS bundle with `window.APP_MODE = 'school'`.
 Theme: one setting for all pages, stored under `macrolens-theme`.
 
 ## How the Training Center is bundled
