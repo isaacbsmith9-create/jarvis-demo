@@ -95,6 +95,8 @@ function renderHome() {
       ${secLink('iq', 'iq', 'Basketball IQ Academy', 'Transition, closeouts, mismatches, late clock.', 'purple')}
       ${secLink('playbook', 'book', 'Team Playbook', 'Rebuild our four-out offense: plays, cuts, screens and rules.', 'green')}
       ${secLink('teamsim', 'shield', 'Coverage Sim', 'Run our plays against 12 defenses. Read the defense, find the open man.', 'green')}
+      ${secLink('defense', 'def', 'Defense Intelligence Center', 'Positioning, help and rotations, on-ball, screens, anticipation and coverage recognition.', 'purple')}
+      ${secLink('cv', 'cam', 'Court Vision', 'Play a live possession by touch, from behind you, through your eyes or from the sideline.', 'green')}
       ${secLink('film', 'film', 'Film Room', results().length ? `${results().length} possessions saved for replay.` : 'Every possession you play is saved here.')}
       ${secLink('challenges', 'trophy', 'Challenges', `Daily Three (${s.daily}/3 today), coverage quiz, shot-clock gauntlet.`, 'green')}
       ${secLink('me', 'chart', 'My IQ', 'Rating, mastery by read, reaction time, decision vs. outcome.', 'green')}
@@ -180,7 +182,9 @@ function renderFilm() {
     <div class="page-head"><span class="eyebrow">Film Room</span><h1>Your possessions on tape</h1><p>Every possession is saved and replays exactly: same movement, same decision, same result. Open one to scrub it, turn on overlays and compare it with the best read.</p></div>
     ${R.length ? `<div class="filters" role="group" aria-label="Filter">${tabs.map(([k, t]) => `<button type="button" data-ff="${k}" aria-pressed="${filmFilter === k}">${t}</button>`).join('')}</div>` : ''}
     ${!R.length ? emptyState('film', 'No film yet', 'Play a possession and it lands here automatically, ready to replay with passing lanes, help defense and spacing overlays.', '<button type="button" class="btn" data-go="sim">Play your first possession</button>')
-      : list.length ? `<div class="film-list">${list.map(filmRow).join('')}</div>` : emptyState('film', 'Nothing in this filter', filmFilter === 'star' ? 'Star a possession to keep it here for later study.' : 'Play more possessions to fill this view.')}`;
+      : list.length ? `<div class="film-list">${list.map(filmRow).join('')}</div>` : emptyState('film', 'Nothing in this filter', filmFilter === 'star' ? 'Star a possession to keep it here for later study.' : 'Play more possessions to fill this view.')}
+    <div class="card dc-link"><span class="small"><b>Defensive film:</b> every defensive rep with a mistake is saved in the Defense center, ready to replay.</span><button type="button" class="btn ghost sm" data-dclink="mistakes">Open ›</button></div>`;
+  bindDCLinks($('#view-film'));
   for (const b of $$('[data-ff]', $('#view-film'))) b.onclick = () => { filmFilter = b.dataset.ff; renderFilm(); };
   for (const b of $$('[data-go]', $('#view-film'))) b.onclick = () => go(b.dataset.go);
   for (const row of $$('[data-rid]', $('#view-film'))) row.onclick = (e) => {
@@ -215,12 +219,14 @@ function startGauntlet() {
   const q = { kind: 'gauntlet', streak: 0, recent: [] };
   const n = gauntletPick(q); openPlay(n.id, { queue: q, flip: n.flip });
 }
+function bindDCLinks(root) { for (const b of $$('[data-dclink]', root)) b.onclick = () => { DC.run = null; DC.sub = b.dataset.dclink; go('defense'); }; }
 function renderChallenges() {
   const d = dailyIds(), sc = prog().daily[d.date]?.scores || {}, doneN = d.ids.filter((id) => sc[id] != null).length;
   const avg = doneN ? Math.round(mean(d.ids.filter((id) => sc[id] != null).map((id) => sc[id]))) : null;
   const streak = dailyStreak();
   $('#view-challenges').innerHTML = `
     <div class="page-head"><span class="eyebrow green">Challenges</span><h1>Prove it under pressure</h1><p>All challenges run in Live mode. Scenarios may be mirrored to the other side of the floor, so you read the defense, not the memory.</p></div>
+    <div class="card dc-link"><span class="small"><b>Daily defensive challenge</b> and timed defensive challenges (5-second positioning, 10-second rotations, closeouts, transition) are in the Defense center.</span><button type="button" class="btn ghost sm" data-dclink="challenge">Open ›</button></div>
     <div class="grid">
       <div class="card ch-card"><span class="eyebrow green">Daily Three · ${fmtDate(Date.now())}</span><h3>Three reads, every day</h3>
         <div class="daily">${d.ids.map((id, i) => `<div class="daily-item"><span class="st ${sc[id] != null ? 'done' : ''}">${sc[id] != null ? '✓' : i + 1}</span><span>${sc[id] != null ? esc(SC[id].title) + ' · <b>' + sc[id] + '</b>' : 'Hidden until you play it'}</span></div>`).join('')}</div>
@@ -238,6 +244,7 @@ function renderChallenges() {
   $('#ch-daily').onclick = () => startDaily(d);
   $('#ch-quiz').onclick = startQuiz;
   $('#ch-gauntlet').onclick = startGauntlet;
+  bindDCLinks($('#view-challenges'));
 }
 function dailyStreak() {
   const daily = prog().daily; let n = 0; const d = new Date();
@@ -308,7 +315,9 @@ function renderMe() {
   const R = results(), s = iqStats();
   if (!R.length) {
     $('#view-me').innerHTML = `<div class="page-head"><span class="eyebrow green">My IQ</span><h1>Your basketball IQ</h1></div>
-      ${emptyState('chart', 'No possessions yet', 'Your IQ rating, mastery by read, reaction time and decision-vs-outcome matrix build from the possessions you play.', '<button type="button" class="btn" data-go="sim">Play a possession</button>')}`;
+      ${emptyState('chart', 'No possessions yet', 'Your IQ rating, mastery by read, reaction time and decision-vs-outcome matrix build from the possessions you play.', '<button type="button" class="btn" data-go="sim">Play a possession</button>')}
+      ${(() => { const d = dStats(); return d.n ? `<div class="card dc-link"><span class="small"><b>Defensive IQ: ${d.iq}</b> · ${d.level} · ${d.n} defensive reps.</span><button type="button" class="btn ghost sm" data-dclink="analytics">Defense analytics ›</button></div>` : ''; })()}`;
+    bindDCLinks($('#view-me'));
     for (const b of $$('[data-go]', $('#view-me'))) b.onclick = () => go(b.dataset.go);
     return;
   }
@@ -322,6 +331,7 @@ function renderMe() {
   const bestPct = Math.round(100 * R.filter((r) => r.best).length / R.length);
   $('#view-me').innerHTML = `
     <div class="page-head"><span class="eyebrow green">My IQ</span><h1>Your basketball IQ</h1><p>Built from the decision scores of your last 20 possessions. Outcomes are tracked separately: a good read that misses still counts as a good read.</p></div>
+    ${(() => { const d = dStats(); return `<div class="card dc-link"><span class="small"><b>Defensive IQ: ${d.iq ?? 'not rated'}</b>${d.iq != null ? ` · ${d.level} · ${d.n} defensive reps` : ' · play defensive reps to get rated'}. Offense and defense are scored separately, so one can't hide the other.</span><button type="button" class="btn ghost sm" data-dclink="analytics">Defense analytics ›</button></div>`; })()}
     <div class="card iq-hero">
       <div class="iq-rating"><b>${s.rating}</b><span>${s.level}</span></div>
       <div class="stats" style="min-width:0">
@@ -348,6 +358,7 @@ function renderMe() {
       <p class="muted small">Progress is saved on this device${doc('profile') && remoteReady() ? ' and synced to your Claude account' : ''}.</p>
       ${meConfirm ? `<div class="confirm"><b>Erase all possessions and progress?</b><p class="small muted">This removes your Film Room, IQ history, scores and challenge records. It can't be undone.</p><div class="row"><button type="button" class="btn sm" style="background:var(--red)" id="me-erase">Erase everything</button><button type="button" class="btn ghost sm" id="me-cancel">Cancel</button></div></div>` : '<div><button type="button" class="btn ghost sm" id="me-reset">Reset progress…</button></div>'}
     </div>`;
+  bindDCLinks($('#view-me'));
   $('#me-reset') && ($('#me-reset').onclick = () => { meConfirm = true; renderMe(); });
   $('#me-cancel') && ($('#me-cancel').onclick = () => { meConfirm = false; renderMe(); });
   $('#me-erase') && ($('#me-erase').onclick = () => { cache.results = BLANK.results(); cache.progress = BLANK.progress(); persist('results'); persist('progress'); meConfirm = false; toast('Progress erased'); renderMe(); });

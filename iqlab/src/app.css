@@ -429,3 +429,36 @@ details.bd summary { cursor: pointer; }
 .last-read.band-elite { border-color: rgba(47,214,138,.45); } .last-read.band-good { border-color: rgba(121,174,255,.45); } .last-read.band-ok { border-color: rgba(255,194,61,.45); } .last-read.band-bad { border-color: rgba(255,90,110,.45); }
 .pause-tog { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
 .pause-tog input { accent-color: var(--blue); }
+
+/* ---------- Defense Intelligence Center ---------- */
+.dc-tabs { margin: 4px 0 16px; }
+.dc-mods { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); margin-bottom: 18px; }
+.dc-mods .sec-link { text-align: left; align-items: flex-start; }
+.dc-link { display: flex; align-items: center; gap: 12px; justify-content: space-between; margin-bottom: 14px; }
+.dc-link .small { min-width: 0; }
+.dr-timer { position: absolute; left: 12px; right: 12px; bottom: 10px; height: 6px; border-radius: 4px; background: rgba(255,255,255,.15); overflow: hidden; }
+.dr-timer i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--red), var(--amber)); }
+.dr-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+.lg-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 2px solid; margin-right: 4px; vertical-align: -1px; }
+.lg-dot.you { border-color: rgb(80,220,140); }
+.lg-dot.man { border-color: rgb(255,214,90); }
+.lg-dot.good { border-color: rgb(47,214,138); border-style: dashed; }
+.reveal-line { margin-top: 8px; }
+.chain { display: block; padding: 6px 10px; border-left: 3px solid var(--red); background: rgba(255,90,110,.07); border-radius: 0 8px 8px 0; }
+.intents .opt small { display: block; }
+#dr-stage canvas { touch-action: none; }
+#dr-stage { scroll-margin-top: calc(8px + env(safe-area-inset-top, 0px)); }
+
+/* ---------- Court Vision ---------- */
+.cv-stage { position: relative; }
+.cv-stage canvas { display: block; touch-action: none; }
+.cv-cams { position: absolute; right: 10px; top: 52px; display: flex; flex-direction: column; gap: 6px; }
+.cv-cams button { font: 600 11px/1 var(--f-body); padding: 7px 9px; border-radius: 999px; border: 1px solid var(--line-2); background: rgba(8,12,32,.72); color: var(--text); cursor: pointer; }
+.cv-cams button[aria-pressed="true"] { background: var(--green); color: var(--green-ink); border-color: transparent; }
+.cv-help { margin-top: 8px; }
+@media (max-width: 600px) { .cv-cams { top: auto; bottom: 10px; right: 8px; left: 8px; flex-direction: row; justify-content: center; flex-wrap: wrap; } }
+
+.dr-act { position: absolute; left: 8px; right: 8px; bottom: 8px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; z-index: 3; }
+.dr-act button { font: 600 13px/1.1 var(--f-body); padding: 9px 12px; border-radius: 999px; border: 1px solid rgba(155,123,255,.55); background: rgba(10,14,36,.88); color: var(--text); cursor: pointer; backdrop-filter: blur(4px); }
+.dr-act button:hover { background: rgba(155,123,255,.3); }
+.dr-act button.go { background: var(--green); color: var(--green-ink); border-color: transparent; padding-inline: 22px; }
