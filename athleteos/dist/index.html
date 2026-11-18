@@ -503,6 +503,39 @@ a.tlev { text-decoration: none; }
 @media (max-width: 430px) { .lab-table.lab-cmp { font-size: 11.5px; } .cmp-b { grid-template-columns: 84px minmax(0, 1fr) 48px; } }
 /* Brand = suite switcher */
 .brand#suite-host { gap: 0; }
+/* Home chart dashboard */
+.tabbar-inner { grid-template-columns: repeat(7, 1fr); }
+.vz-grid { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 640px) { .vz-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.vz { background: var(--surface-2); border-radius: 14px; padding: 12px 12px 6px; min-width: 0; }
+.vz-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+.vz-h b { font-size: 13.5px; }
+.vz-none { padding: 26px 0; text-align: center; margin: 0; }
+/* Do first */
+.df { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.df-list { display: grid; gap: 8px; }
+.df-i { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; background: var(--surface-2); border-radius: 14px; padding: 10px 12px; }
+.df-i b { display: block; font-size: 14.5px; }
+.df-ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.df-ic svg { width: 19px; height: 19px; }
+.df-chk { margin: 0; white-space: nowrap; }
+/* Up next */
+.un-row { display: grid; grid-template-columns: 4px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px 10px 0; background: var(--surface-2); border-radius: 12px; margin-bottom: 6px; overflow: hidden; }
+.un-row > i { align-self: stretch; background: var(--c); }
+.un-row b { display: block; font-size: 16px; overflow-wrap: anywhere; }
+/* Week calendar */
+.tl-strip { position: relative; height: 22px; border-radius: 8px; background: var(--surface-2); overflow: hidden; }
+.tl-strip i { position: absolute; top: 3px; bottom: 3px; border-radius: 5px; opacity: .9; }
+.tl-strip b { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+.tl-axis { display: flex; justify-content: space-between; margin: 3px 0 12px; }
+.wkc { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.wkc-d { position: relative; display: grid; justify-items: center; gap: 3px; padding: 8px 2px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); cursor: pointer; min-width: 0; font: inherit; }
+.wkc-d.today { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); }
+.wkc-d > b { font: 700 18px var(--f-display); }
+.wkc-ev { display: flex; gap: 2px; min-height: 6px; align-items: center; } .wkc-ev i { width: 6px; height: 6px; border-radius: 50%; } .wkc-ev em { font-size: 9px; font-style: normal; color: var(--muted); }
+.wkc-l { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); padding: 0 2px; }
+.wkc-gp { position: absolute; top: 4px; right: 4px; font-size: 9.5px; font-weight: 700; background: #22c55e; color: #04140b; border-radius: 99px; padding: 0 5px; }
+.wkc-tr { font-size: 10px; font-weight: 700; color: var(--good); }
 
 /* Athlete suite: the app switcher, identical on every page. Uses each page's own tokens (--fg, --muted, --surface…). */
 .suite { position: relative; display: inline-flex; min-width: 0; z-index: 30; }
@@ -5720,6 +5753,138 @@ function writeSignals() {
 }
 /** Read another app's summary (read-only). */
 const suiteSignal = (key) => doc(key) || null;
+
+// ---- visuals.js ----
+// ===================== Visual dashboard + Coach hand-off =====================
+// Home gets a "Your numbers" chart dashboard (all from logged data; empty charts say what to log).
+// The AI Coach moves to the athlete's new app: its tab is hidden, its Home card removed, and the Coach screen is a
+// placeholder until that app is connected. The coach code stays in place so reconnecting is a small change.
+VIEWS.find((v) => v[0] === 'coach')[3] = true;
+{ const i = WIDGETS.findIndex((w) => w[0] === 'ai'); if (i >= 0) WIDGETS.splice(i, 1); const j = DEFAULT_W.indexOf('ai'); if (j >= 0) DEFAULT_W.splice(j, 1); }
+RENDER.coach = (el) => { el.innerHTML = `<section class="card">${emptyState('Coach is moving to your new app', 'Your AI coach will live in the coaching app you are building and connect here when it is ready. Your training, food and recovery data is already shared, so it will see everything.', 'spark', `<div class="row" style="justify-content:center"><a class="btn sm" data-ml href="btc.html">Open Training Center</a><a class="btn sm" data-ml href="macrolens.html#coach-schedule">MacroLens fuel tools</a></div>`)}</section>`; };
+
+WIDGETS.unshift(['charts', 'Your numbers (charts)']);
+DEFAULT_W.splice(1, 0, 'charts');
+const VZ_CAT = Object.fromEntries(CATS.map((c) => [c[0], c]));
+function homeCharts(el) {
+  el.classList.add('span2');
+  const t = todayIso(), d14 = lastNDays(14), d7 = lastNDays(7), short = (d) => fmtD(d).replace(/^[A-Za-z]+ /, '');
+  const box = (id, title, sub) => `<div class="vz"><div class="vz-h"><b>${title}</b><span class="tiny muted">${sub}</span></div><div class="chart" id="${id}"></div></div>`;
+  el.innerHTML = `<div class="card-head"><div><h3>Your numbers</h3><span class="sub">Training, load, recovery, fuel and shooting at a glance</span></div><button type="button" class="btn sm" data-go="analytics">All analytics ›</button></div>
+    <div class="vz-grid">${box('vz-mins', 'Training minutes', 'last 14 days')}${box('vz-load', 'Training load', '7-day vs usual, 10 weeks')}${box('vz-sleep', 'Sleep', 'hours, last 14 nights')}${box('vz-ready', 'Recovery score', 'last 14 days')}${box('vz-cal', 'Calories vs target', 'last 7 days')}${box('vz-pro', 'Protein vs target', 'grams, last 7 days')}${box('vz-shot', 'Shooting %', 'last 12 sessions')}<div class="vz"><div class="vz-h"><b>Training mix</b><span class="tiny muted">last 28 days</span></div><div id="vz-mix" style="padding:8px 0"></div></div></div>`;
+  const none = (id, msg) => { const c = $('#' + id, el); if (c) c.innerHTML = `<p class="tiny muted vz-none">${msg}</p>`; };
+  // 1. minutes by category
+  const mg = d14.map((d) => { const tr = trainingOf(d); return { label: short(d), tip: fmtDL(d), segs: Object.entries(tr.by).filter(([, v]) => v).map(([k, v]) => ({ v, color: VZ_CAT[k]?.[2] || 'var(--accent)', name: VZ_CAT[k]?.[1] })) }; });
+  if (mg.some((g) => g.segs.length)) drawBars($('#vz-mins', el), mg, { h: 150, fmt: (v) => Math.round(v) + ' min', label: 'Training minutes per day' }); else none('vz-mins', 'Log workouts to fill this in.');
+  // 2. load: acute vs chronic, weekly
+  const wk = Array.from({ length: 10 }, (_, i) => shiftIso(t, -7 * (9 - i)));
+  const ls = wk.map((d) => ({ d, s: loadStats(d) }));
+  if (ls.some((x) => x.s.acute)) drawMulti($('#vz-load', el), [{ name: 'Last 7 days', color: 'var(--purple)', area: true, pts: ls.map((x) => ({ date: x.d, v: x.s.acute })) }, { name: 'Usual week (28-day avg)', color: 'var(--accent)', dash: true, pts: ls.map((x) => ({ date: x.d, v: x.s.chronic })) }], { h: 150, yMin: 0, label: 'Training load' }); else none('vz-load', 'Load appears once workouts are logged.');
+  // 3. sleep
+  const sl = d14.map((d) => ({ date: d, v: recoveryInputs(d).sleepH })).filter((p) => p.v != null);
+  if (sl.length) drawLine($('#vz-sleep', el), sl, { h: 150, color: '#8b5cff', goal: 8, fmt: (v) => r1(v) + ' h', bands: [[8, 10, 'var(--good)']] }); else none('vz-sleep', 'Add sleep in your morning check-in.');
+  // 4. recovery
+  const rc = d14.map((d) => ({ date: d, v: recoveryScore(d)?.score ?? null })).filter((p) => p.v != null);
+  if (rc.length) drawLine($('#vz-ready', el), rc, { h: 150, color: 'var(--good)', yMin: 0, yMax: 100, fmt: (v) => Math.round(v) + '/100', bands: [[0, 45, 'var(--danger)'], [70, 100, 'var(--good)']] }); else none('vz-ready', 'Recovery scores come from check-ins.');
+  // 5-6. calories / protein vs target
+  const fd = d7.filter(hasFood);
+  const fuel = (id, key, unit, color) => {
+    if (!fd.length) return none(id, 'Log meals in MacroLens to see this.');
+    drawBars($('#' + id, el), d7.map((d) => ({ label: short(d), tip: fmtDL(d), segs: hasFood(d) ? [{ v: totalsOf(d)[key], color, name: key }] : [] })), { h: 150, goal: targets(t)[key], fmt: (v) => Math.round(v) + unit, label: key + ' per day' });
+  };
+  fuel('vz-cal', 'calories', ' kcal', 'var(--carbs)'); fuel('vz-pro', 'protein', ' g', 'var(--protein)');
+  // 7. shooting %
+  const sp = shotSessions().map((s) => ({ date: s.date, ...sessionTotals(s) })).filter((s) => s.a >= 10).slice(-12).map((s) => ({ date: s.date, v: r1(s.pct * 100), tip: `${s.m}/${s.a}` }));
+  if (sp.length) drawLine($('#vz-shot', el), sp, { h: 150, color: '#22c3ee', fmt: (v) => r1(v) + '%' }); else none('vz-shot', 'Log a shooting session in Hoops.');
+  // 8. mix donut
+  const mix = { hoops: 0, strength: 0, cond: 0, other: 0 }; for (const d of lastNDays(28)) { const b = trainingOf(d).by; for (const k in b) mix[k] += b[k]; }
+  const parts = Object.entries(mix).filter(([, v]) => v).map(([k, v]) => ({ label: VZ_CAT[k][1], v, color: VZ_CAT[k][2] }));
+  const mc = $('#vz-mix', el); if (mc) mc.innerHTML = parts.length ? donut(parts, { size: 120, fmt: (v) => fmtDur(v), label: 'Training mix' }) : '<p class="tiny muted vz-none">Log workouts to see your mix.</p>';
+}
+{
+  const base = RENDER.home;
+  RENDER.home = (el) => { base(el); const s = $('[data-widget="charts"]', el); if (s) { try { homeCharts(s); } catch (e) { console.error(e); } } };
+}
+
+// ---- today.js ----
+// ===================== Home that follows your day =====================
+// 1. "Do first": what still needs you today (check-ins, planning the day, practice, breakfast, night routine) sits at
+//    the top of Home and disappears as soon as it is done.
+// 2. Up next reads the Athlete Calendar AND your Gameplan blocks: what you are doing now and what is next.
+// 3. A week calendar on Home: events, Gameplan blocks and logged training per day, plus today's timeline.
+const tdItems = (date) => {
+  const its = itemsOn(date), out = [];
+  for (const x of its) if (x.time) out.push({ st: toMinT(x.time), mins: x.mins || 30, title: x.title, color: evType(x.type)[2], src: 'Calendar', done: isChecked(date, x.key), key: x.key, type: x.type, end: x.end });
+  for (const b of gpBlocks(date, its)) out.push({ st: b.st, mins: b.mins, title: b.title, color: gpType(b.type)[1], src: 'Gameplan', done: !!b.done, type: b.type });
+  return out.sort((a, b) => a.st - b.st);
+};
+const tdClock = (m) => fmtClock(`${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`);
+
+// ---------- Up next (calendar + Gameplan) ----------
+homeUpNext = function (el) {
+  const t = todayIso(), now = nowM(), its = tdItems(t);
+  const cur = its.find((x) => x.st <= now && now < x.st + x.mins && !x.done), rest = its.filter((x) => x.st > now && !x.done);
+  let next = rest[0], nd = t;
+  if (!next) for (let i = 1; i <= 7 && !next; i++) { const d = shiftIso(t, i), n = tdItems(d)[0] || itemsOn(d)[0]; if (n) { next = n.st != null ? n : { title: n.title, color: evType(n.type)[2], src: 'Calendar' }; nd = d; } }
+  const row = (x, label) => `<div class="un-row" style="--c:${x.color}"><i></i><div style="min-width:0"><span class="tiny muted">${label}</span><b>${esc(x.title)}</b></div><span class="tag">${x.src}</span></div>`;
+  el.innerHTML = `<div class="card-head"><div><h3>Up next</h3><span class="sub">Your calendar and Gameplan blocks</span></div><div class="row" style="gap:6px"><a class="btn sm" data-ml href="gameplan.html">Gameplan</a><button type="button" class="btn sm" data-go="train-plan">Calendar</button></div></div>
+    ${cur ? row(cur, `NOW · until ${tdClock(cur.st + cur.mins)}`) : ''}
+    ${next ? row(next, nd === t ? `NEXT · ${tdClock(next.st)} · in ${fmtDur(next.st - now)}` : `${esc(fmtDL(nd)).toUpperCase()}${next.st != null ? ' · ' + tdClock(next.st) : ''}`) : ''}
+    ${nd === t && rest.length > 1 ? `<div class="list" style="margin-top:6px">${rest.slice(1, 5).map((x) => `<div class="li"><span class="small"><i class="dot" style="background:${x.color};margin-right:6px"></i>${esc(x.title)}</span><span class="tiny muted">${tdClock(x.st)}</span></div>`).join('')}</div>` : ''}
+    ${!cur && !next ? emptyState('Nothing blocked off', 'Plan your day in Gameplan or add events to your calendar, and they show up here.', 'calendar', '<div class="row" style="justify-content:center"><a class="btn sm primary" data-ml href="gameplan.html">Plan my day</a><button type="button" class="btn sm" data-act="event">＋ Event</button></div>') : ''}`;
+};
+
+// ---------- Week calendar on Home ----------
+WIDGETS.splice(1, 0, ['calendar', 'Week calendar']);
+DEFAULT_W.splice(DEFAULT_W.indexOf('charts') + 1 || 1, 0, 'calendar');
+function homeWeekCal(el) {
+  el.classList.add('span2');
+  const t = todayIso(), days = Array.from({ length: 7 }, (_, i) => shiftIso(t, i)), now = nowM();
+  const its = tdItems(t), H0 = 6 * 60, H1 = 24 * 60, pos = (m) => clamp(((m - H0) / (H1 - H0)) * 100, 0, 100);
+  el.innerHTML = `<div class="card-head"><div><h3>Your week</h3><span class="sub">Calendar events, Gameplan blocks and training</span></div><button type="button" class="btn sm" data-go="train-plan">Open calendar</button></div>
+    <div class="tl-strip" aria-label="Today's timeline">${its.map((x) => `<i style="left:${pos(x.st)}%;width:${Math.max(1.2, pos(x.st + x.mins) - pos(x.st))}%;background:${x.color}" title="${esc(x.title)} · ${tdClock(x.st)}"></i>`).join('')}${now >= H0 ? `<b style="left:${pos(now)}%"></b>` : ''}</div>
+    <div class="tl-axis tiny muted"><span>6a</span><span>12p</span><span>6p</span><span>12a</span></div>
+    <div class="wkc">${days.map((d) => {
+      const ev = itemsOn(d), gp = gpBlocks(d, ev), tr = trainingOf(d), dt = parseIso(d);
+      return `<button type="button" class="wkc-d ${d === t ? 'today' : ''}" data-wkc="${d}"><span class="tiny muted">${DOW[dt.getDay()]}</span><b>${dt.getDate()}</b>
+        <span class="wkc-ev">${ev.slice(0, 3).map((x) => `<i style="background:${evType(x.type)[2]}" title="${esc(x.title)}"></i>`).join('')}${ev.length > 3 ? `<em>+${ev.length - 3}</em>` : ''}</span>
+        <span class="tiny wkc-l">${ev[0] ? esc(ev[0].title) : gp.length ? `${gp.length} block${gp.length > 1 ? 's' : ''}` : '—'}</span>
+        ${gp.length ? `<span class="wkc-gp" title="${gp.length} Gameplan blocks">${gp.length}</span>` : ''}${tr.mins ? `<span class="wkc-tr">✓ ${tr.mins}m</span>` : ''}</button>`;
+    }).join('')}</div>`;
+}
+document.addEventListener('click', (e) => { const d = e.target.closest('[data-wkc]'); if (!d) return; setUi('calView', 'day'); setUi('calDay', d.dataset.wkc); go('train', 'plan'); });
+
+// ---------- Do first ----------
+function doFirst() {
+  const t = todayIso(), h = new Date().getHours(), out = [], dd = dayDoc(t) || {}, its = itemsOn(t);
+  if (recoveryInputs(t).sleepH == null && !dd.feel) out.push({ id: 'checkin', ic: 'moon', title: 'Morning check-in', why: 'Sleep, energy and soreness set your readiness and recovery for today.', btn: `<button type="button" class="btn sm primary" data-act="checkin">Check in</button>` });
+  if (!mind().checks?.[t]) out.push({ id: 'mind', ic: 'brain', title: 'Mental check-in', why: 'Confidence, focus and stress in 30 seconds.', btn: `<button type="button" class="btn sm" data-go="mind-checkin">Check in</button>` });
+  if (!gpBlocks(t, its).length && h < 21) out.push({ id: 'plan', ic: 'calendar', title: 'Block out your day', why: 'Say or type your day in Gameplan and it shows up here and in your calendar.', btn: `<a class="btn sm" data-ml href="gameplan.html">Plan my day</a>` });
+  for (const x of its.filter((x) => (x.type === 'practice' || x.type === 'game') && x.time && !isChecked(t, x.key))) {
+    const end = x.end ? toMinT(x.end) : toMinT(x.time) + (x.mins || 120);
+    if (nowM() >= end) out.push({ id: 'p-' + x.key, ic: 'ball', title: `How did ${x.type === 'game' ? 'the game' : 'practice'} go?`, why: `${esc(x.title)} ended at ${tdClock(end)}. Mark it done so it counts in your load.`, btn: `<label class="check df-chk"><input type="checkbox" data-chk="${t}|${esc(x.key)}"> Done</label>` });
+  }
+  if (h >= 9 && h < 12 && !(dd.breakfast || []).length) out.push({ id: 'bf', ic: 'fork', title: 'Log breakfast', why: 'Fuel for practice starts in the morning.', btn: `<a class="btn sm" data-ml href="macrolens.html">MacroLens</a>` });
+  if (h >= 20 && !doc('gp-d-' + t)?.night?.completedAt) out.push({ id: 'night', ic: 'moon', title: 'Night routine', why: 'Wind down, pick tomorrow\'s Top 3, lights out on time.', btn: `<a class="btn sm" data-ml href="gameplan.html#night">Start</a>` });
+  return out;
+}
+function doFirstHtml() {
+  const xs = doFirst(); if (!xs.length) return '';
+  const h = new Date().getHours(), greet = h < 12 ? 'Start your day' : h < 18 ? 'Still to do today' : 'Before bed';
+  return `<section class="card df" data-df><div class="card-head"><div><h3>${greet}</h3><span class="sub">${xs.length} thing${xs.length > 1 ? 's' : ''} left · each one disappears when it's done</span></div></div>
+    <div class="df-list">${xs.map((x) => `<div class="df-i" data-dfi="${x.id}"><span class="df-ic">${ICONS[x.ic] || ICONS.spark}</span><div style="min-width:0"><b>${x.title}</b><span class="small muted">${x.why}</span></div>${x.btn}</div>`).join('')}</div></section>`;
+}
+{
+  const base = RENDER.home;
+  RENDER.home = (el) => {
+    base(el);
+    const hero = $('.hero', el), html = doFirstHtml();
+    if (html) (hero || el.firstElementChild)?.insertAdjacentHTML(hero ? 'afterend' : 'beforebegin', html);
+    const s = $('[data-widget="calendar"]', el); if (s) { try { homeWeekCal(s); } catch (e) { console.error(e); } }
+  };
+}
+// A checked practice in Do first refreshes Home so the item leaves.
+document.addEventListener('change', (e) => { if (e.target.closest('.df [data-chk]') && state.view === 'home') setTimeout(refresh, 50); });
 
 // ---- main.js ----
 // ===================== boot =====================
