@@ -93,6 +93,8 @@ function renderHome() {
       ${secLink('sim', 'sim', 'Possession Simulator', `${SCENARIOS.length} playable possessions, live or on film.`)}
       ${secLink('pnr', 'learn', 'Pick-and-Roll Academy', 'Drop, switch, blitz, hedge, ice, snake, low man, pocket and skip.', 'purple')}
       ${secLink('iq', 'iq', 'Basketball IQ Academy', 'Transition, closeouts, mismatches, late clock.', 'purple')}
+      ${secLink('playbook', 'book', 'Team Playbook', 'Rebuild our four-out offense: plays, cuts, screens and rules.', 'green')}
+      ${secLink('teamsim', 'shield', 'Coverage Sim', 'Run our plays against 12 defenses. Read the defense, find the open man.', 'green')}
       ${secLink('film', 'film', 'Film Room', results().length ? `${results().length} possessions saved for replay.` : 'Every possession you play is saved here.')}
       ${secLink('challenges', 'trophy', 'Challenges', `Daily Three (${s.daily}/3 today), coverage quiz, shot-clock gauntlet.`, 'green')}
       ${secLink('me', 'chart', 'My IQ', 'Rating, mastery by read, reaction time, decision vs. outcome.', 'green')}

@@ -4,12 +4,14 @@ const NAV = [
   { v: 'sim', t: 'Simulator', i: 'sim' },
   { v: 'pnr', t: 'PnR Academy', i: 'learn', m: 'Learn' },
   { v: 'iq', t: 'IQ Academy', i: 'iq', rail: true },
+  { v: 'playbook', t: 'Team Playbook', i: 'book', m: 'Team' },
+  { v: 'teamsim', t: 'Coverage Sim', i: 'shield', rail: true },
   { v: 'challenges', t: 'Challenges', i: 'trophy' },
   { v: 'film', t: 'Film Room', i: 'film', m: 'Film' },
   { v: 'me', t: 'My IQ', i: 'chart' },
 ];
-const VIEWS = ['home', 'sim', 'pnr', 'iq', 'film', 'challenges', 'me', 'play', 'quiz'];
-const RENDER = { home: renderHome, sim: renderSim, pnr: () => renderAcademy('pnr'), iq: () => renderAcademy('iq'), film: renderFilm, challenges: renderChallenges, me: renderMe };
+const VIEWS = ['home', 'sim', 'pnr', 'iq', 'playbook', 'teamsim', 'film', 'challenges', 'me', 'play', 'quiz'];
+const RENDER = { home: renderHome, sim: renderSim, pnr: () => renderAcademy('pnr'), iq: () => renderAcademy('iq'), film: renderFilm, challenges: renderChallenges, me: renderMe, playbook: renderPlaybook, teamsim: renderTeamSim };
 let current = 'home';
 
 function buildNav() {
@@ -20,7 +22,7 @@ function buildNav() {
 function markNav(v) {
   const navV = v === 'play' ? (P.from && VIEWS.includes(P.from) ? P.from : 'sim') : v === 'quiz' ? 'challenges' : v;
   for (const b of $$('.tab')) {
-    const on = b.dataset.v === navV || (b.closest('#tabbar') && b.dataset.v === 'pnr' && navV === 'iq');
+    const on = b.dataset.v === navV || (b.closest('#tabbar') && ((b.dataset.v === 'pnr' && navV === 'iq') || (b.dataset.v === 'playbook' && navV === 'teamsim')));
     if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   }
 }
@@ -33,6 +35,7 @@ function showView(v) {
   if (location.hash.slice(1) !== v) { try { history.replaceState(null, '', '#' + v); } catch {} }
   window.scrollTo({ top: 0 });
   if (v === 'play') ensureLoop();
+  if (v === 'teamsim' && TSIM.S && TSIM.phase !== 'setup') setTimeout(tsLoop, 0);
 }
 function go(v) {
   if (!RENDER[v]) v = 'home';

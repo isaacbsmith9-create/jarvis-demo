@@ -55,7 +55,7 @@ p { margin: 0; }
 .sync[data-s="synced"]::before { background: var(--green); box-shadow: 0 0 8px var(--green); }
 .sync[data-s="error"]::before { background: var(--red); }
 .sync[data-s="loading"]::before { background: var(--amber); }
-.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(6, 1fr); background: rgba(9, 14, 30, .94); backdrop-filter: blur(14px); border-top: 1px solid var(--line); padding: 6px max(6px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px)); }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(7, 1fr); background: rgba(9, 14, 30, .94); backdrop-filter: blur(14px); border-top: 1px solid var(--line); padding: 6px max(6px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px)); }
 .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; border: 0; background: none; color: var(--muted); font: 600 10.5px var(--f-body); cursor: pointer; border-radius: 10px; min-width: 0; }
 .tab svg { width: 22px; height: 22px; }
 .tab[aria-current="page"] { color: var(--text); }
@@ -382,6 +382,46 @@ p { margin: 0; }
 }
 @media (max-width: 600px) { .hud-prompt { font-size: 12px; padding: 6px 10px; bottom: 8px; } .hud-clock b { font-size: 16px; } }
 
+/* ---------- team playbook & coverage sim ---------- */
+.pb-card { cursor: default; }
+.pb-card:hover { transform: none; }
+.steps-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.step-chip { flex: none; border: 1px solid var(--line-2); background: var(--panel-2); border-radius: 9px; padding: 7px 11px; font: 600 12.5px var(--f-body); cursor: pointer; white-space: nowrap; }
+.step-chip[aria-pressed="true"] { border-color: var(--blue); background: rgba(61,139,255,.16); }
+.step-chip.add { border-style: dashed; color: var(--muted); }
+.seg.tools { align-self: flex-start; flex-wrap: wrap; }
+.legend-row { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--muted); }
+.legend-row span { display: inline-flex; align-items: center; gap: 6px; }
+.lg { display: inline-block; width: 22px; height: 0; border-top: 3px solid; }
+.lg.cut { border-color: #fff; } .lg.dribble { border-color: #78c8ff; border-top-style: dotted; } .lg.pass { border-color: #ffd65a; border-top-style: dashed; } .lg.screen { border-color: #ff8c5a; } .lg.move { border-color: #c8d2eb; border-top-width: 2px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-grid .full { grid-column: 1 / -1; }
+.fld { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.fld > span { font: 700 10.5px var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.panel input[type="text"], .panel select, .panel textarea, .card select, .card input[type="text"], .card textarea { width: 100%; background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 9px; color: var(--text); padding: 8px 10px; font: 500 13.5px var(--f-body); min-width: 0; }
+.panel textarea, .card textarea { resize: vertical; }
+.act-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.act-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; background: var(--panel-2); font-size: 13.5px; }
+.icon-x { border: 0; background: none; color: var(--muted); font-size: 18px; cursor: pointer; line-height: 1; padding: 0 4px; }
+.icon-x:hover { color: var(--red); }
+.resp { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 6px 8px; align-items: center; margin-top: 8px; }
+.resp b { font: 700 14px var(--f-mono); color: var(--blue-2); }
+.resp textarea { grid-column: 2; }
+.rules { display: flex; flex-direction: column; gap: 12px; }
+.rule { gap: 10px; display: flex; flex-direction: column; }
+.rule-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 10px; }
+.ts-modes { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); }
+.ts-setup { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 14px; align-items: end; }
+.ts-tbl td { font-size: 13px; vertical-align: top; }
+.outcome.quad-gg { border-color: rgba(47,214,138,.45); } .outcome.quad-gb { border-color: rgba(61,139,255,.45); } .outcome.quad-bg { border-color: rgba(255,194,61,.45); } .outcome.quad-bb { border-color: rgba(255,90,110,.45); }
+details.bd summary { cursor: pointer; }
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+.ts-tbl { width: 100%; border-collapse: collapse; }
+.ts-tbl th, .ts-tbl td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+.ts-tbl th { font: 700 10.5px var(--f-body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+@media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } .tab span { font-size: 9.5px; } }
+@media (max-width: 959px) { body[data-v="teamsim"] .tabbar { display: none; } body[data-v="teamsim"] .main { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); } }
+
 </style>
 <div class="app">
   <aside class="rail" aria-label="Sections">
@@ -399,6 +439,8 @@ p { margin: 0; }
       <section id="view-sim" class="view" hidden></section>
       <section id="view-pnr" class="view" hidden></section>
       <section id="view-iq" class="view" hidden></section>
+      <section id="view-playbook" class="view" hidden></section>
+      <section id="view-teamsim" class="view" hidden></section>
       <section id="view-film" class="view" hidden></section>
       <section id="view-challenges" class="view" hidden></section>
       <section id="view-me" class="view" hidden></section>
@@ -470,6 +512,8 @@ const ICON_PATHS = {
   bolt: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
   eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6"/>',
+  book: '<path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3"/><path d="M20 4v14h-6"/><path d="M7 9l2 2 3-4"/>',
+  shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12h6M12 9v6"/>',
   court: '<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M8 3v7h8V3"/><path d="M5 21a7 7 0 0 1 14 0"/><circle cx="12" cy="6" r="1"/>',
 };
 const icon = (name, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name] || ''}</svg>`;
@@ -490,6 +534,9 @@ const BLANK = {
   profile: () => ({ name: '', position: 'PG', created: Date.now() }),
   results: () => ({ list: [] }),
   progress: () => ({ scen: {}, daily: {}, best: {} }),
+  // Team Playbook: the user's plays and offensive rules (starts from editable templates), and simulator history.
+  playbook: () => ({ plays: JSON.parse(JSON.stringify(STARTER_PLAYS)), rules: JSON.parse(JSON.stringify(DEFAULT_RULES)) }),
+  team: () => ({ list: [] }),
 };
 function doc(key) {
   if (!(key in cache)) cache[key] = lsGet(key) ?? (BLANK[key] ? BLANK[key]() : null);
@@ -822,6 +869,8 @@ class CourtView {
     if (o.overlays?.links) this.drawLinks(ctx, st);
     if (o.overlays?.lanes && st.holder) this.drawLanes(ctx, st);
     if (o.previews) for (const p of o.previews) this.drawArrow(ctx, p.from, p.to, p.color, p.dash, p.label);
+    if (o.diagram) for (const a of o.diagram) this.drawAction(ctx, a);
+    if (o.window && st.pos[o.window.id]) this.drawWindow(ctx, st.pos[o.window.id], o.window.state);
     // screen marker
     const beat = st.seg.beat || {};
     if (beat.screen && st.pos[beat.screen]) this.drawScreen(ctx, st.pos[beat.screen], st.pos[beat.screenOn] || [0, 30]);
@@ -831,6 +880,7 @@ class CourtView {
     this.drawBallShadow(ctx, st.ball);
     for (const id of ids) this.drawPlayer(ctx, id, st.pos[id], facingFor(track, t, id, st), t, st, o);
     if (o.targets) for (const tg of o.targets) this.drawTarget(ctx, st.pos[tg.id] || tg.at, tg, t);
+    if (o.reveal) for (const r of o.reveal) if (st.pos[r.id]) this.drawReveal(ctx, st.pos[r.id], r);
     this.drawBall(ctx, st.ball);
     if (o.spotlight && st.holder) this.drawSpot(ctx, st.pos[st.holder], t);
     if (o.fx) this.fx = o.fx.slice(); this.drawFx(ctx, t);
@@ -855,15 +905,17 @@ class CourtView {
     const sh = ctx.createRadialGradient(0, 0, R0 * 0.2, 0, 0, R0 * 1.5); sh.addColorStop(0, 'rgba(0,0,0,.42)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = sh; ctx.beginPath(); ctx.ellipse(0, 0, R0 * 1.55, R0 * 1.25, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
     // "you" ring
-    if (id === 'O1') { ctx.save(); ctx.strokeStyle = 'rgba(80,220,140,.95)'; ctx.lineWidth = Math.max(2, s * 0.22); ctx.shadowColor = 'rgba(80,220,140,.7)'; ctx.shadowBlur = 8; ctx.beginPath(); ctx.ellipse(x, y, R0 * 1.55, R0 * 1.55, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
+    if (id === (o.you || 'O1')) { ctx.save(); ctx.strokeStyle = 'rgba(80,220,140,.95)'; ctx.lineWidth = Math.max(2, s * 0.22); ctx.shadowColor = 'rgba(80,220,140,.7)'; ctx.shadowBlur = 8; ctx.beginPath(); ctx.ellipse(x, y, R0 * 1.55, R0 * 1.55, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
     if (o.highlight === id) { ctx.save(); ctx.strokeStyle = 'rgba(255,214,90,.95)'; ctx.lineWidth = Math.max(2, s * 0.22); ctx.beginPath(); ctx.arc(x, y, R0 * 1.9, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
     ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
     const skin = SKIN[(n + (off ? 0 : 5)) % SKIN.length];
     // arms: defenders in a wide stance with active hands; offense natural, ball hand forward when dribbling
     const stride = Math.sin(t * 9 + n) * 0.12;
+    const shooterP = st.ball.kind === 'shot' ? st.pos[st.ball.shooter] : null;
+    const contesting = !off && shooterP && dist(p, shooterP) < 7;
     const hands = off
       ? hasBall ? [[1.05, -0.55], [-0.95, 0.05 + stride]] : [[0.95, 0.15 + stride], [-0.95, 0.15 - stride]]
-      : [[1.35, -0.55 + stride * 0.5], [-1.35, -0.45 - stride * 0.5]];
+      : contesting ? [[0.55, -1.75], [-0.55, -1.75]] : [[1.35, -0.55 + stride * 0.5], [-1.35, -0.45 - stride * 0.5]];
     ctx.lineCap = 'round';
     for (const [hx, hy] of hands) {
       ctx.strokeStyle = skin; ctx.lineWidth = R0 * 0.32; ctx.beginPath(); ctx.moveTo(Math.sign(hx) * R0 * 0.72, 0); ctx.lineTo(hx * R0, hy * R0); ctx.stroke();
@@ -882,9 +934,9 @@ class CourtView {
     if (off) { ctx.fillStyle = kit.trim; ctx.fillRect(-R0 * 0.36, -R0 * 0.28, R0 * 0.72, R0 * 0.08); } // headband
     ctx.restore();
     // label chip
-    const lab = off ? (id === 'O1' ? 'YOU' : ROLE[id]) : 'X' + n;
+    const lab = o.labels?.[id] || (off ? (id === (o.you || 'O1') ? 'YOU' : ROLE[id]) : 'X' + n);
     ctx.save(); ctx.font = `700 ${Math.max(8.5, s * 0.92)}px Inter, sans-serif`; const tw = ctx.measureText(lab).width + s * 1.1;
-    ctx.fillStyle = off ? (id === 'O1' ? 'rgba(40,190,110,.92)' : 'rgba(18,40,110,.85)') : 'rgba(60,18,32,.8)';
+    ctx.fillStyle = off ? (id === (o.you || 'O1') ? 'rgba(40,190,110,.92)' : 'rgba(18,40,110,.85)') : 'rgba(60,18,32,.8)';
     roundRect(ctx, x - tw / 2, y + R0 * 1.25, tw, s * 1.45, s * 0.7); ctx.fill();
     ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(lab, x, y + R0 * 1.25 + s * 0.74); ctx.restore();
   }
@@ -972,6 +1024,41 @@ class CourtView {
       for (let k = 0; k <= 16; k++) { const tt = t + k * 0.12, p = posAt(track, Math.min(tt, track.t1 ?? track.dur)).pos[id]; if (!p) continue; if (first) { ctx.moveTo(this.X(p[0]), this.Y(p[1])); first = false; } else ctx.lineTo(this.X(p[0]), this.Y(p[1])); }
       ctx.stroke(); ctx.restore();
     }
+  }
+  /** Coaching-diagram strokes: cut (solid arrow), dribble (zig-zag), pass (dashed), screen (T bar), move (thin). */
+  drawAction(ctx, a) {
+    const s = this.s, A = [this.X(a.from[0]), this.Y(a.from[1])], B = [this.X(a.to[0]), this.Y(a.to[1])];
+    const col = a.color || ({ pass: 'rgba(255,214,90,.95)', cut: 'rgba(255,255,255,.95)', dribble: 'rgba(120,200,255,.95)', screen: 'rgba(255,140,90,.95)', move: 'rgba(200,210,235,.8)' })[a.type];
+    const ang = Math.atan2(B[1] - A[1], B[0] - A[0]), L = Math.hypot(B[0] - A[0], B[1] - A[1]);
+    ctx.save(); ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = Math.max(2, s * (a.type === 'move' ? 0.2 : 0.3)); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (a.dim) ctx.globalAlpha = 0.45;
+    const end = a.type === 'screen' ? L : L - s * 1.2;
+    ctx.translate(A[0], A[1]); ctx.rotate(ang); ctx.beginPath();
+    if (a.type === 'dribble') { ctx.moveTo(0, 0); const n = Math.max(3, Math.floor(end / (s * 1.2))); for (let i = 1; i <= n; i++) ctx.lineTo((end * i) / n, i === n ? 0 : (i % 2 ? -1 : 1) * s * 0.55); }
+    else { if (a.type === 'pass') ctx.setLineDash([s * 0.9, s * 0.6]); ctx.moveTo(0, 0); ctx.quadraticCurveTo(end / 2, a.type === 'cut' ? -s * 1.2 : 0, end, 0); }
+    ctx.stroke(); ctx.setLineDash([]);
+    if (a.type === 'screen') { ctx.lineWidth = Math.max(3, s * 0.42); ctx.beginPath(); ctx.moveTo(end, -s * 1.3); ctx.lineTo(end, s * 1.3); ctx.stroke(); }
+    else { ctx.beginPath(); ctx.moveTo(end + s * 1.2, 0); ctx.lineTo(end - s * 0.3, -s * 0.75); ctx.lineTo(end - s * 0.3, s * 0.75); ctx.closePath(); ctx.fill(); }
+    ctx.restore();
+    if (a.label) { ctx.save(); ctx.font = `700 ${Math.max(9, s * 0.9)}px Inter, sans-serif`; const w = ctx.measureText(a.label).width + s; const mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2 - s * 1.2; ctx.fillStyle = 'rgba(8,12,32,.85)'; roundRect(ctx, mx - w / 2, my - s * 0.75, w, s * 1.5, s * 0.75); ctx.fill(); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(a.label, mx, my); ctx.restore(); }
+  }
+  /** Shooting window: a wedge from the shooter toward the rim, green when open, amber tight, red contested. */
+  drawWindow(ctx, p, state) {
+    const s = this.s, x = this.X(p[0]), y = this.Y(p[1]), ang = Math.atan2(this.Y(HOOP.y) - y, this.X(HOOP.x) - x);
+    const col = { open: '47,214,138', tight: '255,194,61', contested: '255,90,110' }[state] || '200,200,200';
+    ctx.save(); const g = ctx.createRadialGradient(x, y, s, x, y, s * 7); g.addColorStop(0, `rgba(${col},.42)`); g.addColorStop(1, `rgba(${col},0)`);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, s * 7, ang - 0.45, ang + 0.45); ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  /** Open-player recognition marker (shown after the decision in testing modes). */
+  drawReveal(ctx, p, r) {
+    const s = this.s, x = this.X(p[0]), y = this.Y(p[1]);
+    const col = { open: '47,214,138', backdoor: '155,123,255', workable: '255,194,61', covered: '255,90,110' }[r.tag] || '200,200,200';
+    ctx.save(); ctx.strokeStyle = `rgba(${col},.95)`; ctx.lineWidth = Math.max(2, s * 0.25); ctx.setLineDash(r.tag === 'covered' ? [s * 0.5, s * 0.5] : []);
+    ctx.beginPath(); ctx.arc(x, y, s * 2.3, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    if (r.tag === 'backdoor') this.drawArrow(ctx, p, [Math.sign(p[0] || 1) * 2.5, 8], `rgba(${col},.9)`, true);
+    ctx.font = `800 ${Math.max(9, s * 0.95)}px Inter, sans-serif`; const t = r.tag.toUpperCase(), w = ctx.measureText(t).width + s * 1.1;
+    ctx.fillStyle = `rgba(${col},.95)`; roundRect(ctx, x - w / 2, y - s * 4.4, w, s * 1.5, s * 0.75); ctx.fill();
+    ctx.fillStyle = '#071022'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x, y - s * 3.65); ctx.restore();
   }
   addFx(text, at, color, t) { this.fx.push({ text, at, color, t0: t }); }
   drawFx(ctx, t) {
@@ -2237,6 +2324,8 @@ function renderHome() {
       ${secLink('sim', 'sim', 'Possession Simulator', `${SCENARIOS.length} playable possessions, live or on film.`)}
       ${secLink('pnr', 'learn', 'Pick-and-Roll Academy', 'Drop, switch, blitz, hedge, ice, snake, low man, pocket and skip.', 'purple')}
       ${secLink('iq', 'iq', 'Basketball IQ Academy', 'Transition, closeouts, mismatches, late clock.', 'purple')}
+      ${secLink('playbook', 'book', 'Team Playbook', 'Rebuild our four-out offense: plays, cuts, screens and rules.', 'green')}
+      ${secLink('teamsim', 'shield', 'Coverage Sim', 'Run our plays against 12 defenses. Read the defense, find the open man.', 'green')}
       ${secLink('film', 'film', 'Film Room', results().length ? `${results().length} possessions saved for replay.` : 'Every possession you play is saved here.')}
       ${secLink('challenges', 'trophy', 'Challenges', `Daily Three (${s.daily}/3 today), coverage quiz, shot-clock gauntlet.`, 'green')}
       ${secLink('me', 'chart', 'My IQ', 'Rating, mastery by read, reaction time, decision vs. outcome.', 'green')}
@@ -2516,6 +2605,1045 @@ function rtChart(L) {
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Decision time per live possession">${grid}${bars}</svg><div class="row small muted" style="gap:14px;margin-top:6px"><span><svg width="10" height="10"><rect width="10" height="10" rx="2" fill="#2fd68a"/></svg> good read</span><span><svg width="10" height="10"><rect width="10" height="10" rx="2" fill="#ffc23d"/></svg> below 75</span></div>`;
 }
 
+// ---- team-data.js ----
+// ===================== Team Playbook: data (spots, rules, coverages, starter plays) =====================
+// Court feet as in engine.js (hoop at (0, 5.25), y grows away from the basket). Everything here is plain data so the
+// offense can grow: plays are lists of steps, rules map a trigger (a pass between two roles, or a called action) to
+// movement verbs, and coverages are parameter sets the defense engine reads.
+
+const SPOTS = {
+  slotL: [-9, 27.5], slotR: [9, 27.5], wingL: [-20, 17], wingR: [20, 17], cornerL: [-22, 4], cornerR: [22, 4],
+  postL: [-7, 8], postR: [7, 8], high: [0, 19], top: [0, 31], elbowL: [-7.5, 19], elbowR: [7.5, 19],
+};
+const SPOT_ROLE = { slotL: 'slot', slotR: 'slot', wingL: 'wing', wingR: 'wing', cornerL: 'corner', cornerR: 'corner', postL: 'post', postR: 'post', high: 'post', top: 'slot', elbowL: 'post', elbowR: 'post' };
+const ROLE_NAMES = { slot: 'Slot', wing: 'Wing', corner: 'Corner', post: 'Post' };
+/** Role of a spot on the floor (nearest named spot). */
+function roleAt(p) {
+  let best = 'wing', bd = 1e9;
+  for (const [k, s] of Object.entries(SPOTS)) { const d = dist(p, s); if (d < bd) { bd = d; best = k; } }
+  return SPOT_ROLE[best];
+}
+const spotName = (p) => { let best = 'slotL', bd = 1e9; for (const [k, s] of Object.entries(SPOTS)) { const d = dist(p, s); if (d < bd) { bd = d; best = k; } } return best; };
+const SPOT_LABEL = { slotL: 'left slot', slotR: 'right slot', wingL: 'left wing', wingR: 'right wing', cornerL: 'left corner', cornerR: 'right corner', postL: 'left block', postR: 'right block', high: 'high post', top: 'top', elbowL: 'left elbow', elbowR: 'right elbow' };
+
+/** Size class of each offensive slot in the lineup: used to find mismatches after switches (1 = small guard … 5 = big). */
+const POS_SIZE = { PG: 1, SG: 2, G: 1.5, SF: 3, F: 3.5, PF: 4, C: 5 };
+const POSITIONS_T = { PG: 'Point guard', SG: 'Shooting guard', SF: 'Small forward', PF: 'Power forward', C: 'Center', G: 'Guard', F: 'Forward' };
+
+// ---------- movement verbs (implemented in team-engine.js) ----------
+const VERBS = {
+  screenAway: { name: 'Screen away', desc: 'Set a down screen for the teammate on the side away from the ball, then roll or replace.' },
+  cutThrough: { name: 'Cut through', desc: 'Basket cut to the rim, then fill out to the open spot on the weak side.' },
+  basketCut: { name: 'Basket cut and return', desc: 'Cut to the rim; if not open, return to the same side.' },
+  follow: { name: 'Follow for a handoff', desc: 'Follow the pass and take a handoff.' },
+  replace: { name: 'Stay / replace', desc: 'Hold the spot and stay spaced.' },
+  ballScreen: { name: 'Ball screen', desc: 'Come set a ball screen for the handler, then roll.' },
+  backScreen: { name: 'Back screen the roller\'s defender', desc: 'Screen the man guarding the roller, then pop to the three-point line.' },
+  postUp: { name: 'Post up', desc: 'Seal your defender on the ball-side block.' },
+};
+const TRIGGER_ROLES = { slot: 'Slot', wing: 'Wing', corner: 'Corner', post: 'Post', any: 'Anyone' };
+const RESP_WHO = { passer: 'Passer', receiver: 'Receiver', post: 'Post player', oppSlot: 'Opposite slot', strongWing: 'Ball-side wing', weakWing: 'Weak-side wing' };
+
+/** The school's starting rules (editable in the Playbook). */
+const DEFAULT_RULES = [
+  { id: 'r-slot-slot', name: 'Slot to slot: screen away', on: { type: 'pass', from: 'slot', to: 'slot' }, then: [{ who: 'passer', verb: 'screenAway' }], note: 'When the ball goes slot to slot, the passer screens away for the wing on his side, who comes up to the vacated slot.' },
+  { id: 'r-slot-wing', name: 'Slot to wing: cut through', on: { type: 'pass', from: 'slot', to: 'wing' }, then: [{ who: 'passer', verb: 'cutThrough' }], note: 'When the slot passes to the wing, the passer basket-cuts and fills out to the weak side. Everyone fills the open spots.' },
+  { id: 'r-spain', name: 'Spain pick-and-roll', on: { type: 'call', call: 'spain' }, then: [{ who: 'post', verb: 'ballScreen' }, { who: 'oppSlot', verb: 'backScreen' }], note: 'The big comes to the middle and sets a ball screen; the opposite slot back-screens the big\'s defender and pops.' },
+];
+
+// ---------- defensive coverages (parameters for the defense engine) ----------
+// ballGap: on-ball distance (ft). deny 0..1: how hard one-pass-away defenders sit in the lane. help 0..1: how far
+// two-pass-away defenders sink toward the paint. onBall: ball-screen coverage. offBall: off-ball screen coverage.
+const COVERAGES = {
+  man: { name: 'Man-to-man', group: 'Man', type: 'man', ballGap: 3.5, deny: 0.35, help: 0.45, onBall: 'over', offBall: 'chase', desc: 'Standard man-to-man: pressure the ball, one pass away in the gap, weak side in help.' },
+  pressure: { name: 'Heavy on-ball pressure', group: 'Man', type: 'man', ballGap: 1.8, deny: 0.45, help: 0.4, onBall: 'over', offBall: 'chase', desc: 'Defender crowds the ball handler to stop clean passes and force a dribble.' },
+  denial: { name: 'Passing-lane denial', group: 'Man', type: 'man', ballGap: 3, deny: 0.95, help: 0.3, onBall: 'over', offBall: 'topLock', desc: 'Every one-pass-away defender sits in the passing lane with a hand in it. The space behind them is the weakness.' },
+  overplay: { name: 'Overplay the perimeter', group: 'Man', type: 'man', ballGap: 2.5, deny: 0.8, help: 0.2, onBall: 'over', offBall: 'topLock', overplay: 1, desc: 'Defenders play high and outside, taking away catches at the three-point line. Back cuts and drives open up.' },
+  switch: { name: 'Switch everything', group: 'Man', type: 'man', ballGap: 3.2, deny: 0.4, help: 0.4, onBall: 'switch', offBall: 'switch', desc: 'Every screen is switched. Look for slips and mismatches.' },
+  hedge: { name: 'Hedge and recover', group: 'Ball screens', type: 'man', ballGap: 3.2, deny: 0.35, help: 0.45, onBall: 'hedge', offBall: 'chase', desc: 'The screener\'s defender jumps out on ball screens, then recovers.' },
+  blitz: { name: 'Blitz / trap', group: 'Ball screens', type: 'man', ballGap: 2.5, deny: 0.4, help: 0.5, onBall: 'blitz', offBall: 'chase', desc: 'Two defenders trap the ball on screens. The rest zone up behind it.' },
+  drop: { name: 'Drop coverage', group: 'Ball screens', type: 'man', ballGap: 3.5, deny: 0.3, help: 0.5, onBall: 'drop', offBall: 'chase', desc: 'The big sits back near the paint on ball screens; the guard chases over.' },
+  ice: { name: 'Ice', group: 'Ball screens', type: 'man', ballGap: 3, deny: 0.35, help: 0.45, onBall: 'ice', offBall: 'chase', desc: 'Side ball screens are forced away from the middle toward the sideline and the big.' },
+  packline: { name: 'Pack-line', group: 'Man', type: 'man', ballGap: 3, deny: 0.05, help: 0.8, onBall: 'under', offBall: 'under', packline: 1, desc: 'Everyone off the ball sits inside an imaginary line about 16 ft from the rim. Drives are crowded; open catches outside are the cost.' },
+  zone23: { name: '2-3 zone', group: 'Zone', type: 'zone', shape: '23', ballGap: 4, desc: 'Two guards up top, three across the back. Weak spots: the high post, the short corner, the top gaps.' },
+  zone32: { name: '3-2 zone', group: 'Zone', type: 'zone', shape: '32', ballGap: 4, desc: 'Three across the top, two down low. Weak spots: the corners, the short corner, behind the top line.' },
+};
+const INTENSITY = { 1: 'Low', 2: 'Medium', 3: 'High' };
+
+// ---------- starter plays (templates the user can edit, duplicate or delete) ----------
+// steps: each step is a list of actions that happen together: pass {from,to} · dribble {who,to} · cut {who,to}
+// · screen {who,for} (screener goes to the screen spot) · move {who,to}. Player ids O1..O5.
+const BASE_4OUT = { O1: SPOTS.slotL, O2: SPOTS.slotR, O3: SPOTS.wingL, O4: SPOTS.wingR, O5: SPOTS.postL };
+const BASE_ROLES = { O1: { pos: 'PG', resp: 'Left slot. Initiate. Read your defender: pressure means attack or backdoor.' }, O2: { pos: 'SG', resp: 'Right slot. Be ready to receive the slot-to-slot pass and keep spacing.' }, O3: { pos: 'SF', resp: 'Left wing. Read the screen away: curl, pop or backdoor.' }, O4: { pos: 'PF', resp: 'Right wing. Stay wide; cut backdoor when denied.' }, O5: { pos: 'C', resp: 'Post. Seal on the ball side; come to the middle for Spain.' } };
+const STARTER_PLAYS = [
+  { id: 'p-base-ss', name: 'Base: slot to slot, screen away', cat: 'Base offense', note: 'Ball reversal from slot to slot. The passer screens away for the wing on his side, who comes up to the slot. Read how the defense guards the screen.',
+    start: BASE_4OUT, ball: 'O1', roles: BASE_ROLES, steps: [{ label: 'Slot-to-slot pass', actions: [{ type: 'pass', from: 'O1', to: 'O2' }] }, { label: 'Screen away', actions: [{ type: 'screen', who: 'O1', for: 'O3' }, { type: 'cut', who: 'O3', to: SPOTS.slotL }] }] },
+  { id: 'p-base-sw', name: 'Base: slot to wing, cut through', cat: 'Base offense', note: 'The slot hits the wing and cuts through to the rim. The opposite players fill the open spots. Backdoor and post-split reads come next.',
+    start: BASE_4OUT, ball: 'O1', roles: BASE_ROLES, steps: [{ label: 'Slot-to-wing pass', actions: [{ type: 'pass', from: 'O1', to: 'O3' }] }, { label: 'Cut through & fill', actions: [{ type: 'cut', who: 'O1', to: [-2, 9] }, { type: 'move', who: 'O2', to: SPOTS.slotL }, { type: 'move', who: 'O4', to: SPOTS.slotR }] }] },
+  { id: 'p-spain', name: 'Spain pick-and-roll', cat: 'Spain', note: 'The big comes to the middle for a ball screen. The opposite slot back-screens the big\'s defender, then pops. Reads: roller, popper, pull-up, kick.',
+    start: { ...BASE_4OUT, O5: [0, 19] }, ball: 'O1', roles: { ...BASE_ROLES, O5: { pos: 'C', resp: 'Come to the middle, set the ball screen, roll hard.' }, O2: { pos: 'SG', resp: 'Back-screen the big\'s defender, then pop to the top.' } },
+    steps: [{ label: 'Big to the middle', actions: [{ type: 'move', who: 'O5', to: [-4, 28] }, { type: 'dribble', who: 'O1', to: [-4, 31] }] }, { label: 'Spain screen', actions: [{ type: 'screen', who: 'O5', for: 'O1' }, { type: 'screen', who: 'O2', for: 'O5' }] }] },
+];
+
+// ---- team-engine.js ----
+// ===================== Team simulator engine =====================
+// A possession is a sequence of beats (engine.js format), built step by step:
+//   offense moves (from the play script, the team's rules, or the user's decision)
+//   → the defense engine positions all five defenders from the coverage, the ball and the screens being set
+//   → analysis (who is open, why) → options → the user's choice → outcome sampled from a seeded RNG.
+// This is rule-based positioning, not physics or learned AI: defenders go where their coverage rules say, given
+// where the ball and their assignment are. Everything is deterministic for a given seed and list of choices.
+
+const T_HOOP = [0, 5.25];
+const rimSpot = (side) => [side * 2.5, 8];
+const sgn = (v) => (v < 0 ? -1 : 1);
+const add = (a, b) => [a[0] + b[0], a[1] + b[1]], sub = (a, b) => [a[0] - b[0], a[1] - b[1]], mul = (a, k) => [a[0] * k, a[1] * k];
+const lerpP = (a, b, u) => [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u];
+const toward = (a, b, d) => { const v = sub(b, a), L = Math.hypot(v[0], v[1]) || 1; return add(a, mul(v, d / L)); };
+const RR = (p) => [Math.round(p[0] * 10) / 10, Math.round(p[1] * 10) / 10];
+const clampCourt = (p) => [clamp(p[0], -24, 24), clamp(p[1], 1, 40)];
+const defOf = (S, o) => Object.keys(S.assign).find((d) => S.assign[d] === o);
+const covOf = (S) => COVERAGES[S.cov];
+const isPerim = (p) => distHoop(p) > 13;
+
+// ---------------- defense engine ----------------
+/**
+ * Where every defender should stand. pos: all ten players (offense at the end of this beat), holder: ball handler.
+ * events: screens / drives / cuts happening in this beat. Returns {m, notes, assign, roles} where roles explains
+ * what each defender is doing (on ball, denying, helping, trapping, switching…).
+ */
+function defend(S, pos, holder, events = []) {
+  const cov = covOf(S), I = S.intensity, m = {}, notes = [], roles = {};
+  let assign = { ...S.assign };
+  const ball = pos[holder];
+  if (cov.type === 'zone') return zoneDefend(S, pos, holder, events);
+  const k = 0.75 + 0.15 * I; // intensity scaling
+  // Switches change assignments first.
+  for (const e of events) {
+    if ((e.type === 'offScreen' && cov.offBall === 'switch') || (e.type === 'ballScreen' && cov.onBall === 'switch') || (e.type === 'backScreen' && cov.offBall === 'switch')) {
+      const dU = Object.keys(assign).find((d) => assign[d] === e.user), dS = Object.keys(assign).find((d) => assign[d] === e.screener);
+      if (dU && dS) { assign[dU] = e.screener; assign[dS] = e.user; notes.push({ t: 'switch', txt: `X${dS[1]} and X${dU[1]} switched the screen` + mismatchTxt(S, dS, e.user) }); }
+    }
+  }
+  for (const d of DEF) {
+    const o = assign[d], p = pos[o]; if (!p) continue;
+    if (o === holder) {
+      const gap = cov.ballGap / k;
+      let q = toward(p, T_HOOP, gap);
+      if (cov.overplay) q = add(q, [sgn(p[0]) * -0.8, 0]);
+      m[d] = q; roles[d] = gap < 2.6 ? 'pressure' : 'on ball';
+      continue;
+    }
+    const dB = dist(p, ball), perim = isPerim(p);
+    const onePass = perim && dB < 27;
+    if (distHoop(p) < 11) { // post defense: three-quarter front on the ball side, behind on the weak side
+      const ballSide = sgn(p[0]) === sgn(ball[0]) || Math.abs(ball[0]) < 6;
+      m[d] = ballSide ? toward(p, ball, 1.6) : toward(p, T_HOOP, 2); roles[d] = ballSide ? 'fronting post' : 'behind post';
+      if (cov.packline) m[d] = lerpP(m[d], [sgn(p[0]) * 3, 10], 0.3);
+      continue;
+    }
+    if (onePass) {
+      const dn = clamp((cov.deny || 0) * k, 0, 1);
+      const base = guard(p, ball, 3.2, 0.22);
+      const lane = add(toward(p, ball, 2.1), mul(sub(T_HOOP, p), 0.04));
+      let q = lerpP(base, lane, dn);
+      if (cov.overplay) q = add(q, mul(norm(sub(p, T_HOOP)), 0.9));
+      if (cov.packline) q = packIn(q, 16.5);
+      m[d] = q; roles[d] = dn > 0.6 ? 'denying' : 'one pass away';
+    } else {
+      const helpSpot = clampCourt([clamp((ball[0] + 0) * 0.35, -7, 7), clamp((ball[1] + T_HOOP[1]) / 2, 8, 18)]);
+      const h = clamp((cov.help || 0.4) * (0.8 + 0.1 * I), 0, 0.95);
+      let q = lerpP(guard(p, ball, 3, 0), helpSpot, h * 0.65);
+      if (cov.packline) q = packIn(q, 15.5);
+      m[d] = q; roles[d] = 'help side';
+    }
+  }
+  // Event-specific reactions.
+  for (const e of events) {
+    const dU = Object.keys(assign).find((d) => assign[d] === e.user), dS = Object.keys(assign).find((d) => assign[d] === e.screener);
+    if (e.type === 'offScreen') {
+      const style = cov.offBall;
+      if (style === 'chase' && dU) { m[dU] = toward(pos[e.user], e.from || pos[e.screener], 2.6); roles[dU] = 'chasing'; notes.push({ t: 'chase', txt: `X${dU[1]} chased ${nm(S, e.user)} over the screen and trails him` }); if (dS) { m[dS] = lerpP(m[dS], pos[e.user], 0.35); roles[dS] = 'showing on the curl'; } }
+      if (style === 'topLock' && dU) { m[dU] = add(pos[e.user], mul(norm(sub(ball, pos[e.user])), 1.8)); roles[dU] = 'top-locking'; notes.push({ t: 'lock', txt: `X${dU[1]} top-locked ${nm(S, e.user)} to deny the catch: the space behind him is open` }); }
+      if (style === 'under' && dU) { m[dU] = toward(pos[e.screener], T_HOOP, 2.4); roles[dU] = 'under the screen'; notes.push({ t: 'under', txt: `X${dU[1]} went under the screen, giving ${nm(S, e.user)} room to catch and shoot` }); }
+      if (style === 'switch' && dS) { roles[dS] = 'switched'; }
+    }
+    if (e.type === 'ballScreen') {
+      const H = e.user, Sc = e.screener, dH = dU, dSc = dS, pH = pos[H], pSc = pos[Sc];
+      const st = cov.onBall;
+      if (st === 'over' && dH && dSc) { m[dH] = toward(pH, e.from || pSc, 2.4); m[dSc] = lerpP(pSc, pH, 0.35); roles[dH] = 'chasing over'; roles[dSc] = 'soft show'; }
+      if (st === 'hedge' && dH && dSc) { m[dSc] = add(pH, mul(norm(sub(pH, T_HOOP)), -0.5)).map((v, i) => v + (i === 0 ? sgn(-pH[0] || 1) * 2.2 : 0)); m[dH] = toward(pH, e.from || pSc, 2.2); roles[dSc] = 'hedging'; notes.push({ t: 'hedge', txt: `X${dSc[1]} hedged hard on ${nm(S, H)}; the roller is unguarded until he recovers` }); }
+      if (st === 'blitz' && dH && dSc) { m[dSc] = add(pH, [sgn(-pH[0] || 1) * 2.2, -0.6]); m[dH] = add(pH, [sgn(pH[0] || 1) * 2.0, -1.2]); roles[dSc] = roles[dH] = 'trapping'; notes.push({ t: 'blitz', txt: `X${dH[1]} and X${dSc[1]} trapped the ball. Two on the ball means 4-on-3 behind it` }); const low = lowMan(S, pos, holder, assign, [dH, dSc]); if (low) { m[low] = lerpP(m[low], pSc, 0.7); roles[low] = 'tagging the roller'; } }
+      if (st === 'drop' && dH && dSc) { m[dSc] = lerpP(T_HOOP, pSc, 0.42); m[dH] = toward(pH, e.from || pSc, 2.6); roles[dSc] = 'dropping'; notes.push({ t: 'drop', txt: `X${dSc[1]} dropped toward the paint: the pull-up is open, the roll is covered` }); }
+      if (st === 'ice' && dH && dSc) { m[dH] = add(pH, [sgn(pSc[0] - pH[0] || 1) * 1.8, -1]); m[dSc] = lerpP(T_HOOP, pH, 0.5); roles[dH] = 'icing'; roles[dSc] = 'waiting low'; notes.push({ t: 'ice', txt: `X${dH[1]} iced the screen, forcing ${nm(S, H)} away from the middle` }); }
+      if (st === 'under' && dH) { m[dH] = toward(pSc, T_HOOP, 2.5); roles[dH] = 'under the screen'; notes.push({ t: 'under', txt: `X${dH[1]} went under the ball screen: the shot is open` }); }
+      if (st === 'switch' && dSc) roles[dSc] = 'switched onto the ball';
+    }
+    if (e.type === 'backScreen') {
+      if (cov.offBall !== 'switch' && dU) { m[dU] = add(e.from || pos[e.screener], [-(e.side || 1) * 0.5, 1.8]); roles[dU] = 'caught on the back screen'; notes.push({ t: 'back', txt: `X${dU[1]} got caught on ${nm(S, e.screener)}'s back screen; ${nm(S, e.user)} rolls free` }); if (dS && (cov.onBall === 'drop' || cov.onBall === 'over')) { m[dS] = lerpP(m[dS], pos[e.user], 0.55); roles[dS] = 'helping on the roll'; } }
+    }
+    if (e.type === 'drive') {
+      const D = dU; if (D) { m[D] = add(pos[e.user], mul(norm(sub(e.from, pos[e.user])), 2.2)); roles[D] = 'beaten, trailing'; }
+      const helper = nearestHelper(S, pos, assign, e.user, pos[e.user], [D]);
+      if (helper) { m[helper] = toward(pos[e.user], T_HOOP, 2.3); roles[helper] = 'helping on the drive'; notes.push({ t: 'help', txt: `X${helper[1]} left ${nm(S, assign[helper])} to stop the drive` }); }
+      if (cov.packline) { const h2 = nearestHelper(S, pos, assign, e.user, pos[e.user], [D, helper]); if (h2) { m[h2] = lerpP(m[h2], pos[e.user], 0.5); roles[h2] = 'pack-line help'; } }
+    }
+    if (e.type === 'cut' && dU) {
+      const beat = cov.deny > 0.6 && e.basket; m[dU] = add(pos[e.user], mul(norm(sub(e.from, pos[e.user])), beat ? 3.4 : 1.8)); roles[dU] = beat ? 'beaten on the cut' : 'trailing the cutter';
+    }
+  }
+  for (const d of DEF) if (m[d]) m[d] = RR(clampCourt(m[d]));
+  return { m, notes, assign, roles };
+}
+const packIn = (q, r) => { const d = distHoop(q); return d <= r ? q : toward(T_HOOP, q, r); };
+const nm = (S, o) => (S.names?.[o] || o);
+function mismatchTxt(S, d, o) { const ds = S.size['O' + d[1]], os = S.size[o]; return Math.abs(os - ds) >= 2 ? ` (mismatch: ${ds < os ? 'smaller' : 'bigger'} defender on ${nm(S, o)})` : ''; }
+function lowMan(S, pos, holder, assign, excl) {
+  let best = null, bd = 1e9; for (const d of DEF) { if (excl.includes(d)) continue; const p = pos[assign[d]]; if (!p) continue; const v = distHoop(p) + (sgn(p[0]) === sgn(pos[holder][0]) ? 12 : 0); if (v < bd) { bd = v; best = d; } } return best;
+}
+function nearestHelper(S, pos, assign, driver, at, excl) {
+  let best = null, bd = 1e9; for (const d of DEF) { if (excl.includes(d) || assign[d] === driver) continue; const p = S.pos[d] || pos[assign[d]]; const v = dist(p, toward(at, T_HOOP, 3)); if (v < bd) { bd = v; best = d; } } return best;
+}
+/** Zones: each defender owns an area; the one whose area holds the ball closes out, the rest shift with the ball. */
+const ZONE_BASE = {
+  '23': { D1: [-7, 22], D2: [7, 22], D3: [-13, 8], D4: [13, 8], D5: [0, 8.5] },
+  '32': { D1: [0, 26], D2: [-14, 19], D3: [14, 19], D4: [-6, 8], D5: [6, 8] },
+};
+function zoneDefend(S, pos, holder, events) {
+  const cov = covOf(S), base = ZONE_BASE[cov.shape], ball = pos[holder], m = {}, roles = {}, notes = [];
+  let owner = null, bd = 1e9;
+  for (const d of DEF) { const v = dist(base[d], ball) - (d === 'D5' && cov.shape === '23' ? 3 : 0); if (v < bd) { bd = v; owner = d; } }
+  const shift = [clamp(ball[0] * 0.38, -8, 8), clamp((ball[1] - 20) * 0.12, -2, 2)];
+  for (const d of DEF) {
+    if (d === owner) { m[d] = toward(ball, T_HOOP, cov.ballGap / (0.8 + 0.12 * S.intensity)); roles[d] = 'zone: on the ball'; continue; }
+    let q = add(base[d], shift);
+    if (cov.shape === '23' && ['D3', 'D4'].includes(d) && ball[1] < 12 && sgn(ball[0]) === sgn(base[d][0])) q = lerpP(q, ball, 0.5);
+    m[d] = RR(clampCourt(q)); roles[d] = 'zone: ' + (dist(q, ball) < 14 ? 'ball side' : 'weak side');
+  }
+  if (events.some((e) => /Screen/.test(e.type))) notes.push({ t: 'zone', txt: 'The zone ignored the screen: defenders stayed in their areas, so the screener and cutters find gaps instead of separation' });
+  const assign = {}; for (const d of DEF) { let o2 = null, b2 = 1e9; for (const o of OFF) { const v = dist(m[d], pos[o]); if (v < b2) { b2 = v; o2 = o; } } assign[d] = o2; }
+  return { m, notes, assign, roles };
+}
+
+// ---------------- possession state & beats ----------------
+function newPossession(cfg) {
+  const play = cfg.play, S = {
+    cfg, cov: cfg.covPlan[0].cov, intensity: cfg.intensity, mode: cfg.mode, rng: rng(cfg.seed * 7919 + 13),
+    pos: { ...play.start }, ball: play.ball, assign: Object.fromEntries(DEF.map((d, i) => [d, OFF[i]])), size: {}, names: {},
+    beats: [], notes: [], decisions: [], stepIdx: 0, offScript: false, over: null, events: [], lastScreen: null, covLog: [], make: false, t: 0,
+  };
+  for (const o of OFF) { S.size[o] = POS_SIZE[play.roles?.[o]?.pos] || 3; S.names[o] = o; }
+  const d0 = defend(S, S.pos, S.ball, []);
+  Object.assign(S.pos, d0.m); S.assign = d0.assign; S.roles = d0.roles;
+  S.start = { pos: { ...S.pos }, ball: S.ball };
+  beat(S, 0.9, {}, S.ball, [], 'Defense sets: ' + covOf(S).name.toLowerCase());
+  return S;
+}
+/** Add one beat: offense moves `off` (end positions), ball spec, events; the defense reacts for the same beat. */
+function beat(S, d, off, ball, events, cap, extra = {}) {
+  const next = { ...S.pos, ...off };
+  const holder = typeof ball === 'string' ? ball : ball?.pass ? ball.pass[1] : ball?.steal ? ball.steal[1] : S.ball;
+  const D = defend(S, next, holder, events);
+  if (extra.freezeDef) for (const k of extra.freezeDef) delete D.m[k];
+  if (extra.defOverride) Object.assign(D.m, extra.defOverride);
+  const m = { ...off, ...D.m };
+  S.beats.push({ d, m, ball, cap, screen: extra.screen, screenOn: extra.screenOn });
+  Object.assign(S.pos, m); S.assign = D.assign; S.roles = D.roles; S.ball = holder; S.t += d;
+  for (const n of D.notes) S.notes.push({ ...n, at: S.t });
+  S.events = events;
+}
+const RR2 = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, RR(v)]));
+
+// ---------------- offensive verbs ----------------
+function verbScreenAway(S, passer) {
+  const pp = S.pos[passer];
+  const cand = OFF.filter((o) => o !== passer && o !== S.ball && isPerim(S.pos[o]) && sgn(S.pos[o][0]) === sgn(pp[0]) && roleAt(S.pos[o]) !== 'slot');
+  const cutter = cand.sort((a, b) => S.pos[a][1] - S.pos[b][1])[0];
+  if (!cutter) return verbReplace(S, passer);
+  return offScreen(S, passer, cutter, [...pp]);
+}
+/** Off-ball screen: screener goes to the cutter's defender, then the cutter reads the coverage. */
+function offScreen(S, screener, cutter, fillSpot) {
+  const dC = defOf(S, cutter), pc = S.pos[cutter], spot = RR(toward(S.pos[dC] || pc, fillSpot, 1.6));
+  beat(S, 0.9, { [screener]: spot, [cutter]: RR(add(pc, [0, -2])) }, S.ball, [], `${nm(S, screener)} screens for ${nm(S, cutter)}`, { screen: screener, screenOn: dC });
+  const cov = covOf(S); let dest, read;
+  if (cov.type === 'zone') { dest = RR(fillSpot); read = 'fills the gap'; }
+  else if (cov.offBall === 'topLock') { dest = RR(rimSpot(sgn(pc[0]))); read = 'reads the top-lock and curls to the rim'; }
+  else if (cov.offBall === 'under') { dest = RR(add(fillSpot, [sgn(fillSpot[0]) * 1.5, 1.5])); read = 'pops to the slot for a catch-and-shoot'; }
+  else if (cov.offBall === 'switch') { dest = RR(fillSpot); read = 'pops while the screener slips'; }
+  else { dest = RR(lerpP(fillSpot, [sgn(fillSpot[0]) * 6, 18], 0.55)); read = 'curls tight off the screen'; }
+  const off = { [cutter]: dest };
+  if (cov.type !== 'zone' && cov.offBall === 'switch') off[screener] = RR(rimSpot(sgn(spot[0])));
+  else off[screener] = RR(add(spot, [sgn(spot[0]) * 3, -4]));
+  beat(S, 1.0, off, S.ball, [{ type: 'offScreen', screener, user: cutter, from: spot }], `${nm(S, cutter)} ${read}`, { screen: screener, screenOn: dC });
+  S.lastScreen = { screener, user: cutter, read };
+}
+function verbCutThrough(S, passer) {
+  const pp = S.pos[passer], side = sgn(S.pos[S.ball][0]);
+  beat(S, 1.0, { [passer]: RR(rimSpot(side)) }, S.ball, [{ type: 'cut', user: passer, from: pp, basket: true }], `${nm(S, passer)} cuts through`);
+  fillSpots(S, passer, -side, 'Fill the open spots');
+}
+/** Generic fill: perimeter players move to the vacated four-out spots; the cutter exits to the weak side. */
+function fillSpots(S, cutter, exitSide, cap) {
+  const spots = ['slotL', 'slotR', 'wingL', 'wingR', 'cornerL', 'cornerR'];
+  const occupied = (sp) => OFF.some((o) => o !== cutter && dist(S.pos[o], SPOTS[sp]) < 5);
+  const ballSide = sgn(S.pos[S.ball][0]);
+  const want = ['slotL', 'slotR'].sort((a) => (sgn(SPOTS[a][0]) === ballSide ? -1 : 1));
+  const moves = {}, used = new Set([S.ball]);
+  for (const sp of want) {
+    if (occupied(sp)) continue;
+    const c = OFF.filter((o) => !used.has(o) && o !== cutter && isPerim(S.pos[o]) && dist(S.pos[o], SPOTS[sp]) < 22).sort((a, b) => dist(S.pos[a], SPOTS[sp]) - dist(S.pos[b], SPOTS[sp]))[0];
+    if (c) { moves[c] = SPOTS[sp]; used.add(c); }
+  }
+  const after = (sp) => OFF.some((o) => o !== cutter && dist(moves[o] || S.pos[o], SPOTS[sp]) < 5);
+  const exit = spots.filter((sp) => sgn(SPOTS[sp][0]) === exitSide && !after(sp)).sort((a, b) => (a.startsWith('wing') ? -1 : 1))[0] || (exitSide < 0 ? 'cornerL' : 'cornerR');
+  moves[cutter] = SPOTS[exit];
+  beat(S, 1.1, RR2(moves), S.ball, [{ type: 'cut', user: cutter, from: S.pos[cutter] }], cap);
+}
+function verbBasketCut(S, who) { const p = S.pos[who]; beat(S, 0.9, { [who]: RR(rimSpot(sgn(p[0]))) }, S.ball, [{ type: 'cut', user: who, from: p, basket: true }], `${nm(S, who)} basket cuts`); beat(S, 0.9, { [who]: p }, S.ball, [], `${nm(S, who)} returns`); }
+function verbReplace() {}
+function verbPostUp(S, who) { const side = sgn(S.pos[S.ball][0]); beat(S, 0.8, { [who]: SPOTS[side < 0 ? 'postL' : 'postR'] }, S.ball, [], `${nm(S, who)} posts up`); }
+function verbFollow(S, passer) { const r = S.pos[S.ball]; beat(S, 0.8, { [passer]: RR(toward(r, S.pos[passer], 3)) }, S.ball, [], `${nm(S, passer)} follows for a handoff`); }
+/** Spain: ball screen by the post, back screen on the roller's defender by another player. */
+function verbSpain(S, screener, backer) {
+  const H = S.ball, pH = S.pos[H], dH = defOf(S, H);
+  const side = pH[0] >= 0 ? 1 : -1; // the handler comes off the screen toward this side
+  const top = [clamp(pH[0] * 0.3, -3, 3), 31];
+  const spot = RR(add(top, [side * 1.9, -1.6]));
+  const backSpot = RR([-side * 3.5, 22.5]);
+  beat(S, 1.0, { [screener]: spot, [H]: top, ...(backer ? { [backer]: backSpot } : {}) }, H, [], 'Spain: the big comes to the middle for a ball screen', { screen: screener, screenOn: dH });
+  const off = { [H]: RR([side * 8, 24]), [screener]: RR([-side * 1, 11]) };
+  const ev = [{ type: 'ballScreen', screener, user: H, from: spot }];
+  if (backer) { off[backer] = RR([-side * 6.5, 29]); ev.push({ type: 'backScreen', screener: backer, user: screener, from: backSpot, side }); }
+  beat(S, 1.1, off, H, ev, backer ? 'Ball screen and roll; back screen on the roller\'s defender, then pop' : 'Ball screen and roll', { screen: screener, screenOn: dH });
+  S.lastScreen = { screener, user: H, read: 'ball screen', backer };
+}
+const VERB_FN = { screenAway: verbScreenAway, cutThrough: verbCutThrough, basketCut: verbBasketCut, replace: verbReplace, postUp: verbPostUp, follow: verbFollow };
+
+/** Who a rule's "who" refers to, given the last pass. */
+function ruleWho(S, who, passer, receiver) {
+  if (who === 'passer') return passer; if (who === 'receiver') return receiver;
+  if (who === 'post') return OFF.filter((o) => o !== S.ball).sort((a, b) => distHoop(S.pos[a]) - distHoop(S.pos[b]))[0];
+  if (who === 'oppSlot') return OFF.filter((o) => o !== S.ball && isPerim(S.pos[o])).sort((a, b) => Math.abs(S.pos[a][1] - 27) + Math.abs(S.pos[a][0] + S.pos[S.ball][0]) - (Math.abs(S.pos[b][1] - 27) + Math.abs(S.pos[b][0] + S.pos[S.ball][0])))[0];
+  const side = sgn(S.pos[S.ball][0]);
+  if (who === 'strongWing') return OFF.find((o) => o !== S.ball && roleAt(S.pos[o]) === 'wing' && sgn(S.pos[o][0]) === side);
+  if (who === 'weakWing') return OFF.find((o) => o !== S.ball && roleAt(S.pos[o]) === 'wing' && sgn(S.pos[o][0]) !== side);
+  return null;
+}
+const rules = () => doc('playbook').rules;
+/** After a completed pass: find the team rule for (passer role → receiver role) and run its verbs. */
+function applyPassRules(S, passer, receiver, fromRole, toRole) {
+  const r = rules().find((x) => x.on.type === 'pass' && (x.on.from === fromRole || x.on.from === 'any') && (x.on.to === toRole || x.on.to === 'any'));
+  if (!r) return null;
+  for (const t of r.then) { const who = ruleWho(S, t.who, passer, receiver); if (who && VERB_FN[t.verb]) VERB_FN[t.verb](S, who); }
+  return r;
+}
+function runCall(S, call) {
+  const r = rules().find((x) => x.on.type === 'call' && x.on.call === call); if (!r) return null;
+  const scr = r.then.find((t) => t.verb === 'ballScreen'), bk = r.then.find((t) => t.verb === 'backScreen');
+  const screener = ruleWho(S, scr?.who || 'post'), backer = bk ? OFF.filter((o) => o !== S.ball && o !== screener && isPerim(S.pos[o])).sort((a, b) => dist(S.pos[a], [0, 27]) - dist(S.pos[b], [0, 27]))[0] : null;
+  verbSpain(S, screener, backer);
+  return r;
+}
+
+// ---------------- running the play script ----------------
+/** Run scripted steps until the ball handler must decide (a scripted pass) or the script ends. */
+function advanceScript(S) {
+  const play = S.cfg.play;
+  while (!S.offScript && S.stepIdx < play.steps.length) {
+    const st = play.steps[S.stepIdx];
+    if (st.actions.some((a) => a.type === 'pass' && a.from === S.ball)) return st; // decision point
+    runStep(S, st); S.stepIdx++;
+  }
+  return null;
+}
+function runStep(S, st, skipPass) {
+  const A = st.actions;
+  const scr = A.filter((a) => a.type === 'screen'), cuts = A.filter((a) => a.type === 'cut'), mv = A.filter((a) => a.type === 'move'), dr = A.filter((a) => a.type === 'dribble');
+  // Ball screen + back screen in the same step = Spain-style action.
+  const ballScr = scr.find((a) => a.for === S.ball), back = scr.find((a) => ballScr && a.for === ballScr.who);
+  if (ballScr) { verbSpain(S, ballScr.who, back?.who); return; }
+  const off = {}; for (const a of [...mv, ...dr]) off[a.who] = a.to;
+  if (Object.keys(off).length) beat(S, 1.0, RR2(off), S.ball, [], st.label || 'Movement');
+  for (const a of scr) { const cut = cuts.find((c) => c.who === a.for); offScreen(S, a.who, a.for, cut ? cut.to : SPOTS[sgn(S.pos[a.who][0]) < 0 ? 'slotL' : 'slotR']); }
+  const loose = cuts.filter((c) => !scr.some((a) => a.for === c.who));
+  if (loose.length) beat(S, 1.0, RR2(Object.fromEntries(loose.map((c) => [c.who, c.to]))), S.ball, loose.map((c) => ({ type: 'cut', user: c.who, from: S.pos[c.who], basket: distHoop(c.to) < 9 })), st.label || 'Cuts');
+}
+
+// ---------------- analysis: who is open and why ----------------
+function analyze(S) {
+  const H = S.ball, pos = S.pos, hp = pos[H], cov = covOf(S), mates = {};
+  const dH = defOf(S, H);
+  for (const o of OFF) {
+    if (o === H) continue;
+    const p = pos[o];
+    const near = DEF.map((d) => ({ d, k: dist(pos[d], p) })).sort((a, b) => a.k - b.k), sep = near[0].k;
+    const Lv = dist(hp, p) || 1, end = lerpP(hp, p, Math.max(0, (Lv - 3) / Lv));
+    const laneD = DEF.filter((d) => dist(pos[d], hp) >= 3.6).map((d) => ({ d, k: segDist(pos[d], hp, end) })).sort((a, b) => a.k - b.k)[0] || { k: 99 };
+    // Open on the catch: the nearest defender closes ~5 ft per second of ball flight.
+    const flight = dist(hp, p) / 32 + 0.3, sepCatch = Math.max(0, sep - 5 * flight);
+    const open = clamp(Math.min(sepCatch / 4.5, laneD.k / 3.5), 0, 1);
+    const myD = defOf(S, o) || near[0].d, dp = pos[myD];
+    const toBall = norm(sub(hp, p)), toDef = sub(dp, p);
+    const denied = cov.type === 'man' && isPerim(p) && dist(dp, p) < 3.3 && (toBall[0] * toDef[0] + toBall[1] * toDef[1]) > 1.0;
+    const rim = rimSpot(sgn(p[0]));
+    const bdClear = Math.min(...DEF.filter((d) => d !== myD).map((d) => segDist(pos[d], p, rim)));
+    const backdoor = denied && bdClear >= 4;
+    const helping = cov.type === 'man' && myD && dist(dp, p) > 7.5 && S.roles?.[myD] && /help|trap|tag/.test(S.roles[myD]);
+    const sizeD = S.size['O' + myD[1]], mis = cov.type === 'man' && myD && Math.abs(S.size[o] - sizeD) >= 2 ? (S.size[o] > sizeD ? 'big on small' : 'small on big') : null;
+    const d = distHoop(p), inRange = d <= 24.5;
+    const zoneGap = cov.type === 'zone' && near[0].k >= 5 && near[1] && near[1].k >= 5;
+    mates[o] = { o, p, sep, sepCatch, flight, lane: laneD.k, laneBy: laneD.d, open, denied, backdoor, bdClear, helping, myD, mis, inRange, d, zoneGap, spot: spotName(p), role: roleAt(p) };
+  }
+  // ball handler
+  const gap = dH ? dist(pos[dH], hp) : 9, corridorHelp = DEF.filter((d) => d !== dH && segDist(pos[d], hp, toward(T_HOOP, hp, 4)) < 6).length;
+  const trapped = Object.values(S.roles || {}).filter((r) => r === 'trapping').length >= 2;
+  // Drive advantage comes from the on-ball defender being out of position, not from the drive itself:
+  // crowding (too close to react), off the line to the rim, or trailing behind the handler.
+  const line = dH ? segDist(pos[dH], hp, T_HOOP) : 9, behind = dH ? distHoop(pos[dH]) > distHoop(hp) + 0.5 : true;
+  const beatDef = (gap < 2.3 ? 0.3 : 0) + (line > 1.8 ? 0.3 : 0) + (behind ? 0.35 : 0) + (gap > 6 ? 0.25 : 0);
+  const drive = clamp(0.3 + beatDef - 0.22 * corridorHelp - (trapped ? 0.5 : 0) - (cov.type === 'zone' ? 0.1 : 0), 0, 1);
+  const closest = Math.min(...DEF.map((d) => dist(pos[d], hp))), hd = distHoop(hp), three = hd >= 22 || (Math.abs(hp[0]) >= 22 && hp[1] <= 14.2);
+  const window = hd > 25 ? 'out of range' : closest >= 5.5 ? 'open' : closest >= 3.5 ? 'tight' : 'contested';
+  const helpers = DEF.filter((d) => /help|trap|tag/.test(S.roles?.[d] || '')).map((d) => ({ d, man: S.assign[d] }));
+  return { H, hp, mates, gap, line, behind, corridorHelp, trapped, drive, closest, hd, three, window, helpers, cov: S.cov };
+}
+
+// ---------------- options & values ----------------
+const makeBase = (d, three) => (d < 6 ? 0.6 : d < 14 ? 0.45 : three ? 0.36 : 0.4);
+function shotProb(d, closest, three, I) {
+  const adj = closest >= 6 ? 0.04 : closest >= 4 ? 0 : closest >= 2.5 ? -0.08 : -0.16;
+  return clamp(makeBase(d, three) + adj - (I - 2) * 0.02, 0.05, 0.75);
+}
+function optionsFor(S, A, depth = 0) {
+  const opts = [], I = S.intensity, play = S.cfg.play, nextStep = play.steps[S.stepIdx];
+  const scriptedTo = !S.offScript && nextStep ? nextStep.actions.find((a) => a.type === 'pass' && a.from === A.H)?.to : null;
+  const fromRole = roleAt(A.hp);
+  for (const m of Object.values(A.mates)) {
+    const risk = (m.lane < 1.5 ? 0.42 : m.lane < 3 ? 0.18 : 0.04) * (0.6 + 0.25 * I) + (m.denied ? 0.12 : 0) + (A.trapped && dist(A.hp, m.p) > 30 ? 0.12 : 0);
+    const comp = clamp(1 - risk, 0.3, 0.99);
+    const closeD = m.sep, three = m.d >= 22;
+    const shotEV = m.inRange ? shotProb(m.d, closeD, three, I) * (three ? 3 : 2) : 0;
+    const cc = m.sepCatch;
+    const shotC = m.inRange ? shotProb(m.d, cc, three, I) * (three ? 3 : 2) : 0;
+    const catchV = Math.max(m.d < 9 && cc > 2.5 ? 2 * shotProb(m.d, cc, false, I) : 0, cc >= 4 ? shotC : 0, 0.9 + 0.12 * m.open);
+    const rule = rules().find((x) => x.on.type === 'pass' && (x.on.from === fromRole || x.on.from === 'any') && (x.on.to === m.role || x.on.to === 'any'));
+    const createsAction = !!rule || m.o === scriptedTo;
+    opts.push({ id: 'pass-' + m.o, kind: 'pass', to: m.o, label: `Pass to ${m.o} (${SPOT_LABEL[m.spot]})`, catchV, ev: comp * catchV - (1 - comp) * 0.7, comp, principle: !!rule || m.o === scriptedTo, rule, scripted: m.o === scriptedTo, open: m.open });
+    if (m.backdoor) opts.push({ id: 'bd-' + m.o, kind: 'backdoor', to: m.o, label: `Hit ${m.o}'s backdoor cut`, ev: 0.88 * 2 * clamp(0.62 - (m.bdClear < 6 ? 0.08 : 0), 0.3, 0.7), comp: 0.88, principle: true, open: 1 });
+  }
+  opts.push({ id: 'drive', kind: 'drive', label: 'Attack your defender (drive)', ev: 0.55 + 0.7 * A.drive - (A.trapped ? 0.4 : 0), principle: A.drive >= 0.6, drive: A.drive });
+  if (A.hd <= 25) { const p = shotProb(A.hd, A.closest, A.three, I); opts.push({ id: 'shoot', kind: 'shoot', label: A.three ? 'Shoot the three' : 'Pull up and shoot', ev: p * (A.three ? 3 : 2), p, principle: A.window === 'open' }); }
+  if (!S.offScript && nextStep && !nextStep.actions.some((a) => a.type === 'pass')) opts.push({ id: 'script', kind: 'script', label: `Run the next action: ${nextStep.label || 'step ' + (S.stepIdx + 1)}`, ev: 0.97, principle: true });
+  for (const r of rules().filter((x) => x.on.type === 'call')) if (!S.calls?.includes(r.on.call)) opts.push({ id: 'call-' + r.on.call, kind: 'call', call: r.on.call, label: `Call ${r.name}`, ev: callEV(S, A, r), principle: true });
+  opts.push({ id: 'reset', kind: 'reset', label: 'Reset: dribble out and restart', ev: A.trapped ? 0.55 : 0.8, principle: false });
+  if (depth === 0) for (const o of opts) {
+    // One-move lookahead: play the option forward on a copy (forced completion) and value it by the best read after it.
+    if (o.kind === 'pass') { const la = lookValue(S, o, A); o.la = la; o.ev = o.comp * Math.max(o.catchV, 0.96 * la) - (1 - o.comp) * 0.7; }
+    else if (o.kind === 'call' || o.kind === 'script') { o.la = lookValue(S, o, A); o.ev = 0.96 * o.la; }
+    else if (o.kind === 'reset') { o.la = lookValue(S, o, A); o.ev = Math.min(0.9 * o.la, A.trapped ? 0.6 : 0.95); }
+    else if (o.kind === 'drive') {
+      const win = lookValue(S, o, A, { forceDrive: true }), stall = lookValue(S, o, A, { forceDrive: false }), fin = 2 * shotProb(6, 2.5, false, S.intensity);
+      o.la = win; o.ev = A.drive * (A.drive >= 0.75 ? 0.6 * fin + 0.4 * win : win) + (1 - A.drive) * 0.93 * stall - (A.trapped ? 0.45 : 0);
+    }
+  } else for (const o of opts) if (o.kind === 'call' || o.kind === 'script') o.ev = 0.9;
+  return opts;
+}
+function callEV() { return 0.9; } // replaced by the lookahead at depth 0
+function cloneS(S) { return { ...S, pos: { ...S.pos }, assign: { ...S.assign }, roles: { ...S.roles }, beats: [...S.beats], notes: [...S.notes], calls: [...(S.calls || [])], rng: () => 0, lookahead: true }; }
+function lookValue(S, o, A, extra = {}) {
+  const C = Object.assign(cloneS(S), extra), res = applyChoice(C, o, A);
+  if (res.ended) return res.ev ?? 0;
+  const A2 = analyze(C); return Math.max(...optionsFor(C, A2, 1).map((x) => x.ev));
+}
+
+// ---------------- applying a decision ----------------
+/** Execute the chosen option. Returns {result, ended, txt} and appends beats. */
+function applyChoice(S, opt, A) {
+  const H = S.ball, r = S.rng(), I = S.intensity;
+  if (opt.kind === 'pass') {
+    const m = A.mates[opt.to];
+    if (r > opt.comp) { // picked off
+      const thief = m.laneBy || defOf(S, opt.to);
+      beat(S, 0.6, { [thief]: RR(lerpP(A.hp, m.p, 0.6)) }, { steal: [H, thief] }, [], `Pass picked off by X${thief[1]}`, { defOverride: { [thief]: RR(lerpP(A.hp, m.p, 0.6)) } });
+      beat(S, 1.0, { [thief]: [S.pos[thief][0] * 0.5, 44] }, thief, [], 'Turnover');
+      return { result: 'tov', ended: true, txt: `The pass was picked off: X${thief[1]} was ${fmtFt(m.lane)} from the passing lane.` };
+    }
+    const fromRole = roleAt(A.hp);
+    beat(S, clamp(dist(A.hp, m.p) / 32 + 0.3, 0.45, 1.1), { [opt.to]: RR(toward(m.p, A.hp, 1)) }, { pass: [H, opt.to], bounce: m.lane < 2.5 ? 1 : undefined }, [], `${H} to ${opt.to}`);
+    if (opt.scripted) { S.stepIdx++; runStepRestAfterPass(S); }
+    else { S.offScript = S.offScript || !!S.cfg.play.steps[S.stepIdx]; const rule = applyPassRules(S, H, opt.to, fromRole, m.role); if (rule) S.notes.push({ t: 'rule', txt: `Team rule: ${rule.name}`, at: S.t }); }
+    // A catch at the rim with space is finished right away.
+    const after = analyzeReceiver(S, opt.to);
+    if (after.d < 9 && after.closest > 2.5) return finishShot(S, opt.to, after, 'Finish at the rim');
+    return { result: 'cont', ended: false, txt: 'Pass completed.' };
+  }
+  if (opt.kind === 'backdoor') {
+    const m = A.mates[opt.to], rim = rimSpot(sgn(m.p[0]));
+    if (r > opt.comp) { const thief = defOf(S, opt.to); beat(S, 0.7, { [opt.to]: RR(rim) }, { steal: [H, thief] }, [{ type: 'cut', user: opt.to, from: m.p, basket: true }], 'Backdoor pass deflected'); beat(S, 1, { [thief]: [S.pos[thief][0] * 0.5, 44] }, thief, [], 'Turnover'); return { result: 'tov', ended: true, txt: 'The bounce pass was deflected.' }; }
+    beat(S, 0.8, { [opt.to]: RR(rim) }, { pass: [H, opt.to], bounce: 1 }, [{ type: 'cut', user: opt.to, from: m.p, basket: true }], `${opt.to} back-cuts, bounce pass`);
+    return finishShot(S, opt.to, analyzeReceiver(S, opt.to), 'Backdoor layup');
+  }
+  if (opt.kind === 'drive') {
+    const from = A.hp, to = RR(toward(T_HOOP, from, A.drive > 0.5 ? 6 : 11));
+    if (A.trapped && r < 0.45 && !S.lookahead) { const t2 = defOf(S, H); beat(S, 0.7, {}, { steal: [H, t2] }, [], 'Stripped in the trap'); beat(S, 1, { [t2]: [S.pos[t2][0] * 0.5, 44] }, t2, [], 'Turnover'); return { result: 'tov', ended: true, txt: 'Dribbling into a two-man trap: the ball was stripped.' }; }
+    const beatHim = S.lookahead ? S.forceDrive : r < A.drive;
+    if (!beatHim) { // the on-ball defender stays in front: no help needed, no advantage
+      const dH = defOf(S, H), stop = RR(toward(from, T_HOOP, 4));
+      beat(S, 0.8, { [H]: stop }, H, [], `${H} drives, ${dH ? 'X' + dH[1] : 'the defense'} cuts it off`, { defOverride: dH ? { [dH]: RR(toward(stop, T_HOOP, 2.2)) } : {} });
+      return { result: 'cont', ended: false, txt: 'The drive was cut off: your defender stayed in front, so nobody had to help.' };
+    }
+    beat(S, 0.9, { [H]: to }, H, [{ type: 'drive', user: H, from }], `${H} drives`);
+    if (!S.lookahead && A.drive >= 0.75 && S.rng() < 0.6) return finishShot(S, H, analyzeReceiver(S, H), 'Layup off the drive');
+    return { result: 'cont', ended: false, txt: 'The drive drew help. New read.' };
+  }
+  if (opt.kind === 'shoot') return finishShot(S, H, analyzeReceiver(S, H), A.three ? 'Three-point attempt' : 'Pull-up');
+  if (opt.kind === 'script') { const st = S.cfg.play.steps[S.stepIdx]; runStep(S, st); S.stepIdx++; advanceScript(S); return { result: 'cont', ended: false, txt: `Ran: ${st.label}.` }; }
+  if (opt.kind === 'call') { (S.calls ||= []).push(opt.call); S.offScript = true; runCall(S, opt.call); return { result: 'cont', ended: false, txt: `Called ${opt.label.replace('Call ', '')}.` }; }
+  if (opt.kind === 'reset') { beat(S, 1.1, { [H]: [clamp(A.hp[0] * 0.5, -6, 6), 32] }, H, [], 'Reset the offense'); return { result: 'cont', ended: false, txt: 'Reset. The defense recovered.' }; }
+  if (opt.kind === 'hold') { beat(S, 1.0, {}, H, [], 'Hesitation: the defense recovers'); return { result: 'cont', ended: false, txt: 'You held the ball and the window closed.' }; }
+  return { result: 'cont', ended: false, txt: '' };
+}
+function runStepRestAfterPass(S) { const st = S.cfg.play.steps[S.stepIdx - 1]; const rest = { ...st, actions: st.actions.filter((a) => a.type !== 'pass') }; if (rest.actions.length) runStep(S, rest); advanceScript(S); }
+function analyzeReceiver(S, o) { const p = S.pos[o]; const closest = Math.min(...DEF.map((d) => dist(S.pos[d], p))), d = distHoop(p); return { p, closest, d, three: d >= 22 || (Math.abs(p[0]) >= 22 && p[1] <= 14.2) }; }
+function finishShot(S, who, a, cap) {
+  const p = shotProb(a.d, a.closest, a.three, S.intensity), made = S.rng() < p;
+  S.make = made;
+  beat(S, 1.05, {}, { shot: who, three: a.three }, [], `${cap} (${Math.round(p * 100)}% look)`, { contest: true });
+  S.beats[S.beats.length - 1].reb = 'D5'; S.beats[S.beats.length - 1].rebSpot = [2, 11];
+  return { result: made ? 'make' : 'miss', ended: true, ev: p * (a.three ? 3 : 2), p, pts: made ? (a.three ? 3 : 2) : 0, txt: `${cap}: ${made ? 'made' : 'missed'} (${Math.round(p * 100)}% shot, closest defender ${fmtFt(a.closest)}).` };
+}
+const fmtFt = (v) => (v >= 20 ? '20+ ft' : v.toFixed(1) + ' ft');
+
+// ---------------- grading ----------------
+const TEAM_W = { recognition: 0.15, read: 0.35, timing: 0.1, awareness: 0.2, principles: 0.2 };
+function gradeTeamDecision(A, opts, choice, info) {
+  const best = opts.reduce((a, b) => (b.ev > a.ev ? b : a)), worst = Math.min(...opts.map((o) => o.ev));
+  const parts = {};
+  parts.read = choice.kind === 'hold' ? 5 : Math.round(clamp(best.ev - choice.ev <= 0.04 ? 100 : (100 * (choice.ev - worst)) / Math.max(0.01, best.ev - worst), 0, 100));
+  const openMates = Object.values(A.mates).filter((m) => m.open >= 0.75 || m.backdoor);
+  const chosenOpen = choice.to ? Math.max(A.mates[choice.to].open, choice.kind === 'backdoor' ? 1 : 0) : null;
+  parts.awareness = choice.kind === 'hold' ? 0 : !openMates.length ? 90 : chosenOpen != null ? Math.round(60 + 40 * chosenOpen) : choice.ev >= best.ev - 0.04 ? 85 : 45;
+  parts.principles = choice.kind === 'hold' ? 0 : choice.principle ? 100 : 55;
+  if (info.recognition != null) parts.recognition = info.recognition ? 100 : 0;
+  if (info.timing != null) parts.timing = info.timing;
+  let s = 0, w = 0; for (const [k, v] of Object.entries(parts)) { s += TEAM_W[k] * v; w += TEAM_W[k]; }
+  return { score: Math.round(s / w), parts, best };
+}
+const quadrant = (score, ok) => (score >= 70 ? (ok ? { k: 'gg', t: 'Correct decision, successful execution' } : { k: 'gb', t: 'Correct decision, poor execution or result' }) : ok ? { k: 'bg', t: 'Incorrect decision that happened to work' } : { k: 'bb', t: 'Incorrect decision and poor result' });
+
+/** Plain-language reasons each teammate was (or wasn't) available. */
+function whyOpen(S, A) {
+  const out = [];
+  for (const m of Object.values(A.mates)) {
+    const d = m.myD ? `X${m.myD[1]}` : 'his defender', reasons = [];
+    if (m.backdoor) reasons.push(`${d} was denying ${fmtFt(dist(S.pos[m.myD], m.p))} off with nobody between ${m.o} and the rim: backdoor`);
+    else if (m.denied) reasons.push(`${d} was in the passing lane (denied), but help was behind him, so no backdoor`);
+    if (m.helping) reasons.push(`${d} left him to ${S.roles[m.myD]}`);
+    if (m.mis) reasons.push(`switch left a ${m.mis === 'big on small' ? 'smaller defender on him (post it / seal)' : 'bigger defender on him (attack off the dribble)'}`);
+    if (m.zoneGap) reasons.push('sitting in a gap between two zone defenders');
+    if (S.lastScreen && S.lastScreen.user === m.o) reasons.push(`came off ${S.lastScreen.screener}'s screen with ${fmtFt(m.sep)} of separation (${S.lastScreen.read})`);
+    if (S.lastScreen && S.lastScreen.screener === m.o && covOf(S).offBall === 'switch') reasons.push('slipped the screen as the defense switched');
+    if (!reasons.length) reasons.push(m.open >= 0.75 ? `${fmtFt(m.sep)} from the nearest defender and a clean lane` : m.lane < 2 ? `X${m.laneBy?.[1] || '?'} sat in the passing lane (${fmtFt(m.lane)})` : `${fmtFt(m.sep)} separation: covered`);
+    out.push({ o: m.o, open: m.open >= 0.75 || m.backdoor, tag: m.backdoor ? 'backdoor' : m.open >= 0.75 ? 'open' : m.open >= 0.45 ? 'workable' : 'covered', txt: reasons.join('; ') });
+  }
+  return out.sort((a, b) => b.open - a.open);
+}
+
+// ---- playbook.js ----
+// ===================== Personal Team Playbook =====================
+// Plays are data: starting spots, roles, and steps of actions. The editor works on the same CourtView as the
+// simulator. Rules (what the offense does after each kind of pass, and called actions like Spain) are editable too.
+const PB = { tab: 'library', id: null, step: -1, tool: 'move', sel: null, view: null, drag: null, preview: null, confirmDel: null, cat: 'all' };
+const pbook = () => doc('playbook');
+const playById = (id) => pbook().plays.find((p) => p.id === id);
+const TOOLS = { move: 'Move', pass: 'Pass', dribble: 'Dribble', cut: 'Cut', screen: 'Screen' };
+const PLAY_CATS = ['Base offense', 'Spain', 'Counters', 'Set plays', 'Inbounds', 'Press break', 'Other'];
+
+/** Positions and ball handler at the start of step k (k = 0 is the first step; -1 = setup). */
+function posAtStep(play, k) {
+  const pos = { ...play.start }; let ball = play.ball;
+  for (let i = 0; i < k && i < play.steps.length; i++) for (const a of play.steps[i].actions) {
+    if (a.type === 'pass') ball = a.to;
+    else if (a.type === 'screen') pos[a.who] = screenSpot(pos, a);
+    else if (a.to) pos[a.who] = a.to;
+  }
+  return { pos, ball };
+}
+const screenSpot = (pos, a) => RR(toward(pos[a.for], pos[a.who], 2.2));
+function actionLines(play, k, dim) {
+  const { pos } = posAtStep(play, k), out = [];
+  for (const a of play.steps[k]?.actions || []) {
+    if (a.type === 'pass') out.push({ type: 'pass', from: pos[a.from], to: pos[a.to], dim });
+    else if (a.type === 'screen') out.push({ type: 'screen', from: pos[a.who], to: screenSpot(pos, a), dim });
+    else out.push({ type: a.type, from: pos[a.who], to: a.to, dim });
+  }
+  return out;
+}
+function staticTrack(pos, ball) { return compile({ pos, ball }, [{ d: 0.01, m: {} }]); }
+const PB_THUMBS = {};
+function playThumb(play) {
+  const key = play.id + JSON.stringify(play.steps).length + JSON.stringify(play.start);
+  if (PB_THUMBS[key]) return PB_THUMBS[key];
+  if (!thumbView) thumb(SCENARIOS[0].id);
+  const diag = play.steps.flatMap((_, k) => actionLines(play, k, k > 1));
+  thumbView.draw(staticTrack(play.start, play.ball), 0, { captions: false, diagram: diag, labels: roleLabels(play) });
+  return (PB_THUMBS[key] = thumbView.c.toDataURL('image/jpeg', 0.8));
+}
+const roleLabels = (play) => Object.fromEntries(OFF.map((o) => [o, `${o.slice(1)} ${play.roles?.[o]?.pos || ''}`.trim()]));
+
+function renderPlaybook() {
+  const el = $('#view-playbook');
+  if (PB.id && playById(PB.id)) return renderEditor(el, playById(PB.id));
+  PB.id = null;
+  const plays = pbook().plays, cats = ['all', ...new Set(plays.map((p) => p.cat))];
+  const list = plays.filter((p) => PB.cat === 'all' || p.cat === PB.cat);
+  el.innerHTML = `
+    <div class="page-head"><span class="eyebrow">Personal Team Playbook</span><h1>Our offense</h1><p>Rebuild your school's four-out, one-in offense: plays as steps of passes, cuts, screens and dribbles, plus the rules your team follows after every pass. The Coverage Sim runs these plays against any defense.</p></div>
+    <div class="seg" role="group" aria-label="Playbook section"><button type="button" data-pt="library" aria-pressed="${PB.tab === 'library'}">Plays (${plays.length})</button><button type="button" data-pt="rules" aria-pressed="${PB.tab === 'rules'}">Offensive rules (${pbook().rules.length})</button></div>
+    ${PB.tab === 'rules' ? rulesHtml() : `
+    <div class="row"><button type="button" class="btn green" id="pb-new">${icon('play')} New play</button><div class="filters" role="group" aria-label="Category">${cats.map((c) => `<button type="button" data-pc="${esc(c)}" aria-pressed="${PB.cat === c}">${c === 'all' ? 'All' : esc(c)}</button>`).join('')}</div></div>
+    ${list.length ? `<div class="grid">${list.map((p) => `<div class="card scen pb-card"><div class="thumb"><img data-pthumb="${p.id}" alt="Diagram of ${esc(p.name)}" width="420" height="393"></div>
+      <div class="body"><div class="meta"><span class="chip">${esc(p.cat)}</span><span class="chip gray">${p.steps.length} step${p.steps.length === 1 ? '' : 's'}</span>${p.parent && playById(p.parent) ? `<span class="chip purple">Variation of ${esc(playById(p.parent).name)}</span>` : ''}</div>
+      <h3>${esc(p.name)}</h3><p>${esc(p.note || '')}</p>
+      ${PB.confirmDel === p.id ? `<div class="confirm"><b>Delete “${esc(p.name)}”?</b><div class="row"><button type="button" class="btn sm" style="background:var(--red)" data-pdel-yes="${p.id}">Delete</button><button type="button" class="btn ghost sm" data-pdel-no>Cancel</button></div></div>` : ''}
+      <div class="row"><button type="button" class="btn sm" data-pedit="${p.id}">Edit</button><button type="button" class="btn ghost sm" data-ppractice="${p.id}">Practice vs defense</button><button type="button" class="btn ghost sm" data-pvar="${p.id}">Variation</button><button type="button" class="btn ghost sm" data-pdel="${p.id}" aria-label="Delete ${esc(p.name)}">Delete</button></div></div></div>`).join('')}</div>`
+      : `<div class="empty">${emptyArt()}<h3>No plays in this category</h3><p>Create a play, or switch the filter to All.</p></div>`}`}`;
+  for (const b of $$('[data-pt]', el)) b.onclick = () => { PB.tab = b.dataset.pt; renderPlaybook(); };
+  for (const b of $$('[data-pc]', el)) b.onclick = () => { PB.cat = b.dataset.pc; renderPlaybook(); };
+  $('#pb-new') && ($('#pb-new').onclick = () => { const p = { id: uid('p'), name: 'New play', cat: 'Set plays', note: '', start: { ...BASE_4OUT }, ball: 'O1', roles: JSON.parse(JSON.stringify(BASE_ROLES)), steps: [] }; pbook().plays.push(p); persist('playbook'); openEditor(p.id); });
+  for (const b of $$('[data-pedit]', el)) b.onclick = () => openEditor(b.dataset.pedit);
+  for (const b of $$('[data-ppractice]', el)) b.onclick = () => { TSIM.playId = b.dataset.ppractice; go('teamsim'); };
+  for (const b of $$('[data-pvar]', el)) b.onclick = () => { const src = playById(b.dataset.pvar), p = { ...JSON.parse(JSON.stringify(src)), id: uid('p'), name: src.name + ' (variation)', parent: src.id }; pbook().plays.push(p); persist('playbook'); toast('Variation created'); openEditor(p.id); };
+  for (const b of $$('[data-pdel]', el)) b.onclick = () => { PB.confirmDel = b.dataset.pdel; renderPlaybook(); };
+  for (const b of $$('[data-pdel-yes]', el)) b.onclick = () => { const pb = pbook(); pb.plays = pb.plays.filter((p) => p.id !== b.dataset.pdelYes); PB.confirmDel = null; persist('playbook'); toast('Play deleted'); renderPlaybook(); };
+  for (const b of $$('[data-pdel-no]', el)) b.onclick = () => { PB.confirmDel = null; renderPlaybook(); };
+  if (PB.tab === 'rules') bindRules(el);
+  const imgs = $$('img[data-pthumb]', el); let i = 0; const stepT = () => { const img = imgs[i++]; if (!img) return; const p = playById(img.dataset.pthumb); if (p && img.isConnected) img.src = playThumb(p); setTimeout(stepT, 0); }; stepT();
+}
+function openEditor(id) { PB.id = id; PB.step = playById(id).steps.length ? 0 : -1; PB.sel = null; PB.tool = PB.step < 0 ? 'move' : 'pass'; PB.preview = null; renderPlaybook(); window.scrollTo({ top: 0 }); }
+
+// ---------- editor ----------
+function renderEditor(el, play) {
+  const k = PB.step, st = play.steps[k];
+  const holder = posAtStep(play, Math.max(0, k)).ball;
+  el.innerHTML = `
+    <div class="play-head"><button type="button" class="btn ghost sm" id="pe-back">‹ Playbook</button><div class="ph-title"><span class="eyebrow">Play editor · ${esc(play.cat)}</span><h2>${esc(play.name)}</h2></div>
+      <div class="row"><button type="button" class="btn ghost sm" id="pe-preview">${icon('play')} Preview</button><button type="button" class="btn sm" id="pe-practice">Practice vs defense</button></div></div>
+    <div class="play-grid">
+      <div class="stage-col">
+        <div class="stage pickable" id="pe-stage"><canvas id="pe-court" role="img" aria-label="Play diagram editor"></canvas>
+          <div class="hud"><div class="hud-mode" data-m="film">${k < 0 ? 'SETUP · DRAG PLAYERS' : `STEP ${k + 1} · ${TOOLS[PB.tool].toUpperCase()}`}</div><div class="hud-prompt" id="pe-hint">${editorHint(play, holder)}</div></div></div>
+        <div class="steps-bar" role="tablist" aria-label="Steps">
+          <button type="button" class="step-chip" data-step="-1" aria-pressed="${k === -1}">Setup</button>
+          ${play.steps.map((s, i) => `<button type="button" class="step-chip" data-step="${i}" aria-pressed="${k === i}">${i + 1}. ${esc(s.label || 'Step')}</button>`).join('')}
+          <button type="button" class="step-chip add" id="pe-addstep">+ Step</button></div>
+        ${k >= 0 ? `<div class="seg tools" role="group" aria-label="Drawing tool">${Object.entries(TOOLS).map(([t, l]) => `<button type="button" data-tool="${t}" aria-pressed="${PB.tool === t}">${l}</button>`).join('')}</div>` : ''}
+        <div class="legend-row"><span><i class="lg cut"></i>Cut</span><span><i class="lg dribble"></i>Dribble</span><span><i class="lg pass"></i>Pass</span><span><i class="lg screen"></i>Screen</span><span><i class="lg move"></i>Move</span></div>
+      </div>
+      <aside class="panel">
+        <div class="form-grid">
+          <label class="fld"><span>Play name</span><input type="text" id="pe-name" value="${esc(play.name)}"></label>
+          <label class="fld"><span>Category</span><select id="pe-cat">${[...new Set([...PLAY_CATS, play.cat])].map((c) => `<option ${c === play.cat ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></label>
+          <label class="fld"><span>Variation of</span><select id="pe-parent"><option value="">— none —</option>${pbook().plays.filter((p) => p.id !== play.id).map((p) => `<option value="${p.id}" ${p.id === play.parent ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>
+          <label class="fld full"><span>Explanation</span><textarea id="pe-note" rows="3">${esc(play.note || '')}</textarea></label>
+        </div>
+        ${k >= 0 ? `<div class="bd"><h4>Step ${k + 1}</h4>
+          <label class="fld"><span>Step name</span><input type="text" id="pe-slabel" value="${esc(st.label || '')}"></label>
+          <ul class="act-list">${st.actions.map((a, i) => `<li><span>${actionText(a)}</span><button type="button" class="icon-x" data-adel="${i}" aria-label="Remove action">×</button></li>`).join('') || '<li class="muted small">No actions yet. Pick a tool and tap players on the court.</li>'}</ul>
+          <div class="row"><button type="button" class="btn ghost sm" id="pe-rules" ${st.actions.some((a) => a.type === 'pass') ? '' : 'disabled'}>Add next step from our rules</button><button type="button" class="btn ghost sm" id="pe-delstep">Delete step</button></div>
+          <p class="hint">Actions in one step happen together. A step can hold one pass.</p></div>` : `<div class="bd"><h4>Setup</h4><p class="small muted">Drag players to their starting spots. Tap a player to give them the ball.</p><div class="row"><button type="button" class="btn ghost sm" id="pe-base">Reset to 4-out, 1-in</button></div></div>`}
+        <div class="bd"><h4>Players & responsibilities</h4>
+          ${OFF.map((o) => `<div class="resp"><b>${o.slice(1)}</b><select data-rpos="${o}" aria-label="${o} position">${Object.entries(POSITIONS_T).map(([kk, v]) => `<option value="${kk}" ${play.roles?.[o]?.pos === kk ? 'selected' : ''}>${kk} · ${v}</option>`).join('')}</select><textarea data-rresp="${o}" rows="2" aria-label="${o} responsibility" placeholder="Responsibility">${esc(play.roles?.[o]?.resp || '')}</textarea></div>`).join('')}</div>
+      </aside>
+    </div>`;
+  const save = () => { persist('playbook'); };
+  $('#pe-back').onclick = () => { PB.id = null; renderPlaybook(); };
+  $('#pe-practice').onclick = () => { TSIM.playId = play.id; go('teamsim'); };
+  $('#pe-preview').onclick = () => startPreview(play);
+  $('#pe-name').onchange = (e) => { play.name = e.target.value.trim() || 'Untitled play'; save(); renderPlaybook(); };
+  $('#pe-cat').onchange = (e) => { play.cat = e.target.value; save(); };
+  $('#pe-parent').onchange = (e) => { play.parent = e.target.value || null; save(); };
+  $('#pe-note').onchange = (e) => { play.note = e.target.value; save(); };
+  for (const s of $$('[data-rpos]', el)) s.onchange = () => { (play.roles[s.dataset.rpos] ||= {}).pos = s.value; save(); drawEditor(play); };
+  for (const t of $$('[data-rresp]', el)) t.onchange = () => { (play.roles[t.dataset.rresp] ||= {}).resp = t.value; save(); };
+  for (const b of $$('[data-step]', el)) b.onclick = () => { PB.step = Number(b.dataset.step); PB.sel = null; if (PB.step < 0) PB.tool = 'move'; else if (PB.tool === 'move' && !play.steps[PB.step].actions.length) PB.tool = 'pass'; renderPlaybook(); };
+  $('#pe-addstep').onclick = () => { play.steps.push({ label: 'Step ' + (play.steps.length + 1), actions: [] }); PB.step = play.steps.length - 1; PB.tool = 'pass'; save(); renderPlaybook(); };
+  for (const b of $$('[data-tool]', el)) b.onclick = () => { PB.tool = b.dataset.tool; PB.sel = null; renderPlaybook(); };
+  if (k >= 0) {
+    $('#pe-slabel').onchange = (e) => { st.label = e.target.value; save(); renderPlaybook(); };
+    for (const b of $$('[data-adel]', el)) b.onclick = () => { st.actions.splice(Number(b.dataset.adel), 1); save(); renderPlaybook(); };
+    $('#pe-delstep').onclick = () => { play.steps.splice(k, 1); PB.step = Math.min(k, play.steps.length - 1); save(); renderPlaybook(); };
+    $('#pe-rules').onclick = () => { const n = stepFromRules(play, k); if (!n) return toast('No team rule matches this pass'); play.steps.splice(k + 1, 0, n); PB.step = k + 1; save(); toast(`Added: ${n.label}`); renderPlaybook(); };
+  } else $('#pe-base').onclick = () => { play.start = { ...BASE_4OUT }; play.ball = 'O1'; save(); renderPlaybook(); };
+  PB.view = new CourtView($('#pe-court'));
+  bindEditorCanvas(play);
+  drawEditor(play);
+}
+const actionText = (a) => ({ pass: () => `Pass ${a.from} → ${a.to}`, dribble: () => `${a.who} dribbles to ${SPOT_LABEL[spotName(a.to)]}`, cut: () => `${a.who} cuts to ${SPOT_LABEL[spotName(a.to)]}`, move: () => `${a.who} moves to ${SPOT_LABEL[spotName(a.to)]}`, screen: () => `${a.who} screens for ${a.for}` })[a.type]();
+function editorHint(play, holder) {
+  if (PB.step < 0) return 'Drag players to set the formation. Tap a player to give him the ball.';
+  const t = PB.tool, s = PB.sel;
+  if (t === 'pass') return s ? `Now tap the receiver for ${s}'s pass` : `Tap the passer (ball: ${holder})`;
+  if (t === 'screen') return s ? `Tap the player ${s} screens for` : 'Tap the screener';
+  return s ? `Tap where ${s} ${t === 'dribble' ? 'dribbles' : t === 'cut' ? 'cuts' : 'moves'} to` : `Tap the player who ${t === 'dribble' ? 'dribbles (must have the ball)' : t === 'cut' ? 'cuts' : 'moves'}`;
+}
+function drawEditor(play, t = 0) {
+  if (!PB.view) return;
+  const k = Math.max(0, PB.step), { pos, ball } = PB.step < 0 ? { pos: play.start, ball: play.ball } : posAtStep(play, k);
+  const diag = PB.step < 0 ? [] : [...(k > 0 ? actionLines(play, k - 1, true) : []), ...actionLines(play, k, false)];
+  PB.view.draw(staticTrack(pos, ball), t, { captions: false, diagram: diag, labels: roleLabels(play), you: ball, highlight: PB.sel, spotlight: false });
+}
+function bindEditorCanvas(play) {
+  const cv = $('#pe-court');
+  const at = (e) => { const r = cv.getBoundingClientRect(); return PB.view.toCourt(e.clientX - r.left, e.clientY - r.top).map((v) => Math.round(v * 2) / 2); };
+  const k = Math.max(0, PB.step), cur = () => (PB.step < 0 ? { pos: play.start, ball: play.ball } : posAtStep(play, k));
+  const hit = (p) => { const { pos } = cur(); let best = null, bd = 3.2; for (const o of OFF) { const d = dist(pos[o], p); if (d < bd) { bd = d; best = o; } } return best; };
+  cv.onpointerdown = (e) => {
+    const p = at(e), who = hit(p);
+    if (PB.step < 0) { if (who) { PB.drag = { who, moved: false }; cv.setPointerCapture(e.pointerId); } return; }
+    const st = play.steps[PB.step], { ball } = cur(), t = PB.tool;
+    if (!PB.sel) {
+      if (!who) return;
+      if ((t === 'pass' || t === 'dribble') && who !== ball) return toast(`${who} doesn't have the ball at this step (${ball} does)`);
+      if (t === 'pass' && st.actions.some((a) => a.type === 'pass')) return toast('This step already has a pass. Add a new step.');
+      PB.sel = who; $('#pe-hint').textContent = editorHint(play, ball); drawEditor(play); return;
+    }
+    const s = PB.sel;
+    if (t === 'pass') { if (!who || who === s) return toast('Tap a teammate to receive the pass'); st.actions.push({ type: 'pass', from: s, to: who }); }
+    else if (t === 'screen') { if (!who || who === s) return toast('Tap the teammate being screened'); st.actions.push({ type: 'screen', who: s, for: who }); }
+    else { st.actions = st.actions.filter((a) => !(a.who === s && ['move', 'cut', 'dribble'].includes(a.type))); st.actions.push({ type: t, who: s, to: [clamp(p[0], -24.5, 24.5), clamp(p[1], 1, 40)] }); }
+    PB.sel = null; persist('playbook'); renderPlaybook();
+  };
+  cv.onpointermove = (e) => { if (!PB.drag) return; PB.drag.moved = true; const p = at(e); play.start[PB.drag.who] = [clamp(p[0], -24.5, 24.5), clamp(p[1], 1, 40)]; drawEditor(play); };
+  cv.onpointerup = () => { if (!PB.drag) return; const d = PB.drag; PB.drag = null; if (!d.moved) { play.ball = d.who; toast(`${d.who} starts with the ball`); } persist('playbook'); drawEditor(play); };
+}
+/** Translate the matching team rule into an editable step. */
+function stepFromRules(play, k) {
+  const pass = play.steps[k].actions.find((a) => a.type === 'pass'), { pos } = posAtStep(play, k);
+  const fromRole = roleAt(pos[pass.from]), toRole = roleAt(pos[pass.to]);
+  const r = pbook().rules.find((x) => x.on.type === 'pass' && (x.on.from === fromRole || x.on.from === 'any') && (x.on.to === toRole || x.on.to === 'any'));
+  if (!r) return null;
+  const after = posAtStep(play, k + 1).pos, acts = [];
+  for (const t of r.then) {
+    const who = t.who === 'passer' ? pass.from : t.who === 'receiver' ? pass.to : null; if (!who) continue;
+    if (t.verb === 'screenAway') { const cutter = OFF.filter((o) => o !== who && o !== pass.to && sgn(after[o][0]) === sgn(after[who][0]) && roleAt(after[o]) !== 'slot' && distHoop(after[o]) > 13)[0]; if (cutter) { acts.push({ type: 'screen', who, for: cutter }); acts.push({ type: 'cut', who: cutter, to: after[who] }); } }
+    if (t.verb === 'cutThrough') { acts.push({ type: 'cut', who, to: [sgn(after[pass.to][0]) * -2.5, 8] }); }
+    if (t.verb === 'basketCut') acts.push({ type: 'cut', who, to: [sgn(after[who][0]) * 2.5, 8] });
+    if (t.verb === 'postUp') acts.push({ type: 'move', who, to: SPOTS[sgn(after[pass.to][0]) < 0 ? 'postL' : 'postR'] });
+  }
+  return acts.length ? { label: r.name.split(':').pop().trim(), actions: acts } : null;
+}
+/** Animate the whole play (offense only). */
+function startPreview(play) {
+  const beats = []; let { pos, ball } = { pos: { ...play.start }, ball: play.ball };
+  for (const st of play.steps) {
+    const m = {}; let pass = null, scr = null;
+    for (const a of st.actions) { if (a.type === 'pass') pass = a; else if (a.type === 'screen') { m[a.who] = screenSpot(pos, a); scr = a; } else m[a.who] = a.to; }
+    if (Object.keys(m).length) beats.push({ d: 1.1, m, ball, cap: st.label, screen: scr?.who });
+    Object.assign(pos, m);
+    if (pass) { beats.push({ d: 0.7, m: {}, ball: { pass: [pass.from, pass.to] }, cap: st.label }); ball = pass.to; }
+  }
+  if (!beats.length) return toast('Add steps to preview the play');
+  const tr = compile({ pos: { ...play.start }, ball: play.ball }, beats);
+  const t0 = performance.now(); cancelAnimationFrame(PB.raf);
+  const stepF = (now) => { const t = (now - t0) / 1000; if (!$('#pe-court') || $('#view-playbook').hidden) return; PB.view.draw(tr, Math.min(t, tr.t1), { labels: roleLabels(play), you: stateAt(tr, Math.min(t, tr.t1)).holder || ball }); if (t < tr.t1 + 0.6) PB.raf = requestAnimationFrame(stepF); else drawEditor(play); };
+  PB.raf = requestAnimationFrame(stepF);
+}
+
+// ---------- rules ----------
+function rulesHtml() {
+  const R = pbook().rules;
+  return `<p class="muted">Rules tell the simulator what our players do after each kind of pass, and what a called action (like Spain) means. Add rules as you learn more of the offense.</p>
+    <div class="rules">${R.map((r, i) => `<div class="card rule"><div class="row"><b class="grow">${esc(r.name)}</b><button type="button" class="btn ghost sm" data-rdel="${i}">Delete</button></div>
+      <div class="rule-grid">${r.on.type === 'pass' ? `<label class="fld"><span>When the ball goes from</span><select data-rf="${i}">${Object.entries(TRIGGER_ROLES).map(([k, v]) => `<option value="${k}" ${r.on.from === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label><label class="fld"><span>to</span><select data-rt="${i}">${Object.entries(TRIGGER_ROLES).map(([k, v]) => `<option value="${k}" ${r.on.to === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label>` : `<label class="fld"><span>Called action</span><input type="text" value="${esc(r.on.call)}" disabled></label>`}
+      ${r.then.map((t, j) => `<label class="fld"><span>${j ? 'and' : 'then'} the</span><select data-rw="${i}:${j}">${Object.entries(RESP_WHO).map(([k, v]) => `<option value="${k}" ${t.who === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label><label class="fld"><span>does</span><select data-rv="${i}:${j}">${Object.entries(VERBS).map(([k, v]) => `<option value="${k}" ${t.verb === k ? 'selected' : ''}>${v.name}</option>`).join('')}</select></label>`).join('')}</div>
+      <label class="fld"><span>Coaching note</span><textarea data-rn="${i}" rows="2">${esc(r.note || '')}</textarea></label></div>`).join('')}</div>
+    <div class="row"><button type="button" class="btn" id="rule-add">+ Add pass rule</button><button type="button" class="btn ghost" id="rule-reset">Restore starting rules</button></div>
+    <p class="hint">Movement verbs: ${Object.values(VERBS).map((v) => `<b>${v.name}</b> (${esc(v.desc)})`).join(' · ')}</p>`;
+}
+function bindRules(el) {
+  const R = pbook().rules, save = () => persist('playbook');
+  for (const s of $$('[data-rf]', el)) s.onchange = () => { R[+s.dataset.rf].on.from = s.value; R[+s.dataset.rf].name = autoRuleName(R[+s.dataset.rf]); save(); renderPlaybook(); };
+  for (const s of $$('[data-rt]', el)) s.onchange = () => { R[+s.dataset.rt].on.to = s.value; R[+s.dataset.rt].name = autoRuleName(R[+s.dataset.rt]); save(); renderPlaybook(); };
+  for (const s of $$('[data-rw]', el)) s.onchange = () => { const [i, j] = s.dataset.rw.split(':').map(Number); R[i].then[j].who = s.value; save(); };
+  for (const s of $$('[data-rv]', el)) s.onchange = () => { const [i, j] = s.dataset.rv.split(':').map(Number); R[i].then[j].verb = s.value; if (R[i].on.type === 'pass') R[i].name = autoRuleName(R[i]); save(); renderPlaybook(); };
+  for (const t of $$('[data-rn]', el)) t.onchange = () => { R[+t.dataset.rn].note = t.value; save(); };
+  for (const b of $$('[data-rdel]', el)) b.onclick = () => { R.splice(+b.dataset.rdel, 1); save(); renderPlaybook(); };
+  $('#rule-add').onclick = () => { const r = { id: uid('r'), on: { type: 'pass', from: 'wing', to: 'post' }, then: [{ who: 'passer', verb: 'basketCut' }], note: '' }; r.name = autoRuleName(r); R.push(r); save(); renderPlaybook(); };
+  $('#rule-reset').onclick = () => { pbook().rules = JSON.parse(JSON.stringify(DEFAULT_RULES)); save(); toast('Starting rules restored'); renderPlaybook(); };
+}
+const autoRuleName = (r) => `${TRIGGER_ROLES[r.on.from]} to ${TRIGGER_ROLES[r.on.to].toLowerCase()}: ${VERBS[r.then[0]?.verb]?.name.toLowerCase() || '—'}`;
+
+// ---- teamsim.js ----
+// ===================== Defense vs. Our Offense: Coverage Simulator =====================
+const TS_MODES = {
+  learn: { name: 'Learning', desc: 'Everything explained: what our action does, how the defense reacts, and who comes open, before you decide.', window: null, reveal: true, decisions: 3 },
+  practice: { name: 'Practice', desc: 'Run a play against a coverage you pick. No hints before you decide.', window: 7, reveal: false, decisions: 3 },
+  challenge: { name: 'Challenge', desc: 'Random play, random defense. Name the coverage, then make the read. Graded.', window: 5, reveal: false, decisions: 3, recog: true, random: true },
+  elite: { name: 'Elite', desc: 'Disguised coverages that change mid-possession, high intensity, shorter decision windows.', window: 3.5, reveal: false, decisions: 4, recog: true, random: true, elite: true },
+  prep: { name: 'Team Prep', desc: 'Pick our play and the opponent\'s defense. Five reps, then a scouting report of what worked.', window: 6, reveal: false, decisions: 3, reps: 5 },
+};
+const TSIM = { mode: uiGet('tsMode', 'practice'), playId: null, cov: uiGet('tsCov', 'man'), intensity: 2, phase: 'setup', S: null, track: null, t: 0, tEnd: 0, playing: false, raf: 0, last: 0, A: null, opts: null, dec: [], askRecog: false, recog: null, decideAt: 0, view: null, prep: null, reveal: null, revealAt: -1, ov: { lanes: false, help: false } };
+
+function renderTeamSim() {
+  const el = $('#view-teamsim');
+  if (TSIM.phase !== 'setup' && TSIM.S) return renderTSRun(el);
+  const plays = pbook().plays; if (!TSIM.playId || !playById(TSIM.playId)) TSIM.playId = plays[0]?.id || null;
+  const M = TS_MODES[TSIM.mode];
+  el.innerHTML = `
+    <div class="page-head"><span class="eyebrow">Defense vs. our offense</span><h1>Coverage Sim</h1><p>Run our plays against 12 defensive coverages. All ten players move by rules: defenders position from their coverage, the ball and the screens being set. The play freezes at each decision, you make the read, and the possession continues from what you chose.</p></div>
+    <div class="mode-pick ts-modes">${Object.entries(TS_MODES).map(([k, m]) => `<button type="button" class="mode-card" data-tsmode="${k}" aria-pressed="${TSIM.mode === k}"><b>${m.name}</b><span>${m.desc}</span></button>`).join('')}</div>
+    <div class="card ts-setup">
+      ${plays.length ? `<label class="fld"><span>Our play</span><select id="ts-play">${plays.map((p) => `<option value="${p.id}" ${p.id === TSIM.playId ? 'selected' : ''}>${esc(p.name)} · ${esc(p.cat)}</option>`).join('')}</select></label>` : '<p>Create a play in the Playbook first.</p>'}
+      ${M.random ? `<p class="small muted">${M.name} mode picks the play${M.elite ? ', a disguised coverage that changes mid-possession,' : ' and the defense'} at random.</p>` : `<label class="fld"><span>Defense</span><select id="ts-cov">${['Man', 'Ball screens', 'Zone'].map((g) => `<optgroup label="${g}">${Object.entries(COVERAGES).filter(([, c]) => c.group === g).map(([k, c]) => `<option value="${k}" ${k === TSIM.cov ? 'selected' : ''}>${c.name}</option>`).join('')}</optgroup>`).join('')}</select></label>
+      <div class="fld"><span>Intensity</span><div class="seg" role="group" aria-label="Intensity">${[1, 2, 3].map((i) => `<button type="button" data-int="${i}" aria-pressed="${TSIM.intensity === i}">${INTENSITY[i]}</button>`).join('')}</div></div>`}
+      ${!M.random ? `<p class="small muted" id="ts-covdesc">${esc(COVERAGES[TSIM.cov].desc)}</p>` : ''}
+      <button type="button" class="btn green" id="ts-start" ${plays.length ? '' : 'disabled'}>${icon('play')} ${TSIM.mode === 'prep' ? 'Start 5-rep prep' : 'Start possession'}</button>
+    </div>
+    ${tsHistory()}`;
+  for (const b of $$('[data-tsmode]', el)) b.onclick = () => { TSIM.mode = b.dataset.tsmode; uiSet('tsMode', TSIM.mode); renderTeamSim(); };
+  $('#ts-play') && ($('#ts-play').onchange = (e) => { TSIM.playId = e.target.value; });
+  $('#ts-cov') && ($('#ts-cov').onchange = (e) => { TSIM.cov = e.target.value; uiSet('tsCov', TSIM.cov); $('#ts-covdesc').textContent = COVERAGES[TSIM.cov].desc; });
+  for (const b of $$('[data-int]', el)) b.onclick = () => { TSIM.intensity = Number(b.dataset.int); renderTeamSim(); };
+  $('#ts-start').onclick = () => { if (TSIM.mode === 'prep') TSIM.prep = { reps: [], cov: TSIM.cov, playId: TSIM.playId, intensity: TSIM.intensity }; else TSIM.prep = null; startTS(); };
+  mountTSCharts(el);
+}
+function startTS() {
+  const M = TS_MODES[TSIM.mode], plays = pbook().plays, seed = (Math.random() * 2 ** 31) >>> 0, r = rng(seed);
+  const pick = (a) => a[Math.floor(r() * a.length)];
+  let play = playById(TSIM.playId), covPlan = [{ cov: TSIM.cov }], intensity = TSIM.intensity;
+  if (M.random) {
+    play = pick(plays);
+    const keys = Object.keys(COVERAGES), a = pick(keys);
+    covPlan = [{ cov: a }]; intensity = M.elite ? 3 : pick([1, 2, 3]);
+    if (M.elite) { let b = pick(keys); while (b === a) b = pick(keys); covPlan.push({ cov: b, from: 1 + Math.floor(r() * 2) }); }
+  }
+  if (TSIM.prep) { play = playById(TSIM.prep.playId); covPlan = [{ cov: TSIM.prep.cov }]; intensity = TSIM.prep.intensity; }
+  const S = newPossession({ play, covPlan, intensity, mode: TSIM.mode, seed });
+  advanceScript(S);
+  Object.assign(TSIM, { S, dec: [], phase: 'running', t: 0, playing: true, recog: null, reveal: null, revealAt: -1 });
+  compileTS(); TSIM.target = TSIM.tEnd; nextDecisionReady();
+  renderTSRun($('#view-teamsim')); tsLoop();
+}
+function compileTS() { TSIM.track = compile(TSIM.S.start, TSIM.S.beats, { make: TSIM.S.make }); TSIM.tEnd = TSIM.track.t1; }
+/** Prepare the analysis and options for the coming decision (computed now, revealed only after the choice in testing modes). */
+function nextDecisionReady() {
+  const S = TSIM.S, M = TS_MODES[TSIM.mode], k = TSIM.dec.length;
+  const change = S.cfg.covPlan.find((c) => c.from === k);
+  if (change && S.cov !== change.cov) { const old = covOf(S).name; S.cov = change.cov; beat(S, 1.0, {}, S.ball, [], `Defense changes: ${old} → ${covOf(S).name}`); S.covChanged = true; compileTS(); }
+  TSIM.A = analyze(S); TSIM.opts = optionsFor(S, TSIM.A);
+  TSIM.askRecog = !!M.recog && (k === 0 || S.covChanged); S.covChanged = false;
+}
+function tsLoop() {
+  cancelAnimationFrame(TSIM.raf); TSIM.last = performance.now();
+  const step = (now) => {
+    if ($('#view-teamsim').hidden || !$('#ts-court')) return;
+    const dt = Math.min(0.05, (now - TSIM.last) / 1000); TSIM.last = now;
+    if (TSIM.playing) { TSIM.t = Math.min(TSIM.target, TSIM.t + dt); if (TSIM.t >= TSIM.target - 1e-6) { TSIM.playing = false; arrive(); } }
+    if (TSIM.phase === 'decide' && TS_MODES[TSIM.mode].window) {
+      const w = TS_MODES[TSIM.mode].window, el = (now - TSIM.decideAt) / 1000, f = clamp(el / w, 0, 1);
+      const ring = $('#hud-ring-ts'); if (ring) { ring.style.strokeDashoffset = String(119.4 * f); ring.style.stroke = f > 0.7 ? 'var(--red)' : f > 0.4 ? 'var(--amber)' : 'var(--green)'; $('#hud-n-ts').textContent = Math.max(0, w - el).toFixed(1); }
+      if (f >= 1) chooseTS({ id: 'hold', kind: 'hold', label: 'Held the ball (window ran out)', ev: 0.6, principle: false });
+    }
+    drawTS(); updateTSTimeline();
+    TSIM.raf = requestAnimationFrame(step);
+  };
+  TSIM.raf = requestAnimationFrame(step);
+}
+function arrive() {
+  if (TSIM.phase === 'running') { TSIM.phase = TSIM.askRecog ? 'question' : 'decide'; TSIM.decideAt = performance.now(); renderTSRun($('#view-teamsim')); }
+  else if (TSIM.phase === 'outcome') renderTSRun($('#view-teamsim'));
+}
+function drawTS() {
+  if (!TSIM.view || !TSIM.track) return;
+  const S = TSIM.S, st = stateAt(TSIM.track, TSIM.t), M = TS_MODES[TSIM.mode];
+  const o = { captions: TSIM.phase !== 'question', you: st.holder || S.ball, labels: Object.fromEntries(OFF.map((x) => [x, x.slice(1) + ' ' + (S.cfg.play.roles?.[x]?.pos || '')])) };
+  const showReveal = (TSIM.phase === 'decide' && M.reveal) || (TSIM.reveal && Math.abs(TSIM.t - TSIM.revealAt) < 0.05);
+  if (showReveal) { const R = TSIM.phase === 'decide' ? whyOpen(S, TSIM.A) : TSIM.reveal.why; o.reveal = R.map((r) => ({ id: r.o, tag: r.tag })); const A = TSIM.phase === 'decide' ? TSIM.A : TSIM.reveal.A; o.window = { id: A.H, state: A.window }; }
+  if (M.reveal || TSIM.phase === 'done' || TSIM.phase === 'outcome') o.overlays = { lanes: TSIM.ov.lanes, links: TSIM.ov.help };
+  if (TSIM.phase === 'decide' && !M.reveal) o.overlays = { lanes: false, links: false };
+  TSIM.view.draw(TSIM.track, TSIM.t, o);
+}
+function updateTSTimeline() {
+  const rg = $('#ts-range'); if (!rg) return;
+  rg.max = String(TSIM.tEnd); if (document.activeElement !== rg) rg.value = String(TSIM.t);
+  $('#ts-time').textContent = TSIM.t.toFixed(1) + 's';
+}
+const decisionLabelOf = (o) => o.label;
+function chooseTS(opt) {
+  if (TSIM.phase !== 'decide') return;
+  const S = TSIM.S, M = TS_MODES[TSIM.mode], A = TSIM.A, opts = TSIM.opts;
+  const el = (performance.now() - TSIM.decideAt) / 1000;
+  const timing = M.window ? (opt.kind === 'hold' ? 0 : Math.round(100 - 70 * clamp((el / M.window - 0.4) / 0.6, 0, 1))) : null;
+  const g = gradeTeamDecision(A, opts, opt, { recognition: TSIM.recog?.k === TSIM.dec.length ? TSIM.recog.ok : null, timing });
+  const why = whyOpen(S, A), notesBefore = S.notes.filter((n) => n.at <= S.t + 1e-6 && n.at > (TSIM.dec.at(-1)?.tAfter ?? -1));
+  const tDecision = S.t, res = applyChoice(S, opt, A);
+  compileTS();
+  const exec = res.result === 'tov' ? false : res.result === 'miss' ? false : true;
+  const d = { i: TSIM.dec.length, tDecision, tAfter: S.t, cov: S.cov, covName: covOf(S).name, label: opt.label, kind: opt.kind, choice: opt, best: g.best, score: g.score, parts: g.parts, why, A, notes: notesBefore, res, exec, quad: quadrant(g.score, exec), rt: el, opts };
+  TSIM.dec.push(d);
+  TSIM.reveal = { why, A }; TSIM.revealAt = tDecision;
+  TSIM.phase = 'outcome'; TSIM.target = TSIM.tEnd; TSIM.t = tDecision; TSIM.playing = true;
+  if (res.ended || TSIM.dec.length >= M.decisions) TSIM.over = true; else TSIM.over = false;
+  renderTSRun($('#view-teamsim'));
+}
+function continueTS() {
+  if (TSIM.over) return finishTS();
+  nextDecisionReady(); TSIM.phase = TSIM.askRecog ? 'question' : 'decide'; TSIM.decideAt = performance.now(); TSIM.t = TSIM.tEnd; renderTSRun($('#view-teamsim'));
+}
+function finishTS() {
+  TSIM.phase = 'done';
+  const S = TSIM.S, D = TSIM.dec, last = D.at(-1)?.res || {};
+  const score = D.length ? Math.round(mean(D.map((d) => d.score))) : 0;
+  const entry = { id: uid('t'), ts: Date.now(), mode: TSIM.mode, play: S.cfg.play.name, playId: S.cfg.play.id, covs: [...new Set(S.cfg.covPlan.map((c) => c.cov))], intensity: S.intensity, score, result: last.result === 'cont' ? 'none' : last.result || 'none', pts: last.pts || 0,
+    decisions: D.map((d) => ({ score: d.score, parts: d.parts, label: d.label, best: d.best.label, kind: d.kind, quad: d.quad.k, cov: d.cov, recog: d.parts.recognition })) };
+  const L = doc('team').list; L.push(entry); if (L.length > 200) L.splice(0, L.length - 200); persist('team');
+  if (TSIM.prep) TSIM.prep.reps.push({ entry, D });
+  TSIM.saved = entry;
+  renderTSRun($('#view-teamsim'));
+}
+
+// ---------- run view ----------
+function renderTSRun(el) {
+  const S = TSIM.S, M = TS_MODES[TSIM.mode], ph = TSIM.phase, cov = covOf(S);
+  const showCov = M.reveal || ph === 'outcome' || ph === 'done' || (!M.random);
+  if (!$('#ts-court') || !el.querySelector('.ts-run')) {
+    el.innerHTML = `<div class="ts-run">
+      <div class="play-head"><button type="button" class="btn ghost sm" id="ts-back">‹ Coverage Sim</button><div class="ph-title"><span class="eyebrow" id="ts-eyebrow"></span><h2 id="ts-title"></h2></div></div>
+      <div class="play-grid"><div class="stage-col">
+        <div class="stage" id="ts-stage"><canvas id="ts-court" role="img" aria-label="Five-on-five simulation"></canvas>
+          <div class="hud"><div class="hud-mode" data-m="film" id="ts-mode-hud"></div>
+            <div class="hud-count" id="ts-count" hidden><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19" class="ring-bg"></circle><circle cx="22" cy="22" r="19" class="ring-fg" id="hud-ring-ts"></circle></svg><b id="hud-n-ts"></b></div>
+            <div class="hud-prompt" id="ts-prompt" hidden></div></div></div>
+        <div class="timeline"><button type="button" class="icon-btn" id="ts-replay" aria-label="Replay possession">${icon('restart')}</button><div class="tl-track"><input type="range" id="ts-range" min="0" max="10" step="0.01" value="0" aria-label="Possession timeline"><div class="tl-marks" id="ts-marks"></div></div><span class="tl-time" id="ts-time">0.0s</span></div>
+        <div class="overlays" id="ts-ovs"><button type="button" class="tog" data-tov="lanes"><span class="sw lanes"></span>Passing lanes</button><button type="button" class="tog" data-tov="help"><span class="sw help"></span>Help defense</button></div>
+      </div><aside class="panel" id="ts-panel" aria-live="polite"></aside></div></div>`;
+    TSIM.view = new CourtView($('#ts-court'));
+    $('#ts-back').onclick = () => { TSIM.phase = 'setup'; TSIM.S = null; renderTeamSim(); };
+    $('#ts-replay').onclick = () => { if (['outcome', 'done'].includes(TSIM.phase)) { TSIM.t = 0; TSIM.target = TSIM.tEnd; TSIM.playing = true; } };
+    $('#ts-range').addEventListener('input', (e) => { if (!['outcome', 'done'].includes(TSIM.phase)) { e.target.value = String(TSIM.t); return; } TSIM.playing = false; TSIM.t = Number(e.target.value); });
+    for (const b of $$('[data-tov]', el)) b.onclick = () => { TSIM.ov[b.dataset.tov] = !TSIM.ov[b.dataset.tov]; b.setAttribute('aria-pressed', String(TSIM.ov[b.dataset.tov])); };
+    $('#ts-court').addEventListener('pointerdown', (e) => {
+      if (TSIM.phase !== 'decide') return;
+      const r = e.currentTarget.getBoundingClientRect(), p = TSIM.view.toCourt(e.clientX - r.left, e.clientY - r.top), st = stateAt(TSIM.track, TSIM.t);
+      let best = null, bd = 4; for (const o of OFF) { if (o === TSIM.S.ball) continue; const d = dist(st.pos[o], p); if (d < bd) { bd = d; best = o; } }
+      const op = best && TSIM.opts.find((x) => x.kind === 'pass' && x.to === best); if (op) chooseTS(op);
+    });
+  }
+  $('#ts-eyebrow').textContent = `${M.name}${TSIM.prep ? ` · rep ${TSIM.prep.reps.length + (ph === 'done' ? 0 : 1)} of 5` : ''} · ${INTENSITY[S.intensity]} intensity`;
+  $('#ts-title').textContent = `${S.cfg.play.name} vs ${showCov ? cov.name : '???'}`;
+  $('#ts-mode-hud').textContent = ph === 'decide' ? `DECISION ${TSIM.dec.length + 1}` : ph === 'question' ? 'NAME THE COVERAGE' : ph === 'done' ? 'POSSESSION OVER' : 'LIVE';
+  $('#ts-count').hidden = !(ph === 'decide' && M.window);
+  const pr = $('#ts-prompt'); pr.hidden = !(ph === 'decide' || ph === 'question'); pr.textContent = ph === 'question' ? 'What is the defense playing?' : `You have the ball (${S.ball}). What's the read?`;
+  $('#ts-ovs').hidden = !(M.reveal || ph === 'outcome' || ph === 'done');
+  $('#ts-marks').innerHTML = TSIM.dec.map((d) => `<i data-k="decision" style="left:${(d.tDecision / TSIM.tEnd) * 100}%" title="Decision ${d.i + 1}"></i>`).join('');
+  $('#ts-stage').classList.toggle('pickable', ph === 'decide');
+  const P = $('#ts-panel');
+  if (ph === 'running') P.innerHTML = `<div class="decide-head"><span class="eyebrow">Running the play</span><h3>${esc(S.cfg.play.name)}</h3></div><p class="brief">${esc(S.cfg.play.note || '')}</p>${M.reveal ? learnNotes(S) : '<p class="hint">Watch the defense react. The play will freeze at your decision.</p>'}`;
+  else if (ph === 'question') renderRecog(P);
+  else if (ph === 'decide') renderDecide(P);
+  else if (ph === 'outcome') renderOutcome(P);
+  else if (ph === 'done') renderSummary(P);
+}
+function learnNotes(S) {
+  const c = covOf(S);
+  return `<div class="bd def"><h4>The defense · ${esc(c.name)}</h4><p>${esc(c.desc)}</p>${S.notes.slice(-4).map((n) => `<p class="small">• ${esc(n.txt)}</p>`).join('')}</div>`;
+}
+function renderRecog(P) {
+  const S = TSIM.S, keys = Object.keys(COVERAGES), r = rng(S.cfg.seed + TSIM.dec.length * 31), correct = S.cov, choices = new Set([correct]);
+  while (choices.size < 5) choices.add(keys[Math.floor(r() * keys.length)]);
+  const list = [...choices].sort(() => r() - 0.5);
+  P.innerHTML = `<div class="decide-head"><span class="eyebrow purple">Coverage recognition</span><p>Before you decide: what defense are they in?</p></div><div class="quiz-choices">${list.map((k) => `<button type="button" data-rc="${k}">${esc(COVERAGES[k].name)}</button>`).join('')}</div><p class="hint">Read the on-ball distance, where the off-ball defenders stand, and how they handled the screen.</p>`;
+  for (const b of $$('[data-rc]', P)) b.onclick = () => { const ok = b.dataset.rc === correct; TSIM.recog = { k: TSIM.dec.length, ok, pick: b.dataset.rc }; toast(ok ? 'Correct read of the coverage' : `Not quite: it's ${COVERAGES[correct].name}`); TSIM.phase = 'decide'; TSIM.decideAt = performance.now(); renderTSRun($('#view-teamsim')); };
+}
+function renderDecide(P) {
+  const S = TSIM.S, M = TS_MODES[TSIM.mode], opts = TSIM.opts;
+  const kindTxt = { pass: 'Pass', backdoor: 'Backdoor', drive: 'Drive', shoot: 'Shot', script: 'Play', call: 'Call', reset: 'Reset' };
+  P.innerHTML = `<div class="decide-head"><span class="eyebrow purple">Decision ${TSIM.dec.length + 1} of up to ${M.decisions}</span><p>You have the ball at the ${SPOT_LABEL[spotName(S.pos[S.ball])]}. ${M.window ? 'The defense keeps moving: decide before the clock runs out.' : ''}</p></div>
+    ${M.reveal ? learnNotes(S) + `<div class="bd"><h4>Who's available (Learning mode shows this)</h4>${whyOpen(S, TSIM.A).map((w) => `<p class="small"><span class="chip ${w.tag === 'open' ? 'green' : w.tag === 'backdoor' ? 'purple' : w.tag === 'workable' ? 'amber' : 'red'}">${w.o} ${w.tag}</span> ${esc(w.txt)}</p>`).join('')}<p class="small">Your shot: <b>${TSIM.A.window}</b> · drive lane ${TSIM.A.drive >= 0.6 ? 'open' : TSIM.A.drive >= 0.35 ? 'possible' : 'closed'}</p></div>` : ''}
+    <div class="opts">${opts.map((o, i) => `<button type="button" class="opt" data-o="${i}"><span class="k">${i + 1}</span><span><b>${esc(o.label)}</b><small>${kindTxt[o.kind] || ''}</small></span><span class="kind"></span></button>`).join('')}</div>
+    <p class="hint">Tap a teammate on the court to pass to him. Keys 1–${Math.min(9, opts.length)} work too.</p>`;
+  for (const b of $$('[data-o]', P)) b.onclick = () => chooseTS(opts[Number(b.dataset.o)]);
+}
+const partBar = (name, v) => (v == null ? '' : part(name, v));
+function decisionCard(d, full = true) {
+  const b = scoreBand(d.score), why = d.why, best = d.best;
+  const ev = (o) => (o.ev ?? 0).toFixed(2);
+  const bestWhy = bestReason(d);
+  return `<div class="score-row"><div class="score-ring band-${b.k}"><svg viewBox="0 0 104 104"><circle class="bg" cx="52" cy="52" r="46"></circle><circle class="fg" cx="52" cy="52" r="46" style="stroke-dashoffset:${289 * (1 - d.score / 100)}"></circle></svg><div class="n"><div><b>${d.score}</b><small>/ 100</small></div></div></div>
+    <div class="parts"><b class="band-${b.k}" style="font:700 15px var(--f-display)">${b.t}</b>${partBar('Coverage', d.parts.recognition)}${partBar('Read', d.parts.read)}${partBar('Timing', d.parts.timing)}${partBar('Awareness', d.parts.awareness)}${partBar('Principles', d.parts.principles)}</div></div>
+    <div class="outcome quad-${d.quad.k}"><div class="o-big">${d.exec ? 'Executed' : 'Not executed'}</div><p>${esc(d.quad.t)}. ${esc(d.res.txt)}</p></div>
+    <div class="bd"><h4>You chose</h4><p>${esc(d.label)} <span class="muted small">(${ev(d.choice)} expected pts vs ${ev(best)} for the best read)</span></p></div>
+    ${full ? `<div class="bd def"><h4>What the defense did · ${esc(d.covName)}</h4>${d.notes.length ? d.notes.slice(-4).map((n) => `<p class="small">• ${esc(n.txt)}</p>`).join('') : `<p class="small">${esc(COVERAGES[d.cov].desc)}</p>`}</div>
+    <div class="bd"><h4>Who was available, and why</h4>${why.map((w) => `<p class="small"><span class="chip ${w.tag === 'open' ? 'green' : w.tag === 'backdoor' ? 'purple' : w.tag === 'workable' ? 'amber' : 'red'}">${w.o} ${w.tag}</span> ${esc(w.txt)}</p>`).join('')}<p class="small">Your own shot: <b>${d.A.window}</b> (closest defender ${fmtFt(d.A.closest)}) · drive lane ${d.A.drive >= 0.6 ? 'open' : d.A.drive >= 0.35 ? 'possible' : 'closed'}${d.A.trapped ? ' · you were trapped' : ''}</p></div>
+    <div class="bd best"><h4>${best.id === d.choice.id ? 'Best read · you found it' : 'Best read · ' + esc(best.label)}</h4><p>${esc(bestWhy)}</p></div>
+    ${d.choice.rule ? `<div class="bd lesson"><h4>Our rule</h4><p>${esc(d.choice.rule.name)}: ${esc(d.choice.rule.note || '')}</p></div>` : !d.choice.principle && d.choice.kind !== 'hold' ? `<div class="bd miss"><h4>Our principles</h4><p>This choice isn't one of our offense's actions or a recognized counter. ${d.choice.kind === 'reset' ? 'Resetting gives the defense time to recover.' : 'It breaks the flow of the play without a read that justifies it.'}</p></div>` : ''}` : ''}`;
+}
+function bestReason(d) {
+  const b = d.best, A = d.A, m = b.to ? A.mates[b.to] : null;
+  if (b.kind === 'backdoor') return `${b.to}'s defender was overplaying the passing lane with nobody behind him. The back cut beats denial every time the rim is empty.`;
+  if (b.kind === 'pass' && m) return m.open >= 0.75 ? `${b.to} was open on the catch (${fmtFt(m.sep)} away, ${fmtFt(m.sepCatch)} after the closeout) with a clean lane${m.helping ? ', because his defender was helping elsewhere' : ''}.` : b.scripted || b.rule ? `This pass keeps our action going: ${b.rule ? b.rule.name : 'the next pass in the play'}. The look it creates was worth more than anything available right now.` : `This pass moved the defense into a better next look.`;
+  if (b.kind === 'drive') return `Your defender was out of position (${A.gap < 2.3 ? 'crowding you' : A.behind ? 'trailing' : 'off the line to the rim'}) and the drive lane had ${A.corridorHelp} helper${A.corridorHelp === 1 ? '' : 's'} in it.`;
+  if (b.kind === 'shoot') return `Your shot was ${A.window}: the closest defender was ${fmtFt(A.closest)} away.`;
+  if (b.kind === 'call') return `${covOf(TSIM.S).name} is vulnerable to the ball screen: ${({ drop: 'the big sits back, so the back screen frees the roller and the pull-up is open', blitz: 'two on the ball leaves 4-on-3 behind it', hedge: 'the hedge leaves the roller alone', switch: 'the switch creates a mismatch', over: 'the chase leaves a 2-on-1 against the big', under: 'going under gives up the shot' })[covOf(TSIM.S).onBall] || 'it creates a new advantage'}.`;
+  if (b.kind === 'script') return 'Running our next action was the best way to create an advantage here.';
+  return 'Nothing better was available.';
+}
+function renderOutcome(P) {
+  const d = TSIM.dec.at(-1);
+  P.innerHTML = `<div class="decide-head"><span class="eyebrow">Decision ${d.i + 1} · result</span></div>${decisionCard(d)}
+    <div class="actions"><button type="button" class="btn green" id="ts-cont">${TSIM.over ? 'See possession summary' : 'Continue the possession ›'}</button><button type="button" class="btn ghost" id="ts-frame">Show the decision frame</button></div>`;
+  $('#ts-cont').onclick = continueTS;
+  $('#ts-frame').onclick = () => { TSIM.playing = false; TSIM.t = d.tDecision; TSIM.ov.lanes = true; };
+}
+function renderSummary(P) {
+  const D = TSIM.dec, e = TSIM.saved, b = scoreBand(e.score), prep = TSIM.prep;
+  const resTxt = { make: `Make +${e.pts}`, miss: 'Missed shot', tov: 'Turnover', none: 'No shot (decision limit)' }[e.result];
+  P.innerHTML = `<div class="decide-head"><span class="eyebrow">Possession summary</span><h3>${esc(TSIM.S.cfg.play.name)}</h3></div>
+    <div class="score-row"><div class="score-ring band-${b.k}"><svg viewBox="0 0 104 104"><circle class="bg" cx="52" cy="52" r="46"></circle><circle class="fg" cx="52" cy="52" r="46" style="stroke-dashoffset:${289 * (1 - e.score / 100)}"></circle></svg><div class="n"><div><b>${e.score}</b><small>/ 100</small></div></div></div>
+      <div class="parts"><b class="band-${b.k}" style="font:700 15px var(--f-display)">${b.t}</b><p class="small">Decision IQ averaged over ${D.length} decision${D.length > 1 ? 's' : ''}. Result: <b>${resTxt}</b> (graded separately).</p><p class="small muted">Defense: ${e.covs.map((c) => COVERAGES[c].name).join(' → ')} · ${INTENSITY[e.intensity]} intensity</p></div></div>
+    <div class="tbl-wrap"><table class="ts-tbl"><thead><tr><th>#</th><th>You</th><th>Best read</th><th>Score</th></tr></thead><tbody>${D.map((d) => `<tr><td>${d.i + 1}</td><td>${esc(d.label)}<br><span class="small muted">${esc(d.quad.t)}</span></td><td>${d.best.id === d.choice.id ? '✓ same' : esc(d.best.label)}</td><td><b>${d.score}</b></td></tr>`).join('')}</tbody></table></div>
+    <details class="bd"><summary><b>Full breakdown of each decision</b></summary>${D.map((d) => `<div style="margin-top:12px"><h4>Decision ${d.i + 1}</h4>${decisionCard(d)}</div>`).join('')}</details>
+    ${prep ? prepBox(prep) : ''}
+    <div class="actions">${prep && prep.reps.length < 5 ? '<button type="button" class="btn green" id="ts-next">Next rep ›</button>' : '<button type="button" class="btn green" id="ts-again">Run it again</button>'}<button type="button" class="btn ghost" id="ts-setup">Change play or defense</button></div>`;
+  $('#ts-next') && ($('#ts-next').onclick = startTS);
+  $('#ts-again') && ($('#ts-again').onclick = () => { if (TSIM.prep) TSIM.prep.reps = []; startTS(); });
+  $('#ts-setup').onclick = () => { TSIM.phase = 'setup'; TSIM.S = null; TSIM.prep = null; renderTeamSim(); };
+}
+function prepBox(prep) {
+  const all = prep.reps.flatMap((r) => r.D), byBest = {};
+  for (const d of all) byBest[d.best.label.replace(/\(.*\)/, '').trim()] = (byBest[d.best.label.replace(/\(.*\)/, '').trim()] || 0) + 1;
+  const top = Object.entries(byBest).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  const avg = Math.round(mean(prep.reps.map((r) => r.entry.score)));
+  return `<div class="lesson-box"><span class="eyebrow purple">Scouting report · ${prep.reps.length}/5 reps vs ${esc(COVERAGES[prep.cov].name)}</span>
+    <p>Average decision IQ: <b>${avg}</b>. ${prep.reps.length < 5 ? 'Keep going to complete the report.' : ''}</p>
+    <p class="small"><b>What beat this defense most often:</b></p><ul class="keys">${top.map(([k, n]) => `<li>${esc(k)} (best read ${n}×)</li>`).join('')}</ul>
+    <p class="small">${esc(COVERAGES[prep.cov].desc)}</p></div>`;
+}
+
+// ---------- history & analytics on the setup page ----------
+function tsHistory() {
+  const L = doc('team').list;
+  if (!L.length) return `<div class="empty">${emptyArt()}<h3>No possessions yet</h3><p>Your decision IQ by coverage, coverage-recognition accuracy and the decision-vs-execution matrix appear here after your first possession.</p></div>`;
+  const D = L.flatMap((e) => e.decisions), q = { gg: 0, gb: 0, bg: 0, bb: 0 }; for (const d of D) q[d.quad]++;
+  const rec = D.filter((d) => d.recog != null), recPct = rec.length ? Math.round((100 * rec.filter((d) => d.recog === 100).length) / rec.length) : null;
+  const byCov = Object.keys(COVERAGES).map((k) => { const X = D.filter((d) => d.cov === k); return { k, n: X.length, v: X.length ? Math.round(mean(X.map((d) => d.score))) : null }; });
+  return `<div class="two-col"><div class="card"><div class="section-title"><h2>Decision IQ by coverage</h2><span class="muted small">${D.length} decisions</span></div>
+      <div class="mastery-list" style="margin-top:10px">${byCov.map((c) => `<div class="m-row"><span>${esc(COVERAGES[c.k].name)}</span><span class="bar"><i style="width:${c.v ?? 0}%;background:${c.v == null ? 'transparent' : c.v >= 85 ? 'var(--green)' : c.v >= 70 ? 'var(--blue)' : c.v >= 55 ? 'var(--amber)' : 'var(--red)'}"></i></span><span>${c.v == null ? '—' : c.v + ' · ' + c.n}</span></div>`).join('')}</div></div>
+    <div class="card"><div class="section-title"><h2>Decision vs execution</h2></div>
+      <div class="matrix" style="margin-top:10px"><span></span><span class="h">Executed</span><span class="h">Not executed</span>
+        <span class="h left">Correct read</span><div class="c gg"><b>${q.gg}</b><span>Right read, it worked</span></div><div class="c gb"><b>${q.gb}</b><span>Right read, poor execution or luck</span></div>
+        <span class="h left">Wrong read</span><div class="c bg"><b>${q.bg}</b><span>Wrong read that worked anyway</span></div><div class="c bb"><b>${q.bb}</b><span>Wrong read, bad result</span></div></div>
+      <p class="small muted" style="margin-top:8px">Coverage recognition: ${recPct == null ? 'not tested yet (Challenge / Elite)' : recPct + '% correct over ' + rec.length}</p></div></div>
+    <div class="card"><div class="section-title"><h2>Recent possessions</h2></div><div class="film-list" style="margin-top:8px">${[...L].reverse().slice(0, 10).map((e) => `<div class="film-row" style="cursor:default"><span class="sc" style="color:${{ elite: 'var(--green)', good: 'var(--blue-2)', ok: 'var(--amber)', bad: 'var(--red)' }[scoreBand(e.score).k]}">${e.score}</span><span class="t"><b>${esc(e.play)}</b><span>vs ${e.covs.map((c) => COVERAGES[c].name).join(' → ')} · ${TS_MODES[e.mode]?.name || ''} · ${new Date(e.ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span></span><span class="r"><span class="chip ${e.result === 'make' ? 'green' : e.result === 'tov' ? 'red' : 'gray'}">${{ make: 'Make +' + e.pts, miss: 'Miss', tov: 'Turnover', none: 'No shot' }[e.result]}</span></span></div>`).join('')}</div></div>`;
+}
+function mountTSCharts() {}
+document.addEventListener('keydown', (e) => {
+  if ($('#view-teamsim')?.hidden || TSIM.phase !== 'decide' || e.target.closest('input, textarea, select')) return;
+  if (/^[1-9]$/.test(e.key)) { const o = TSIM.opts[Number(e.key) - 1]; if (o) { e.preventDefault(); chooseTS(o); } }
+});
+
 // ---- main.js ----
 // ===================== shell: navigation, routing, boot =====================
 const NAV = [
@@ -2523,12 +3651,14 @@ const NAV = [
   { v: 'sim', t: 'Simulator', i: 'sim' },
   { v: 'pnr', t: 'PnR Academy', i: 'learn', m: 'Learn' },
   { v: 'iq', t: 'IQ Academy', i: 'iq', rail: true },
+  { v: 'playbook', t: 'Team Playbook', i: 'book', m: 'Team' },
+  { v: 'teamsim', t: 'Coverage Sim', i: 'shield', rail: true },
   { v: 'challenges', t: 'Challenges', i: 'trophy' },
   { v: 'film', t: 'Film Room', i: 'film', m: 'Film' },
   { v: 'me', t: 'My IQ', i: 'chart' },
 ];
-const VIEWS = ['home', 'sim', 'pnr', 'iq', 'film', 'challenges', 'me', 'play', 'quiz'];
-const RENDER = { home: renderHome, sim: renderSim, pnr: () => renderAcademy('pnr'), iq: () => renderAcademy('iq'), film: renderFilm, challenges: renderChallenges, me: renderMe };
+const VIEWS = ['home', 'sim', 'pnr', 'iq', 'playbook', 'teamsim', 'film', 'challenges', 'me', 'play', 'quiz'];
+const RENDER = { home: renderHome, sim: renderSim, pnr: () => renderAcademy('pnr'), iq: () => renderAcademy('iq'), film: renderFilm, challenges: renderChallenges, me: renderMe, playbook: renderPlaybook, teamsim: renderTeamSim };
 let current = 'home';
 
 function buildNav() {
@@ -2539,7 +3669,7 @@ function buildNav() {
 function markNav(v) {
   const navV = v === 'play' ? (P.from && VIEWS.includes(P.from) ? P.from : 'sim') : v === 'quiz' ? 'challenges' : v;
   for (const b of $$('.tab')) {
-    const on = b.dataset.v === navV || (b.closest('#tabbar') && b.dataset.v === 'pnr' && navV === 'iq');
+    const on = b.dataset.v === navV || (b.closest('#tabbar') && ((b.dataset.v === 'pnr' && navV === 'iq') || (b.dataset.v === 'playbook' && navV === 'teamsim')));
     if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   }
 }
@@ -2552,6 +3682,7 @@ function showView(v) {
   if (location.hash.slice(1) !== v) { try { history.replaceState(null, '', '#' + v); } catch {} }
   window.scrollTo({ top: 0 });
   if (v === 'play') ensureLoop();
+  if (v === 'teamsim' && TSIM.S && TSIM.phase !== 'setup') setTimeout(tsLoop, 0);
 }
 function go(v) {
   if (!RENDER[v]) v = 'home';
