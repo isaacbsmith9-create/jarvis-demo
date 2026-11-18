@@ -529,3 +529,14 @@ a.tlev { text-decoration: none; }
 .wkc-l { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); padding: 0 2px; }
 .wkc-gp { position: absolute; top: 4px; right: 4px; font-size: 9.5px; font-weight: 700; background: #22c55e; color: #04140b; border-radius: 99px; padding: 0 5px; }
 .wkc-tr { font-size: 10px; font-weight: 700; color: var(--good); }
+/* Command Center */
+.cc { border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+.cc-brief { background: var(--surface-2); border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; }
+.cc-brief p { margin: 3px 0 0; font-size: 14.5px; line-height: 1.5; }
+.cc-sys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 4px; }
+@media (min-width: 760px) { .cc-sys { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.cc-s { display: grid; justify-items: start; gap: 2px; text-align: left; border: 1px solid var(--line); border-top: 3px solid var(--c); background: var(--surface-2); border-radius: 12px; padding: 8px 9px; color: var(--fg); cursor: pointer; font: inherit; min-width: 0; }
+.cc-s .cc-ic { color: var(--c); width: 18px; height: 18px; } .cc-s .cc-ic svg { width: 18px; height: 18px; }
+.cc-n { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+.cc-s b { font-size: 13px; overflow-wrap: anywhere; } .cc-s em { font-style: normal; font-size: 11px; font-weight: 700; color: var(--c); }
+.cc-pri { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 6px; } .cc-pri li b { display: block; font-size: 14px; }
