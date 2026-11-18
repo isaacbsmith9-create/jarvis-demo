@@ -27,6 +27,7 @@ const BLANK = {
   'aos-plan': () => ({ events: [], routines: [], checks: {} }),
   'aos-lib': () => ({ workouts: [], favs: [] }),
   'aos-mind': () => ({ checks: {}, journal: [], sessions: [] }),
+  'aos-intel': () => ({ ins: {}, recs: {}, reviews: {} }),
 };
 function doc(key) {
   if (!(key in cache)) cache[key] = lsGet(key) ?? (BLANK[key] ? BLANK[key]() : null);

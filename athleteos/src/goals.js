@@ -76,18 +76,18 @@ function goalDetail(el, g) {
 }
 ACTIONS['ms-add'] = (b) => { const g = goals().find((x) => x.id === b.dataset.id), t = $('#ms-new').value.trim(); if (!t) return toast('Describe the milestone'); const asNum = g.mode !== 'ms' && /^[\d.]+$/.test(t) ? Number(t) : null; g.milestones = [...(g.milestones || []), { label: asNum == null ? t.slice(0, 80) : '', v: asNum, due: $('#ms-due').value || null, done: null }]; persist('aos-goals'); refresh(); };
 ACTIONS.goal = (b) => {
-  const g = b.dataset.id ? goals().find((x) => x.id === b.dataset.id) : null;
+  const g = b.dataset.id ? goals().find((x) => x.id === b.dataset.id) : null, pre = b.dataset.pre ? JSON.parse(b.dataset.pre) : {};
   const msTxt = (g?.milestones || []).map((m) => (m.label || m.v) + (m.due ? ' @' + m.due : '')).join('\n');
   openSheet(g ? 'Edit goal' : 'New goal', `<div class="fields">
-    <label class="full">Goal<input id="go-title" maxlength="60" value="${esc(g?.title || '')}" placeholder="Improve three-point shooting"></label>
-    <label class="full">Description<textarea id="go-desc" maxlength="300" style="min-height:56px" placeholder="Why it matters, how you'll get there">${esc(g?.desc || '')}</textarea></label>
-    <label>Category<select id="go-cat">${GOAL_CATS.map(([k, l]) => `<option value="${k}" ${(g?.cat || 'skills') === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+    <label class="full">Goal<input id="go-title" maxlength="60" value="${esc(g?.title || pre.title || '')}" placeholder="Improve three-point shooting"></label>
+    <label class="full">Description<textarea id="go-desc" maxlength="300" style="min-height:56px" placeholder="Why it matters, how you'll get there">${esc(g?.desc || pre.desc || '')}</textarea></label>
+    <label>Category<select id="go-cat">${GOAL_CATS.map(([k, l]) => `<option value="${k}" ${(g?.cat || pre.cat || 'skills') === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
     <label>Roadmap<select id="go-h">${HORIZONS.map(([k, l]) => `<option value="${k}" ${(g ? horizonOf(g) : 'season') === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
     <label>Priority<select id="go-pri">${PRIORITY.map(([k, l]) => `<option value="${k}" ${(g?.priority || 'medium') === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
-    <label>Target date<input type="date" id="go-date" value="${g?.date || ''}"></label>
+    <label>Target date<input type="date" id="go-date" value="${g?.date || pre.date || ''}"></label>
     <label class="full">Measure progress by<select id="go-mode"><option value="num">A measurement (start → target)</option><option value="ms" ${g?.mode === 'ms' ? 'selected' : ''}>Milestones completed</option></select></label>
     <div class="full fields" id="go-num" style="padding:0">
-      <label class="full">Track it with<select id="go-src">${GOAL_SOURCES.map(([k, l]) => `<option value="${k}" ${(g?.source || 'manual') === k ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
+      <label class="full">Track it with<select id="go-src">${GOAL_SOURCES.map(([k, l]) => `<option value="${k}" ${(g?.source || pre.source || 'manual') === k ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
       <label>Starting value<input id="go-start" inputmode="decimal" value="${g?.start ?? ''}"></label><label>Target value<input id="go-target" inputmode="decimal" value="${g?.target ?? ''}"></label>
       <label>Unit<input id="go-unit" maxlength="10" value="${esc(g?.unit || '')}"></label><label>Better is<select id="go-better"><option value="higher">Higher</option><option value="lower" ${g?.better === 'lower' ? 'selected' : ''}>Lower</option></select></label></div>
     <label class="full">Milestones (one per line; a number = reached automatically at that value; add @YYYY-MM-DD for a due date)<textarea id="go-ms" style="min-height:90px" placeholder="Establish baseline shooting %\nComplete 500 intentional reps @2026-12-15\n36\n38">${esc(msTxt)}</textarea></label></div>

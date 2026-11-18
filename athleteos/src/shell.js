@@ -1,9 +1,10 @@
 // ===================== shell: routing, sheets, theme =====================
-const VIEWS = [['home', 'Home', 'home'], ['analytics', 'Analytics', 'chart'], ['hoops', 'Hoops', 'ball'], ['train', 'Train', 'calendar'], ['mind', 'Mind', 'brain'], ['coach', 'Coach', 'spark'], ['profile', 'Profile', 'trophy', true]];
+const VIEWS = [['home', 'Home', 'home'], ['analytics', 'Analytics', 'chart'], ['hoops', 'Hoops', 'ball'], ['train', 'Train', 'calendar'], ['mind', 'Mind', 'brain'], ['intel', 'Intel', 'target'], ['coach', 'Coach', 'spark'], ['profile', 'Profile', 'trophy', true]];
 const SUBS = {
   analytics: [['overview', 'Overview'], ['performance', 'Performance'], ['training', 'Training'], ['body', 'Body'], ['recovery', 'Recovery'], ['nutrition', 'Nutrition'], ['correlations', 'Correlations'], ['compare', 'Compare'], ['reports', 'Reports']],
   hoops: [['court', 'Shot chart'], ['categories', 'Shooting'], ['handles', 'Handles'], ['finishing', 'Finishing'], ['iq', 'IQ & film'], ['games', 'Games']],
   train: [['overview', 'Overview'], ['plan', 'Calendar'], ['routines', 'Routines'], ['load', 'Load'], ['goals', 'Goals'], ['tests', 'Tests'], ['library', 'Library'], ['history', 'History']],
+  intel: [['feed', 'Insights'], ['actions', 'Action center'], ['profile', 'Profile'], ['review', 'Weekly review'], ['trends', 'Trends'], ['priorities', 'Priorities']],
   mind: [['checkin', 'Check-in'], ['trends', 'Trends'], ['training', 'Mental training'], ['journal', 'Journal']],
   coach: [['director', 'Director'], ['workout', 'Workout'], ['program', 'S&C program'], ['devplan', 'Dev plan'], ['ask', 'Ask'], ['report', 'Weekly evaluation'], ['fuel', 'Fuel tools']],
 };

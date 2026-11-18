@@ -131,16 +131,16 @@ function calDist(el) {
 
 // ----- create / edit events -----
 ACTIONS.event = (b) => {
-  const e = b.dataset.id ? (plan().events || []).find((x) => x.id === b.dataset.id) : null, date = b.dataset.date || todayIso();
+  const e = b.dataset.id ? (plan().events || []).find((x) => x.id === b.dataset.id) : null, date = b.dataset.date || todayIso(), pre = b.dataset.pre ? JSON.parse(b.dataset.pre) : {};
   const days = e?.recur?.days || [], start = e?.start || '', end = e?.end || endTime(e?.start, e?.mins) || '';
   openSheet(e ? 'Edit event' : 'New event', `<div class="fields">
-    <label class="full">Title<input id="ev-title" maxlength="50" value="${esc(e?.title || '')}" placeholder="Varsity practice, Lower-body lift, Dentist…"></label>
-    <label>Category<select id="ev-type">${EV_PICK.map(([k, l]) => `<option value="${k}" ${(e?.type || 'practice') === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+    <label class="full">Title<input id="ev-title" maxlength="50" value="${esc(e?.title || pre.title || '')}" placeholder="Varsity practice, Lower-body lift, Dentist…"></label>
+    <label>Category<select id="ev-type">${EV_PICK.map(([k, l]) => `<option value="${k}" ${(e?.type || pre.type || 'practice') === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
     <label>Date<input type="date" id="ev-date" value="${e?.date || date}"></label>
     <label>Start<input type="time" id="ev-start" value="${start}"></label><label>End<input type="time" id="ev-end" value="${end}"></label>
     <label>Reminder<select id="ev-rem">${[[0, 'None'], [10, '10 min before'], [30, '30 min before'], [60, '1 hour before'], [120, '2 hours before']].map(([v, l]) => `<option value="${v}" ${Number(e?.remind || 0) === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
     <label>Repeat until<input type="date" id="ev-until" value="${e?.recur?.until || ''}"></label>
-    <label class="full">Description / notes<textarea id="ev-notes" maxlength="400" style="min-height:60px">${esc(e?.notes || '')}</textarea></label></div>
+    <label class="full">Description / notes<textarea id="ev-notes" maxlength="400" style="min-height:60px">${esc(e?.notes || pre.notes || '')}</textarea></label></div>
     <div><p class="muted small" style="margin-bottom:6px">Repeat weekly on</p><div class="chips" id="ev-days">${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button type="button" class="chip ${days.includes(d) ? 'on' : ''}" data-dow="${d}">${DOW[d]}</button>`).join('')}</div></div>
     <p class="muted tiny">Reminders pop up while Athlete OS is open. For alerts on your phone's lock screen, use "Add to phone calendar" (push notifications need a native app).</p>
     <div class="row"><button type="button" class="btn primary" id="ev-save" style="flex:1">Save</button>${e ? `${e.recur ? '<button type="button" class="btn" id="ev-skip">Skip this day</button>' : ''}<button type="button" class="btn danger" id="ev-del">Delete</button>` : ''}</div>`, (d) => {
