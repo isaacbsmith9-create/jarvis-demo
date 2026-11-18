@@ -3,6 +3,10 @@
 // offense can grow: plays are lists of steps, rules map a trigger (a pass between two roles, or a called action) to
 // movement verbs, and coverages are parameter sets the defense engine reads.
 
+// Per-viewer UI memory (remembered mode / coverage), stored with the app's device storage helpers.
+const uiGet = (k, d) => lsGet('ui-' + k) ?? d;
+const uiSet = (k, v) => lsSet('ui-' + k, v);
+
 const SPOTS = {
   slotL: [-9, 27.5], slotR: [9, 27.5], wingL: [-20, 17], wingR: [20, 17], cornerL: [-22, 4], cornerR: [22, 4],
   postL: [-7, 8], postR: [7, 8], high: [0, 19], top: [0, 31], elbowL: [-7.5, 19], elbowR: [7.5, 19],

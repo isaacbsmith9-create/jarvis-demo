@@ -92,7 +92,7 @@ function defend(S, pos, holder, events = []) {
       if (st === 'switch' && dSc) roles[dSc] = 'switched onto the ball';
     }
     if (e.type === 'backScreen') {
-      if (cov.offBall !== 'switch' && dU) { m[dU] = add(e.from || pos[e.screener], [-(e.side || 1) * 0.5, 1.8]); roles[dU] = 'caught on the back screen'; notes.push({ t: 'back', txt: `X${dU[1]} got caught on ${nm(S, e.screener)}'s back screen; ${nm(S, e.user)} rolls free` }); if (dS && (cov.onBall === 'drop' || cov.onBall === 'over')) { m[dS] = lerpP(m[dS], pos[e.user], 0.55); roles[dS] = 'helping on the roll'; } }
+      if (cov.offBall !== 'switch' && dU) { m[dU] = add(e.from || pos[e.screener], [-(e.side || 1) * 0.5, 1.2]); roles[dU] = 'caught on the back screen'; notes.push({ t: 'back', txt: `X${dU[1]} got caught on ${nm(S, e.screener)}'s back screen; ${nm(S, e.user)} rolls free` }); if (dS && (cov.onBall === 'drop' || cov.onBall === 'over')) { m[dS] = lerpP(m[dS], pos[e.user], 0.55); roles[dS] = 'helping on the roll'; } }
     }
     if (e.type === 'drive') {
       const D = dU; if (D) { m[D] = add(pos[e.user], mul(norm(sub(e.from, pos[e.user])), 2.2)); roles[D] = 'beaten, trailing'; }
@@ -222,11 +222,11 @@ function verbSpain(S, screener, backer) {
   const side = pH[0] >= 0 ? 1 : -1; // the handler comes off the screen toward this side
   const top = [clamp(pH[0] * 0.3, -3, 3), 31];
   const spot = RR(add(top, [side * 1.9, -1.6]));
-  const backSpot = RR([-side * 3.5, 22.5]);
+  const backSpot = RR([-side * 2.5, 18]);
   beat(S, 1.0, { [screener]: spot, [H]: top, ...(backer ? { [backer]: backSpot } : {}) }, H, [], 'Spain: the big comes to the middle for a ball screen', { screen: screener, screenOn: dH });
   const off = { [H]: RR([side * 8, 24]), [screener]: RR([-side * 1, 11]) };
   const ev = [{ type: 'ballScreen', screener, user: H, from: spot }];
-  if (backer) { off[backer] = RR([-side * 6.5, 29]); ev.push({ type: 'backScreen', screener: backer, user: screener, from: backSpot, side }); }
+  if (backer) { off[backer] = RR([-side * 6.5, 27]); ev.push({ type: 'backScreen', screener: backer, user: screener, from: backSpot, side }); }
   beat(S, 1.1, off, H, ev, backer ? 'Ball screen and roll; back screen on the roller\'s defender, then pop' : 'Ball screen and roll', { screen: screener, screenOn: dH });
   S.lastScreen = { screener, user: H, read: 'ball screen', backer };
 }
@@ -274,7 +274,7 @@ function runStep(S, st, skipPass) {
   const scr = A.filter((a) => a.type === 'screen'), cuts = A.filter((a) => a.type === 'cut'), mv = A.filter((a) => a.type === 'move'), dr = A.filter((a) => a.type === 'dribble');
   // Ball screen + back screen in the same step = Spain-style action.
   const ballScr = scr.find((a) => a.for === S.ball), back = scr.find((a) => ballScr && a.for === ballScr.who);
-  if (ballScr) { verbSpain(S, ballScr.who, back?.who); return; }
+  if (ballScr) { verbSpain(S, ballScr.who, back?.who); (S.calls ||= []).push('spain'); return; }
   const off = {}; for (const a of [...mv, ...dr]) off[a.who] = a.to;
   if (Object.keys(off).length) beat(S, 1.0, RR2(off), S.ball, [], st.label || 'Movement');
   for (const a of scr) { const cut = cuts.find((c) => c.who === a.for); offScreen(S, a.who, a.for, cut ? cut.to : SPOTS[sgn(S.pos[a.who][0]) < 0 ? 'slotL' : 'slotR']); }
@@ -293,7 +293,9 @@ function analyze(S) {
     const Lv = dist(hp, p) || 1, end = lerpP(hp, p, Math.max(0, (Lv - 3) / Lv));
     const laneD = DEF.filter((d) => dist(pos[d], hp) >= 3.6).map((d) => ({ d, k: segDist(pos[d], hp, end) })).sort((a, b) => a.k - b.k)[0] || { k: 99 };
     // Open on the catch: the nearest defender closes ~5 ft per second of ball flight.
-    const flight = dist(hp, p) / 32 + 0.3, sepCatch = Math.max(0, sep - 5 * flight);
+    // Defenders who are screened, beaten or trapping close more slowly than a set defender.
+    const nr = S.roles?.[near[0].d] || '', closeSpeed = /caught|beaten|trailing|chasing/.test(nr) ? 2 : /trapping|hedging/.test(nr) ? 2.5 : 5;
+    const flight = dist(hp, p) / 32 + 0.3, sepCatch = Math.max(0, sep - closeSpeed * flight);
     const open = clamp(Math.min(sepCatch / 4.5, laneD.k / 3.5), 0, 1);
     const myD = defOf(S, o) || near[0].d, dp = pos[myD];
     const toBall = norm(sub(hp, p)), toDef = sub(dp, p);
@@ -456,7 +458,7 @@ function whyOpen(S, A) {
     if (m.zoneGap) reasons.push('sitting in a gap between two zone defenders');
     if (S.lastScreen && S.lastScreen.user === m.o) reasons.push(`came off ${S.lastScreen.screener}'s screen with ${fmtFt(m.sep)} of separation (${S.lastScreen.read})`);
     if (S.lastScreen && S.lastScreen.screener === m.o && covOf(S).offBall === 'switch') reasons.push('slipped the screen as the defense switched');
-    if (!reasons.length) reasons.push(m.open >= 0.75 ? `${fmtFt(m.sep)} from the nearest defender and a clean lane` : m.lane < 2 ? `X${m.laneBy?.[1] || '?'} sat in the passing lane (${fmtFt(m.lane)})` : `${fmtFt(m.sep)} separation: covered`);
+    if (!reasons.length) reasons.push(m.open >= 0.75 ? `${fmtFt(m.sep)} from the nearest defender and a clean lane` : m.lane < 2 ? `X${m.laneBy?.[1] || '?'} sat in the passing lane (${fmtFt(m.lane)} from it)` : m.open >= 0.45 ? `${fmtFt(m.sep)} of space now, but the defender closes to ${fmtFt(m.sepCatch)} by the time the pass arrives` : `only ${fmtFt(m.sepCatch)} of space on the catch: covered`);
     out.push({ o: m.o, open: m.open >= 0.75 || m.backdoor, tag: m.backdoor ? 'backdoor' : m.open >= 0.75 ? 'open' : m.open >= 0.45 ? 'workable' : 'covered', txt: reasons.join('; ') });
   }
   return out.sort((a, b) => b.open - a.open);
