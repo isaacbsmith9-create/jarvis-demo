@@ -107,6 +107,7 @@ ACTIONS.settings = () => {
 };
 const APPS = [
   ['MacroLens', 'Food diary, AI photo scan, eating schedule, bowl builder, snacks', ML(''), true],
+  ['Training Center', 'Drills, workouts and running your basketball sessions', 'btc.html', true],
   ['ReadyUp', 'Readiness check-ins and recovery routines', 'https://claude.ai/artifact/S9xPngi3ZUsD6okgc7jqwG', false],
   ['Weekboard', 'Your week of school, practice and work', 'https://claude.ai/artifact/CT9KqYWe3FPY9a9n5EeLDN', false],
   ['Gameplan', 'Plan my day by voice, hour-by-hour schedule, Top 3, time tracker, night routine', 'gameplan.html', true],

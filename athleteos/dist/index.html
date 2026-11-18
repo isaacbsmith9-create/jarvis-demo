@@ -561,7 +561,8 @@ a.tlev { text-decoration: none; }
   const APPS = [
     { id: 'aos', name: 'Athlete<i>OS</i>', plain: 'Athlete OS', href: 'index.html', desc: 'Training, performance, load and the Lab', color: '#3d8bff' },
     { id: 'gp', name: 'Game<i>plan</i>', plain: 'Gameplan', href: 'gameplan.html', desc: 'Your day hour by hour, Top 3, night routine', color: '#22c55e' },
-    { id: 'ml', name: 'Macro<i>Lens</i>', plain: 'MacroLens', href: 'macrolens.html', desc: 'Food, macros, water and game-day fuel', color: '#f59e0b' },
+    { id: 'btc', name: 'Training<i>Center</i>', plain: 'Training Center', href: 'btc.html', desc: 'Drills, workouts and running your sessions', color: '#f97316' },
+    { id: 'ml', name: 'Macro<i>Lens</i>', plain: 'MacroLens', href: 'macrolens.html', desc: 'Food, macros, water and game-day fuel', color: '#eab308' },
   ];
   const THEME_KEY = 'macrolens-theme';
   function theme() {
@@ -2587,6 +2588,7 @@ ACTIONS.settings = () => {
 };
 const APPS = [
   ['MacroLens', 'Food diary, AI photo scan, eating schedule, bowl builder, snacks', ML(''), true],
+  ['Training Center', 'Drills, workouts and running your basketball sessions', 'btc.html', true],
   ['ReadyUp', 'Readiness check-ins and recovery routines', 'https://claude.ai/artifact/S9xPngi3ZUsD6okgc7jqwG', false],
   ['Weekboard', 'Your week of school, practice and work', 'https://claude.ai/artifact/CT9KqYWe3FPY9a9n5EeLDN', false],
   ['Gameplan', 'Plan my day by voice, hour-by-hour schedule, Top 3, time tracker, night routine', 'gameplan.html', true],

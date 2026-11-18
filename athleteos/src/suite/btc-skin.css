@@ -1,0 +1,40 @@
+/* Basketball Training Center inside the Athlete suite: Athlete OS palette, fonts, cards and tab bar, orange accent,
+   light and dark. Overrides its tokens and the few hard-coded colors; its layout and features stay as they are. */
+:root {
+  --bg: #eef2fb; --surface: #ffffff; --surface2: #e6ebf7; --line: #d5ddef; --ink: #0b1330; --muted: #5b6687;
+  --accent: #ea580c; --gold: #b45309; --good: #16a34a; --warn: #b45309; --bad: #c93c3c; --radius: 18px;
+  --fg: var(--ink); --surface-2: var(--surface2);
+  --f-display: "Space Grotesk", "Inter", system-ui, sans-serif; --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--f-body);
+  --hdr: rgba(238, 242, 251, .9); --hi-a: #fff1e8; --tint-good: #e3f6ea; --on-accent: #ffffff;
+}
+:root[data-theme="dark"] {
+  --bg: #060a17; --surface: #0d1430; --surface2: #161f42; --line: #222d57; --ink: #eef2ff; --muted: #8e9ac4;
+  --accent: #ff7a45; --gold: #ffb547; --good: #2fd68a; --warn: #ffb547; --bad: #ff6b7a;
+  --hdr: rgba(6, 10, 23, .88); --hi-a: #2a1a14; --tint-good: #0f3326; --on-accent: #1a0b03;
+}
+body { color-scheme: light; font-family: var(--f-body); }
+:root[data-theme="dark"] body { color-scheme: dark; }
+h1, h2, h3, .tile .n { font-family: var(--f-display); letter-spacing: -.3px; }
+header.top { background: var(--hdr); align-items: flex-start; }
+header.top h1 { font-size: 22px; margin-top: 6px; }
+.card { box-shadow: 0 1px 2px rgba(20, 30, 70, .06); }
+:root[data-theme="dark"] .card { background: linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, 0) 40%), var(--surface); border-color: rgba(120, 140, 255, .16); box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 12px 30px -18px rgba(0, 0, 0, .8); }
+.card.hi { border-color: color-mix(in srgb, var(--accent) 45%, transparent); background: linear-gradient(160deg, var(--hi-a), var(--surface) 70%); }
+.banner { background: var(--hi-a); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.btn:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+.btn.primary { background: linear-gradient(135deg, #f97316, #ef4444); color: #fff; box-shadow: 0 8px 22px -10px rgba(249, 115, 22, .6); }
+.chip.on { background: var(--accent); color: var(--on-accent); }
+.badge.gold { border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
+.badge.good { border-color: color-mix(in srgb, var(--good) 45%, transparent); }
+.badge.warn { border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
+.badge.bad { border-color: color-mix(in srgb, var(--bad) 45%, transparent); }
+.bar > i { background: linear-gradient(90deg, #f97316, var(--gold)); }
+.col i { background: linear-gradient(180deg, #f97316, #c2410c); }
+.col.now i { background: linear-gradient(180deg, var(--gold), #b45309); }
+.rest { background: var(--tint-good); border-color: color-mix(in srgb, var(--good) 45%, transparent); }
+input, select, textarea { font-size: 16px; }
+nav.bottom { background: var(--surface); }
+:root[data-theme="dark"] nav.bottom { background: rgba(9, 14, 34, .86); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); border-top-color: rgba(120, 140, 255, .14); }
+nav.bottom a.on { box-shadow: inset 0 -2px 0 var(--accent); }
+.btc-link { display: flex; gap: 10px; align-items: center; justify-content: space-between; font-size: 13px; }

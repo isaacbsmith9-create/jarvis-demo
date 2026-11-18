@@ -2,6 +2,7 @@
 //   dist/index.html     Athlete OS        (src/)
 //   dist/macrolens.html MacroLens copy    (vendor/macrolens.html = macrolens/artifact.html from the MacroLens branch, unchanged)
 //   dist/gameplan.html  Gameplan copy     (vendor/gameplan.html  = gameplan/artifact.html, restyled with the suite look)
+//   dist/btc.html       Basketball Training Center (vendor/btc.html = its published page, restyled, connected by src/suite/btc-bridge.js)
 // Every page gets the same app switcher (src/suite/suite.js + suite.css) in place of its brand, and one theme setting.
 // Usage: node athleteos/build.mjs
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -67,4 +68,12 @@ setTimeout(gpSignals, 1500);
 window.addEventListener('pagehide', () => { try { gpSignals(); if (pending.size) flush(); } catch {} });
 </script>`);
 writeFileSync(join(out, 'gameplan.html'), SKELETON + gp + '\n</body></html>\n');
-console.log('built', ['index.html', 'macrolens.html', 'gameplan.html'].map((f) => join(out, f)).join(' '));
+// ---------- Basketball Training Center (vendor/btc.html = its published page; storage renamed into the suite) ----------
+let btc = vendor('btc.html');
+btc = swap(btc, "const KEY = 'btc-training-center-v1';", "const KEY = 'ml:btc-local';", 'Training Center storage key');
+btc = swap(btc, "ns.doc('data/users/' + id + '/app')", "ns.doc('data/users/' + id + '/btc-app')", 'Training Center account doc');
+btc = swap(btc, '<div class="eyebrow">Player development</div>', '<div id="suite-host"></div>', 'Training Center brand');
+btc = swap(btc, '</style>', `</style>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">\n<style>${src('suite/btc-skin.css')}\n${SUITE_CSS}</style>\n<script>\n${SUITE_JS}\nSuite.theme();\n</script>`, 'Training Center style');
+btc = beforeLastScript(btc, `<script>\n${src('suite/btc-bridge.js')}\n</script>`);
+writeFileSync(join(out, 'btc.html'), btc);
+console.log('built', ['index.html', 'macrolens.html', 'gameplan.html', 'btc.html'].map((f) => join(out, f)).join(' '));

@@ -18,7 +18,7 @@ account collection `data/users/<user id>`.
 | Athlete OS | `aos`, `aos-*` (tests, shots, games, body, coach, plan, goals, mind, intel, sim, signals) and **workouts** in `day-*` | Gameplan blocks, MacroLens meals, signals |
 | MacroLens | `core`, meals / water / feel in `day-*` (and game-day workouts it logs) | workouts in `day-*` |
 | Gameplan / Life OS | `gp-*` (`gp-core`, `gp-d-YYYY-MM-DD`, `gp-sig`); later `life-*` | `aos-plan` calendar events, signals |
-| Basketball Training Center | `btc-*` (drills, workouts, collections, drill results) and **finished sessions as workouts** in `day-*` | readiness, load, calendar, goals, routines, signals |
+| Basketball Training Center | `btc-app` (its whole state: drills, workouts, plan, sessions, journal…), `btc-sync` (which sessions were exported), `btc-sig`, and **finished sessions as workouts** in `day-*` | `aos-signals` (load ratio, readiness), `aos-plan` (games, practices), `aos`, `core` |
 
 ## Workout format (how a finished session counts in load, analytics and the Lab)
 
@@ -51,12 +51,21 @@ Append one entry to `day-YYYY-MM-DD` → `exercise[]` (create the day doc if mis
 | --- | --- | --- |
 | `aos-signals` | Athlete OS | `week` (Monday), `acuteLoad`, `chronicLoad`, `acwr`, `readiness`, `trainDays`, `trainMins`, `plannedByDay`, `nextGame` |
 | `gp-sig` | Gameplan | `week`, `busyMinsByDay`, `schoolMinsByDay`, `openTasks`, `top3Today`, `bed`, `wake` |
-| `btc-sig` (planned) | Training Center | `week`, `sessionsDone`, `minsBySkill`, `nextPlanned` |
+| `btc-sig` | Training Center | `week`, `sessionsDone`, `minsByArea7d`, `nextPlanned` |
 
 Signals are rewritten only when something changed.
 
 ## App switcher
 
 Every page mounts the same switcher in place of its brand:
-`Suite.mount(el, '<app id>', () => save())`. App ids: `aos`, `gp`, `ml` (and `btc` when the Training Center joins).
+`Suite.mount(el, '<app id>', () => save())`. App ids: `aos`, `gp`, `btc`, `ml`.
 Theme: one setting for all pages, stored under `macrolens-theme`.
+
+## How the Training Center is bundled
+
+`vendor/btc.html` is its published page, unchanged except: storage key `ml:btc-local`, account doc `btc-app`, and the
+brand line replaced by the switcher. `src/suite/btc-skin.css` restyles it; `src/suite/btc-bridge.js` exports each
+finished session once (id `btc-<session id>`, type from the session's main area, RPE = average drill difficulty × 2,
+minutes from the session) and adds Athlete OS context (games, practices, load ratio > 1.3, readiness < 45) to its
+daily recommendation. To pick up a new Training Center version, replace `vendor/btc.html` and rebuild; the build
+stops with a clear error if one of those anchors changed.
