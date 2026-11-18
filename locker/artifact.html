@@ -165,6 +165,7 @@ input:focus, select:focus { border-color: var(--accent); }
 //   GPLINK.toggle(id)               check a task off (or back on)
 //   GPLINK.add(title, quad, opts)   add a task; opts: { top: 'YYYY-MM-DD', due, from: 'App name' }
 //   GPLINK.schedule(iso)            that day's blocks, repeats included, sorted
+//   GPLINK.setBlocks(src, from, to, blocks)  an app keeps its own blocks on the schedule (replaced each time)
 //   GPLINK.push(item)               send a block to Gameplan's inbox: { kind: 'block', title, date, start, mins, type, from }
 //   GPLINK.card(el, opts)           draws the standard Gameplan card into el (opts.app names the app)
 // Gameplan picks up inbox items the next time it opens and says where they came from.
@@ -196,6 +197,20 @@ const GPLINK = (() => {
     const c = rd('gp:core'), d = rd('gp:d-' + date) || {};
     const reps = repeatsOn(date, c).map((r) => ({ id: 'r:' + r.id, title: r.title, start: r.start, mins: r.mins, type: r.type, done: !!d.rdone?.[r.id], repeat: true }));
     return [...(d.blocks || []), ...reps].filter((b) => b.start).sort((a, b) => toMin(a.start) - toMin(b.start));
+  }
+  /** An app keeps its own blocks on Gameplan's schedule: replaces every block tagged `src` from `from` to `to`
+   *  (inclusive) with `blocks` ([{ date, title, start, mins, type, done, link }]). Other blocks are never touched. */
+  function setBlocks(src, from, to, blocks) {
+    const shift = (d, n) => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + n); return iso(x); };
+    for (let d = from; d <= to; d = shift(d, 1)) {
+      const k = 'gp:d-' + d, cur = rd(k), mine = blocks.filter((b) => b.date === d);
+      if (!cur && !mine.length) continue;
+      const doc = cur || { blocks: [], entries: [], night: { done: {}, completedAt: null } };
+      const before = JSON.stringify(doc.blocks || []);
+      doc.blocks = [...(doc.blocks || []).filter((b) => b.src !== src), ...mine.map(({ date, ...b }) => ({ id: src + '-' + d + '-' + uid(), done: false, ...b, src }))];
+      const strip = (arr) => JSON.stringify(arr.map(({ id, ...b }) => b));
+      if (strip(JSON.parse(before)) !== strip(doc.blocks)) wr(k, doc);
+    }
   }
   function push(item) { const q = rd('gp:inbox') || []; q.push({ ...item, id: uid(), at: Date.now() }); return wr('gp:inbox', q.slice(-50)); }
   function nowNext(date = today()) {
@@ -233,7 +248,7 @@ const GPLINK = (() => {
     }
     draw();
   }
-  return { has, tasks, toggle, add, schedule, push, nowNext, card, quadOf, QUADS, COLORS };
+  return { has, tasks, toggle, add, schedule, setBlocks, push, nowNext, card, quadOf, QUADS, COLORS };
 })();
 // ===== GPLINK END =====
 const $ = (s, el = document) => el.querySelector(s);

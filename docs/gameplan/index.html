@@ -368,6 +368,7 @@ input[type=text], input[type=time], input[type=date], input[type=number], select
   </div>
   <div class="field"><span>Type</span><div class="btypes" id="b-types"></div></div>
   <div class="field"><span>Repeats</span><div class="repdays" id="b-rep"></div><span class="small muted" id="b-rep-note" style="margin-top:4px"></span></div>
+  <a class="btn wide" id="b-link" hidden style="text-align:center;text-decoration:none;color:var(--accent);font-weight:700">Open in Court Lab ›</a>
   <button class="btn primary wide" id="b-save">Add to today</button>
   <button type="button" class="btn wide" id="b-skip" hidden>Skip just this day</button>
   <button type="button" class="btn danger wide" id="b-delete" hidden>Delete</button>
@@ -641,7 +642,7 @@ function renderSchedule() {
     const st = toMin(b.start), en = st + b.mins;
     if (!placed && st > nm) { html += `<div class="nowline">Now ${fmt12(nm)}</div>`; placed = true; }
     const state = isToday ? (en <= nm ? 'past' : st <= nm ? 'current' : '') : '';
-    html += `<div class="block ${state}"><span class="time">${fmt12(st)}</span><div style="min-width:0">${b.ext ? `<span class="title ${b.done ? 'done-text' : ''}">${esc(b.title)}</span>` : `<button class="title ${b.done ? 'done-text' : ''}" data-block-open="${b.id}">${esc(b.title)}</button>`}<div class="meta"><span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:3px;background:${btype(b.type).c}"></span><span>${fmtDur(b.mins)} · til ${fmt12(en)}</span>${b.ext ? `<span class="tag">${esc(b.ext)}</span>` : `<span class="tag">${esc(btype(b.type).name)}</span>`}${b.repeat ? `<span class="tag">↻ ${esc(daysLabel(b.repeat))}</span>` : ''}</div></div>${b.ext ? '' : `<button class="check ${b.done ? 'on' : ''}" data-block-check="${b.id}" aria-label="Done">${CHECK}</button>`}</div>`;
+    html += `<div class="block ${state}"><span class="time">${fmt12(st)}</span><div style="min-width:0">${b.ext ? `<span class="title ${b.done ? 'done-text' : ''}">${esc(b.title)}</span>` : `<button class="title ${b.done ? 'done-text' : ''}" data-block-open="${b.id}">${esc(b.title)}</button>`}<div class="meta"><span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:3px;background:${btype(b.type).c}"></span><span>${fmtDur(b.mins)} · til ${fmt12(en)}</span>${b.ext ? `<span class="tag">${esc(b.ext)}</span>` : `<span class="tag">${esc(btype(b.type).name)}</span>`}${b.repeat ? `<span class="tag">↻ ${esc(daysLabel(b.repeat))}</span>` : ''}${b.src === 'courtlab' ? '<span class="tag">Court Lab</span>' : ''}</div></div>${b.ext ? '' : `<button class="check ${b.done ? 'on' : ''}" data-block-check="${b.id}" aria-label="Done">${CHECK}</button>`}</div>`;
   }
   if (!placed) html += `<div class="nowline">Now ${fmt12(nm)}</div>`;
   $('#agenda').innerHTML = html;
@@ -801,6 +802,8 @@ function openBlock(id) {
   editRep = id && String(id).startsWith('r:') ? repeats().find((r) => r.id === id.slice(2)) || null : null;
   const b = editRep || (id ? day(schedIso()).blocks.find((x) => x.id === id) : null); editBlock = editRep ? null : b;
   bRep = editRep ? [...editRep.days] : [];
+  const link = !editRep && b?.link && /^\.\.\/[a-z]+\/(#[a-z/]*)?$/.test(b.link) ? b.link : null;
+  $('#b-link').hidden = !link; if (link) { $('#b-link').href = link; $('#b-link').textContent = `Open in ${b.src === 'courtlab' ? 'Court Lab' : b.src === 'macrolens' ? 'MacroLens' : 'the app'} ›`; }
   $('#b-skip').hidden = !editRep; $('#b-skip').textContent = `Skip just ${schedIso() === todayIso() ? 'today' : 'tomorrow'}`;
   $('#bs-title').textContent = b ? 'Edit block' : 'Add block'; $('#b-title').value = b?.title || '';
   const nm = nowMin(); $('#b-start').value = b?.start || slotStart || `${pad(Math.min(23, sdOff ? 16 : Math.floor(nm / 60) + 1))}:00`;
