@@ -483,3 +483,14 @@ a.tlev { text-decoration: none; }
 .lab-x b { font-size: 14px; } .lab-x span { font-size: 12.5px; color: var(--muted); }
 .lab-x:hover { border-color: var(--purple); }
 @media (max-width: 430px) { .pe-grid { grid-template-columns: minmax(0, 1fr) 48px 58px 46px; gap: 5px 4px; } .pe-l { font-size: 12px; } .lab-table { font-size: 12.5px; } .ld-r { grid-template-columns: 80px minmax(0, 1fr) 70px; } .tab { font-size: 9px; } }
+.linkish { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.lab-kbtn { border: 0; text-align: left; cursor: pointer; color: var(--fg); font: inherit; }
+.lab-kbtn:hover { outline: 1px solid var(--purple); }
+.lab-table.lab-cmp .lt-h > span, .lab-table.lab-cmp .lt-r > * { min-width: 0; overflow-wrap: anywhere; }
+.lab-table.lab-cmp .lt-h > span { text-transform: none; letter-spacing: 0; font-size: 11.5px; }
+.cmp-g { display: grid; gap: 6px; margin-bottom: 14px; }
+.cmp-b { display: grid; grid-template-columns: minmax(0, 120px) minmax(0, 1fr) 56px; gap: 8px; align-items: center; }
+.cmp-b > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmp-b > div { height: 10px; background: var(--surface-2); border-radius: 6px; overflow: hidden; } .cmp-b > div i { display: block; height: 100%; border-radius: 6px; }
+.cmp-b b { text-align: right; }
+@media (max-width: 430px) { .lab-table.lab-cmp { font-size: 11.5px; } .cmp-b { grid-template-columns: 84px minmax(0, 1fr) 48px; } }

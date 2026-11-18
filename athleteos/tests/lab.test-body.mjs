@@ -45,7 +45,7 @@ ok(E.scap[0] === '0,2,2' && E.scap[1] <= 65, 'shooting rates limited to 2 per 1,
 ok(E.neg >= 25 && E.neg <= 40, 'negative trend falls but is bounded: ' + E.neg);
 ok(E.olsLine && Math.abs(E.olsLine.b - 2) < 1e-9 && E.olsLine.se < 1e-9, 'least squares on a perfect line');
 ok(E.ath.src === 'assumption' && E.ath.f === 1 && E.ath.up && E.ath.order, 'athletic projection (assumption, higher is better) ' + JSON.stringify(E.ath));
-ok(E.ath.down && E.ath.srcL === 'history' && E.ath.ratesL.join() === '1,2,2', 'athletic projection (personal rate, lower is better; optimistic capped at 2%/4wk for speed) ' + E.ath.ratesL);
+ok(E.ath.down && E.ath.srcL === 'history' && E.ath.ratesL.join() === '0.67,1.33,2', 'athletic projection (personal rate, lower is better; scaled so optimistic = 2%/4wk speed limit) ' + E.ath.ratesL);
 ok(E.cap[0] === 1.5 && E.cap[1] === 0.5, 'focus factor limited to 0.5–1.5');
 ok(E.snap.trend && E.snap.vertRate > 0 && E.snap.tests.includes('squat'), 'baseline uses real shooting trend and test history ' + JSON.stringify(E.snap));
 // ---------- data separation baseline ----------

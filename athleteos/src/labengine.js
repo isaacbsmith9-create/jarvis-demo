@@ -167,7 +167,9 @@ function athRates(tb, focusNow, focusNew) {
   if (tb.rate != null) { src = 'history'; r = tb.rate > 0 ? [tb.rate * 0.5, tb.rate, tb.rate * 1.5] : [tb.rate, 0, (ATH_ASSUME[tb.group] || ATH_ASSUME.Custom)[1]]; }
   else { src = 'assumption'; r = ATH_ASSUME[tb.group] || ATH_ASSUME.Custom; }
   const mx = ATH_MAX[tb.group] || ATH_MAX.Custom;
-  return { src, factor: r2(f), max: mx, rates: r.map((x) => r2(clamp(x > 0 ? x * f : x, -mx, mx))) };
+  // If a steep personal trend goes past the limit, scale all three down together so the optimistic one sits at the limit.
+  const raw = r.map((x) => (x > 0 ? x * f : x)), top = Math.max(...raw), k = top > mx ? mx / top : 1;
+  return { src, factor: r2(f), max: mx, scaled: k < 1, rates: raw.map((x) => r2(clamp(x > 0 ? x * k : x, -mx, mx))) };
 }
 /** inp: { cur, target, weeks, focusNow, focusNew } */
 function athProject(tb, inp) {
