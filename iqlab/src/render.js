@@ -108,6 +108,8 @@ class CourtView {
     if (o.overlays?.links) this.drawLinks(ctx, st);
     if (o.overlays?.lanes && st.holder) this.drawLanes(ctx, st);
     if (o.previews) for (const p of o.previews) this.drawArrow(ctx, p.from, p.to, p.color, p.dash, p.label);
+    if (o.diagram) for (const a of o.diagram) this.drawAction(ctx, a);
+    if (o.window && st.pos[o.window.id]) this.drawWindow(ctx, st.pos[o.window.id], o.window.state);
     // screen marker
     const beat = st.seg.beat || {};
     if (beat.screen && st.pos[beat.screen]) this.drawScreen(ctx, st.pos[beat.screen], st.pos[beat.screenOn] || [0, 30]);
@@ -117,6 +119,7 @@ class CourtView {
     this.drawBallShadow(ctx, st.ball);
     for (const id of ids) this.drawPlayer(ctx, id, st.pos[id], facingFor(track, t, id, st), t, st, o);
     if (o.targets) for (const tg of o.targets) this.drawTarget(ctx, st.pos[tg.id] || tg.at, tg, t);
+    if (o.reveal) for (const r of o.reveal) if (st.pos[r.id]) this.drawReveal(ctx, st.pos[r.id], r);
     this.drawBall(ctx, st.ball);
     if (o.spotlight && st.holder) this.drawSpot(ctx, st.pos[st.holder], t);
     if (o.fx) this.fx = o.fx.slice(); this.drawFx(ctx, t);
@@ -141,15 +144,17 @@ class CourtView {
     const sh = ctx.createRadialGradient(0, 0, R0 * 0.2, 0, 0, R0 * 1.5); sh.addColorStop(0, 'rgba(0,0,0,.42)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = sh; ctx.beginPath(); ctx.ellipse(0, 0, R0 * 1.55, R0 * 1.25, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
     // "you" ring
-    if (id === 'O1') { ctx.save(); ctx.strokeStyle = 'rgba(80,220,140,.95)'; ctx.lineWidth = Math.max(2, s * 0.22); ctx.shadowColor = 'rgba(80,220,140,.7)'; ctx.shadowBlur = 8; ctx.beginPath(); ctx.ellipse(x, y, R0 * 1.55, R0 * 1.55, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
+    if (id === (o.you || 'O1')) { ctx.save(); ctx.strokeStyle = 'rgba(80,220,140,.95)'; ctx.lineWidth = Math.max(2, s * 0.22); ctx.shadowColor = 'rgba(80,220,140,.7)'; ctx.shadowBlur = 8; ctx.beginPath(); ctx.ellipse(x, y, R0 * 1.55, R0 * 1.55, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
     if (o.highlight === id) { ctx.save(); ctx.strokeStyle = 'rgba(255,214,90,.95)'; ctx.lineWidth = Math.max(2, s * 0.22); ctx.beginPath(); ctx.arc(x, y, R0 * 1.9, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
     ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
     const skin = SKIN[(n + (off ? 0 : 5)) % SKIN.length];
     // arms: defenders in a wide stance with active hands; offense natural, ball hand forward when dribbling
     const stride = Math.sin(t * 9 + n) * 0.12;
+    const shooterP = st.ball.kind === 'shot' ? st.pos[st.ball.shooter] : null;
+    const contesting = !off && shooterP && dist(p, shooterP) < 7;
     const hands = off
       ? hasBall ? [[1.05, -0.55], [-0.95, 0.05 + stride]] : [[0.95, 0.15 + stride], [-0.95, 0.15 - stride]]
-      : [[1.35, -0.55 + stride * 0.5], [-1.35, -0.45 - stride * 0.5]];
+      : contesting ? [[0.55, -1.75], [-0.55, -1.75]] : [[1.35, -0.55 + stride * 0.5], [-1.35, -0.45 - stride * 0.5]];
     ctx.lineCap = 'round';
     for (const [hx, hy] of hands) {
       ctx.strokeStyle = skin; ctx.lineWidth = R0 * 0.32; ctx.beginPath(); ctx.moveTo(Math.sign(hx) * R0 * 0.72, 0); ctx.lineTo(hx * R0, hy * R0); ctx.stroke();
@@ -168,9 +173,9 @@ class CourtView {
     if (off) { ctx.fillStyle = kit.trim; ctx.fillRect(-R0 * 0.36, -R0 * 0.28, R0 * 0.72, R0 * 0.08); } // headband
     ctx.restore();
     // label chip
-    const lab = off ? (id === 'O1' ? 'YOU' : ROLE[id]) : 'X' + n;
+    const lab = o.labels?.[id] || (off ? (id === (o.you || 'O1') ? 'YOU' : ROLE[id]) : 'X' + n);
     ctx.save(); ctx.font = `700 ${Math.max(8.5, s * 0.92)}px Inter, sans-serif`; const tw = ctx.measureText(lab).width + s * 1.1;
-    ctx.fillStyle = off ? (id === 'O1' ? 'rgba(40,190,110,.92)' : 'rgba(18,40,110,.85)') : 'rgba(60,18,32,.8)';
+    ctx.fillStyle = off ? (id === (o.you || 'O1') ? 'rgba(40,190,110,.92)' : 'rgba(18,40,110,.85)') : 'rgba(60,18,32,.8)';
     roundRect(ctx, x - tw / 2, y + R0 * 1.25, tw, s * 1.45, s * 0.7); ctx.fill();
     ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(lab, x, y + R0 * 1.25 + s * 0.74); ctx.restore();
   }
@@ -258,6 +263,41 @@ class CourtView {
       for (let k = 0; k <= 16; k++) { const tt = t + k * 0.12, p = posAt(track, Math.min(tt, track.t1 ?? track.dur)).pos[id]; if (!p) continue; if (first) { ctx.moveTo(this.X(p[0]), this.Y(p[1])); first = false; } else ctx.lineTo(this.X(p[0]), this.Y(p[1])); }
       ctx.stroke(); ctx.restore();
     }
+  }
+  /** Coaching-diagram strokes: cut (solid arrow), dribble (zig-zag), pass (dashed), screen (T bar), move (thin). */
+  drawAction(ctx, a) {
+    const s = this.s, A = [this.X(a.from[0]), this.Y(a.from[1])], B = [this.X(a.to[0]), this.Y(a.to[1])];
+    const col = a.color || ({ pass: 'rgba(255,214,90,.95)', cut: 'rgba(255,255,255,.95)', dribble: 'rgba(120,200,255,.95)', screen: 'rgba(255,140,90,.95)', move: 'rgba(200,210,235,.8)' })[a.type];
+    const ang = Math.atan2(B[1] - A[1], B[0] - A[0]), L = Math.hypot(B[0] - A[0], B[1] - A[1]);
+    ctx.save(); ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = Math.max(2, s * (a.type === 'move' ? 0.2 : 0.3)); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    if (a.dim) ctx.globalAlpha = 0.45;
+    const end = a.type === 'screen' ? L : L - s * 1.2;
+    ctx.translate(A[0], A[1]); ctx.rotate(ang); ctx.beginPath();
+    if (a.type === 'dribble') { ctx.moveTo(0, 0); const n = Math.max(3, Math.floor(end / (s * 1.2))); for (let i = 1; i <= n; i++) ctx.lineTo((end * i) / n, i === n ? 0 : (i % 2 ? -1 : 1) * s * 0.55); }
+    else { if (a.type === 'pass') ctx.setLineDash([s * 0.9, s * 0.6]); ctx.moveTo(0, 0); ctx.quadraticCurveTo(end / 2, a.type === 'cut' ? -s * 1.2 : 0, end, 0); }
+    ctx.stroke(); ctx.setLineDash([]);
+    if (a.type === 'screen') { ctx.lineWidth = Math.max(3, s * 0.42); ctx.beginPath(); ctx.moveTo(end, -s * 1.3); ctx.lineTo(end, s * 1.3); ctx.stroke(); }
+    else { ctx.beginPath(); ctx.moveTo(end + s * 1.2, 0); ctx.lineTo(end - s * 0.3, -s * 0.75); ctx.lineTo(end - s * 0.3, s * 0.75); ctx.closePath(); ctx.fill(); }
+    ctx.restore();
+    if (a.label) { ctx.save(); ctx.font = `700 ${Math.max(9, s * 0.9)}px Inter, sans-serif`; const w = ctx.measureText(a.label).width + s; const mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2 - s * 1.2; ctx.fillStyle = 'rgba(8,12,32,.85)'; roundRect(ctx, mx - w / 2, my - s * 0.75, w, s * 1.5, s * 0.75); ctx.fill(); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(a.label, mx, my); ctx.restore(); }
+  }
+  /** Shooting window: a wedge from the shooter toward the rim, green when open, amber tight, red contested. */
+  drawWindow(ctx, p, state) {
+    const s = this.s, x = this.X(p[0]), y = this.Y(p[1]), ang = Math.atan2(this.Y(HOOP.y) - y, this.X(HOOP.x) - x);
+    const col = { open: '47,214,138', tight: '255,194,61', contested: '255,90,110' }[state] || '200,200,200';
+    ctx.save(); const g = ctx.createRadialGradient(x, y, s, x, y, s * 7); g.addColorStop(0, `rgba(${col},.42)`); g.addColorStop(1, `rgba(${col},0)`);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, s * 7, ang - 0.45, ang + 0.45); ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  /** Open-player recognition marker (shown after the decision in testing modes). */
+  drawReveal(ctx, p, r) {
+    const s = this.s, x = this.X(p[0]), y = this.Y(p[1]);
+    const col = { open: '47,214,138', backdoor: '155,123,255', workable: '255,194,61', covered: '255,90,110' }[r.tag] || '200,200,200';
+    ctx.save(); ctx.strokeStyle = `rgba(${col},.95)`; ctx.lineWidth = Math.max(2, s * 0.25); ctx.setLineDash(r.tag === 'covered' ? [s * 0.5, s * 0.5] : []);
+    ctx.beginPath(); ctx.arc(x, y, s * 2.3, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    if (r.tag === 'backdoor') this.drawArrow(ctx, p, [Math.sign(p[0] || 1) * 2.5, 8], `rgba(${col},.9)`, true);
+    ctx.font = `800 ${Math.max(9, s * 0.95)}px Inter, sans-serif`; const t = r.tag.toUpperCase(), w = ctx.measureText(t).width + s * 1.1;
+    ctx.fillStyle = `rgba(${col},.95)`; roundRect(ctx, x - w / 2, y - s * 4.4, w, s * 1.5, s * 0.75); ctx.fill();
+    ctx.fillStyle = '#071022'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x, y - s * 3.65); ctx.restore();
   }
   addFx(text, at, color, t) { this.fx.push({ text, at, color, t0: t }); }
   drawFx(ctx, t) {

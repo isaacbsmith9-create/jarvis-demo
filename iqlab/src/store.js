@@ -13,6 +13,9 @@ const BLANK = {
   profile: () => ({ name: '', position: 'PG', created: Date.now() }),
   results: () => ({ list: [] }),
   progress: () => ({ scen: {}, daily: {}, best: {} }),
+  // Team Playbook: the user's plays and offensive rules (starts from editable templates), and simulator history.
+  playbook: () => ({ plays: JSON.parse(JSON.stringify(STARTER_PLAYS)), rules: JSON.parse(JSON.stringify(DEFAULT_RULES)) }),
+  team: () => ({ list: [] }),
 };
 function doc(key) {
   if (!(key in cache)) cache[key] = lsGet(key) ?? (BLANK[key] ? BLANK[key]() : null);
