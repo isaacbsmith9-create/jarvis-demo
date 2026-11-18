@@ -1,12 +1,13 @@
 // ===================== Defense vs. Our Offense: Coverage Simulator =====================
+const SHOT_CLOCK = 30;
 const TS_MODES = {
-  learn: { name: 'Learning', desc: 'Everything explained: what our action does, how the defense reacts, and who comes open, before you decide.', window: null, reveal: true, decisions: 3 },
-  practice: { name: 'Practice', desc: 'Run a play against a coverage you pick. No hints before you decide.', window: 7, reveal: false, decisions: 3 },
-  challenge: { name: 'Challenge', desc: 'Random play, random defense. Name the coverage, then make the read. Graded.', window: 5, reveal: false, decisions: 3, recog: true, random: true },
-  elite: { name: 'Elite', desc: 'Disguised coverages that change mid-possession, high intensity, shorter decision windows.', window: 3.5, reveal: false, decisions: 4, recog: true, random: true, elite: true },
-  prep: { name: 'Team Prep', desc: 'Pick our play and the opponent\'s defense. Five reps, then a scouting report of what worked.', window: 6, reveal: false, decisions: 3, reps: 5 },
+  learn: { name: 'Learning', desc: 'Everything explained: what our action does, how the defense reacts, and who comes open, before you decide.', window: null, reveal: true, decisions: 14 },
+  practice: { name: 'Practice', desc: 'Run a play against a coverage you pick. No hints before you decide.', window: 7, reveal: false, decisions: 14 },
+  challenge: { name: 'Challenge', desc: 'Random play, random defense. Name the coverage, then make the read. Graded.', window: 5, reveal: false, decisions: 14, recog: true, random: true },
+  elite: { name: 'Elite', desc: 'Disguised coverages that change mid-possession, high intensity, shorter decision windows.', window: 3.5, reveal: false, decisions: 14, recog: true, random: true, elite: true },
+  prep: { name: 'Team Prep', desc: 'Pick our play and the opponent\'s defense. Five reps, then a scouting report of what worked.', window: 6, reveal: false, decisions: 14, reps: 5 },
 };
-const TSIM = { mode: uiGet('tsMode', 'practice'), playId: null, cov: uiGet('tsCov', 'man'), intensity: 2, phase: 'setup', S: null, track: null, t: 0, tEnd: 0, playing: false, raf: 0, last: 0, A: null, opts: null, dec: [], askRecog: false, recog: null, decideAt: 0, view: null, prep: null, reveal: null, revealAt: -1, ov: { lanes: false, help: false } };
+const TSIM = { pause: uiGet('tsPause', false), mode: uiGet('tsMode', 'practice'), playId: null, cov: uiGet('tsCov', 'man'), intensity: 2, phase: 'setup', S: null, track: null, t: 0, tEnd: 0, playing: false, raf: 0, last: 0, A: null, opts: null, dec: [], askRecog: false, recog: null, decideAt: 0, view: null, prep: null, reveal: null, revealAt: -1, ov: { lanes: false, help: false } };
 
 function renderTeamSim() {
   const el = $('#view-teamsim');
@@ -21,12 +22,14 @@ function renderTeamSim() {
       ${M.random ? `<p class="small muted">${M.name} mode picks the play${M.elite ? ', a disguised coverage that changes mid-possession,' : ' and the defense'} at random.</p>` : `<label class="fld"><span>Defense</span><select id="ts-cov">${['Man', 'Ball screens', 'Zone'].map((g) => `<optgroup label="${g}">${Object.entries(COVERAGES).filter(([, c]) => c.group === g).map(([k, c]) => `<option value="${k}" ${k === TSIM.cov ? 'selected' : ''}>${c.name}</option>`).join('')}</optgroup>`).join('')}</select></label>
       <div class="fld"><span>Intensity</span><div class="seg" role="group" aria-label="Intensity">${[1, 2, 3].map((i) => `<button type="button" data-int="${i}" aria-pressed="${TSIM.intensity === i}">${INTENSITY[i]}</button>`).join('')}</div></div>`}
       ${!M.random ? `<p class="small muted" id="ts-covdesc">${esc(COVERAGES[TSIM.cov].desc)}</p>` : ''}
+      ${pauseToggle()}
       <button type="button" class="btn green" id="ts-start" ${plays.length ? '' : 'disabled'}>${icon('play')} ${TSIM.mode === 'prep' ? 'Start 5-rep prep' : 'Start possession'}</button>
     </div>
     ${tsHistory()}`;
   for (const b of $$('[data-tsmode]', el)) b.onclick = () => { TSIM.mode = b.dataset.tsmode; uiSet('tsMode', TSIM.mode); renderTeamSim(); };
   $('#ts-play') && ($('#ts-play').onchange = (e) => { TSIM.playId = e.target.value; });
   $('#ts-cov') && ($('#ts-cov').onchange = (e) => { TSIM.cov = e.target.value; uiSet('tsCov', TSIM.cov); $('#ts-covdesc').textContent = COVERAGES[TSIM.cov].desc; });
+  bindPause(el);
   for (const b of $$('[data-int]', el)) b.onclick = () => { TSIM.intensity = Number(b.dataset.int); renderTeamSim(); };
   $('#ts-start').onclick = () => { if (TSIM.mode === 'prep') TSIM.prep = { reps: [], cov: TSIM.cov, playId: TSIM.playId, intensity: TSIM.intensity }; else TSIM.prep = null; startTS(); };
   mountTSCharts(el);
@@ -44,7 +47,7 @@ function startTS() {
   if (TSIM.prep) { play = playById(TSIM.prep.playId); covPlan = [{ cov: TSIM.prep.cov }]; intensity = TSIM.prep.intensity; }
   const S = newPossession({ play, covPlan, intensity, mode: TSIM.mode, seed });
   advanceScript(S);
-  Object.assign(TSIM, { S, dec: [], phase: 'running', t: 0, playing: true, recog: null, reveal: null, revealAt: -1 });
+  Object.assign(TSIM, { violation: false, over: false, S, dec: [], phase: 'running', t: 0, playing: true, recog: null, reveal: null, revealAt: -1 });
   compileTS(); TSIM.target = TSIM.tEnd; nextDecisionReady();
   renderTSRun($('#view-teamsim')); tsLoop(); courtIntoView();
 }
@@ -68,14 +71,24 @@ function tsLoop() {
       const ring = $('#hud-ring-ts'); if (ring) { ring.style.strokeDashoffset = String(119.4 * f); ring.style.stroke = f > 0.7 ? 'var(--red)' : f > 0.4 ? 'var(--amber)' : 'var(--green)'; $('#hud-n-ts').textContent = Math.max(0, w - el).toFixed(1); }
       if (f >= 1) chooseTS({ id: 'hold', kind: 'hold', label: 'Held the ball (window ran out)', ev: 0.6, principle: false });
     }
-    drawTS(); updateTSTimeline();
+    drawTS(); updateTSTimeline(); updateShotClock();
     TSIM.raf = requestAnimationFrame(step);
   };
   TSIM.raf = requestAnimationFrame(step);
 }
+function updateShotClock() {
+  const el = $('#ts-clock'); if (!el || !TSIM.track) return;
+  let shotT = Infinity; for (const sg of TSIM.track.segs) if (isShotBall(sg.ball)) { shotT = sg.t0; break; }
+  const left = Math.max(0, SHOT_CLOCK - Math.min(TSIM.t, shotT));
+  el.querySelector('b').textContent = left.toFixed(1); el.classList.toggle('low', left <= 5);
+}
 function arrive() {
   if (TSIM.phase === 'running') { TSIM.phase = TSIM.askRecog ? 'question' : 'decide'; TSIM.decideAt = performance.now(); renderTSRun($('#view-teamsim')); }
-  else if (TSIM.phase === 'outcome') renderTSRun($('#view-teamsim'));
+  else if (TSIM.phase === 'outcome') {
+    if (TSIM.over) return finishTS();
+    if (!TSIM.pause) return continueTS(); // keep the possession flowing into the next read
+    renderTSRun($('#view-teamsim'));
+  }
 }
 function drawTS() {
   if (!TSIM.view || !TSIM.track) return;
@@ -115,11 +128,13 @@ function chooseTS(opt) {
   TSIM.dec.push(d);
   TSIM.reveal = { why, A }; TSIM.revealAt = tDecision;
   TSIM.phase = 'outcome'; TSIM.target = TSIM.tEnd; TSIM.t = tDecision; TSIM.playing = true;
-  if (res.ended || TSIM.dec.length >= M.decisions) TSIM.over = true; else TSIM.over = false;
+  TSIM.over = res.ended || TSIM.dec.length >= M.decisions;
+  if (!TSIM.over && SHOT_CLOCK - S.t <= 0.6) { beat(S, 0.8, {}, S.ball, [], 'Shot-clock violation'); compileTS(); TSIM.target = TSIM.tEnd; TSIM.over = true; TSIM.violation = true; d.res = { ...d.res, result: 'violation', txt: d.res.txt + ' The shot clock ran out.' }; }
   renderTSRun($('#view-teamsim'));
 }
 function continueTS() {
   if (TSIM.over) return finishTS();
+  if (TSIM.phase !== 'outcome') return;
   nextDecisionReady(); TSIM.phase = TSIM.askRecog ? 'question' : 'decide'; TSIM.decideAt = performance.now(); TSIM.t = TSIM.tEnd; renderTSRun($('#view-teamsim'));
   courtIntoView();
 }
@@ -129,7 +144,7 @@ function finishTS() {
   TSIM.phase = 'done';
   const S = TSIM.S, D = TSIM.dec, last = D.at(-1)?.res || {};
   const score = D.length ? Math.round(mean(D.map((d) => d.score))) : 0;
-  const entry = { id: uid('t'), ts: Date.now(), mode: TSIM.mode, play: S.cfg.play.name, playId: S.cfg.play.id, covs: [...new Set(S.cfg.covPlan.map((c) => c.cov))], intensity: S.intensity, score, result: last.result === 'cont' ? 'none' : last.result || 'none', pts: last.pts || 0,
+  const entry = { id: uid('t'), ts: Date.now(), mode: TSIM.mode, play: S.cfg.play.name, playId: S.cfg.play.id, covs: [...new Set(S.cfg.covPlan.map((c) => c.cov))], intensity: S.intensity, score, result: TSIM.violation ? 'violation' : last.result === 'cont' ? 'none' : last.result || 'none', pts: last.pts || 0,
     decisions: D.map((d) => ({ score: d.score, parts: d.parts, label: d.label, best: d.best.label, kind: d.kind, quad: d.quad.k, cov: d.cov, recog: d.parts.recognition })) };
   const L = doc('team').list; L.push(entry); if (L.length > 200) L.splice(0, L.length - 200); persist('team');
   if (TSIM.prep) TSIM.prep.reps.push({ entry, D });
@@ -146,7 +161,7 @@ function renderTSRun(el) {
       <div class="play-head"><button type="button" class="btn ghost sm" id="ts-back">‹ Coverage Sim</button><div class="ph-title"><span class="eyebrow" id="ts-eyebrow"></span><h2 id="ts-title"></h2></div></div>
       <div class="play-grid"><div class="stage-col">
         <div class="stage" id="ts-stage"><canvas id="ts-court" role="img" aria-label="Five-on-five simulation"></canvas>
-          <div class="hud"><div class="hud-mode" data-m="film" id="ts-mode-hud"></div>
+          <div class="hud"><div class="hud-mode" data-m="film" id="ts-mode-hud"></div><div class="hud-clock" id="ts-clock"><small>SHOT CLOCK</small><b>30.0</b></div>
             <div class="hud-count" id="ts-count" hidden><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19" class="ring-bg"></circle><circle cx="22" cy="22" r="19" class="ring-fg" id="hud-ring-ts"></circle></svg><b id="hud-n-ts"></b></div>
             <div class="hud-prompt" id="ts-prompt" hidden></div></div></div>
         <div class="timeline"><button type="button" class="icon-btn" id="ts-replay" aria-label="Replay possession">${icon('restart')}</button><div class="tl-track"><input type="range" id="ts-range" min="0" max="10" step="0.01" value="0" aria-label="Possession timeline"><div class="tl-marks" id="ts-marks"></div></div><span class="tl-time" id="ts-time">0.0s</span></div>
@@ -208,11 +223,15 @@ function renderRecog(P) {
 function renderDecide(P) {
   const S = TSIM.S, M = TS_MODES[TSIM.mode], opts = TSIM.opts;
   const kindTxt = { pass: 'Pass', backdoor: 'Backdoor', drive: 'Drive', shoot: 'Shot', script: 'Play', call: 'Call', reset: 'Reset', dribble: 'Dribble' };
-  P.innerHTML = `<div class="decide-head"><span class="eyebrow purple">Decision ${TSIM.dec.length + 1} of up to ${M.decisions}</span><p>You have the ball at the ${SPOT_LABEL[spotName(S.pos[S.ball])]}. ${M.window ? 'The defense keeps moving: decide before the clock runs out.' : ''}</p></div>
+  P.innerHTML = `<div class="decide-head"><span class="eyebrow purple">Read ${TSIM.dec.length + 1} · ${Math.max(0, SHOT_CLOCK - S.t).toFixed(1)}s on the shot clock</span><p>${S.ball} has the ball at the ${SPOT_LABEL[spotName(S.pos[S.ball])]}. ${M.window ? 'Decide before the countdown runs out.' : ''}</p></div>
+    ${lastReadStrip(TSIM.dec.at(-1))}
     ${M.reveal ? learnNotes(S) + `<div class="bd"><h4>Who's available (Learning mode shows this)</h4>${whyOpen(S, TSIM.A).map((w) => `<p class="small"><span class="chip ${w.tag === 'open' ? 'green' : w.tag === 'backdoor' ? 'purple' : w.tag === 'workable' ? 'amber' : 'red'}">${w.o} ${w.tag}</span> ${esc(w.txt)}</p>`).join('')}<p class="small">Your shot: <b>${TSIM.A.window}</b> · drive lane ${TSIM.A.drive >= 0.6 ? 'open' : TSIM.A.drive >= 0.35 ? 'possible' : 'closed'}</p></div>` : ''}
     <div class="opts">${opts.map((o, i) => `<button type="button" class="opt" data-o="${i}"><span class="k">${i + 1}</span><span><b>${esc(o.label)}</b><small>${kindTxt[o.kind] || ''}</small></span><span class="kind"></span></button>`).join('')}</div>
+    <div class="row">${pauseToggle()}<span class="grow"></span><button type="button" class="btn ghost sm" id="ts-end">End possession</button></div>
     <p class="hint"><b>On the court:</b> tap a teammate to pass · tap yourself or the ball to shoot · tap open floor to dribble there (up to 14 ft; toward the rim = attack). Keys 1–${Math.min(9, opts.length)} pick from the list.</p>`;
   for (const b of $$('[data-o]', P)) b.onclick = () => chooseTS(opts[Number(b.dataset.o)]);
+  bindPause(P);
+  $('#ts-end').onclick = () => { if (TSIM.dec.length) finishTS(); else { TSIM.phase = 'setup'; TSIM.S = null; renderTeamSim(); } };
 }
 const partBar = (name, v) => (v == null ? '' : part(name, v));
 function decisionCard(d, full = true) {
@@ -239,8 +258,20 @@ function bestReason(d) {
   if (b.kind === 'script') return 'Running our next action was the best way to create an advantage here.';
   return 'Nothing better was available.';
 }
+/** Compact, expandable feedback on the read just made (keeps the possession flowing). */
+function lastReadStrip(d) {
+  if (!d) return '';
+  const b = scoreBand(d.score), same = d.best.id === d.choice.id;
+  return `<details class="last-read band-${b.k}"><summary><b class="lr-score">${d.score}</b><span class="lr-txt"><b>${esc(b.t)}</b> · ${esc(d.label)}${same ? ' · best read' : ` · best: ${esc(d.best.label)}`}</span></summary><div class="lr-body">${decisionCard(d)}</div></details>`;
+}
+function pauseToggle() { return `<label class="pause-tog"><input type="checkbox" id="ts-pause" ${TSIM.pause ? 'checked' : ''}> Pause after each read for full coaching</label>`; }
+function bindPause(root) { const c = $('#ts-pause', root); if (c) c.onchange = () => { TSIM.pause = c.checked; uiSet('tsPause', TSIM.pause); }; }
 function renderOutcome(P) {
   const d = TSIM.dec.at(-1);
+  if (!TSIM.pause && !TSIM.over) {
+    P.innerHTML = `<div class="decide-head"><span class="eyebrow">Playing it out · read ${d.i + 1}</span><p>${esc(d.res.txt)}</p></div>${lastReadStrip(d)}${pauseToggle()}`;
+    bindPause(P); return;
+  }
   P.innerHTML = `<div class="decide-head"><span class="eyebrow">Decision ${d.i + 1} · result</span></div>${decisionCard(d)}
     <div class="actions"><button type="button" class="btn green" id="ts-cont">${TSIM.over ? 'See possession summary' : 'Continue the possession ›'}</button><button type="button" class="btn ghost" id="ts-frame">Show the decision frame</button></div>`;
   $('#ts-cont').onclick = continueTS;
@@ -248,7 +279,7 @@ function renderOutcome(P) {
 }
 function renderSummary(P) {
   const D = TSIM.dec, e = TSIM.saved, b = scoreBand(e.score), prep = TSIM.prep;
-  const resTxt = { make: `Make +${e.pts}`, miss: 'Missed shot', tov: 'Turnover', none: 'No shot (decision limit)' }[e.result];
+  const resTxt = { make: `Make +${e.pts}`, miss: 'Missed shot', tov: 'Turnover', violation: 'Shot-clock violation', none: 'No shot (possession ended)' }[e.result];
   P.innerHTML = `<div class="decide-head"><span class="eyebrow">Possession summary</span><h3>${esc(TSIM.S.cfg.play.name)}</h3></div>
     <div class="score-row"><div class="score-ring band-${b.k}"><svg viewBox="0 0 104 104"><circle class="bg" cx="52" cy="52" r="46"></circle><circle class="fg" cx="52" cy="52" r="46" style="stroke-dashoffset:${289 * (1 - e.score / 100)}"></circle></svg><div class="n"><div><b>${e.score}</b><small>/ 100</small></div></div></div>
       <div class="parts"><b class="band-${b.k}" style="font:700 15px var(--f-display)">${b.t}</b><p class="small">Decision IQ averaged over ${D.length} decision${D.length > 1 ? 's' : ''}. Result: <b>${resTxt}</b> (graded separately).</p><p class="small muted">Defense: ${e.covs.map((c) => COVERAGES[c].name).join(' → ')} · ${INTENSITY[e.intensity]} intensity</p></div></div>
@@ -285,7 +316,7 @@ function tsHistory() {
         <span class="h left">Correct read</span><div class="c gg"><b>${q.gg}</b><span>Right read, it worked</span></div><div class="c gb"><b>${q.gb}</b><span>Right read, poor execution or luck</span></div>
         <span class="h left">Wrong read</span><div class="c bg"><b>${q.bg}</b><span>Wrong read that worked anyway</span></div><div class="c bb"><b>${q.bb}</b><span>Wrong read, bad result</span></div></div>
       <p class="small muted" style="margin-top:8px">Coverage recognition: ${recPct == null ? 'not tested yet (Challenge / Elite)' : recPct + '% correct over ' + rec.length}</p></div></div>
-    <div class="card"><div class="section-title"><h2>Recent possessions</h2></div><div class="film-list" style="margin-top:8px">${[...L].reverse().slice(0, 10).map((e) => `<div class="film-row" style="cursor:default"><span class="sc" style="color:${{ elite: 'var(--green)', good: 'var(--blue-2)', ok: 'var(--amber)', bad: 'var(--red)' }[scoreBand(e.score).k]}">${e.score}</span><span class="t"><b>${esc(e.play)}</b><span>vs ${e.covs.map((c) => COVERAGES[c].name).join(' → ')} · ${TS_MODES[e.mode]?.name || ''} · ${new Date(e.ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span></span><span class="r"><span class="chip ${e.result === 'make' ? 'green' : e.result === 'tov' ? 'red' : 'gray'}">${{ make: 'Make +' + e.pts, miss: 'Miss', tov: 'Turnover', none: 'No shot' }[e.result]}</span></span></div>`).join('')}</div></div>`;
+    <div class="card"><div class="section-title"><h2>Recent possessions</h2></div><div class="film-list" style="margin-top:8px">${[...L].reverse().slice(0, 10).map((e) => `<div class="film-row" style="cursor:default"><span class="sc" style="color:${{ elite: 'var(--green)', good: 'var(--blue-2)', ok: 'var(--amber)', bad: 'var(--red)' }[scoreBand(e.score).k]}">${e.score}</span><span class="t"><b>${esc(e.play)}</b><span>vs ${e.covs.map((c) => COVERAGES[c].name).join(' → ')} · ${TS_MODES[e.mode]?.name || ''} · ${new Date(e.ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span></span><span class="r"><span class="chip ${e.result === 'make' ? 'green' : e.result === 'tov' ? 'red' : 'gray'}">${{ make: 'Make +' + e.pts, miss: 'Miss', tov: 'Turnover', violation: 'Violation', none: 'No shot' }[e.result]}</span></span></div>`).join('')}</div></div>`;
 }
 function mountTSCharts() {}
 document.addEventListener('keydown', (e) => {

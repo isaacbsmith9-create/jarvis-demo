@@ -246,7 +246,7 @@ const rules = () => doc('playbook').rules;
 /** After a completed pass: find the team rule for (passer role → receiver role) and run its verbs. */
 function applyPassRules(S, passer, receiver, fromRole, toRole) {
   const r = rules().find((x) => x.on.type === 'pass' && (x.on.from === fromRole || x.on.from === 'any') && (x.on.to === toRole || x.on.to === 'any'));
-  if (!r) return null;
+  if (!r) { respace(S); return null; }
   for (const t of r.then) { const who = ruleWho(S, t.who, passer, receiver); if (who && VERB_FN[t.verb]) VERB_FN[t.verb](S, who); }
   return r;
 }
@@ -495,4 +495,18 @@ function dribbleOption(S, A, pt) {
   else o.ev = 0.95 * lookValue(S, o, A);
   o.principle = (attack && A.drive >= 0.6) || (A.trapped && dist(to, from) >= 6 && !attack);
   return o;
+}
+
+/** Default continuity when no team rule covers a pass: off-ball perimeter players move to open four-out spots. */
+function respace(S) {
+  const spots = ['slotL', 'slotR', 'wingL', 'wingR', 'cornerL', 'cornerR'], taken = new Set(), moves = {};
+  const own = (o) => spots.slice().sort((x, y) => dist(S.pos[o], SPOTS[x]) - dist(S.pos[o], SPOTS[y]));
+  const H = S.ball; if (isPerim(S.pos[H])) taken.add(own(H)[0]);
+  const players = OFF.filter((o) => o !== H && isPerim(S.pos[o])).sort((a, b) => dist(S.pos[a], SPOTS[own(a)[0]]) - dist(S.pos[b], SPOTS[own(b)[0]]));
+  for (const o of players) {
+    const sp = own(o).find((x) => !taken.has(x) && !(x.startsWith('corner') && !players.some((p) => p !== o && dist(S.pos[p], SPOTS[x.replace('corner', 'wing')]) < 6)));
+    const pick = sp || own(o).find((x) => !taken.has(x)); if (!pick) continue;
+    taken.add(pick); if (dist(S.pos[o], SPOTS[pick]) > 3) moves[o] = SPOTS[pick];
+  }
+  if (Object.keys(moves).length) beat(S, 0.9, RR2(moves), H, [], 'Offense re-spaces');
 }
