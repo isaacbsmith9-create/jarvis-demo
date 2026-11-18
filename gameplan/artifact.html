@@ -76,6 +76,46 @@ header.top .date { color: var(--muted); font-size: 13px; margin-top: 4px; }
 .top3 .t { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; background: var(--hi-soft); }
 .top3 .rank { font-family: var(--f-display); font-weight: 800; font-size: 22px; color: var(--hi); width: 16px; text-align: center; }
 .agenda { display: grid; gap: 2px; }
+.sched-bar { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 10px; }
+.mini-seg { display: inline-flex; background: var(--surface-2); border-radius: 10px; padding: 3px; gap: 2px; }
+.mini-seg button { border: 0; background: none; border-radius: 8px; padding: 6px 11px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.mini-seg button.on { background: var(--surface); color: var(--fg); box-shadow: 0 1px 3px rgba(0, 0, 0, .14); }
+.tl { position: relative; margin: 0 -2px; --hh: 58px; }
+.tl-hour { height: var(--hh); border-top: 1px solid var(--line); position: relative; }
+.tl-hour span { position: absolute; top: -8px; left: 0; width: 44px; font-size: 11px; color: var(--muted); background: var(--surface); padding-right: 4px; font-variant-numeric: tabular-nums; }
+.tl-hour:first-child span { top: 2px; }
+.tl-hour button.slot { position: absolute; inset: 0 0 0 48px; border: 0; background: none; border-radius: 6px; }
+.tl-hour button.slot:hover { background: var(--surface-2); }
+.tl-b { position: absolute; border-radius: 10px; padding: 5px 8px; overflow: hidden; text-align: left; border: 0; border-left: 4px solid var(--c); background: color-mix(in srgb, var(--c) 20%, var(--surface)); color: var(--fg); display: flex; flex-direction: column; gap: 1px; box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
+.tl-b b { font-size: 13px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl-b small { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-b.short { flex-direction: row; align-items: center; gap: 6px; padding-block: 2px; }
+.tl-b.ext { border-left-style: dashed; background: color-mix(in srgb, var(--c) 10%, var(--surface)); }
+.tl-b.done b { text-decoration: line-through; opacity: .6; }
+.tl-b.past { opacity: .62; }
+.tl-b.now { box-shadow: 0 0 0 2px var(--c); }
+.tl-now { position: absolute; left: 44px; right: 0; height: 2px; background: var(--hi); z-index: 3; pointer-events: none; }
+.tl-now::before { content: ""; position: absolute; left: -5px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--hi); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.planbox textarea { width: 100%; min-height: 92px; border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 10px 12px; font-family: inherit; font-size: 16px; line-height: 1.4; color: inherit; resize: vertical; }
+.planbox .row2 { display: flex; gap: 8px; margin-top: 8px; }
+.mic { width: 48px; height: 46px; flex: none; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; }
+.mic svg { width: 22px; height: 22px; }
+.mic.on { background: var(--q1); color: #fff; border-color: transparent; animation: micpulse 1.4s ease-in-out infinite; }
+@keyframes micpulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--q1) 30%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .mic.on { animation: none; } }
+.pv-row { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+.pv-row:first-child { border-top: 0; }
+.pv-row i { width: 10px; height: 34px; border-radius: 4px; background: var(--c); }
+.pv-row b { display: block; font-size: 14px; overflow-wrap: anywhere; }
+.pv-row small { color: var(--muted); font-size: 12px; }
+.pv-row select { font-size: 12px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); color: inherit; max-width: 112px; }
+.hint { background: var(--hi-soft); border-radius: 12px; padding: 8px 12px; font-size: 13px; margin-top: 8px; }
+.btypes { display: flex; flex-wrap: wrap; gap: 6px; }
+.btypes button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 6px 11px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.btypes button i { width: 9px; height: 9px; border-radius: 3px; background: var(--c); }
+.btypes button.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .block { display: grid; grid-template-columns: 54px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .block:last-child { border-bottom: 0; }
 .block .time { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -191,6 +231,20 @@ input[type=text], input[type=time], input[type=date], input[type=number], select
       <div class="ring" aria-label="Day score"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="10"/><circle id="ring-fill" cx="50" cy="50" r="42" fill="none" stroke="var(--hi)" stroke-width="10" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264"/></svg><b id="score" class="num">0</b></div>
       <div style="min-width:0"><div class="eyebrow" id="now-label">Right now</div><div class="now" id="now-title">Free time</div><div class="next" id="next-title"></div></div>
     </div>
+    <div class="card planbox" id="planbox">
+      <div class="card-head"><h2>Plan my day</h2><span class="small muted" id="pb-sub">Say it or type it</span></div>
+      <p class="small muted" style="margin:0 0 8px">Tell it what you have and it builds your hour-by-hour schedule. Example: “School 8 to 3, practice 3:30 to 5:30, dinner at 6, homework for an hour, shoot at 8, bed at 10:30.”</p>
+      <textarea id="pb-text" placeholder="What do you have today?" aria-label="Your day in words"></textarea>
+      <div class="row2"><button type="button" class="mic" id="pb-mic" aria-label="Speak your day"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button><button type="button" class="btn primary" id="pb-go" style="flex:1">Build my schedule</button></div>
+      <div id="pb-help"></div>
+      <div id="pb-preview"></div>
+    </div>
+    <div class="card">
+      <div class="sched-bar"><h2>Schedule</h2><div class="row" style="gap:6px"><div class="mini-seg" id="sd-day"><button type="button" data-sd="0">Today</button><button type="button" data-sd="1">Tomorrow</button></div><button class="btn primary" id="add-block">＋</button></div></div>
+      <div class="sched-bar" style="margin-top:-2px"><div class="mini-seg" id="sd-view"><button type="button" data-sv="tl">Hour by hour</button><button type="button" data-sv="list">List</button></div><span class="small muted num" id="sd-sum"></span></div>
+      <div class="agenda" id="agenda"></div>
+      <div class="legend" id="legend"></div>
+    </div>
     <div class="card">
       <div class="card-head"><h2>Day score</h2><span class="small muted">out of 100</span></div>
       <div class="breakdown" id="breakdown"></div>
@@ -198,10 +252,6 @@ input[type=text], input[type=time], input[type=date], input[type=number], select
     <div class="card">
       <div class="card-head"><h2>Top 3 today</h2><button class="btn ghost" id="pick-today">Pick</button></div>
       <div class="top3" id="top3"></div>
-    </div>
-    <div class="card">
-      <div class="card-head"><h2>Schedule</h2><button class="btn primary" id="add-block">＋ Block</button></div>
-      <div class="agenda" id="agenda"></div>
     </div>
   </section>
 
@@ -288,9 +338,9 @@ input[type=text], input[type=time], input[type=date], input[type=number], select
   <label class="field"><span>What</span><input type="text" id="b-title" placeholder="Shooting workout" autocomplete="off"></label>
   <div class="two">
     <label class="field"><span>Start</span><input type="time" id="b-start" value="16:00"></label>
-    <label class="field"><span>Length</span><select id="b-mins"><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60" selected>1 hr</option><option value="90">1.5 hr</option><option value="120">2 hr</option><option value="180">3 hr</option><option value="420">7 hr</option></select></label>
+    <label class="field"><span>Length</span><select id="b-mins"><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60" selected>1 hr</option><option value="90">1.5 hr</option><option value="120">2 hr</option><option value="150">2.5 hr</option><option value="180">3 hr</option><option value="240">4 hr</option><option value="300">5 hr</option><option value="420">7 hr</option><option value="480">8 hr</option></select></label>
   </div>
-  <div class="field"><span>Type</span><div class="seg" style="--n:4" id="b-types"></div></div>
+  <div class="field"><span>Type</span><div class="btypes" id="b-types"></div></div>
   <button class="btn primary wide" id="b-save">Add to today</button>
   <button type="button" class="btn danger wide" id="b-delete" hidden>Delete</button>
 </form></dialog>
@@ -375,14 +425,23 @@ const CATS = [
   { id: 'phone', name: 'Phone / social', c: '#d4498f' }, { id: 'people', name: 'Family / friends', c: '#0e9aa7' }, { id: 'other', name: 'Other', c: '#a08a6a' },
 ];
 const catOf = (id) => CATS.find((c) => c.id === id) || CATS[CATS.length - 1];
-const BTYPES = [{ id: 'train', name: 'Train', c: 'var(--q2)' }, { id: 'school', name: 'School', c: 'var(--q4)' }, { id: 'focus', name: 'Focus', c: 'var(--q3)' }, { id: 'life', name: 'Life', c: 'var(--accent)' }];
+// Block types and their colors on the hour-by-hour view. (train, school, focus, life are the original four.)
+const BTYPES = [
+  { id: 'school', name: 'School', c: '#64748b' }, { id: 'practice', name: 'Practice / game', c: '#e8590c' }, { id: 'train', name: 'Workout', c: '#7c3aed' },
+  { id: 'focus', name: 'Homework', c: '#d99a0b' }, { id: 'meal', name: 'Meal', c: '#16a34a' }, { id: 'work', name: 'Business', c: '#0d9488' },
+  { id: 'life', name: 'Life', c: '#db2777' }, { id: 'free', name: 'Free time', c: '#0ea5e9' }, { id: 'sleep', name: 'Sleep', c: '#475569' },
+];
+const btype = (id) => BTYPES.find((t) => t.id === id) || BTYPES.find((t) => t.id === 'life');
 const DEFAULT_STEPS = [
   { id: 'bag', label: 'Pack bag and lay out clothes' }, { id: 'plan', label: "Plan tomorrow's Top 3" }, { id: 'charge', label: 'Phone on the charger, outside the room' },
   { id: 'shower', label: 'Shower' }, { id: 'stretch', label: 'Stretch 5 min' }, { id: 'read', label: 'Read 10 min' }, { id: 'lights', label: 'Lights out' },
 ];
 
 // ===================== storage =====================
-const PREFIX = 'gp:';
+// Standalone: "gp:" keys here and doc ids as-is. Inside Athlete OS (window.GP_EMBED set by its build) the keys and doc ids
+// get a prefix so Gameplan shares Athlete OS's database without clashing, and Athlete OS can read the same schedule.
+const EMBED = window.GP_EMBED || null;
+const PREFIX = EMBED?.prefix || 'gp:', DOC_PREFIX = EMBED?.docPrefix || '';
 const cache = {}; let remote = null; const pending = new Set(); let flushing = false, flushT;
 const lsGet = (k) => { try { return JSON.parse(localStorage.getItem(PREFIX + k)); } catch { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(PREFIX + k, JSON.stringify(v)); } catch {} };
@@ -394,7 +453,7 @@ const day = (iso, create = true) => { const k = 'd-' + iso; if (!doc(k) && creat
 function persist(k) { lsSet(k, cache[k]); if (!remote) return; pending.add(k); clearTimeout(flushT); flushT = setTimeout(flush, 700); }
 const saveCore = () => persist('core');
 const saveDay = (iso) => persist('d-' + iso);
-async function flush() { if (flushing || !remote) return; flushing = true; try { while (pending.size) { const k = pending.values().next().value; pending.delete(k); await remote.doc(k).set(JSON.parse(JSON.stringify(cache[k]))); } setSync('synced'); } catch { setSync('error'); } finally { flushing = false; } }
+async function flush() { if (flushing || !remote) return; flushing = true; try { while (pending.size) { const k = pending.values().next().value; pending.delete(k); await remote.doc(DOC_PREFIX + k).set(JSON.parse(JSON.stringify(cache[k]))); } setSync('synced'); } catch { setSync('error'); } finally { flushing = false; } }
 function setSync(s) { const el = $('#sync'); el.dataset.s = s; el.textContent = s === 'synced' ? 'Synced' : s === 'error' ? 'Not synced' : s === 'loading' ? 'Syncing…' : 'This device';
   $('#storage-note').textContent = s === 'synced' ? 'Saved to your Claude account. Syncs across your devices.' : 'Your plans are saved in this browser.'; }
 async function connectStore() {
@@ -408,7 +467,7 @@ async function connectStore() {
   try {
     const snap = await coll.get(); clearTimeout(t); remote = coll;
     const have = new Set();
-    for (const d of snap.docs) { if (!d.exists) continue; have.add(d.id); cache[d.id] = JSON.parse(JSON.stringify(d.data())); lsSet(d.id, cache[d.id]); }
+    for (const d of snap.docs) { if (!d.exists || !d.id.startsWith(DOC_PREFIX)) continue; const k = d.id.slice(DOC_PREFIX.length); if (DOC_PREFIX === '' && /^(gp-|aos|ml|day-|core$)/.test(k) && k !== 'core') continue; have.add(k); cache[k] = JSON.parse(JSON.stringify(d.data())); lsSet(k, cache[k]); }
     for (const k of lsKeys()) if (!have.has(k)) { doc(k); if (cache[k]) pending.add(k); }
     setSync('synced'); if (pending.size) flush(); render();
   } catch { clearTimeout(t); setSync('local'); }
@@ -428,6 +487,18 @@ function weekboardItems(date) {
   } catch { return []; }
 }
 
+// ===================== Athlete OS calendar (when Gameplan runs inside Athlete OS) =====================
+function aosItems(date) {
+  if (!EMBED?.aosKey) return [];
+  try {
+    const P = JSON.parse(localStorage.getItem(EMBED.aosKey) || 'null'); if (!P) return [];
+    const wd = new Date(date + 'T12:00:00').getDay(), mb = (a, b) => { const x = toMin(b) - toMin(a); return x > 0 ? x : x + 1440; };
+    const map = { practice: 'practice', game: 'practice', shooting: 'train', skill: 'train', workout: 'train', lift: 'train', conditioning: 'train', recovery: 'life', film: 'focus', nutrition: 'meal', sleep: 'sleep', personal: 'life', testing: 'train' };
+    return (P.events || []).filter((e) => e.start && !(e.skip || []).includes(date) && (e.date === date || (e.recur?.days?.includes(wd) && date >= e.date && (!e.recur.until || date <= e.recur.until))))
+      .map((e) => ({ id: 'aos-' + e.id, title: e.title, start: e.start, mins: e.mins || (e.end ? mb(e.start, e.end) : 60), type: map[e.type] || 'life', done: !!P.checks?.[date]?.['e:' + e.id], ext: 'Athlete OS' }));
+  } catch { return []; }
+}
+
 // ===================== model =====================
 const topFor = (iso) => core().tasks.filter((t) => t.top === iso);
 // Night belongs to the evening it started: 1am still counts as last night.
@@ -437,7 +508,7 @@ function minsBy(iso) { const out = {}; for (const e of day(iso, false)?.entries 
 function scoreFor(iso) {
   const tops = topFor(iso); const topPts = tops.length ? Math.round(40 * tops.filter((t) => t.done).length / Math.max(3, tops.length)) : 0;
   const ns = nightState(iso); const nightPts = ns.total ? Math.round(20 * ns.done / ns.total) : 0;
-  const blocks = [...(day(iso, false)?.blocks || []), ...(iso === todayIso() ? weekboardItems(iso) : [])];
+  const blocks = [...(day(iso, false)?.blocks || []), ...(iso === todayIso() ? extItems(iso) : [])].filter((b) => b.type !== 'sleep' && b.type !== 'meal');
   const blockPts = blocks.length ? Math.round(20 * blocks.filter((b) => b.done).length / blocks.length) : 0;
   const goal = core().settings.phoneGoal || 120; const phone = minsBy(iso).phone || 0;
   const phonePts = Math.round(20 * Math.max(0, Math.min(1, 1 - (phone - goal) / goal)));
@@ -458,22 +529,67 @@ function render() {
 function taskRow(t, rank) {
   return `<div class="t">${rank ? `<span class="rank">${rank}</span>` : ''}<button class="check ${t.done ? 'on' : ''}" data-task-check="${t.id}" aria-label="Done">${CHECK}</button><button class="grow tt" data-task-open="${t.id}" style="background:none;border:0;padding:0;text-align:left;font-weight:600;overflow-wrap:anywhere"><span class="${t.done ? 'done-text' : ''}">${esc(t.title)}</span></button></div>`;
 }
+let sdOff = 0, sdView = (() => { try { return localStorage.getItem(PREFIX + 'view') || 'tl'; } catch { return 'tl'; } })();
+const schedIso = () => shiftIso(todayIso(), sdOff);
+const extItems = (iso) => [...weekboardItems(iso).map((b) => ({ ...b, ext: 'Weekboard', type: /practice|game/i.test(b.title) ? 'practice' : /lift|workout|shoot/i.test(b.title) ? 'train' : /homework|study/i.test(b.title) ? 'focus' : 'life' })), ...aosItems(iso)];
+function layoutCols(items) {
+  // Overlapping blocks sit side by side.
+  const out = items.map((b) => ({ b, st: toMin(b.start), en: toMin(b.start) + Math.max(15, b.mins), col: 0, cols: 1 }));
+  let group = [], end = -1;
+  const flushG = () => { const n = Math.max(1, ...group.map((g) => g.col + 1)); group.forEach((g) => (g.cols = n)); group = []; };
+  for (const it of out.sort((a, b) => a.st - b.st || b.en - a.en)) {
+    if (it.st >= end) { flushG(); end = -1; }
+    const used = new Set(group.filter((g) => g.en > it.st).map((g) => g.col)); let c = 0; while (used.has(c)) c++;
+    it.col = c; group.push(it); end = Math.max(end, it.en);
+  }
+  flushG(); return out;
+}
+function timelineHtml(iso, items) {
+  const isToday = iso === todayIso(), nm = nowMin();
+  const first = items.length ? Math.min(...items.map((b) => toMin(b.start))) : 7 * 60, last = items.length ? Math.max(...items.map((b) => toMin(b.start) + b.mins)) : 21 * 60;
+  const h0 = Math.max(0, Math.min(6, Math.floor(first / 60), isToday ? Math.floor(nm / 60) : 24)), h1 = Math.min(24, Math.max(22, Math.ceil(last / 60)));
+  const HH = 58, px = (m) => ((m - h0 * 60) / 60) * HH;
+  let g = '';
+  for (let h = h0; h < h1; h++) g += `<div class="tl-hour"><span>${h === 0 ? '12a' : h < 12 ? h + 'a' : h === 12 ? '12p' : h - 12 + 'p'}</span><button type="button" class="slot" data-slot="${pad(h)}:00" aria-label="Add a block at ${fmt12(h * 60)}"></button></div>`;
+  for (const it of layoutCols(items)) {
+    const b = it.b, top = px(it.st), h = Math.max(22, px(Math.min(it.en, h1 * 60)) - top - 2), t = btype(b.type);
+    const w = `calc((100% - 50px) / ${it.cols})`, left = `calc(50px + (100% - 50px) / ${it.cols} * ${it.col})`;
+    const state = isToday ? (it.en <= nm ? ' past' : it.st <= nm ? ' now' : '') : '';
+    const label = `${fmt12(it.st)}–${fmt12(it.st + b.mins)}${b.ext ? ' · ' + b.ext : ''}`;
+    g += `<button type="button" class="tl-b${h < 40 ? ' short' : ''}${b.ext ? ' ext' : ''}${b.done ? ' done' : ''}${state}" style="--c:${t.c};top:${top + 1}px;height:${h}px;left:${left};width:calc(${w} - 3px)" ${b.ext ? 'data-ext="1"' : `data-block-open="${b.id}"`} aria-label="${esc(b.title)}, ${label}"><b>${esc(b.title)}</b><small>${label}</small></button>`;
+  }
+  if (isToday && nm >= h0 * 60 && nm <= h1 * 60) g += `<div class="tl-now" style="top:${px(nm)}px" aria-hidden="true"></div>`;
+  return `<div class="tl" style="height:${(h1 - h0) * HH}px">${g}</div>`;
+}
+function renderSchedule() {
+  const iso = schedIso(), items = [...(day(iso, false)?.blocks || []), ...extItems(iso)].sort((a, b) => toMin(a.start) - toMin(b.start));
+  $$('#sd-day button').forEach((b) => b.classList.toggle('on', Number(b.dataset.sd) === sdOff));
+  $$('#sd-view button').forEach((b) => b.classList.toggle('on', b.dataset.sv === sdView));
+  const busy = items.filter((b) => b.type !== 'sleep').reduce((a, b) => a + b.mins, 0);
+  $('#sd-sum').textContent = items.length ? `${items.length} block${items.length === 1 ? '' : 's'} · ${fmtDur(busy)} planned` : '';
+  const used = [...new Set(items.map((b) => b.type || 'life'))];
+  $('#legend').innerHTML = used.map((id) => `<span><i style="background:${btype(id).c}"></i>${esc(btype(id).name)}</span>`).join('');
+  if (!items.length) { $('#agenda').innerHTML = `<p class="empty">Nothing planned ${sdOff ? 'for tomorrow' : 'today'}. Use Plan my day above, or tap ＋.</p>`; return; }
+  if (sdView === 'tl') { $('#agenda').innerHTML = timelineHtml(iso, items); return; }
+  const nm = nowMin(), isToday = sdOff === 0; let html = '', placed = !isToday;
+  for (const b of items) {
+    const st = toMin(b.start), en = st + b.mins;
+    if (!placed && st > nm) { html += `<div class="nowline">Now ${fmt12(nm)}</div>`; placed = true; }
+    const state = isToday ? (en <= nm ? 'past' : st <= nm ? 'current' : '') : '';
+    html += `<div class="block ${state}"><span class="time">${fmt12(st)}</span><div style="min-width:0">${b.ext ? `<span class="title ${b.done ? 'done-text' : ''}">${esc(b.title)}</span>` : `<button class="title ${b.done ? 'done-text' : ''}" data-block-open="${b.id}">${esc(b.title)}</button>`}<div class="meta"><span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:3px;background:${btype(b.type).c}"></span><span>${fmtDur(b.mins)} · til ${fmt12(en)}</span>${b.ext ? `<span class="tag">${esc(b.ext)}</span>` : `<span class="tag">${esc(btype(b.type).name)}</span>`}</div></div>${b.ext ? '' : `<button class="check ${b.done ? 'on' : ''}" data-block-check="${b.id}" aria-label="Done">${CHECK}</button>`}</div>`;
+  }
+  if (!placed) html += `<div class="nowline">Now ${fmt12(nm)}</div>`;
+  $('#agenda').innerHTML = html;
+}
 function renderToday() {
   const iso = todayIso(), s = scoreFor(iso);
   $('#score').textContent = s.total; $('#ring-fill').style.strokeDashoffset = String(264 - 264 * s.total / 100);
   $('#breakdown').innerHTML = [['Top 3', s.topPts, 40], ['Night', s.nightPts, 20], ['Blocks', s.blockPts, 20], ['Phone', s.phonePts, 20]].map(([l, v, m]) => `<div><b class="num">${v}<small style="font-size:12px;color:var(--muted)">/${m}</small></b>${l}</div>`).join('');
   $('#top3').innerHTML = s.tops.length ? s.tops.map((t, i) => taskRow(t, i + 1)).join('') : '<p class="empty">No Top 3 yet. Tap Pick to choose the 3 things that make today a win.</p>';
-  const items = [...(day(iso, false)?.blocks || []), ...weekboardItems(iso)].sort((a, b) => toMin(a.start) - toMin(b.start));
-  const nm = nowMin(); let html = '', placed = false; let cur = null, next = null;
-  for (const b of items) {
-    const st = toMin(b.start), en = st + b.mins;
-    if (!placed && st > nm) { html += `<div class="nowline">Now ${fmt12(nm)}</div>`; placed = true; }
-    const state = en <= nm ? 'past' : st <= nm ? 'current' : '';
-    if (state === 'current' && !cur) cur = b; if (!state && !next) next = b;
-    html += `<div class="block ${state}"><span class="time">${fmt12(st)}</span><div style="min-width:0">${b.wb ? `<span class="title ${b.done ? 'done-text' : ''}">${esc(b.title)}</span>` : `<button class="title ${b.done ? 'done-text' : ''}" data-block-open="${b.id}">${esc(b.title)}</button>`}<div class="meta"><span>${fmtDur(b.mins)} · til ${fmt12(en)}</span>${b.wb ? '<span class="tag">Weekboard</span>' : b.type ? `<span class="tag">${esc(BTYPES.find((t) => t.id === b.type)?.name || '')}</span>` : ''}</div></div>${b.wb ? '' : `<button class="check ${b.done ? 'on' : ''}" data-block-check="${b.id}" aria-label="Done">${CHECK}</button>`}</div>`;
-  }
-  if (items.length && !placed) html += `<div class="nowline">Now ${fmt12(nm)}</div>`;
-  $('#agenda').innerHTML = items.length ? html : '<p class="empty">Nothing scheduled. Add blocks like practice, a shooting workout or homework so you can see your day.</p>';
+  const items = [...(day(iso, false)?.blocks || []), ...extItems(iso)].sort((a, b) => toMin(a.start) - toMin(b.start));
+  const nm = nowMin(); let cur = null, next = null;
+  for (const b of items) { const st = toMin(b.start), en = st + b.mins; if (st <= nm && en > nm && !cur) cur = b; if (st > nm && !next) next = b; }
+  renderSchedule();
   if (cur) { $('#now-label').textContent = `Right now · until ${fmt12(toMin(cur.start) + cur.mins)}`; $('#now-title').textContent = cur.title; }
   else { $('#now-label').textContent = 'Right now'; const firstOpen = s.tops.find((t) => !t.done); $('#now-title').textContent = firstOpen ? firstOpen.title : 'Free time'; if (firstOpen) $('#now-label').textContent = 'Free time · knock out'; }
   $('#next-title').textContent = next ? `Next: ${next.title} at ${fmt12(next.start)}` : s.total >= 80 ? 'Big day. Keep it rolling.' : '';
@@ -609,23 +725,24 @@ $('#ps-new').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.pre
 // ===================== actions: blocks =====================
 let editBlock = null, bType = 'train';
 function openBlock(id) {
-  const b = id ? day(todayIso()).blocks.find((x) => x.id === id) : null; editBlock = b;
+  const b = id ? day(schedIso()).blocks.find((x) => x.id === id) : null; editBlock = b;
   $('#bs-title').textContent = b ? 'Edit block' : 'Add block'; $('#b-title').value = b?.title || '';
-  const nm = nowMin(); $('#b-start').value = b?.start || `${pad(Math.min(23, Math.floor(nm / 60) + 1))}:00`;
-  $('#b-mins').value = String(b?.mins || 60); bType = b?.type || 'train';
-  $('#b-save').textContent = b ? 'Save' : 'Add to today'; $('#b-delete').hidden = !b; $('#b-delete').dataset.confirm = ''; $('#b-delete').textContent = 'Delete';
+  const nm = nowMin(); $('#b-start').value = b?.start || slotStart || `${pad(Math.min(23, sdOff ? 16 : Math.floor(nm / 60) + 1))}:00`;
+  const mins = String(b?.mins || 60); if (![...$('#b-mins').options].some((o) => o.value === mins)) $('#b-mins').add(new Option(fmtDur(Number(mins)), mins)); $('#b-mins').value = mins; bType = b?.type || 'train'; slotStart = null;
+  $('#b-save').textContent = b ? 'Save' : sdOff ? 'Add to tomorrow' : 'Add to today'; $('#b-delete').hidden = !b; $('#b-delete').dataset.confirm = ''; $('#b-delete').textContent = 'Delete';
   syncBTypes(); $('#block-sheet').showModal(); if (!b) setTimeout(() => $('#b-title').focus(), 50);
 }
-function syncBTypes() { $('#b-types').innerHTML = BTYPES.map((t) => `<button type="button" data-bt="${t.id}" class="${t.id === bType ? 'on' : ''}">${t.name}</button>`).join(''); }
+let slotStart = null;
+function syncBTypes() { $('#b-types').innerHTML = BTYPES.map((t) => `<button type="button" data-bt="${t.id}" class="${t.id === bType ? 'on' : ''}" style="--c:${t.c}"><i></i>${t.name}</button>`).join(''); }
 $('#b-types').addEventListener('click', (e) => { const b = e.target.closest('[data-bt]'); if (!b) return; bType = b.dataset.bt; syncBTypes(); });
 $('#block-form').addEventListener('submit', (e) => {
   e.preventDefault(); const title = $('#b-title').value.trim(); if (!title) return toast('Name the block');
-  const start = $('#b-start').value || '16:00', mins = Number($('#b-mins').value), iso = todayIso(), d = day(iso);
+  const start = $('#b-start').value || '16:00', mins = Number($('#b-mins').value), iso = schedIso(), d = day(iso);
   if (editBlock) Object.assign(editBlock, { title, start, mins, type: bType }); else d.blocks.push({ id: uid(), title, start, mins, type: bType, done: false });
-  const st = toMin(start), clash = [...d.blocks, ...weekboardItems(iso)].find((x) => x !== editBlock && x.title !== title && toMin(x.start) < st + mins && st < toMin(x.start) + x.mins);
+  const st = toMin(start), clash = [...d.blocks, ...extItems(iso)].find((x) => x !== editBlock && x.title !== title && toMin(x.start) < st + mins && st < toMin(x.start) + x.mins);
   saveDay(iso); $('#block-sheet').close(); render(); toast(clash ? `Saved. Overlaps with ${clash.title}.` : 'Saved');
 });
-$('#b-delete').addEventListener('click', (e) => { if (!confirmTap(e.currentTarget)) return; const d = day(todayIso()); d.blocks = d.blocks.filter((b) => b !== editBlock); saveDay(todayIso()); $('#block-sheet').close(); render(); });
+$('#b-delete').addEventListener('click', (e) => { if (!confirmTap(e.currentTarget)) return; const iso = schedIso(), d = day(iso); d.blocks = d.blocks.filter((b) => b !== editBlock); saveDay(iso); $('#block-sheet').close(); render(); });
 
 // ===================== actions: time =====================
 function stopTimer() { const c = core(), r = c.running; if (!r) return; const mins = Math.round((Date.now() - r.start) / 60000); c.running = null; saveCore();
@@ -665,13 +782,177 @@ document.addEventListener('click', (e) => {
   const tc = t.closest('[data-task-check]'); if (tc) return toggleTask(tc.dataset.taskCheck);
   const to = t.closest('[data-task-open]'); if (to) return openTask(to.dataset.taskOpen);
   const qa = t.closest('[data-quad-add]'); if (qa) return openTask(null, qa.dataset.quadAdd);
-  const bc = t.closest('[data-block-check]'); if (bc) { const b = day(todayIso()).blocks.find((x) => x.id === bc.dataset.blockCheck); if (b) { b.done = !b.done; saveDay(todayIso()); render(); } return; }
+  const bc = t.closest('[data-block-check]'); if (bc) { const iso = schedIso(), b = day(iso).blocks.find((x) => x.id === bc.dataset.blockCheck); if (b) { b.done = !b.done; saveDay(iso); render(); } return; }
+  const sl = t.closest('[data-slot]'); if (sl) { slotStart = sl.dataset.slot; return openBlock(null); }
+  if (t.closest('[data-ext]')) return toast(EMBED ? 'This one comes from your Athlete OS calendar. Edit it there.' : 'This one comes from Weekboard. Edit it there.');
   const bo = t.closest('[data-block-open]'); if (bo) return openBlock(bo.dataset.blockOpen);
 });
 $$('dialog.sheet').forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
 $('#add-block').addEventListener('click', () => openBlock(null));
 $('#pick-today').addEventListener('click', () => openPicker('today'));
 $('#pick-tomorrow').addEventListener('click', () => openPicker('tomorrow'));
+
+// ===================== Plan my day: words -> schedule =====================
+const NUMWORDS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12 };
+const CAT_RULES = [
+  ['free', /\b(2k|video ?games?|xbox|ps5|playstation|fortnite|gaming|tv|netflix|chill|relax|free time|phone|tiktok|youtube time)\b/],
+  ['sleep', /\b(sleep|bed|bedtime|lights out|nap)\b/],
+  ['school', /\b(school|class(es)?|period|bus|seminar|first period)\b/],
+  ['practice', /\b(practice|game|scrimmage|tournament|aau|tryouts?|open gym|film session)\b/],
+  ['train', /\b(workout|work out|lift(ing)?|weights|gym|shoot(ing)?|shots|skill(s)? work|court ?lab|run(ning)?|conditioning|train(ing)?|ball ?handling|handles|stretch(ing)?|mobility|recovery)\b/],
+  ['focus', /\b(homework|hw|study(ing)?|essay|project|read(ing)?|spanish|charla|math|english|science|history|test prep|quiz|assignment|tutoring)\b/],
+  ['meal', /\b(breakfast|lunch|dinner|eat|meal|snack|brunch)\b/],
+  ['work', /\b(work|job|shift|clean(ing)?|windows?|client|business|clip(s|ping)?|edit(ing)?|content|record(ing)?|post(ing)?)\b/],
+  ['life', /\b(church|family|friends|hang|chores|shower|doctor|dentist|appointment|haircut|errand|walk the dog|date|youth group|mom|dad)\b/],
+];
+const DEF_MINS = { school: 420, practice: 120, train: 60, focus: 60, meal: 30, work: 90, life: 60, free: 60, sleep: 480 };
+const MORNING = /\b(wake|breakfast|morning|bus|before school|school|class|first period|am)\b/;
+const T = String.raw`(\d{1,2})(?::(\d{2}))?\s*(am|pm|a|p)?\b`;
+function normWords(text) {
+  let t = ' ' + String(text).toLowerCase() + ' ';
+  t = t.replace(/a\.m\./g, 'am').replace(/p\.m\./g, 'pm').replace(/\bnoon\b/g, '12pm').replace(/\bmidnight\b/g, '12am').replace(/o'?clock/g, '').replace(/[–—]/g, '-');
+  t = t.replace(/\bhalf past (\w+)/g, (m, n) => `${NUMWORDS[n] ?? n}:30`).replace(/\bquarter past (\w+)/g, (m, n) => `${NUMWORDS[n] ?? n}:15`);
+  t = t.replace(/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b(?=\s*(thirty|fifteen|forty[- ]?five|am|pm|to|till|til|until|-|o'?clock|\b(?:and|,|$)))/g, (m) => NUMWORDS[m]);
+  t = t.replace(/\b(at|from|by|around|till|til|until|to) (one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b/g, (m, a, n) => `${a} ${NUMWORDS[n]}`);
+  t = t.replace(/(\d{1,2})\s+thirty\b/g, '$1:30').replace(/(\d{1,2})\s+fifteen\b/g, '$1:15').replace(/(\d{1,2})\s+forty[- ]?five\b/g, '$1:45');
+  t = t.replace(/\b(till|til|until|through|thru)\b/g, 'to');
+  t = t.replace(/\bninety (minutes?|mins?)\b/g, '90 $1').replace(/\bforty[- ]?five (minutes?|mins?)\b/g, '45 $1').replace(/\bthirty (minutes?|mins?)\b/g, '30 $1').replace(/\bfifteen (minutes?|mins?)\b/g, '15 $1').replace(/\btwenty (minutes?|mins?)\b/g, '20 $1')
+    .replace(/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve) (hours?|hrs?)\b/g, (m, n, u) => `${NUMWORDS[n]} ${u}`);
+  t = t.replace(/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow|tonight)\b:?/g, ' ');
+  return t;
+}
+function toMins(h, m, ap, prevEnd, chunk, isEnd, startMin) {
+  h = Number(h); m = Number(m || 0); if (h > 23 || m > 59) return null;
+  if (ap) { ap = ap[0]; if (ap === 'p' && h < 12) h += 12; if (ap === 'a' && h === 12) h = 0; return h * 60 + m; }
+  if (h > 12) return h * 60 + m;
+  if (isEnd && startMin != null) { const a = (h % 12) * 60 + m, p = a + 720; return a > startMin ? a : p > startMin ? p : a; }
+  if (h === 12) return 720 + m;
+  if (MORNING.test(chunk) && h >= 5 && h <= 11) return h * 60 + m;
+  const am = h * 60 + m, pm = am + 720;
+  if (h >= 7 && h <= 11) return prevEnd > am + 30 ? pm : am;
+  if (h >= 5 && prevEnd > 300 && prevEnd <= 9 * 60) return am; // right after an early-morning block
+  return pm; // 1-6 with no am/pm: afternoon or evening
+}
+function parseDay(text) {
+  const raw = normWords(text), out = [], miss = [];
+  const parts = raw.split(/[\n;.!?]|,|\band then\b|\bthen\b|\bafter that\b|\band (?=(?:at |from |\d|[a-z]+ (?:at|from|\d)))/).map((x) => x.trim()).filter(Boolean);
+  let prevEnd = 5 * 60;
+  for (const chunk of parts) {
+    let st = null, en = null, mins = null, m;
+    if ((m = chunk.match(new RegExp(`(?:from\\s+)?${T}\\s*(?:to|-)\\s*${T}`)))) { st = toMins(m[1], m[2], m[3] || (m[6] && !m[3] && Number(m[1]) <= Number(m[4]) ? m[6] : null), prevEnd, chunk); en = toMins(m[4], m[5], m[6], prevEnd, chunk, true, st); }
+    else if ((m = chunk.match(new RegExp(`(?:\\bat|@|\\bstarts? at|\\bstarting at|\\baround|\\bby)\\s+${T}`)))) st = toMins(m[1], m[2], m[3], prevEnd, chunk);
+    else if ((m = chunk.match(new RegExp(`(?:^|\\s)to\\s+${T}`)))) { st = prevEnd; en = toMins(m[1], m[2], m[3], prevEnd, chunk, true, st); }
+    else if ((m = chunk.match(new RegExp(`^${T}(?=\\s+[a-z])`)))) st = toMins(m[1], m[2], m[3], prevEnd, chunk);
+    if ((m = chunk.match(/(\d+(?:\.\d+)?)\s*(hours?|hrs?|h)\b(?:\s*and\s*(?:a\s*)?half)?/))) mins = Math.round(Number(m[1]) * 60 + (/and\s*(a\s*)?half/.test(m[0]) ? 30 : 0));
+    else if (/\b(an|one|1) hour and (a )?half\b|\bhour and a half\b/.test(chunk)) mins = 90;
+    else if (/\b(half (an )?hour|30 min)/.test(chunk)) mins = 30;
+    else if (/\b(an|one|a) hour\b/.test(chunk)) mins = 60;
+    else if ((m = chunk.match(/(\d+)\s*(minutes?|mins?|m)\b/))) mins = Number(m[1]);
+    else if (/\b(couple|two) hours\b/.test(chunk)) mins = 120;
+    if ((m = chunk.match(/\bafter (?:my |the |i get out of |i finish )?([a-z]{3,})/)) && st == null) { const key = m[1].replace(/s$/, ''); const ref = [...out].reverse().find((b) => b.title.toLowerCase().includes(key)); if (ref) st = toMin(ref.start) + ref.mins; }
+    const hit = CAT_RULES.find(([, re]) => re.test(chunk)), cat = hit ? hit[0] : 'life';
+    const timed = st != null || en != null || mins != null || /\bafter\b/.test(chunk);
+    if (!timed && !hit && !/\bwake\b/.test(chunk)) { miss.push(chunk.trim()); continue; }
+    if (/\bwake\b/.test(chunk) && mins == null && en == null) mins = 15;
+    let title = chunk.replace(new RegExp(`(?:from\\s+)?${T}\\s*(?:to|-)\\s*${T}`, 'g'), ' ').replace(new RegExp(`(?:\\bat|@|\\bstarts? at|\\bstarting at|\\baround|\\bby|(?:^|\\s)to)\\s+${T}`, 'g'), ' ').replace(new RegExp(`^${T}`), ' ')
+      .replace(/\bfor\b\s*(an?|one|a couple of|couple|\d+(\.\d+)?)?\s*(hours?|hrs?|h|minutes?|mins?|m)?(\s*and\s*(a\s*)?half)?/g, ' ').replace(/\b(\d+(\.\d+)?)\s*(hours?|hrs?|minutes?|mins?)\b/g, ' ').replace(/\b(half (an )?hour|an hour|one hour|a hour|couple hours)\b/g, ' ')
+      .replace(/\bafter (?:my |the |i get out of |i finish )?[a-z]{3,}/, ' ').replace(/^[\s:,-]+/, '').replace(/^(\s*(i|i've|ive|i'm|im|we|we've|then|and|also|so|um|uh|okay|ok|today|tomorrow|gotta|got|have|has|had|need to|going to|gonna|go to|go|my|the|a|is|it's|its|there's|there is|i have|i got|i need to|wanna|want to|will|be|at|do|doing)\b\s*)+/g, ' ')
+      .replace(/\s+(at|from|to|for|in the|this|until|then|and)\s*$/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!title) { if (st != null) miss.push(chunk); continue; }
+    title = title.charAt(0).toUpperCase() + title.slice(1);
+    if (cat === 'sleep' && /bed|lights out/.test(chunk)) title = 'Sleep';
+    if (st == null) st = prevEnd;
+    if (en == null || en <= st) en = st + (mins || (cat === 'school' ? Math.max(60, 15 * 60 - st) : DEF_MINS[cat]));
+    if (cat === 'sleep') en = Math.min(en, 24 * 60);
+    if (st < 0 || st >= 24 * 60) { miss.push(chunk); continue; }
+    const block = { id: uid(), title: title.slice(0, 60), start: `${pad(Math.floor(st / 60))}:${pad(st % 60)}`, mins: Math.max(5, Math.min(24 * 60 - st, en - st)), type: cat, done: false, src: 'voice' };
+    out.push(block); prevEnd = Math.max(prevEnd, toMin(block.start) + block.mins);
+  }
+  return { blocks: out.sort((a, b) => toMin(a.start) - toMin(b.start)), miss };
+}
+let pbDraft = null;
+function renderPreview() {
+  const el = $('#pb-preview'); if (!pbDraft) { el.innerHTML = ''; return; }
+  const { blocks, miss, ai } = pbDraft, iso = schedIso(), existing = (day(iso, false)?.blocks || []).length;
+  const clash = []; for (let i = 0; i < blocks.length; i++) for (let j = i + 1; j < blocks.length; j++) { const a = blocks[i], b = blocks[j]; if (toMin(b.start) < toMin(a.start) + a.mins && toMin(a.start) < toMin(b.start) + b.mins && a.type !== 'sleep' && b.type !== 'sleep') clash.push(`${a.title} and ${b.title}`); }
+  el.innerHTML = blocks.length ? `<div class="hint" style="background:var(--surface-2)"><div class="card-head" style="margin-bottom:4px"><b>${blocks.length} block${blocks.length === 1 ? '' : 's'} for ${sdOff ? 'tomorrow' : 'today'}</b><span class="small muted">${ai ? 'Read by AI' : 'No AI needed'} · check it</span></div>
+      ${blocks.map((b, i) => `<div class="pv-row" style="--c:${btype(b.type).c}"><i></i><span><b>${esc(b.title)}</b><small>${fmt12(b.start)}–${fmt12(toMin(b.start) + b.mins)} · ${fmtDur(b.mins)}</small></span><span class="row" style="gap:4px"><select data-pv-type="${i}" aria-label="Type for ${esc(b.title)}">${BTYPES.map((t) => `<option value="${t.id}"${t.id === b.type ? ' selected' : ''}>${t.name}</option>`).join('')}</select><button type="button" class="x" data-pv-del="${i}" aria-label="Remove ${esc(b.title)}">✕</button></span></div>`).join('')}
+      ${clash.length ? `<p class="small" style="margin:8px 0 0;color:var(--warn)">Overlaps: ${esc(clash.slice(0, 2).join('; '))}. Fine if that's right, or fix the times after.</p>` : ''}
+      ${miss.length ? `<p class="small muted" style="margin:8px 0 0">Couldn't read: “${esc(miss.join('”, “'))}”. Add it with ＋.</p>` : ''}
+      <div class="row2" style="margin-top:10px">${existing ? '<button type="button" class="btn" id="pb-add" style="flex:1">Add to my day</button><button type="button" class="btn primary" id="pb-replace" style="flex:1">Replace my day</button>' : '<button type="button" class="btn primary" id="pb-add" style="flex:1">Put it on my schedule</button>'}</div>
+      ${existing ? `<p class="small muted" style="margin:6px 0 0">Replace keeps blocks you added by hand and swaps out the ones from Plan my day.</p>` : ''}</div>`
+    : `<div class="hint">Couldn't find times in that. Try: “School 8 to 3, practice 3:30 to 5:30, dinner at 6, homework for an hour.”</div>`;
+}
+$('#pb-go').addEventListener('click', () => {
+  const t = $('#pb-text').value.trim(); if (!t) return toast('Say or type what you have first');
+  pbDraft = { ...parseDay(t), ai: false };
+  if (!pbDraft.blocks.length && aiSample) return aiPlan(t);
+  renderPreview();
+  if (aiSample && pbDraft.blocks.length) $('#pb-help').innerHTML = `<button type="button" class="btn ghost" id="pb-ai" style="margin-top:6px">Not quite right? Let AI read it</button>`;
+});
+$('#pb-preview').addEventListener('change', (e) => { const s2 = e.target.closest('[data-pv-type]'); if (s2) { pbDraft.blocks[Number(s2.dataset.pvType)].type = s2.value; renderPreview(); } });
+$('#pb-preview').addEventListener('click', (e) => {
+  const d = e.target.closest('[data-pv-del]'); if (d) { pbDraft.blocks.splice(Number(d.dataset.pvDel), 1); return renderPreview(); }
+  const add = e.target.closest('#pb-add'), repl = e.target.closest('#pb-replace'); if (!add && !repl) return;
+  const iso = schedIso(), dd = day(iso);
+  if (repl) dd.blocks = dd.blocks.filter((b) => b.src !== 'voice');
+  dd.blocks.push(...pbDraft.blocks.map((b) => ({ ...b, id: uid() })));
+  const n = pbDraft.blocks.length; saveDay(iso); pbDraft = null; $('#pb-text').value = ''; $('#pb-help').innerHTML = ''; renderPreview(); render();
+  if (sdView !== 'tl') { sdView = 'tl'; try { localStorage.setItem(PREFIX + 'view', 'tl'); } catch {} render(); }
+  $('#agenda').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  toast(`${n} block${n === 1 ? '' : 's'} added to ${sdOff ? 'tomorrow' : 'today'}`);
+});
+// Optional AI reading for messy descriptions (inside Claude only; the parser above needs no AI).
+let aiSample = null;
+const PLAN_SCHEMA = { type: 'object', additionalProperties: false, required: ['blocks'], properties: { blocks: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['title', 'start', 'end', 'type'], properties: { title: { type: 'string' }, start: { type: 'string' }, end: { type: 'string' }, type: { type: 'string', enum: BTYPES.map((t) => t.id) } } } } } };
+async function aiPlan(text) {
+  const btn = $('#pb-go'); btn.disabled = true; btn.textContent = 'Reading…';
+  try {
+    const r = await aiSample.json(`A high school athlete described their ${sdOff ? 'tomorrow' : 'day'}. Turn it into schedule blocks. Times are 24-hour "HH:MM". If no time is given, place it after the previous item with a sensible length. Assume school is in the morning and practice/homework/dinner are afternoon or evening unless they say otherwise. Types: ${BTYPES.map((t) => `${t.id} (${t.name})`).join(', ')}.\n\nTheir words: <<${text.slice(0, 1500)}>>\n\nReply with only JSON: {"blocks":[{"title":"School","start":"08:00","end":"15:00","type":"school"}]}`, { schema: PLAN_SCHEMA, modelTier: 'quick' });
+    const blocks = (r?.blocks || []).map((b) => { const st = toMin(b.start), en = toMin(b.end); if (!(st >= 0 && st < 1440)) return null; return { id: uid(), title: String(b.title || 'Block').slice(0, 60), start: `${pad(Math.floor(st / 60))}:${pad(st % 60)}`, mins: Math.max(5, Math.min(1440 - st, (en > st ? en : st + 60) - st)), type: btype(b.type).id, done: false, src: 'voice' }; }).filter(Boolean);
+    pbDraft = { blocks: blocks.sort((a, b) => toMin(a.start) - toMin(b.start)), miss: [], ai: true }; $('#pb-help').innerHTML = '';
+  } catch (e) { toast(e?.code === 'not_granted' ? 'AI is turned off for this page.' : 'AI could not read that. Try the regular button.'); }
+  finally { btn.disabled = false; btn.textContent = 'Build my schedule'; renderPreview(); }
+}
+$('#pb-help').addEventListener('click', (e) => { if (e.target.closest('#pb-ai')) aiPlan($('#pb-text').value.trim()); });
+// Voice: Claude dictation inside Claude, the browser's speech recognition on the website, else the keyboard mic.
+let dictation = null, webSR = null, micOn = false, micBase = '';
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const KEYBOARD_TIP = 'Tap the box, then the 🎤 on your keyboard to talk.';
+function setMicOn(on) { micOn = on; $('#pb-mic').classList.toggle('on', on); $('#pb-mic').setAttribute('aria-label', on ? 'Stop listening' : 'Speak your day'); $('#pb-sub').textContent = on ? 'Listening… tap the mic when done' : 'Say it or type it'; }
+function sayInto(text) { $('#pb-text').value = [micBase, text].filter(Boolean).join(' ').replace(/\s+/g, ' ').trimStart(); }
+$('#pb-mic').addEventListener('click', () => {
+  if (micOn) { if (dictation) dictation.stop().catch(() => {}); else webSR?.stop(); setMicOn(false); return; }
+  micBase = $('#pb-text').value.trim(); $('#pb-help').innerHTML = '';
+  if (dictation) {
+    dictation.start().catch((e) => { setMicOn(false); const c = e?.code;
+      if (c === 'not_granted') $('#pb-help').innerHTML = `<div class="hint">Claude isn't allowed to use your mic here. Open this page's menu › Permissions and turn on Dictation. Or: ${KEYBOARD_TIP}</div>`;
+      else if (c === 'unavailable') { dictation = null; $('#pb-help').innerHTML = `<div class="hint">Voice isn't available in this view. ${KEYBOARD_TIP}</div>`; }
+      else if (c !== 'stopped' && c !== 'dismissed') toast('The mic had a problem. Try again, or type.'); });
+    setMicOn(true); return;
+  }
+  if (SR && !window.claude?.use) {
+    webSR = new SR(); webSR.lang = 'en-US'; webSR.interimResults = true; webSR.continuous = true;
+    webSR.onresult = (ev) => { let t = ''; for (const r of ev.results) t += r[0].transcript + ' '; sayInto(t); };
+    webSR.onerror = (ev) => { setMicOn(false); if (ev.error === 'aborted' || ev.error === 'no-speech') return; $('#pb-help').innerHTML = `<div class="hint">${ev.error === 'not-allowed' ? 'The mic is blocked for this site. Tap the lock (or aA) by the address › Microphone › Allow, then reload.' : ev.error === 'service-not-allowed' ? 'Speech typing is off in this view (iPhone home-screen apps). Open the site in Safari, or: ' + KEYBOARD_TIP : 'Speech typing stopped. ' + KEYBOARD_TIP}</div>`; };
+    webSR.onend = () => { setMicOn(false); if ($('#pb-text').value.trim()) $('#pb-go').click(); };
+    try { webSR.start(); setMicOn(true); } catch { setMicOn(false); }
+    return;
+  }
+  $('#pb-help').innerHTML = `<div class="hint">${window.claude?.use ? 'Voice works inside Claude in Chrome or the desktop app.' : "This browser can't turn speech into text here."} ${KEYBOARD_TIP}</div>`; $('#pb-text').focus();
+});
+$('#sd-day').addEventListener('click', (e) => { const b = e.target.closest('[data-sd]'); if (!b) return; sdOff = Number(b.dataset.sd); pbDraft = null; renderPreview(); render(); });
+$('#sd-view').addEventListener('click', (e) => { const b = e.target.closest('[data-sv]'); if (!b) return; sdView = b.dataset.sv; try { localStorage.setItem(PREFIX + 'view', sdView); } catch {} render(); });
+(async () => {
+  if (!window.claude?.use) return;
+  const [s2, d] = await Promise.all([claude.use('sample'), claude.use('dictation')]);
+  aiSample = s2; dictation = d;
+  if (d) {
+    d.onPartial(({ text }) => { if (micOn) sayInto(text); });
+    d.onFinal(({ text }) => { micBase = (micBase + text).replace(/\s+/g, ' ').trimStart(); $('#pb-text').value = micBase; });
+    d.onState(({ state }) => { const was = micOn; setMicOn(state !== 'idle'); if (was && state === 'idle' && $('#pb-text').value.trim()) $('#pb-go').click(); });
+  }
+})();
 
 // ===================== boot =====================
 // Clean up Top 3 picks from past days so old picks don't pile up.
