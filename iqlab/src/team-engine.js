@@ -161,6 +161,8 @@ function beat(S, d, off, ball, events, cap, extra = {}) {
   if (extra.freezeDef) for (const k of extra.freezeDef) delete D.m[k];
   if (extra.defOverride) Object.assign(D.m, extra.defOverride);
   const m = { ...off, ...D.m };
+  // how far each defender travelled this beat (a long run to a just-caught shooter = a hard closeout)
+  S.moved = Object.fromEntries(DEF.map((x) => [x, m[x] && S.pos[x] ? dist(S.pos[x], m[x]) : 0])); S.lastBall = ball;
   S.beats.push({ d, m, ball, cap, screen: extra.screen, screenOn: extra.screenOn });
   Object.assign(S.pos, m); S.assign = D.assign; S.roles = D.roles; S.ball = holder; S.t += d;
   for (const n of D.notes) S.notes.push({ ...n, at: S.t });
@@ -322,7 +324,8 @@ function analyze(S) {
   const closest = Math.min(...DEF.map((d) => dist(pos[d], hp))), hd = distHoop(hp), three = hd >= 22 || (Math.abs(hp[0]) >= 22 && hp[1] <= 14.2);
   const window = hd > 25 ? 'out of range' : closest >= 5.5 ? 'open' : closest >= 3.5 ? 'tight' : 'contested';
   const helpers = DEF.filter((d) => /help|trap|tag/.test(S.roles?.[d] || '')).map((d) => ({ d, man: S.assign[d] }));
-  return { H, hp, mates, gap, line, behind, corridorHelp, trapped, drive, closest, hd, three, window, helpers, cov: S.cov };
+  const closing = !!(dH && S.lastBall?.pass?.[1] === H && (S.moved?.[dH] || 0) > 4.5 && gap < 7.5);
+  return { H, hp, mates, gap, line, behind, corridorHelp, trapped, drive: closing ? Math.max(drive, 0.6) : drive, closest, hd, three, window, helpers, cov: S.cov, closing };
 }
 
 // ---------------- options & values ----------------
@@ -349,6 +352,7 @@ function optionsFor(S, A, depth = 0) {
     if (m.backdoor) opts.push({ id: 'bd-' + m.o, kind: 'backdoor', to: m.o, label: `Hit ${m.o}'s backdoor cut`, ev: 0.88 * 2 * clamp(0.62 - (m.bdClear < 6 ? 0.08 : 0), 0.3, 0.7), comp: 0.88, principle: true, open: 1 });
   }
   opts.push({ id: 'drive', kind: 'drive', label: 'Attack your defender (drive)', ev: 0.55 + 0.7 * A.drive - (A.trapped ? 0.4 : 0), principle: A.drive >= 0.6, drive: A.drive });
+  if (A.closing && depth === 0) { const o = closeoutOption(S, A); if (o) opts.push(o); }
   opts.push(rimOption(S, A));
   if (A.hd <= 28) { const p = shotProb(A.hd, A.closest, A.three, I); opts.push({ id: 'shoot', kind: 'shoot', label: A.three ? 'Shoot the three' : 'Pull up and shoot', ev: p * (A.three ? 3 : 2), p, principle: A.window === 'open' }); }
   if (!S.offScript && nextStep && !nextStep.actions.some((a) => a.type === 'pass')) opts.push({ id: 'script', kind: 'script', label: `Run the next action: ${nextStep.label || 'step ' + (S.stepIdx + 1)}`, ev: 0.97, principle: true });
@@ -420,7 +424,7 @@ function applyChoice(S, opt, A) {
 /** Chance to get past the on-ball defender: better when he is out of position, and when the drive goes around him instead of into him. */
 function drivePBeat(S, A, to) {
   const dH = defOf(S, A.H), pD = dH && S.pos[dH], around = pD ? segDist(pD, A.hp, to) : 9;
-  return clamp(0.3 + 0.45 * A.drive + (around >= 1.6 ? 0.18 : -0.08) - (A.trapped ? 0.3 : 0), 0.12, 0.9);
+  return clamp(0.3 + 0.45 * A.drive + (around >= 1.6 ? 0.18 : -0.08) + (A.closing ? 0.2 : 0) - (A.trapped ? 0.3 : 0), 0.12, 0.92);
 }
 /**
  * Drive toward `to`. Beat your man: you get there and the help rotates (leaving his man). Contained: your defender
@@ -495,11 +499,20 @@ function whyOpen(S, A) {
 function dribbleOption(S, A, pt) {
   const from = A.hp; let to = RR(clampCourt(pt));
   if (dist(from, to) > 22) to = RR(toward(from, to, 22));
-  const attack = distHoop(to) < distHoop(from) - 3 && distHoop(to) < 16;
-  const o = { id: 'dribble', kind: 'dribble', at: to, attack, label: attack ? 'Attack off the dribble toward the rim' : `Dribble to the ${SPOT_LABEL[spotName(to)]}` };
+  const attack = distHoop(to) < distHoop(from) - 3 && (distHoop(to) < 16 || A.closing);
+  const o = { id: 'dribble', kind: 'dribble', at: to, attack, label: attack ? (A.closing ? 'Attack the closeout: one hard dribble' : 'Attack off the dribble toward the rim') : `Dribble to the ${SPOT_LABEL[spotName(to)]}` };
   if (attack) { const p = drivePBeat(S, A, to), win = lookValue(S, o, A, { forceDrive: true }), stall = lookValue(S, o, A, { forceDrive: false }); o.ev = p * win + (1 - p) * 0.95 * stall - (A.trapped ? 0.3 : 0); }
   else o.ev = 0.95 * lookValue(S, o, A);
   o.principle = (attack && A.drive >= 0.5) || (A.trapped && dist(to, from) >= 6 && !attack);
+  return o;
+}
+/** Off a hard closeout: one hard dribble past the closing defender, then read the help. */
+function closeoutOption(S, A) {
+  const side = sgn(A.hp[0] || 1), corner = A.hp[1] < 12;
+  const at = RR(clampCourt(corner ? [side * Math.max(10, Math.abs(A.hp[0]) - 7), Math.min(A.hp[1] + 2, 9)] : toward(A.hp, rimSpot(side), 7.5)));
+  const o = { id: 'closeout', kind: 'dribble', attack: true, at, closeout: true, label: 'Attack the closeout: one hard dribble' };
+  const p = drivePBeat(S, A, at), win = lookValue(S, o, A, { forceDrive: true }), stall = lookValue(S, o, A, { forceDrive: false });
+  o.ev = p * win + (1 - p) * 0.95 * stall; o.principle = true;
   return o;
 }
 /** Take it all the way: drive at the rim and finish (layup if you beat your man, contested floater if not). */
