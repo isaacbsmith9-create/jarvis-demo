@@ -119,7 +119,7 @@ class CourtView {
     if (o.targets) for (const tg of o.targets) this.drawTarget(ctx, st.pos[tg.id] || tg.at, tg, t);
     this.drawBall(ctx, st.ball);
     if (o.spotlight && st.holder) this.drawSpot(ctx, st.pos[st.holder], t);
-    this.drawFx(ctx, t);
+    if (o.fx) this.fx = o.fx.slice(); this.drawFx(ctx, t);
     // caption chip from the beat
     if (o.captions !== false && beat.cap) this.drawCaption(ctx, beat.cap);
     return st;
@@ -132,7 +132,7 @@ class CourtView {
     ctx.fillStyle = '#eaf1ff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, this.W / 2, y + s * 1.32); ctx.restore();
   }
   drawPlayer(ctx, id, p, f, t, st, o) {
-    const s = this.s, x = this.X(p[0]), y = this.Y(p[1]), R0 = 1.18 * s;
+    const s = this.s, x = this.X(p[0]), y = this.Y(p[1]), R0 = [0, 1.1, 1.12, 1.18, 1.24, 1.3][Number(id[1])] * s;
     const off = id[0] === 'O', kit = off ? OFF_KIT : DEF_KIT, n = Number(id[1]);
     const ang = Math.atan2(f[0], -f[1]);
     const hasBall = st.holder === id;
@@ -207,7 +207,7 @@ class CourtView {
     const s = this.s, x = this.X(p[0]), y = this.Y(p[1]), pulse = (Math.sin(t * 5 + p[0]) + 1) / 2;
     ctx.save(); ctx.strokeStyle = tg.color || 'rgba(139,92,255,.95)'; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.55 + pulse * 0.45;
     ctx.beginPath(); ctx.arc(x, y, s * (2.1 + pulse * 0.5), 0, Math.PI * 2); ctx.stroke();
-    if (tg.label) { ctx.globalAlpha = 1; ctx.font = `700 ${Math.max(10, s * 1.05)}px Inter, sans-serif`; const w = ctx.measureText(tg.label).width + s; ctx.fillStyle = 'rgba(80,40,200,.92)'; roundRect(ctx, x - w / 2, y - s * 4.3, w, s * 1.55, s * 0.75); ctx.fill(); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(tg.label, x, y - s * 3.52); }
+    if (tg.label) { ctx.globalAlpha = 1; ctx.font = `700 ${Math.max(10, s * 1.05)}px Inter, sans-serif`; const w = ctx.measureText(tg.label).width + s; ctx.fillStyle = 'rgba(80,40,200,.92)'; roundRect(ctx, x - w / 2 - s * 2.9, y - s * 3.2, w, s * 1.55, s * 0.75); ctx.fill(); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(tg.label, x - s * 2.9, y - s * 2.42); }
     ctx.restore();
   }
   drawArrow(ctx, a, b, color = 'rgba(139,92,255,.95)', dash, label) {
