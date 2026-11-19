@@ -36,7 +36,7 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 // ===================== storage: IndexedDB (one record per collection), with a localStorage fallback =====================
 // Collections are kept in memory and written through. The layout is backend-ready: each collection is an array of records with ids.
 const DB_NAME = 'student-lens', STORE = 'kv', VERSION = 1;
-const COLLECTIONS = ['classes', 'assignments', 'exams', 'events', 'sessions', 'decks', 'cards', 'guides', 'notes', 'results', 'docs'];
+const COLLECTIONS = ['classes', 'assignments', 'exams', 'events', 'sessions', 'decks', 'cards', 'guides', 'notes', 'results', 'docs', 'topics', 'goals', 'recs', 'snapshots'];
 const S = { profile: null, settings: null, ...Object.fromEntries(COLLECTIONS.map((c) => [c, []])) };
 let idb = null, useLS = false;
 function openDB() {
@@ -50,7 +50,7 @@ function openDB() {
 }
 function idbGet(k) { return new Promise((res) => { try { const r = idb.transaction(STORE).objectStore(STORE).get(k); r.onsuccess = () => res(r.result); r.onerror = () => res(undefined); } catch { res(undefined); } }); }
 function idbSet(k, v) { return new Promise((res, rej) => { try { const tx = idb.transaction(STORE, 'readwrite'); tx.objectStore(STORE).put(v, k); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); } catch (e) { rej(e); } }); }
-const DEFAULT_SETTINGS = () => ({ theme: 'dark', dailyStudyMins: 60, studyStart: '16:00', studyEnd: '21:30', pomo: 25, brk: 5, weekStartsMonday: true,
+const DEFAULT_SETTINGS = () => ({ theme: 'dark', dailyStudyMins: 60, dailyWorkMins: 120, studyStart: '16:00', studyEnd: '21:30', pomo: 25, brk: 5, weekStartsMonday: true,
   scale: [['A', 93, 4.0], ['A-', 90, 3.7], ['B+', 87, 3.3], ['B', 83, 3.0], ['B-', 80, 2.7], ['C+', 77, 2.3], ['C', 73, 2.0], ['C-', 70, 1.7], ['D+', 67, 1.3], ['D', 63, 1.0], ['D-', 60, 0.7], ['F', 0, 0]],
   honorsBonus: 0.5, apBonus: 1.0, demo: false });
 const DEFAULT_PROFILE = () => ({ name: '', school: '', grade: '', term: '' });
@@ -210,6 +210,7 @@ function priorityOf(a) {
   const g = a.classId ? classGrade(a.classId) : null, c = cls(a.classId);
   if (g?.pct != null && c?.goal && g.pct < c.goal) { s += 6; why.push(`${c.name} is under your ${c.goal}% goal`); }
   if (a.status === 'in_progress') { s += 3; why.push('already started'); }
+  if (typeof remainingMins === 'function' && d >= 0) { const left = remainingMins(a); if (left > (d + 1) * workCap() * 0.6) { s += 8; why.push(`~${fmtMins(left)} left, tight on time`); } }
   return { score: Math.round(s), why };
 }
 const ranked = () => openAssignments().map((a) => ({ a, ...priorityOf(a) })).sort((x, y) => y.score - x.score);

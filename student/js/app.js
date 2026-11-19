@@ -6,6 +6,7 @@
   try { await loadAll(); } catch (e) { console.error(e); toast('Could not open storage. Changes may not be saved.'); }
   applyTheme();
   expandRecurring(); refreshOverdue();
+  try { ensureTopics(); takeSnapshot(); checkGoals(); } catch (e) { console.error(e); }
   render();
   matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', () => S.settings.theme === 'system' && applyTheme());
   // Keep countdowns, "today" and overdue status fresh without touching anything you're typing in.

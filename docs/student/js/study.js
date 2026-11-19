@@ -192,7 +192,7 @@ function timerView() {
   return { html: `<div class="grid g-12"><div class="card s-5" style="display:grid;gap:16px;justify-items:center">
       <div class="timer-face" id="tm-face" style="position:relative;width:270px;height:270px">${tmFace(tmRemaining())}</div>
       <div class="seg" id="tm-ph"><button class="${TM.phase === 'focus' ? 'on' : ''}" data-p="focus">Focus ${S.settings.pomo}m</button><button class="${TM.phase === 'break' ? 'on' : ''}" data-p="break">Break ${S.settings.brk}m</button></div>
-      <div class="fgrid" style="width:100%"><label class="f">Class<select id="tm-c">${classOptions(TM.classId)}</select></label><label class="f">Topic<input type="text" id="tm-t" value="${esc(TM.topic)}" placeholder="What are you working on?"></label></div>
+      <div class="fgrid" style="width:100%"><label class="f">Class<select id="tm-c">${classOptions(TM.classId)}</select></label><label class="f">Topic<input type="text" id="tm-t" value="${esc(TM.topic)}" placeholder="What are you working on?" list="tm-topics"><datalist id="tm-topics">${topicsOf(TM.classId).map((t) => `<option value="${esc(t.name)}">`).join('')}</datalist></label></div>
       <div class="row"><button class="btn ghost" id="tm-reset">${icon('rotate-ccw', 16)} Reset</button><button class="btn primary" id="tm-go" style="min-width:140px">${TM.running ? `${icon('pause', 18)} Pause` : `${icon('play', 18)} ${TM.left != null ? 'Resume' : 'Start'}`}</button><button class="btn ghost" id="tm-skip">${icon('chevron-right', 16)} Skip</button></div>
       <button class="btn ghost sm" id="tm-log">${icon('plus', 14)} Log time manually</button></div>
     <div class="s-7 stack" style="gap:18px;align-content:start"><div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))">${kpi('flame', 'Streak', studyStreak() + ' d', 'days in a row')}${kpi('clock', 'Today', fmtMins(studyMinsOn(t)), `goal ${fmtMins(S.settings.dailyStudyMins)}`)}${kpi('star', 'Avg focus', avgR ? round(avgR, 1) + '/5' : '—', `${rated.length} rated`)}</div>
@@ -204,7 +204,7 @@ function timerView() {
       $('#tm-reset', root).onclick = () => { const was = TM.startedAt && TM.phase === 'focus' ? Math.round((Date.now() - TM.startedAt) / 6e4) : 0; tmReset(); if (was >= 5) logSessionPrompt(was, Date.now() - was * 6e4, 'pomodoro'); };
       $('#tm-skip', root).onclick = () => { TM.running = false; TM.left = null; TM.startedAt = null; TM.phase = TM.phase === 'focus' ? 'break' : 'focus'; render(); };
       $('#tm-ph', root).onclick = (e) => { const b = e.target.closest('[data-p]'); if (!b || TM.running) return; TM.phase = b.dataset.p; TM.left = null; render(); };
-      $('#tm-c', root).onchange = (e) => (TM.classId = e.target.value); $('#tm-t', root).oninput = (e) => (TM.topic = e.target.value);
+      $('#tm-c', root).onchange = (e) => { TM.classId = e.target.value; $('#tm-topics', root).innerHTML = topicsOf(TM.classId).map((t) => `<option value="${esc(t.name)}">`).join(''); }; $('#tm-t', root).oninput = (e) => (TM.topic = e.target.value);
       $('#tm-log', root).onclick = () => logSessionPrompt(30, Date.now() - 30 * 6e4, 'manual');
       root.addEventListener('click', async (e) => { const b = e.target.closest('[data-dels]'); if (b && (await confirmBox('Delete this session?'))) remove('sessions', b.dataset.dels); });
     } };

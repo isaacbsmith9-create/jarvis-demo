@@ -41,8 +41,8 @@ function classCard(c) {
 document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches?.('.class-card')) e.target.click(); });
 
 function classWorkspace(c, tab) {
-  const st = classStats(c), g = st.g, tabs = [['overview', 'Overview', 'house'], ['assignments', 'Assignments', 'list-checks'], ['grades', 'Grades', 'chart-line'], ['notes', 'Notes & materials', 'notebook-pen'], ['exams', 'Exams', 'graduation-cap'], ['study', 'Study', 'brain'], ['analytics', 'Analytics', 'gauge']];
-  const body = { overview: cwOverview, assignments: cwAssignments, grades: () => gradebookHTML(c.id), notes: cwNotes, exams: cwExams, study: cwStudy, analytics: cwAnalytics }[tab] || cwOverview;
+  const st = classStats(c), g = st.g, tabs = [['overview', 'Overview', 'house'], ['assignments', 'Assignments', 'list-checks'], ['grades', 'Grades', 'chart-line'], ['notes', 'Notes & materials', 'notebook-pen'], ['exams', 'Exams', 'graduation-cap'], ['study', 'Study', 'brain'], ['mastery', 'Mastery', 'layout-grid'], ['analytics', 'Analytics', 'gauge']];
+  const body = { overview: cwOverview, assignments: cwAssignments, grades: () => gradebookHTML(c.id), notes: cwNotes, exams: cwExams, study: cwStudy, analytics: cwAnalytics, mastery: (c) => { ensureTopics(); return `<div class="card"><div class="card-h"><h3>Topic mastery</h3><span class="end"><a class="btn sm" href="#intel/mastery/${c.id}">Manage topics ${icon('arrow-right', 13)}</a></span></div>${masteryMap(c.id, true)}</div>`; } }[tab] || cwOverview;
   return {
     title: c.name, sub: `<a href="#classes" style="color:var(--muted);text-decoration:none">Classes</a> / ${esc(c.name)}`,
     actions: `<button class="btn ghost sm" id="cw-edit">${icon('pencil', 15)}<span class="hide-sm">Edit class</span></button><button class="btn primary sm" id="cw-add">${icon('plus', 15)} Assignment</button>`,
@@ -59,6 +59,7 @@ function classWorkspace(c, tab) {
       $('#cw-tabs', root).onclick = (e) => { const b = e.target.closest('[data-t]'); if (b) go('classes', c.id, b.dataset.t); };
       $('#cw-edit').onclick = () => editClass(c); $('#cw-add').onclick = () => editAssignment(null, { classId: c.id });
       if (tab === 'grades') mountGradebook(root, c.id);
+      if (tab === 'mastery') root.addEventListener('click', (e) => { const b = e.target.closest('[data-tid]'); if (b) topicDetail(b.dataset.tid); });
       root.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (!b) return; const a = b.dataset.act;
         if (a === 'note') editNote(null, { classId: c.id }); if (a === 'exam') editExam(null, { classId: c.id }); if (a === 'paste') pasteExtract(c.id); if (a === 'timer') startTimerFor(c.id, ''); if (a === 'guide') go('study', 'guides');
         if (a === 'upload') uploadMaterial(c.id); if (a === 'deck') newDeck(c.id); });

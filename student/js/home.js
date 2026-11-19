@@ -48,6 +48,7 @@ VIEWS.home = () => {
         ${kpi('clock', 'Studied this week', fmtMins(sum(mins)), `${studyStreak()}-day streak`, 'var(--good)', spark(mins, 'var(--good)'))}
         ${kpi('circle-check', 'Completion', wk.length ? Math.round((wkDone / wk.length) * 100) + '%' : '—', 'of this week’s work', 'var(--warn)')}
       </div>
+      ${intelStrip()}
       <div class="grid g-12">
         <div class="card s-7"><div class="card-h"><span class="ki" style="color:var(--accent)">${icon('sparkles', 18)}</span><h2>Daily briefing</h2><span class="end tiny muted">rules over your records</span></div>
           ${br.length ? `<div class="stack" style="gap:8px">${br.map((b, i) => `<div class="alert ${b.lvl}" style="cursor:pointer" data-br="${i}"><span class="ai">${icon(b.ic, 15)}</span><span class="grow"><span>${b.text}</span><div class="tiny dim" style="margin-top:2px">Based on: ${esc(b.why)}</div></span>${icon('chevron-right', 15, 'dim')}</div>`).join('')}</div>` : '<p class="muted small">Nothing to flag. Add assignments and exams and the briefing will fill in.</p>'}</div>
@@ -79,4 +80,15 @@ function welcome(greet, name) {
       <div class="row wrap"><button class="btn primary" onclick="editClass()">${icon('plus', 16)} Add your first class</button><button class="btn" onclick="syllabusImport()" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.16);color:#fff">${icon('file-up', 16)} Scan a syllabus</button></div></div></div>
       <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">${[['library', 'Classes with their own workspace', 'Grades by category, assignments, notes, exams and analytics for each class.'], ['target', 'Priorities that explain themselves', 'A rule-based score ranks your work and tells you why each item is where it is.'], ['chart-line', 'Grade math you can trust', 'Weighted and points grading, what-if, goal and GPA calculators.'], ['brain', 'Study tools from your notes', 'Guides, spaced-repetition flashcards, quizzes and timed practice tests.'], ['graduation-cap', 'Exam prep plans', 'A schedule built around your workload that adjusts when you fall behind, only when you say so.'], ['calendar-days', 'One planner', 'Classes, due dates, exams, study blocks and events with conflict checks.']].map(([ic, h, s]) => `<div class="card"><span class="ki" style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);margin-bottom:10px">${icon(ic, 20)}</span><b style="font-family:var(--f-display)">${h}</b><p class="small muted" style="margin:6px 0 0">${s}</p></div>`).join('')}</div>
       <div class="card"><div class="between" style="flex-wrap:wrap;gap:10px"><div><b>Want to look around first?</b><div class="small muted">Load a sample semester. It's made-up demo data, clearly marked, and you can clear it in one click.</div></div><div class="row"><button class="btn" onclick="restoreBackup()">${icon('upload', 15)} Restore backup</button><button class="btn" onclick="loadSample()">${icon('sparkles', 15)} Load sample semester</button></div></div></div>`, actions: '' };
+}
+
+/** Compact link into Academic Intelligence: same engine, same numbers. */
+function intelStrip() {
+  ensureTopics(); const ps = performanceScore(), pg = projectedGPA(), rk = risks(), hi = rk.filter((r) => r.level === 'high').length, rec = directorRecs().find((r) => r.status === 'open' || r.status === 'accepted');
+  const gl = S.goals.filter((g) => !g.archived), reached = gl.filter((g) => goalProgress(g).done).length;
+  return `<a class="intel-strip" href="#intel"><div class="row" style="gap:12px">${ps.score == null ? '' : segRing(ps.comps, ps.score, '', 64)}<div><div class="eyebrow">Academic Intelligence</div><b style="font-family:var(--f-display)">${ps.score == null ? 'Not enough data yet' : `Performance ${ps.score}/100 · ${ps.label}`}</b></div></div>
+    <div class="is-cell"><span class="tiny muted">Projected GPA <span class="tag-obs a">Est.</span></span><b class="num">${pg ? pg.unweighted.toFixed(2) : '—'}</b></div>
+    <div class="is-cell"><span class="tiny muted">Risks</span><b class="num ${hi ? 'bad' : ''}">${rk.length}${hi ? ` <span class="tiny">(${hi} high)</span>` : ''}</b></div>
+    <div class="is-cell"><span class="tiny muted">Goals</span><b class="num">${gl.length ? `${reached}/${gl.length}` : '—'}</b></div>
+    <div class="is-cell grow" style="min-width:180px"><span class="tiny muted">Study next</span><b class="small" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${rec ? `${esc(rec.topic)} · ${fmtMins(rec.mins)}` : 'Nothing recommended'}</b></div>${icon('chevron-right', 18, 'dim')}</a>`;
 }
