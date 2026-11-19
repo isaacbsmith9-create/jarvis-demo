@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f17">
+<meta name="description" content="Student Lens: classes, assignments, grades, study tools, exams and planning in one place. Runs fully on your device.">
+<title>Student Lens</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236d7cff'/%3E%3Cstop offset='1' stop-color='%238b5cf6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M14 26 32 17l18 9-18 9z' fill='%23fff'/%3E%3Cpath d='M21 31v9c0 3 5 7 11 7s11-4 11-7v-9' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+<script>try { const t = localStorage.getItem('sl:theme'); if (t) document.documentElement.dataset.theme = t; } catch {}</script>
+</head>
+<body>
+<div class="shell">
+  <aside class="side" aria-label="Main navigation">
+    <a class="brand" href="#home" style="text-decoration:none;color:inherit"><span class="mark" id="brand-mark"></span><b>Student<span>Lens</span></b></a>
+    <nav id="side-nav"></nav>
+    <div class="side-foot" id="side-foot"></div>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <div class="crumb grow" id="crumb"></div>
+      <div class="row" id="top-actions"></div>
+      <button type="button" class="search-btn" id="search-btn" aria-label="Search (Ctrl K)"><span id="search-ic"></span><span>Search everything</span><kbd>Ctrl K</kbd></button>
+      <button type="button" class="icon-btn" id="bell" aria-label="Notifications"><span id="bell-ic"></span><span class="dot" id="bell-dot" hidden></span></button>
+    </header>
+    <main class="page" id="page" tabindex="-1"></main>
+  </div>
+</div>
+<nav class="tabbar" id="tabbar" aria-label="Main navigation"></nav>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<input type="file" id="file-pick" hidden>
+<noscript><p style="padding:24px">Student Lens needs JavaScript turned on.</p></noscript>
+<script src="js/icons.js"></script>
+<script src="js/core.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/importers.js"></script>
+<script src="js/home.js"></script>
+<script src="js/classes.js"></script>
+<script src="js/assignments.js"></script>
+<script src="js/grades.js"></script>
+<script src="js/study.js"></script>
+<script src="js/cards.js"></script>
+<script src="js/exams.js"></script>
+<script src="js/planner.js"></script>
+<script src="js/insights.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/sample.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
