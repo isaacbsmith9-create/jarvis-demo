@@ -621,6 +621,117 @@ button.cc-pt { display: block; width: 100%; text-align: left; border: 1px dashed
 .suite-item.on { background: color-mix(in srgb, var(--c) 12%, transparent); }
 .suite-item.going { opacity: .6; }
 
+/* ===================== COURTSIDE LOOK =====================
+   Layout concept: a scoreboard header, then cards grouped under quiet section labels; solid accents instead of
+   blue-to-purple gradients; hardwood amber reserved for streaks and records; big tabular numbers like a scoreboard.
+   Loaded after os.css: it only restyles. Light and dark both come from the existing tokens plus three new ones. */
+:root { --amber: #c2410c; --amber-soft: #fdebdc; --card-r: 20px; --hair: color-mix(in srgb, var(--line) 70%, transparent); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --amber: #ff9b54; --amber-soft: #33200f; --hair: rgba(140, 160, 255, .12); } }
+:root[data-theme="dark"] { --amber: #ff9b54; --amber-soft: #33200f; --hair: rgba(140, 160, 255, .12); }
+
+/* ground: one quiet glow, no purple wash */
+:root[data-theme="dark"] body, :root:not([data-theme="light"]) body { background: radial-gradient(900px 420px at 50% -220px, rgba(61, 139, 255, .16), transparent 70%), var(--bg); background-attachment: fixed; }
+
+/* header */
+.topbar { border-bottom: 1px solid var(--hair); padding-block: 9px; }
+.top-actions { gap: 6px; }
+.icon-btn { border-radius: 12px; border-color: var(--hair); background: var(--surface-2); }
+.fuel-link { background: var(--surface-2); color: var(--fg); border: 1px solid var(--hair); box-shadow: none; }
+.fuel-link::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #eab308; }
+
+/* buttons: solid accent with a top highlight */
+.btn { border-radius: 12px; border-color: var(--hair); transition: background .15s, border-color .15s, transform .1s; }
+.btn:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--accent); color: #fff; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), 0 6px 18px -10px var(--accent); }
+.btn.primary:hover { background: color-mix(in srgb, var(--accent) 88%, #fff); }
+.chip.on, .seg button.on { background: var(--accent); color: #fff; border-color: transparent; }
+.ai-badge { background: var(--purple); }
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } .btn:active { transform: none; } }
+
+/* sub navigation: calm pills, active = accent tint */
+.subnav { padding-top: 6px; }
+.subnav button { background: transparent; border-color: var(--hair); color: var(--muted); }
+.subnav button:hover { color: var(--fg); }
+.subnav button.on { background: var(--accent-soft); color: var(--fg); border-color: color-mix(in srgb, var(--accent) 55%, transparent); box-shadow: none; }
+
+/* tab bar: active tab sits in a pill */
+.tab { position: relative; padding: 6px 2px 4px; }
+.tab svg { width: 22px; height: 22px; padding: 3px 12px; box-sizing: content-box; border-radius: 99px; transition: background .15s; }
+.tab.on { color: var(--fg); }
+.tab.on svg { color: var(--accent); background: var(--accent-soft); filter: none; }
+@media (max-width: 430px) { .tab svg { padding: 3px 8px; } }
+
+/* cards: one radius, hairline border, less glow */
+.card { border-radius: var(--card-r); border-color: var(--hair); }
+:root[data-theme="dark"] .card, :root:not([data-theme="light"]) .card { background: var(--surface); border-color: var(--hair); box-shadow: 0 1px 0 rgba(255, 255, 255, .03) inset; }
+.card-head h3 { font-size: 17.5px; letter-spacing: -.2px; }
+.card-head .sub { font-size: 12.5px; }
+.widgets .card { animation: none; }
+.list .li { transition: background .12s; }
+.empty { border-radius: 16px; border-color: var(--hair); }
+
+/* numbers read like a scoreboard */
+.kpi { background: var(--surface-2); border: 1px solid var(--hair); border-radius: 16px; }
+.kpi small { font-size: 11px; letter-spacing: .08em; }
+.kpi b { font-size: 26px; letter-spacing: -.6px; }
+.tag { border: 1px solid var(--hair); }
+
+/* Home: scoreboard header */
+.look-hero { padding: 18px 18px 14px; }
+.look-hero::after { opacity: .5; }
+.look-hero h1 { font-size: 26px; }
+.sb { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+.sb-cell { display: grid; justify-items: center; align-content: start; gap: 2px; text-align: center; padding: 10px 2px 8px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--hair); min-width: 0; }
+.sb-cell .ring { gap: 0; }
+.sb-cell circle:not(.fg) { stroke: var(--line); }
+.sb-cell circle.fg { filter: none !important; }
+.sb-n { font: 700 14px var(--f-display); font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
+.sb-l { font: 600 10px var(--f-body); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-top: 4px; }
+.sb-s { font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.sb-streak { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 10px 12px; border-radius: 16px; background: var(--amber-soft); border: 1px solid color-mix(in srgb, var(--amber) 35%, transparent); color: var(--amber); }
+.sb-fire { display: grid; flex: none; } .sb-fire svg { width: 20px; height: 20px; }
+.sb-st { display: flex; align-items: center; gap: 8px; flex: none; }
+.sb-st span { font: 600 11px/1.2 var(--f-body); text-transform: uppercase; letter-spacing: .06em; }
+.sb-st small { font-weight: 500; text-transform: none; letter-spacing: 0; opacity: .85; }
+.sb-big { font: 700 30px/1 var(--f-display); font-variant-numeric: tabular-nums; letter-spacing: -.8px; }
+.sb-days { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; flex: 1; min-width: 0; margin-left: auto; max-width: 240px; }
+.sb-days i { aspect-ratio: 1; border-radius: 4px; background: color-mix(in srgb, var(--amber) 16%, transparent); max-width: 100%; }
+.sb-days i.on { background: var(--amber); }
+.sb-days i.now { outline: 2px solid var(--fg); outline-offset: 1px; }
+@media (max-width: 380px) { .sb-l { font-size: 9px; letter-spacing: .02em; } }
+.jump { display: flex; gap: 6px; margin-top: 12px; overflow-x: auto; scrollbar-width: none; }
+.jump::-webkit-scrollbar { display: none; }
+.jump button { flex: none; border: 1px solid var(--hair); background: transparent; color: var(--fg); border-radius: 99px; padding: 6px 14px; font: 600 13px var(--f-body); cursor: pointer; }
+.jump button:hover { background: var(--surface-2); }
+.d2-mode { margin-top: 12px; }
+
+/* Home: section labels */
+.sec-label { display: flex; align-items: baseline; gap: 10px; padding: 14px 4px 0; scroll-margin-top: calc(70px + env(safe-area-inset-top, 0px)); }
+.sec-label h2 { font: 700 13px var(--f-body); text-transform: uppercase; letter-spacing: .12em; color: var(--fg); }
+.sec-label span { font-size: 12.5px; color: var(--muted); }
+.sec-label::after { content: ""; flex: 1; height: 1px; background: var(--hair); align-self: center; }
+.widgets [data-group="progress"] .card-head h3::before, .widgets [data-group="progress"].card .card-head h3::before { content: none; }
+
+/* Command Center: stronger hierarchy */
+.cc { border-color: color-mix(in srgb, var(--accent) 35%, var(--hair)); }
+.d2-status { border-left-width: 0; border: 1px solid color-mix(in srgb, var(--c) 40%, transparent); }
+.d2-badge { display: inline-flex; align-items: center; gap: 6px; }
+.d2-badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent); }
+.cc-s { border-top-width: 1px; border-color: var(--hair); position: relative; overflow: hidden; }
+.cc-s::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--c); }
+.d2-brief { border-color: var(--hair); }
+.d2-row:nth-child(even) { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
+
+/* charts */
+.chart .axis text { font-variant-numeric: tabular-nums; }
+.vz { border: 1px solid var(--hair); }
+.legend span { display: inline-flex; align-items: center; }
+
+/* records and streak moments use the amber */
+.d2-e .d2-ic[style*="--warn"], .tag.pr { color: var(--amber); }
+.celebrate .big, .pr-grid .v { color: var(--amber); }
+
 </style>
 <div class="wrap">
   <header class="topbar">
@@ -6476,6 +6587,55 @@ function d2Timeline(el) {
     if (mode === 'compact') $$('[data-widget]', el).forEach((s) => { if (['heat', 'compare', 'timeline', 'ach', 'preview', 'prs', 'week', 'checklist'].includes(s.dataset.widget)) s.remove(); });
   };
 }
+
+// ---- look.js ----
+// ===================== COURTSIDE LOOK: Home structure =====================
+// Visual only: nothing is removed. Home gets a scoreboard header (readiness, training, protein, sleep, streak),
+// jump chips, and section labels that group the cards (Today / Numbers / Progress) in whatever order you chose.
+const LOOK_GROUPS = {
+  today: ['command', 'upnext', 'today', 'status', 'mind', 'checklist', 'rec', 'fuel', 'calendar', 'school'],
+  numbers: ['charts', 'radar', 'heat', 'mix', 'compare', 'load', 'score', 'preview', 'week'],
+  progress: ['timeline', 'goals', 'prs', 'ach'],
+};
+const LOOK_LABEL = { today: ['Today', 'what needs you now'], numbers: ['Numbers', 'charts and trends'], progress: ['Progress', 'records, goals and milestones'] };
+const groupOf = (k) => Object.keys(LOOK_GROUPS).find((g) => LOOK_GROUPS[g].includes(k)) || 'today';
+function lookScore() {
+  const t = todayIso(), rd = readiness(t)?.score ?? null, tr = trainingOf(t), tt = totalsOf(t), tg = targets(t), sl = recoveryInputs(t).sleepH, st = streaks();
+  const act = lastNDays(28).filter(isActive), typ = act.length ? Math.round(mean(act.map((d) => trainingOf(d).mins))) : 60;
+  const cell = (label, v, max, color, center, sub) => `<div class="sb-cell">${ring(v ?? 0, max, { size: 58, stroke: 6, color: v == null ? 'var(--oth)' : color, center: `<b class="sb-n">${center}</b>` })}<span class="sb-l">${label}</span><span class="sb-s">${sub}</span></div>`;
+  return `<div class="sb" aria-label="Today at a glance">
+    ${cell('Readiness', rd, 100, rd == null ? 'var(--oth)' : rd >= 65 ? 'var(--good)' : rd >= 45 ? 'var(--warn)' : 'var(--danger)', rd ?? '—', rd == null ? 'check in' : rd >= 65 ? 'ready' : rd >= 45 ? 'steady' : 'go light')}
+    ${cell('Training', tr.mins || null, typ, 'var(--accent)', tr.mins ? tr.mins : '0', tr.mins ? `of ~${typ} min` : 'none yet')}
+    ${cell('Protein', hasFood(t) ? tt.protein : null, tg.protein, 'var(--protein)', hasFood(t) ? Math.round((tt.protein / (tg.protein || 1)) * 100) + '%' : '—', hasFood(t) ? `${Math.round(tt.protein)} / ${tg.protein} g` : 'log meals')}
+    ${cell('Sleep', sl, 8, '#8b5cff', sl ?? '—', sl == null ? 'not logged' : sl >= 8 ? 'h · on target' : 'h · under 8')}
+  </div>
+  <div class="sb-streak" aria-label="Training streak">
+    <span class="sb-fire" aria-hidden="true">${ICONS.bolt}</span>
+    <div class="sb-st"><b class="sb-big">${st.current}</b><span>day streak<br><small>best ${st.longest}</small></span></div>
+    <div class="sb-days" title="Last 14 days">${lastNDays(14).map((d) => `<i class="${isActive(d) ? 'on' : ''}${d === t ? ' now' : ''}" title="${d}"></i>`).join('')}</div>
+  </div>`;
+}
+{
+  const base = RENDER.home;
+  RENDER.home = (el) => {
+    base(el);
+    const hero = $('.hero', el);
+    if (hero) {
+      hero.classList.add('look-hero');
+      try { $('.d2-mode', hero)?.insertAdjacentHTML('beforebegin', lookScore()); } catch (e) { console.error(e); }
+    }
+    // Section labels between card groups, in the user's own order
+    const grid = $('.widgets', el); if (!grid) return;
+    let last = null; const seen = [];
+    for (const s of [...grid.querySelectorAll(':scope > [data-widget]')]) {
+      const g = groupOf(s.dataset.widget); s.dataset.group = g;
+      if (g !== last && !seen.includes(g)) { const [h, sub] = LOOK_LABEL[g]; s.insertAdjacentHTML('beforebegin', `<div class="sec-label span2" id="sec-${g}"><h2>${h}</h2><span>${sub}</span></div>`); seen.push(g); }
+      last = g;
+    }
+    if (hero && seen.length > 1) $('.sb-streak', hero)?.insertAdjacentHTML('afterend', `<nav class="jump" aria-label="Jump to section">${seen.map((g) => `<button type="button" data-jump="sec-${g}">${LOOK_LABEL[g][0]}</button>`).join('')}</nav>`);
+  };
+}
+document.addEventListener('click', (e) => { const j = e.target.closest('[data-jump]'); if (j) document.getElementById(j.dataset.jump)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); });
 
 // ---- main.js ----
 // ===================== boot =====================
