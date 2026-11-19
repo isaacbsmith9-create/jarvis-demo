@@ -192,7 +192,7 @@ const LVL = { high: [3, 'High', 'var(--bad)'], medium: [2, 'Medium', 'var(--warn
 function risks() {
   const t = today(), out = [], add = (r) => out.push(r);
   // 1. declining grades
-  for (const c of S.classes) {
+  for (const c of activeClasses()) {
     const tr = gradeTrend(c.id), h = gradeHistory(c.id), g = classGrade(c.id).pct; if (g == null) continue;
     const past = h.filter((x) => x.date <= addDays(t, -21)).pop(), drop = past ? past.pct - g : null;
     if ((drop != null && drop >= 2) || (tr && tr.perWeek <= -1)) {
@@ -225,8 +225,8 @@ function risks() {
   for (const m of S.topics.map(topicMastery).filter((m) => m.attempts >= 2 && m.recentAcc != null && m.recentAcc < 0.7)) add({ id: 'quiz:' + m.t.id, level: S.exams.some((e) => e.classId === m.t.classId && e.date >= t && daysBetween(t, e.date) <= 14 && (e.topics || []).some((x) => low(x.name) === low(m.t.name))) ? 'high' : 'medium', type: 'Weak topic', classId: m.t.classId, title: `${m.t.name}: ${Math.round(m.recentAcc * 100)}% on recent quizzes`, trigger: `${Math.round(m.recentAcc * 100)}% correct across the last ${Math.min(3, m.quizSeries.length)} quizzes that covered it (${m.answers} answers total).`, why: 'Repeated misses on the same topic mean it isn’t sticking yet.', action: `Review ${m.t.name} flashcards you missed (they’re due today), then quiz just that deck again.`, go: ['intel', 'mastery', m.t.classId] });
   // 7. classes getting too little study
   const s14 = S.sessions.filter((s) => sessDay(s) >= addDays(t, -14)), tot = sum(s14.map((s) => s.mins));
-  for (const c of S.classes) {
-    const g = classGrade(c.id).pct, m = sum(s14.filter((s) => s.classId === c.id).map((s) => s.mins)), share = tot ? m / tot : 0, fair = 1 / Math.max(1, S.classes.length);
+  for (const c of activeClasses()) {
+    const g = classGrade(c.id).pct, m = sum(s14.filter((s) => s.classId === c.id).map((s) => s.mins)), share = tot ? m / tot : 0, fair = 1 / Math.max(1, activeClasses().length);
     const exam = S.exams.find((e) => e.classId === c.id && e.date >= t && daysBetween(t, e.date) <= 14);
     if (((c.goal && g != null && g < c.goal) || exam) && tot >= 60 && share < fair * 0.6) add({ id: 'study:' + c.id, level: exam && daysBetween(t, exam.date) <= 7 ? 'medium' : 'low', type: 'Study time', classId: c.id, title: `${c.name} is getting little study time`, trigger: `${fmtMins(m)} (${Math.round(share * 100)}%) of your ${fmtMins(tot)} logged in the last 14 days${exam ? `, with ${exam.title} ${relDayL(exam.date)}` : ''}.`, why: g != null && c.goal && g < c.goal ? `It’s ${round(c.goal - g, 1)} points under your ${c.goal}% goal.` : 'An exam is coming up.', action: `Add two ${fmtMins(30)} sessions for ${c.name} this week (the Study Director can schedule them).`, go: ['intel', 'director'] });
   }
@@ -268,7 +268,7 @@ function directorRecs() {
   for (const { a, score, why } of ranked().filter((x) => x.a.due && daysBetween(t, x.a.due) <= 3).slice(0, 4)) { const left = remainingMins(a); if (left < 20) continue; const step = (a.steps || []).find((s) => !s.done); add({ key: 'asg:' + a.id, kind: 'assignment', classId: a.classId, topic: a.title, aid: a.id, mins: clamp(r5(Math.min(left, 60)), 20, 60), score: score / 1.6, reason: `${why.slice(0, 2).join(', ')}; ~${fmtMins(left)} left${step ? `. Next step: ${step.title}` : ''}.`, method: 'work', link: ['assignments'] }); }
   // under-goal classes with low study share
   const s14 = S.sessions.filter((s) => sessDay(s) >= addDays(t, -14)), tot = sum(s14.map((s) => s.mins));
-  for (const c of S.classes) { const g = classGrade(c.id).pct; if (!(c.goal && g != null && g < c.goal)) continue; const m = sum(s14.filter((s) => s.classId === c.id).map((s) => s.mins)); if (tot && m / tot >= 1 / S.classes.length) continue; add({ key: 'class:' + c.id, kind: 'class', classId: c.id, topic: `${c.name} review`, mins: 30, score: 38 + (c.goal - g), reason: `${round(g, 1)}% vs your ${c.goal}% goal, and only ${fmtMins(m)} studied for it in 14 days.`, method: 'redo', link: ['classes', c.id] }); }
+  for (const c of activeClasses()) { const g = classGrade(c.id).pct; if (!(c.goal && g != null && g < c.goal)) continue; const m = sum(s14.filter((s) => s.classId === c.id).map((s) => s.mins)); if (tot && m / tot >= 1 / activeClasses().length) continue; add({ key: 'class:' + c.id, kind: 'class', classId: c.id, topic: `${c.name} review`, mins: 30, score: 38 + (c.goal - g), reason: `${round(g, 1)}% vs your ${c.goal}% goal, and only ${fmtMins(m)} studied for it in 14 days.`, method: 'redo', link: ['classes', c.id] }); }
   // apply decisions + completion from logged sessions
   const studiedToday = S.sessions.filter((s) => sessDay(s) === t);
   return C.map((r) => {

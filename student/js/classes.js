@@ -22,7 +22,7 @@ VIEWS.classes = (rt) => {
       : `<div class="card">${emptyState('library', 'Add your first class', 'Each class gets its own workspace with grades, assignments, notes, exams and analytics. You can type it in or scan a syllabus.', `<div class="row"><button class="btn primary" onclick="editClass()">${icon('plus', 16)} Add class</button><button class="btn" onclick="syllabusImport()">${icon('file-up', 16)} Scan syllabus</button></div>`)}</div>`,
     mount(root) {
       $('#c-new').onclick = () => editClass(); $('#c-syl').onclick = () => syllabusImport();
-      const draw = (q = '') => { const g = $('#c-grid', root); if (!g) return; const list = S.classes.filter((c) => !q || (c.name + ' ' + (c.teacher || '')).toLowerCase().includes(q.toLowerCase())); g.innerHTML = list.length ? list.map(classCard).join('') : `<p class="muted">No classes match.</p>`; };
+      const draw = (q = '') => { const g = $('#c-grid', root); if (!g) return; const list = S.classes.filter((c) => !q || (c.name + ' ' + (c.teacher || '')).toLowerCase().includes(q.toLowerCase())), cur = list.filter((c) => isActiveClass(c)), done = list.filter((c) => !isActiveClass(c)); g.innerHTML = list.length ? cur.map(classCard).join('') + (done.length ? `<h3 style="grid-column:1/-1;margin:10px 0 0" class="muted">Ended or not started <span class="tiny">· grades still count in GPA</span></h3>` + done.map(classCard).join('') : '') : `<p class="muted">No classes match.</p>`; };
       draw(); $('#c-q', root)?.addEventListener('input', (e) => draw(e.target.value));
       root.addEventListener('click', (e) => { const c = e.target.closest('[data-cid]'); if (c) go('classes', c.dataset.cid); });
     },
@@ -32,7 +32,7 @@ function classCard(c) {
   const st = classStats(c), pct = st.g?.pct, total = st.as.length;
   return `<div class="class-card" style="--c:${c.color}" data-cid="${c.id}" tabindex="0" role="link" aria-label="Open ${esc(c.name)}">
     <div class="cc-top"><span class="cc-icon">${icon(c.icon || 'book-open', 20)}</span><div class="cc-grade" style="color:${gradeColor(pct)}">${pct == null ? '—' : round(pct, 1) + '%'}<small>${pct == null ? 'No grades yet' : st.g.letter + (c.goal ? ` · goal ${c.goal}%` : '')}</small></div></div>
-    <div style="position:relative"><h3>${esc(c.name)}</h3><div class="small muted">${esc([c.teacher, c.room].filter(Boolean).join(' · ') || LEVELS[c.level || 'regular'])}</div></div>
+    <div style="position:relative"><h3>${esc(c.name)}</h3>${c.endDate ? `<span class="tiny ${isActiveClass(c) ? 'warn' : 'muted'}">${isActiveClass(c) ? `Ends ${fmtDate(c.endDate)} · ${daysBetween(today(), c.endDate) === 0 ? 'today' : daysBetween(today(), c.endDate) === 1 ? 'tomorrow' : 'in ' + daysBetween(today(), c.endDate) + ' days'}` : `Ended ${fmtDate(c.endDate)}`}</span>` : ''}<div class="small muted">${esc([c.teacher, c.room].filter(Boolean).join(' · ')) || '<span class="dim">No teacher added</span>'}</div></div>
     <div class="between small"><span class="muted">${schedText(c) ? esc(schedText(c)) : LEVELS[c.level || 'regular']}</span>${spark(st.hist, c.color, 70, 24)}</div>
     <div><div class="between tiny muted" style="margin-bottom:5px"><span>${st.done}/${total} assignments done</span><span>${st.open.length} open${st.od.length ? ` · <b class="bad">${st.od.length} overdue</b>` : ''}</span></div><div class="bar"><i style="width:${total ? (st.done / total) * 100 : 0}%;--c:${c.color}"></i></div></div>
     <div class="between tiny"><span class="muted">${st.nextEx ? `${icon('graduation-cap', 13)} ${esc(st.nextEx.title)} · ${relDay(st.nextEx.date)}` : 'No exams scheduled'}</span><span class="muted">${fmtMins(st.wk)} studied this week</span></div>
@@ -126,6 +126,8 @@ function editClass(rec = null, preset = {}) {
       <label class="f">Room (optional)<input type="text" name="room" value="${esc(c.room || '')}"></label>
       <label class="f">Level<select name="level">${Object.entries(LEVELS).map(([k, v]) => `<option value="${k}"${c.level === k ? ' selected' : ''}>${v}</option>`).join('')}</select></label>
       <label class="f">Credits<input type="number" name="credits" min="0.25" max="10" step="0.25" value="${c.credits ?? 1}"></label>
+      <label class="f">Ends on (optional)<input type="date" name="endDate" value="${c.endDate || ''}"></label>
+      <label class="f">Starts on (optional)<input type="date" name="startDate" value="${c.startDate || ''}"></label>
       <label class="f">Goal grade %<input type="number" name="goal" min="0" max="110" step="0.5" value="${c.goal ?? ''}"></label>
       <div class="full"><div class="small" style="font-weight:600;color:var(--muted);margin-bottom:6px">Color</div><div class="swatches" id="ce-col">${CLASS_COLORS.map((x) => `<button type="button" style="--c:${x}" class="${x === color ? 'on' : ''}" data-c="${x}" aria-label="Color ${x}"></button>`).join('')}<input type="color" id="ce-custom" value="${color}" aria-label="Custom color"></div></div>
       <div class="full"><div class="between" style="margin-bottom:8px"><span class="small" style="font-weight:600;color:var(--muted)">Grading</span><div class="seg" id="ce-mode"><button type="button" data-m="weighted" class="${mode === 'weighted' ? 'on' : ''}">Weighted categories</button><button type="button" data-m="points" class="${mode === 'points' ? 'on' : ''}">Total points</button></div></div><div id="ce-cats"></div></div>
@@ -165,7 +167,8 @@ function editClass(rec = null, preset = {}) {
         const cleanCats = cats.filter((k) => k.name.trim()).map((k) => ({ ...k, name: k.name.trim(), weight: Number(k.weight) || 0 }));
         if (mode === 'weighted' && cleanCats.length) { const tot = sum(cleanCats.map((k) => k.weight)); if (cleanCats.some((k) => k.weight < 0)) return bad('Weights can’t be negative.'); if (Math.abs(tot - 100) > 0.01 && !warn.dataset.confirmed) { warn.dataset.confirmed = 1; warn.innerHTML = `<div class="alert warn"><span class="ai">${icon('triangle-alert', 15)}</span>Weights add up to ${round(tot, 2)}%, not 100%. Grades are still calculated correctly (weights are scaled), but check your syllabus. Press save again to keep them.</div>`; return; } }
         for (const s of sched) if (!s.days.length || !s.start || (s.end && s.end <= s.start)) return bad('Each meeting time needs at least one day and an end after its start.');
-        upsert('classes', { ...c, name: f.name, teacher: f.teacher, room: f.room, level: f.level, credits: f.credits || 1, goal: f.goal, color, gradingMode: mode, categories: cleanCats, schedule: sched });
+        if (f.endDate && f.startDate && f.endDate < f.startDate) return bad('The end date is before the start date.');
+        upsert('classes', { ...c, endDate: f.endDate || '', startDate: f.startDate || '', name: f.name, teacher: f.teacher, room: f.room, level: f.level, credits: f.credits || 1, goal: f.goal, color, gradingMode: mode, categories: cleanCats, schedule: sched });
         close(); toast(isNew ? `${f.name} added` : 'Class saved'); if (isNew) go('classes', c.id); else render();
       };
     } });

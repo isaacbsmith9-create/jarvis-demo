@@ -89,6 +89,9 @@ const byId = (col, id) => S[col].find((x) => x.id === id);
 const cls = (id) => byId('classes', id);
 const clsColor = (id) => cls(id)?.color || '#6d7cff';
 const clsName = (id) => cls(id)?.name || 'No class';
+/** A class with an end date (e.g. a semester or CCP course) stops counting as current after that day. Its grades still count in GPA. */
+const isActiveClass = (c, d = today()) => !!c && (!c.endDate || d <= c.endDate) && (!c.startDate || d >= c.startDate);
+const activeClasses = (d = today()) => S.classes.filter((c) => isActiveClass(c, d));
 
 // ===================== backup / restore =====================
 function exportJSON() { return JSON.stringify({ app: 'student-lens', version: 1, exportedAt: new Date().toISOString(), profile: S.profile, settings: S.settings, ...Object.fromEntries(COLLECTIONS.map((c) => [c, S[c]])) }, null, 2); }

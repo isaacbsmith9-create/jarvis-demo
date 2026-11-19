@@ -155,7 +155,20 @@ function render() {
   out.mount?.(page);
   document.title = `${out.title || title} · Student Lens`;
 }
-window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
+window.addEventListener('hashchange', () => { if (takeAddLink()) return; render(); window.scrollTo(0, 0); });
+/** A link like #add=<base64 JSON list of {n: name, t: teacher, l: level, e: end date}> proposes classes. Nothing is saved until you confirm. */
+function takeAddLink() {
+  if (!location.hash.startsWith('#add=')) return false;
+  let list = null; try { list = JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(5).replace(/-/g, '+').replace(/_/g, '/'))))); } catch { list = null; }
+  history.replaceState(null, '', '#classes'); render();
+  if (!Array.isArray(list) || !list.length) { toast('That add-classes link is damaged.'); return true; }
+  const rows = list.filter((x) => x && typeof x.n === 'string' && x.n.trim()).slice(0, 20).map((x) => ({ name: x.n.trim().slice(0, 60), teacher: String(x.t || '').slice(0, 60), level: LEVELS[x.l] ? x.l : 'regular', endDate: /^\d{4}-\d\d-\d\d$/.test(x.e || '') ? x.e : '', dup: S.classes.some((c) => c.name.toLowerCase() === x.n.trim().toLowerCase()) }));
+  modal({ title: `Add ${rows.length} class${rows.length === 1 ? '' : 'es'}?`, icon: 'library', wide: true,
+    body: `<p class="small muted" style="margin:0">Check these before adding. Grade weights aren’t set yet (they start as total points); add them from your syllabus or the class editor. Credits start at 1.</p><div class="stack" style="gap:8px">${rows.map((r, i) => `<label class="review-row${r.dup ? ' dup' : ''}" style="align-items:center"><input type="checkbox" data-i="${i}" ${r.dup ? '' : 'checked'}><span class="row wrap" style="gap:8px"><b>${esc(r.name)}</b>${r.teacher ? `<span class="small muted">${esc(r.teacher)}</span>` : '<span class="small dim">no teacher</span>'}<span class="badge">${LEVELS[r.level]}</span>${r.endDate ? `<span class="badge warn">ends ${fmtDate(r.endDate)}</span>` : '<span class="badge">full year</span>'}${r.dup ? '<span class="badge warn">already added</span>' : ''}</span></label>`).join('')}</div>`,
+    foot: `<button class="btn ghost" data-x2>Cancel</button><button class="btn primary" data-add>${icon('check', 15)} Add classes</button>`,
+    onMount: (m, close) => { $('[data-x2]', m).onclick = close; $('[data-add]', m).onclick = () => { let n = 0; for (const b of $$('[data-i]', m)) { if (!b.checked) continue; const r = rows[+b.dataset.i]; if (S.classes.some((c) => c.name.toLowerCase() === r.name.toLowerCase())) continue; S.classes.push({ id: uid('c'), name: r.name, teacher: r.teacher, room: '', color: CLASS_COLORS[S.classes.length % CLASS_COLORS.length], level: r.level, credits: 1, goal: null, gradingMode: 'points', categories: [], schedule: [], endDate: r.endDate, startDate: '', createdAt: Date.now() }); n++; } save('classes'); close(); toast(`Added ${n} class${n === 1 ? '' : 'es'}`); render(); }; } });
+  return true;
+}
 let rerenderT = null;
 onChange(() => { clearTimeout(rerenderT); rerenderT = setTimeout(() => { if (!modalStack.length && !document.activeElement?.matches?.('input,textarea,select')) render(); else renderNav(); }, 60); });
 document.addEventListener('click', (e) => {
