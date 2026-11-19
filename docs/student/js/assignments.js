@@ -38,7 +38,7 @@ VIEWS.assignments = (rt) => {
   return {
     title: 'Assignments', sub: `${openN} open${od ? ` · <span class="bad">${od} overdue</span>` : ''}`,
     actions: `<button class="btn ghost sm" id="a-more">${icon('ellipsis', 16)}<span class="hide-sm">Import / export</span></button><button class="btn primary sm" id="a-new">${icon('plus', 16)} New</button>`,
-    html: `<div class="kpis">
+    html: !S.assignments.length ? `<section class="card empty-hero"><div class="eh-art">${icon('list-checks', 30)}</div><h2>No assignments yet</h2><p class="muted">Add your homework, projects and tests. Student Lens ranks them, warns you about deadlines and fits them into your week.</p><div class="row wrap" style="justify-content:center;gap:8px"><button class="btn primary" onclick="editAssignment()">${icon('plus', 15)} Add assignment</button><button class="btn" onclick="pasteExtract()">${icon('scan-text', 15)} Paste instructions</button><button class="btn" onclick="syllabusImport()">${icon('file-up', 15)} Scan a syllabus</button></div></section>` : `<div class="kpis">
       ${kpi('list-todo', 'Open', openN, `${all.length} total`)}
       ${kpi('triangle-alert', 'Overdue', od, od ? 'needs attention' : 'none', od ? 'var(--bad)' : null)}
       ${kpi('circle-check', 'This week', `${wkDone}/${wk.length}`, 'completed')}
@@ -60,6 +60,7 @@ VIEWS.assignments = (rt) => {
       </div>
     </div>`,
     mount(root) {
+      $('#a-new').onclick = () => editAssignment(); $('#a-more').onclick = assignmentIO; if (!S.assignments.length) return;
       const draw = () => { $('#a-list', root).innerHTML = assignmentList(); };
       draw();
       $('#a-q', root).addEventListener('input', (e) => { af.q = e.target.value; draw(); });
@@ -73,7 +74,7 @@ VIEWS.assignments = (rt) => {
   };
 };
 const i18day = (d) => (d === today() ? 'Today' : DAYS[dow(d)]);
-function kpi(ic, label, value, sub, color, sp = '') { return `<div class="kpi"><div class="k-l"><span class="ki" ${color ? `style="background:color-mix(in srgb, ${color} 16%, transparent);color:${color}"` : ''}>${icon(ic, 15)}</span>${esc(label)}</div><div class="k-v num">${value}</div><div class="k-s">${sub}</div>${sp}</div>`; }
+function kpi(ic, label, value, sub, color, sp = '') { return `<div class="kpi"${color ? ` style="--kc:${color}"` : ''}><div class="k-l"><span class="ki" ${color ? `style="background:color-mix(in srgb, ${color} 16%, transparent);color:${color}"` : ''}>${icon(ic, 15)}</span>${esc(label)}</div><div class="k-v num">${value}</div><div class="k-s">${sub}</div>${sp}</div>`; }
 function assignmentList() {
   const t = today(), q = af.q.toLowerCase();
   let list = S.assignments.filter((a) => (!af.cls || a.classId === af.cls) && (!af.type || a.type === af.type) && (!q || (a.title + ' ' + (a.description || '') + ' ' + clsName(a.classId)).toLowerCase().includes(q)));

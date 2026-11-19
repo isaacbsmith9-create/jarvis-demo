@@ -68,6 +68,11 @@ function todayActions() {
   return out.slice(0, 5);
 }
 function intelOverview() {
+  if (!S.classes.some((c) => classGrade(c.id).pct != null) && !S.assignments.length && !S.sessions.length && !S.results.length) {
+    const un = [['chart-line', 'Grades', 'Performance score, GPA projection, grade trends and the simulator', 'Add a grade', () => 'editAssignment(null,{status:\'completed\',due:today()})'], ['list-checks', 'Assignments', 'Risk detection, workload balancing and deadline warnings', 'Add an assignment', () => 'editAssignment()'], ['graduation-cap', 'Exams + topics', 'Study Director plans and topic mastery', 'Add a test', () => 'editExam()'], ['timer', 'Study sessions', 'Consistency, reports and study-time insights', 'Start the timer', () => "go('study','timer')"]];
+    return { sub: 'Unlocks as you add grades, assignments and study time', html: `<section class="card empty-hero"><div class="eh-art">${icon('gauge', 30)}</div><h2>Your academic intelligence starts here</h2><p class="muted">Everything on this page is calculated from your own records, so it stays empty until there’s something real to measure. Each item below switches on a part of it.</p></section>
+      <div class="unlock-grid">${un.map(([ic, h, s, b, f]) => `<div class="card unlock"><span class="st-ic">${icon(ic, 18)}</span><b>${h}</b><p class="small muted">${s}</p><button class="btn sm" onclick="${f()}">${icon('plus', 14)} ${b}</button></div>`).join('')}</div>` };
+  }
   const { ps, good, bad, rk } = statusLines(), g = gpaFor(), pg = projectedGPA(), acts = todayActions(), t = today();
   const cs = completionStats(addDays(t, -30), addDays(t, -1)), ot = onTimeStats(addDays(t, -60), t), con = consistency(), q = quizStats(addDays(t, -30), t);
   const gd = [...new Set(S.classes.flatMap((c) => gradedItems(c.id).map((x) => x.date)))].sort().slice(-14);
