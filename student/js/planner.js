@@ -6,7 +6,7 @@ const FILTERS = [['class', 'Classes'], ['due', 'Due work'], ['exam', 'Exams'], [
 /** Everything on a date, normalized. Timed items have start/end minutes. Nothing here moves or edits records. */
 function itemsOn(d) {
   const out = [], wd = dow(d);
-  for (const c of S.classes) for (const s of c.schedule || []) if (s.days.includes(wd)) out.push({ k: 'class', id: c.id, title: c.name, s: toMin(s.start), e: toMin(s.end) || toMin(s.start) + 50, color: c.color, sub: c.room || c.teacher || '' });
+  for (const c of S.classes.filter((x) => isActiveClass(x, d))) for (const s of c.schedule || []) if (s.days.includes(wd)) out.push({ k: 'class', id: c.id, title: c.name, s: toMin(s.start), e: toMin(s.end) || toMin(s.start) + 50, color: c.color, sub: c.room || c.teacher || '' });
   for (const ev of S.events) { if (!(ev.date === d || (ev.weekly && ev.date < d && dow(ev.date) === wd && (!ev.until || d <= ev.until) && !(ev.skip || []).includes(d)))) continue;
     out.push({ k: ev.kind === 'study' ? 'study' : 'event', id: ev.id, title: ev.title, s: ev.allDay ? null : toMin(ev.start), e: ev.allDay ? null : toMin(ev.end) || toMin(ev.start) + 60, color: ev.color || (ev.classId ? clsColor(ev.classId) : EV_KINDS[ev.kind]?.[1]), sub: ev.classId ? clsName(ev.classId) : EV_KINDS[ev.kind]?.[0], ev }); }
   for (const e of S.exams) { if (e.date === d) out.push({ k: 'exam', id: e.id, title: e.title, s: e.time ? toMin(e.time) : null, e: e.time ? toMin(e.time) + 60 : null, color: clsColor(e.classId), sub: clsName(e.classId) + ' exam' });

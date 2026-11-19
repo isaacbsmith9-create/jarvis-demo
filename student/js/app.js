@@ -7,7 +7,7 @@
   applyTheme();
   expandRecurring(); refreshOverdue();
   try { ensureTopics(); takeSnapshot(); checkGoals(); } catch (e) { console.error(e); }
-  render();
+  render(); takeAddLink();
   matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', () => S.settings.theme === 'system' && applyTheme());
   // Keep countdowns, "today" and overdue status fresh without touching anything you're typing in.
   let lastDay = today();
