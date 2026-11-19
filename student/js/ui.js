@@ -163,10 +163,7 @@ function takeAddLink() {
   history.replaceState(null, '', '#classes'); render();
   if (!Array.isArray(list) || !list.length) { toast('That add-classes link is damaged.'); return true; }
   const rows = list.filter((x) => x && typeof x.n === 'string' && x.n.trim()).slice(0, 20).map((x) => ({ name: x.n.trim().slice(0, 60), teacher: String(x.t || '').slice(0, 60), level: LEVELS[x.l] ? x.l : 'regular', endDate: /^\d{4}-\d\d-\d\d$/.test(x.e || '') ? x.e : '', dup: S.classes.some((c) => c.name.toLowerCase() === x.n.trim().toLowerCase()) }));
-  modal({ title: `Add ${rows.length} class${rows.length === 1 ? '' : 'es'}?`, icon: 'library', wide: true,
-    body: `<p class="small muted" style="margin:0">Check these before adding. Grade weights aren’t set yet (they start as total points); add them from your syllabus or the class editor. Credits start at 1.</p><div class="stack" style="gap:8px">${rows.map((r, i) => `<label class="review-row${r.dup ? ' dup' : ''}" style="align-items:center"><input type="checkbox" data-i="${i}" ${r.dup ? '' : 'checked'}><span class="row wrap" style="gap:8px"><b>${esc(r.name)}</b>${r.teacher ? `<span class="small muted">${esc(r.teacher)}</span>` : '<span class="small dim">no teacher</span>'}<span class="badge">${LEVELS[r.level]}</span>${r.endDate ? `<span class="badge warn">ends ${fmtDate(r.endDate)}</span>` : '<span class="badge">full year</span>'}${r.dup ? '<span class="badge warn">already added</span>' : ''}</span></label>`).join('')}</div>`,
-    foot: `<button class="btn ghost" data-x2>Cancel</button><button class="btn primary" data-add>${icon('check', 15)} Add classes</button>`,
-    onMount: (m, close) => { $('[data-x2]', m).onclick = close; $('[data-add]', m).onclick = () => { let n = 0; for (const b of $$('[data-i]', m)) { if (!b.checked) continue; const r = rows[+b.dataset.i]; if (S.classes.some((c) => c.name.toLowerCase() === r.name.toLowerCase())) continue; S.classes.push({ id: uid('c'), name: r.name, teacher: r.teacher, room: '', color: CLASS_COLORS[S.classes.length % CLASS_COLORS.length], level: r.level, credits: 1, goal: null, gradingMode: 'points', categories: [], schedule: [], endDate: r.endDate, startDate: '', createdAt: Date.now() }); n++; } save('classes'); close(); toast(`Added ${n} class${n === 1 ? '' : 'es'}`); render(); }; } });
+  proposeClasses(rows);
   return true;
 }
 let rerenderT = null;
@@ -226,4 +223,46 @@ function openAlerts() {
   const a = alerts();
   modal({ title: 'Notifications', icon: 'bell', body: a.length ? `<div class="stack">${a.map((x, i) => `<div class="alert ${x.lvl}" style="cursor:pointer" data-i="${i}"><span class="ai">${icon(x.ic, 16)}</span><span class="grow"><b style="display:block">${esc(x.t)}</b><span class="small muted">${esc(x.s)}</span></span>${icon('chevron-right', 16, 'dim')}</div>`).join('')}</div><p class="tiny dim" style="margin:0">Built from your own records on this device. Nothing is sent anywhere.</p>` : emptyState('bell', 'All clear', 'Nothing overdue, no exams in the next 5 days, and every class is at or above its goal.'),
     onMount: (r, close) => r.addEventListener('click', (e) => { const d = e.target.closest('[data-i]'); if (d) { close(); a[+d.dataset.i].go(); } }) });
+}
+
+/** Review screen for several classes at once (used by the paste box and add links). Nothing is saved until you confirm. */
+function proposeClasses(rows) {
+  modal({ title: `Add ${rows.length} class${rows.length === 1 ? '' : 'es'}?`, icon: 'library', wide: true,
+    body: `<p class="small muted" style="margin:0">Check these before adding. Grade weights aren’t set yet (they start as total points); add them from your syllabus or the class editor. Credits start at 1.</p><div class="stack" style="gap:8px">${rows.map((r, i) => `<label class="review-row${r.dup ? ' dup' : ''}" style="align-items:center"><input type="checkbox" data-i="${i}" ${r.dup ? '' : 'checked'}><span class="row wrap" style="gap:8px"><b>${esc(r.name)}</b>${r.teacher ? `<span class="small muted">${esc(r.teacher)}</span>` : '<span class="small dim">no teacher</span>'}<span class="badge">${LEVELS[r.level]}</span>${r.endDate ? `<span class="badge warn">ends ${fmtDate(r.endDate)}</span>` : '<span class="badge">full year</span>'}${r.dup ? '<span class="badge warn">already added</span>' : ''}</span></label>`).join('')}</div>`,
+    foot: `<button class="btn ghost" data-x2>Cancel</button><button class="btn primary" data-add>${icon('check', 15)} Add classes</button>`,
+    onMount: (m, close) => { $('[data-x2]', m).onclick = close; $('[data-add]', m).onclick = () => { let n = 0; for (const b of $$('[data-i]', m)) { if (!b.checked) continue; const r = rows[+b.dataset.i]; if (S.classes.some((c) => c.name.toLowerCase() === r.name.toLowerCase())) continue; S.classes.push({ id: uid('c'), name: r.name, teacher: r.teacher, room: '', color: CLASS_COLORS[S.classes.length % CLASS_COLORS.length], level: r.level, credits: 1, goal: null, gradingMode: 'points', categories: [], schedule: [], endDate: r.endDate, startDate: '', createdAt: Date.now() }); n++; } save('classes'); close(); toast(`Added ${n} class${n === 1 ? '' : 'es'}`); render(); }; } });
+}
+
+/** Parse lines like "AP Bio with Snider", "CCP History - Smith, until 12/4", "CP Pre-Calc, O'Toole". */
+function parseClassLines(text) {
+  const out = [];
+  for (let line of text.split(/\r?\n|;/).map((l) => l.trim()).filter(Boolean)) {
+    line = line.replace(/^[-•*\d.)\s]+/, '');
+    let endDate = '';
+    const em = line.match(/\b(?:until|till|til|ends?(?: on)?|through|thru)\s+(.+)$/i);
+    if (em) { const d = findDate(em[1]); if (d) endDate = d.date; line = line.slice(0, em.index).trim(); }
+    let name = line, teacher = '';
+    const tm = line.match(/^(.*?)\s*(?:\bwith\b|\bw\/|\(|,|\s-\s|\s–\s|:)\s*(.+?)\)?\s*,?\s*$/i);
+    if (tm && tm[1].trim()) { name = tm[1].trim(); teacher = tm[2].trim(); }
+    name = name.replace(/[,\s]+$/, '');
+    if (!name) continue;
+    const words = name.split(/\s+/).map((w) => (/^(ap|ib|ccp|cp|us|ii|iii|iv)$/i.test(w) ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1)));
+    name = words.join(' ');
+    teacher = teacher.replace(/^(mr|mrs|ms|mx|dr)\.?\s+/i, (m) => m.charAt(0).toUpperCase() + m.slice(1).toLowerCase()).split(/\s+/).map((w) => w.replace(/^o'?([a-z])/i, (m0, c) => (/^o'/i.test(w) || /^otoole$/i.test(w) ? "O'" + c.toUpperCase() : m0)).replace(/^[a-z]/, (c) => c.toUpperCase())).join(' ');
+    teacher = teacher.replace(/^O'([A-Z])toole$/i, "O'Toole").replace(/^Otoole$/i, "O'Toole");
+    const level = /^(ap|ib|ccp)\b|dual|college credit/i.test(name) ? 'ap' : /honors|\bhon\b/i.test(name) ? 'honors' : 'regular';
+    out.push({ name: name.slice(0, 60), teacher: teacher.slice(0, 60), level, endDate, dup: S.classes.some((c) => c.name.toLowerCase() === name.toLowerCase()) });
+  }
+  return out;
+}
+function bulkAddClasses() {
+  modal({ title: 'Add several classes', icon: 'library', body: `<p class="small muted" style="margin:0">One class per line. Add the teacher after “with” or a comma, and an end date for semester classes with “until”.</p>
+    <textarea id="bk-c" rows="8" placeholder="AP Biology with Snider&#10;CCP Spanish with Cottingim&#10;CP Pre-Calculus with O'Toole&#10;CCP Marketing until 12/4" autofocus></textarea><div id="bk-p" class="small muted"></div>`,
+    foot: `<button class="btn ghost" data-x2>Cancel</button><button class="btn primary" data-go>${icon('arrow-right', 15)} Review</button>`,
+    onMount: (r, close) => {
+      const prev = () => { const rows = parseClassLines($('#bk-c', r).value); $('#bk-p', r).innerHTML = rows.length ? `Found ${rows.length}: ${rows.map((x) => `<b>${esc(x.name)}</b>${x.teacher ? ' (' + esc(x.teacher) + ')' : ''}${x.endDate ? ' until ' + fmtDate(x.endDate) : ''}`).join(', ')}` : ''; };
+      $('#bk-c', r).addEventListener('input', prev);
+      $('[data-x2]', r).onclick = close;
+      $('[data-go]', r).onclick = () => { const rows = parseClassLines($('#bk-c', r).value); if (!rows.length) return toast('Type at least one class'); close(); proposeClasses(rows); };
+    } });
 }
