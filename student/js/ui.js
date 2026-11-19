@@ -125,7 +125,7 @@ function gradeColor(p) { return p == null ? 'var(--muted)' : p >= 90 ? 'var(--go
 // ===================== router + shell =====================
 const ROUTES = {
   home: ['Home', 'house'], classes: ['Classes', 'library'], assignments: ['Assignments', 'list-checks'], grades: ['Grades', 'chart-line'],
-  study: ['Study Center', 'brain'], exams: ['Exams', 'graduation-cap'], planner: ['Planner', 'calendar-days'], insights: ['Insights', 'lightbulb'], settings: ['Settings', 'settings'],
+  study: ['Study Center', 'brain'], exams: ['Exams', 'graduation-cap'], planner: ['Planner', 'calendar-days'], insights: ['Insights', 'lightbulb'], intel: ['Intelligence', 'gauge'], settings: ['Settings', 'settings'],
 };
 const VIEWS = {};
 let route = { name: 'home', arg: null, sub: null };
@@ -134,7 +134,7 @@ function go(name, arg = null, sub = null) { const h = '#' + [name, arg, sub].fil
 function renderNav() {
   const n = alerts().length, due = cardsDue().length, open = openAssignments().filter((a) => effStatus(a) === 'overdue').length;
   const item = (k) => `<a href="#${k}" class="${route.name === k ? 'on' : ''}">${icon(ROUTES[k][1], 18)}<span>${ROUTES[k][0]}</span>${k === 'assignments' && open ? `<span class="badge bad">${open}</span>` : k === 'study' && due ? `<span class="badge accent">${due}</span>` : ''}</a>`;
-  $('#side-nav').innerHTML = `<div class="nav">${['home', 'classes', 'assignments', 'grades'].map(item).join('')}</div><div class="nav-sec">Prepare</div><div class="nav">${['study', 'exams', 'planner', 'insights'].map(item).join('')}</div><div class="nav-sec">You</div><div class="nav">${item('settings')}</div>`;
+  $('#side-nav').innerHTML = `<div class="nav">${['home', 'classes', 'assignments', 'grades'].map(item).join('')}</div><div class="nav-sec">Intelligence</div><div class="nav">${item('intel')}</div><div class="nav-sec">Prepare</div><div class="nav">${['study', 'exams', 'planner', 'insights'].map(item).join('')}</div><div class="nav-sec">You</div><div class="nav">${item('settings')}</div>`;
   const nm = S.profile.name || 'Student';
   $('#side-foot').innerHTML = `<span class="avatar">${esc(nm.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase())}</span><span class="grow" style="min-width:0"><b style="display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(nm)}</b><span class="tiny muted">${esc([S.profile.grade, S.profile.term].filter(Boolean).join(' · ') || 'Set up your profile')}</span></span><a class="icon-btn" href="#settings" aria-label="Settings" style="width:32px;height:32px">${icon('settings', 16)}</a>`;
   const tb = ['home', 'assignments', 'planner', 'study'];
@@ -151,7 +151,7 @@ function render() {
   const out = v ? v(route) : { html: '' };
   $('#crumb').innerHTML = `<h1>${esc(out.title || title)}</h1>${out.sub ? `<p>${out.sub}</p>` : ''}`;
   $('#top-actions').innerHTML = (S.classes.some((c) => c.demo) ? `<a class="badge warn hide-sm" href="#settings" style="text-decoration:none" title="Sample data is loaded. Remove it in Settings.">${icon('sparkles', 12)} Sample data</a>` : '') + (out.actions || '');
-  const page = $('#page'); page.innerHTML = out.html; page.style.animation = 'none'; void page.offsetWidth; page.style.animation = '';
+  const old = $('#page'), page = old.cloneNode(false); old.replaceWith(page); page.innerHTML = out.html; // fresh node: listeners from the last render are dropped
   out.mount?.(page);
   document.title = `${out.title || title} · Student Lens`;
 }
@@ -162,7 +162,7 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('[data-more]')) { e.preventDefault(); openMore(); }
 });
 function openMore() {
-  const close = modal({ title: 'Everything', body: `<div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">${['classes', 'grades', 'exams', 'insights', 'study', 'settings'].map((k) => `<a class="card flat" href="#${k}" style="text-decoration:none;color:inherit;display:flex;gap:10px;align-items:center;padding:14px">${icon(ROUTES[k][1], 20)}<b>${ROUTES[k][0]}</b></a>`).join('')}</div>`,
+  const close = modal({ title: 'Everything', body: `<div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">${['intel', 'classes', 'grades', 'exams', 'insights', 'settings'].map((k) => `<a class="card flat" href="#${k}" style="text-decoration:none;color:inherit;display:flex;gap:10px;align-items:center;padding:14px">${icon(ROUTES[k][1], 20)}<b>${ROUTES[k][0]}</b></a>`).join('')}</div>`,
     onMount: (r, c) => r.addEventListener('click', (e) => { if (e.target.closest('a')) c(); }) });
 }
 
@@ -177,6 +177,8 @@ function searchAll(q) {
   for (const g of S.guides) if (hit(g.title)) out.push({ ic: 'book-text', t: g.title, s: `Study guide · ${clsName(g.classId)}`, c: clsColor(g.classId), go: () => go('study', 'guides', g.id) });
   for (const d of S.decks) if (hit(d.name)) out.push({ ic: 'layers', t: d.name, s: `Flashcard deck · ${clsName(d.classId)}`, c: clsColor(d.classId), go: () => go('study', 'cards', d.id) });
   for (const c of S.cards) if (hit(c.front) || hit(c.back)) out.push({ ic: 'layers', t: c.front, s: `Card · ${byId('decks', c.deckId)?.name || ''}`, c: clsColor(byId('decks', c.deckId)?.classId), go: () => go('study', 'cards', c.deckId) });
+  for (const tp of S.topics) if (hit(tp.name) || hit(tp.unit)) out.push({ ic: 'layout-grid', t: tp.name, s: `Topic · ${clsName(tp.classId)}${tp.unit ? ' · ' + tp.unit : ''}`, c: clsColor(tp.classId), go: () => topicDetail(tp.id) });
+  for (const g of S.goals) if (hit(goalTitle(g))) out.push({ ic: 'flag', t: goalTitle(g), s: 'Goal', go: () => go('intel', 'goals') });
   for (const ev of S.events) if (hit(ev.title)) out.push({ ic: 'calendar', t: ev.title, s: `Event · ${fmtDate(ev.date)}`, c: ev.color || clsColor(ev.classId), go: () => go('planner', 'day', ev.date) });
   return out.slice(0, 30);
 }
@@ -203,6 +205,7 @@ function alerts() {
   if (tom.length) out.push({ lvl: 'warn', ic: 'alarm-clock', t: `${tom.length} due tomorrow`, s: tom.map((a) => a.title).join(', '), go: () => go('assignments') });
   for (const e of S.exams.filter((e) => e.date >= t && daysBetween(t, e.date) <= 5)) { const r = readiness(e); out.push({ lvl: r != null && r < 60 ? 'bad' : 'warn', ic: 'graduation-cap', t: `${e.title} ${relDayL(e.date)}`, s: r == null ? 'No prep tracked yet' : `Readiness ${r}%`, go: () => go('exams', e.id) }); }
   for (const c of S.classes) { const g = classGrade(c.id); if (g?.pct != null && c.goal && g.pct < c.goal) out.push({ lvl: 'warn', ic: 'trending-down', t: `${c.name} is below your goal`, s: `${round(g.pct, 1)}% now, goal ${c.goal}%`, go: () => go('classes', c.id) }); }
+  if (typeof risks === 'function' && S.classes.length) { const hr = risks().filter((r) => r.level === 'high' && !/^(overdue|missing|exam):/.test(r.id)); if (hr.length) out.push({ lvl: 'bad', ic: 'gauge', t: `${hr.length} high academic risk${hr.length === 1 ? '' : 's'}`, s: hr.slice(0, 2).map((r) => r.title).join(' · '), go: () => go('intel', 'risks') }); }
   const due = cardsDue().length; if (due >= 10) out.push({ lvl: 'info', ic: 'layers', t: `${due} flashcards due for review`, s: 'Spaced repetition works best on time', go: () => go('study', 'cards') });
   return out;
 }
