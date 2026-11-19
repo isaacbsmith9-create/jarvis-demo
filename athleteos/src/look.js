@@ -45,3 +45,15 @@ function lookScore() {
   };
 }
 document.addEventListener('click', (e) => { const j = e.target.closest('[data-jump]'); if (j) document.getElementById(j.dataset.jump)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); });
+
+// ---- App-wide visual pass: rings drop the blue-to-purple blend; the shot chart uses a neutral middle instead of purple ----
+{
+  const _ring = ring;
+  ring = (v, max, o = {}) => _ring(v, max, o.color2 === 'var(--purple)' ? { ...o, color2: undefined } : o);
+}
+heatColor = (pct, pts) => {
+  if (pct == null) return 'var(--surface-2)';
+  const mid = pts === 3 ? 0.35 : pts === 1 ? 0.72 : 0.45;
+  const t = clamp((pct - mid) / 0.2, -1, 1);
+  return `color-mix(in srgb, ${t >= 0 ? '#ff7a2f' : '#2f74ff'} ${Math.round(18 + Math.abs(t) * 77)}%, var(--court-mid))`;
+};

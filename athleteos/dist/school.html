@@ -732,6 +732,22 @@ button.cc-pt { display: block; width: 100%; text-align: left; border: 1px dashed
 .d2-e .d2-ic[style*="--warn"], .tag.pr { color: var(--amber); }
 .celebrate .big, .pr-grid .v { color: var(--amber); }
 
+/* ---- app-wide pass: the last gradients become solid, rings lose their glow ---- */
+:root { --court-mid: #c9c6c0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --court-mid: #3b4160; } }
+:root[data-theme="dark"] { --court-mid: #3b4160; }
+.brand .mark, .avatar, .prio-n { background: var(--accent); }
+.bar > i { background: var(--accent); }
+.cal-d.sel { background: var(--accent); }
+.tl::before { background: var(--hair); }
+.ring circle.fg { filter: none !important; }
+.legend i[style*="8b5cff"] { background: var(--court-mid) !important; }
+.court-wrap { border-radius: 16px; overflow: hidden; border: 1px solid var(--hair); }
+.subnav { scrollbar-width: none; } .subnav::-webkit-scrollbar { display: none; }
+/* page-intro cards (Train overview, Lab, Intel) read as headers, not glowing panels */
+.view .hero, .card.hero { box-shadow: none; }
+.slider, input[type="range"] { accent-color: var(--accent); }
+
 </style>
 <div class="wrap">
   <header class="topbar">
@@ -6637,6 +6653,18 @@ function lookScore() {
   };
 }
 document.addEventListener('click', (e) => { const j = e.target.closest('[data-jump]'); if (j) document.getElementById(j.dataset.jump)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); });
+
+// ---- App-wide visual pass: rings drop the blue-to-purple blend; the shot chart uses a neutral middle instead of purple ----
+{
+  const _ring = ring;
+  ring = (v, max, o = {}) => _ring(v, max, o.color2 === 'var(--purple)' ? { ...o, color2: undefined } : o);
+}
+heatColor = (pct, pts) => {
+  if (pct == null) return 'var(--surface-2)';
+  const mid = pts === 3 ? 0.35 : pts === 1 ? 0.72 : 0.45;
+  const t = clamp((pct - mid) / 0.2, -1, 1);
+  return `color-mix(in srgb, ${t >= 0 ? '#ff7a2f' : '#2f74ff'} ${Math.round(18 + Math.abs(t) * 77)}%, var(--court-mid))`;
+};
 
 // ---- main.js ----
 // ===================== boot =====================

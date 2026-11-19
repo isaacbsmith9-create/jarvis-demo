@@ -108,3 +108,19 @@
 /* records and streak moments use the amber */
 .d2-e .d2-ic[style*="--warn"], .tag.pr { color: var(--amber); }
 .celebrate .big, .pr-grid .v { color: var(--amber); }
+
+/* ---- app-wide pass: the last gradients become solid, rings lose their glow ---- */
+:root { --court-mid: #c9c6c0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --court-mid: #3b4160; } }
+:root[data-theme="dark"] { --court-mid: #3b4160; }
+.brand .mark, .avatar, .prio-n { background: var(--accent); }
+.bar > i { background: var(--accent); }
+.cal-d.sel { background: var(--accent); }
+.tl::before { background: var(--hair); }
+.ring circle.fg { filter: none !important; }
+.legend i[style*="8b5cff"] { background: var(--court-mid) !important; }
+.court-wrap { border-radius: 16px; overflow: hidden; border: 1px solid var(--hair); }
+.subnav { scrollbar-width: none; } .subnav::-webkit-scrollbar { display: none; }
+/* page-intro cards (Train overview, Lab, Intel) read as headers, not glowing panels */
+.view .hero, .card.hero { box-shadow: none; }
+.slider, input[type="range"] { accent-color: var(--accent); }
