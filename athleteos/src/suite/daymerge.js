@@ -48,13 +48,15 @@
       if (typeof ref.get === 'function') { const d = await ref.get(); return d?.exists ? clone(d.data()) : undefined; }
       const snap = await coll.get(); const d = (snap.docs || []).find((x) => x.id === id && x.exists); return d ? clone(d.data()) : undefined;
     }
-    return new Proxy(coll, {
-      get(t, p) {
+    const t = coll;
+    return new Proxy({}, {
+      get(_, p) {
         if (p === '__dm') return true;
         if (p === 'get') return async (...a) => remember(await t.get(...a));
         if (p === 'doc') return (id, ...rest) => {
           const ref = t.doc(id, ...rest); if (!isDay(id)) return ref;
-          return new Proxy(ref, { get(rt, rp) {
+          const rt = ref;
+          return new Proxy({}, { get(_, rp) {
             if (rp === 'set') return async (data, ...more) => {
               const mine = clone(data);
               let out = mine;
@@ -77,7 +79,10 @@
     const wrapped = async (name, ...a) => {
       const cap = await use(name, ...a);
       if (name !== 'db' || !cap || typeof cap.collection !== 'function') return cap;
-      return new Proxy(cap, { get(t, p) { if (p === 'collection') return (path, ...r) => { const col = t.collection(path, ...r); return /^data\/users\/[^/]+$/.test(path) ? wrapCollection(col) : col; }; const v = t[p]; return typeof v === 'function' ? v.bind(t) : v; } });
+      try {
+        const t = cap;
+        return new Proxy({}, { get(_, p) { if (p === 'collection') return (path, ...r) => { const col = t.collection(path, ...r); try { return /^data\/users\/[^/]+$/.test(path) ? wrapCollection(col) : col; } catch { return col; } }; const v = t[p]; return typeof v === 'function' ? v.bind(t) : v; } });
+      } catch { return cap; }
     };
     wrapped.__dm = true;
     try { c.use = wrapped; } catch {}
