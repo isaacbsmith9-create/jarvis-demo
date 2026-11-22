@@ -65,12 +65,16 @@ Theme: one setting for all pages, stored under `macrolens-theme`.
 
 ## How the Training Center is bundled
 
-`vendor/btc.html` is its published page, unchanged except: storage key `ml:btc-local`, account doc `btc-app`, and the
-brand line replaced by the switcher. `src/suite/btc-skin.css` restyles it; `src/suite/btc-bridge.js` exports each
-finished session once (id `btc-<session id>`, type from the session's main area, RPE = average drill difficulty × 2,
-minutes from the session) and adds Athlete OS context (games, practices, load ratio > 1.3, readiness < 45) to its
-daily recommendation. To pick up a new Training Center version, replace `vendor/btc.html` and rebuild; the build
-stops with a clear error if one of those anchors changed.
+The real Training Center (artifact E5RvEW7dwnn5kDwoRuYmQw) is vendored unchanged in `vendor/training-center`
+(index.html, styles.css, pro.css, js/*.js) and built to `btc.html` plus `tc/` (its files sit under `tc/` because
+Student Lens owns `js/app.js` and friends at the bundle root). The build only renames its storage: account doc
+`tc-app` (`{ state, savedAt }`), backups `tc-backup-*` with daily backups in 14 rotating slots (`tcSlot()`), device key
+`tc:local-v3`; both brand blocks become the switcher. `src/suite/tc-bridge.js` wraps `commitSession` (last) and exports
+each finished session once to `day-*.exercise` (id `btc-<session id>`, source `training-center`, type from the main
+area, intensity from the session RPE, `btc: { attempts, makes, pct, area, completionPct }`), records exports in `tc-sync`,
+and writes `btc-sig`. Film videos stay in the device's IndexedDB `btc-film`. To pick up a new version, replace
+`vendor/training-center` and rebuild; the build stops if a storage anchor changed or an un-renamed backup doc is left.
+The old `btc-app`/`btc-sync` docs from the earlier Training Center are left in place, unused.
 
 ## Event stream (ecosystem phase 1)
 

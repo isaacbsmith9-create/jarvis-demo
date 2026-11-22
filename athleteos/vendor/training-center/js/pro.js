@@ -1,0 +1,52 @@
+/* ==================== Pro shell: home, more hub, routing ==================== */
+Object.assign(TAB_OF, { coach: 'coach', shots: 'shots', film: 'film', course: 'courses', courses: 'courses', recruit: 'more', dashboard: 'home', dev: 'more', journal: 'more', habits: 'more', profile: 'more', library: 'more', drill: 'more', plan: 'plan', analytics: 'more' });
+function streakDays() { var t = today(), d = rangeMinutes(t, t) > 0 ? t : addDays(t, -1), n = 0; while (n < 400 && rangeSessions(d, d).length) { n++; d = addDays(d, -1); } return n; }
+function greeting() { var h = new Date().getHours(); return h < 5 ? 'Late night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; }
+function viewHomePro() {
+  autoWeek(); var c = coachState(), t = today(), ws = weekStart(t), wk = c.setupAt ? coachWeekItems(ws) : [], r = playerRatings(), ov = overallRating(r);
+  var todayItem = wk.filter(function (p) { return p.date === t; })[0] || S.plan.filter(function (p) { return p.date === t && p.type === 'workout' && p.status !== 'done' && p.workoutId; })[0];
+  var next = todayItem || wk.filter(function (p) { return p.date > t && p.status !== 'done'; })[0] || coachWeekItems(addDays(ws, 7)).filter(function (p) { return p.status !== 'done'; })[0];
+  var weekMin = rangeMinutes(ws, addDays(ws, 6)), target = S.profile.weeklyTarget || 300, sh = splitStats(shotSets(addDays(t, -6), t)), streak = streakDays();
+  var inProg = COURSES.map(function (cc) { return { c: cc, p: courseProgress(cc) }; }).filter(function (x) { return x.p.n && x.p.n < x.p.total; })[0];
+  var last = S.sessions.slice(-1)[0], rd = readinessToday(), name = (S.profile.name || '').split(' ')[0];
+  var heroSession = next ? (function () { var w = S.workouts.find(function (x) { return x.id === next.workoutId; }); if (!w) return ''; return '<div class="today-card"><div class="kick">' + (next.date === t ? (next.status === 'done' ? 'Done today' : 'Today’s session') : 'Next: ' + esc(fmtDay(next.date))) + '</div><h2>' + esc(w.name) + '</h2><div class="tc-meta">' + ic('timer', 15) + ' ' + next.minutes + ' min <span>·</span> ' + ic('dumbbell', 15) + ' ' + w.items.length + ' drills</div><div class="tc-drills">' + w.items.slice(0, 4).map(function (i) { return '<span>' + esc(i.name) + '</span>'; }).join('') + (w.items.length > 4 ? '<span>+' + (w.items.length - 4) + ' more</span>' : '') + '</div>' + (next.reason ? '<p class="tiny" style="color:#d0cdc8;margin:10px 0 0">' + esc(next.reason) + '</p>' : '') + (next.status !== 'done' ? '<button class="btn p xl" data-a="plan-start" data-id="' + next.id + '" style="margin-top:14px">' + ic('play', 20) + ' Start session</button>' : '<div class="tag g" style="margin-top:12px">' + ic('check', 13) + ' Completed</div>') + '</div>'; })()
+    : !c.setupAt ? '<div class="today-card"><div class="kick">Get your plan</div><h2>Meet your coach</h2><p style="color:#d0cdc8;margin:6px 0 0" class="small">Take a 3-minute assessment. You get a skill rating, your weak spots and a weekly plan built around them.</p><a class="btn p xl" href="#coach-setup" style="margin-top:14px">' + ic('sparkles', 20) + ' Start assessment</a></div>'
+    : '<div class="today-card"><div class="kick">This week</div><h2>No session scheduled</h2><p style="color:#d0cdc8" class="small">Build your week or jump into a quick Shot Lab session.</p><div class="btns" style="margin-top:12px"><button class="btn p" data-a="coach-build">' + ic('repeat', 16) + ' Build my week</button><a class="btn" href="#shots">' + ic('target', 16) + ' Shot Lab</a></div></div>';
+  return '<section class="home-hero2"><div class="hh-l"><div class="kick">' + esc(new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })) + '</div><h1>' + greeting() + (name ? ', ' + esc(name) : '') + '</h1><p class="ink2">' + (streak ? ic('flame', 16) + ' ' + streak + '-day streak. Keep it going.' : 'Every rep counts. Let’s get one in today.') + '</p>' +
+    '<div class="hstats"><a href="#coach" class="hs"><div class="hs-ovr">' + (ov == null ? '–' : ov) + '</div><span>Player rating</span><em>' + ratingTier(ov) + '</em></a><div class="hs"><b class="num">' + fmtMin(weekMin) + '</b><span>this week</span><div class="bar"><i style="width:' + Math.min(100, Math.round((weekMin / target) * 100)) + '%"></i></div></div><a href="#shots" class="hs"><b class="num">' + fmtPct(pct(sh.tot.made, sh.tot.att)) + '</b><span>shooting, 7 days</span><em>' + (sh.tot.att ? sh.tot.made + '/' + sh.tot.att : 'no shots yet') + '</em></a></div></div>' + heroSession + '</section>' +
+    '<div class="quick">' + [['#shots', 'target', 'Shot Lab', 'Track makes'], ['#film', 'clapperboard', 'Film Room', 'Break down clips'], ['#courses', 'graduation-cap', 'Courses', COURSES.length + ' programs'], ['#library', 'library', 'Drills', allDrills().length + ' drills'], ['#recruit', 'id-card', 'Recruiting', 'Player profile']].map(function (q) { return '<a class="qt" href="' + q[0] + '"><span>' + ic(q[1], 22) + '</span><b>' + q[2] + '</b><small>' + q[3] + '</small></a>'; }).join('') + '</div>' +
+    (c.setupAt ? '<section class="panel"><div class="phead"><div><h3>Your week</h3><div class="sub">' + wk.filter(function (p) { return p.status === 'done'; }).length + ' of ' + wk.length + ' coach sessions done · focus: ' + esc((c.weeks[ws] && c.weeks[ws].focus || []).join(' + ') || '–') + '</div></div><a class="btn sm" href="#coach">Coach ' + ic('arrow-right', 14) + '</a></div>' + weekStrip(ws) + '</section>' : '') +
+    '<div class="grid g2" style="margin-top:14px">' +
+    (inProg ? '<a class="course mini" href="#course-' + inProg.c.id + '" style="--cc:' + inProg.c.color + '"><div class="co-top"><span class="co-area">Continue course</span>' + ringChart(inProg.p.pct, inProg.c.title) + '</div><h3>' + esc(inProg.c.title) + '</h3><div class="co-cta">Next: ' + esc(inProg.c.lessons[inProg.p.next].t) + ' ' + ic('arrow-right', 14) + '</div></a>' : '<a class="course mini" href="#courses" style="--cc:#e9d98d"><div class="co-top"><span class="co-area">Courses</span>' + ic('graduation-cap', 28) + '</div><h3>Learn it, then train it</h3><div class="co-cta">Browse ' + COURSES.length + ' courses ' + ic('arrow-right', 14) + '</div></a>') +
+    '<section class="panel"><div class="phead"><div><h3>How do you feel?</h3><div class="sub">Your coach shortens today’s session when readiness is low</div></div>' + (rd ? '<span class="tag ' + readinessLabel(readinessScore(rd)).tone + '">' + readinessLabel(readinessScore(rd)).label + '</span>' : '') + '</div><form data-form="readiness" class="grid" style="gap:8px"><div class="grid g3" style="gap:8px">' + selectField('rd-sleep', 'Sleep', [1, 2, 3, 4, 5], rd ? rd.sleep : 3) + selectField('rd-sore', 'Soreness', [1, 2, 3, 4, 5], rd ? rd.soreness : 2) + selectField('rd-energy', 'Energy', [1, 2, 3, 4, 5], rd ? rd.energy : 3) + '</div><button class="btn sm" type="submit">' + (rd ? 'Update check-in' : 'Save check-in') + '</button></form></section></div>' +
+    (last ? '<section class="panel" style="margin-top:14px"><div class="phead"><div><h3>Last session</h3></div><a class="btn sm" href="#dashboard">Full dashboard ' + ic('arrow-right', 14) + '</a></div><a class="tapwrap" href="#session-' + last.id + '"><div class="main"><b class="nm">' + esc(last.workoutName) + '</b><div class="tiny">' + esc(fmtDay(last.date)) + ' · ' + last.minutes + ' min · ' + last.items.length + ' items</div></div>' + (sessionTotals(last).att ? '<span class="tag p">' + sessionTotals(last).made + '/' + sessionTotals(last).att + ' · ' + fmtPct(sessionTotals(last).pct) + '</span>' : '') + '</a></section>' : '<p class="tiny" style="margin-top:14px">Want every number? <a href="#dashboard">Open the full training dashboard</a>.</p>');
+}
+function viewMore() {
+  var items = [['#coach', 'target', 'Coach', 'Ratings, focus and weekly plan'], ['#train', 'dumbbell', 'Train', 'Workouts and session builder'], ['#film', 'clapperboard', 'Film Room', 'Clips, slow-mo and tags'], ['#courses', 'graduation-cap', 'Courses', 'Learn and practice skills'], ['#plan', 'calendar-days', 'Plan', 'Calendar of practices, games and workouts'], ['#analytics', 'chart-line', 'Analytics', 'Minutes, makes and trends'], ['#dashboard', 'gauge', 'Dashboard', 'Everything at a glance'], ['#library', 'library', 'Drill library', allDrills().length + ' drills'], ['#recruit', 'id-card', 'Recruiting', 'Printable player profile'], ['#dev', 'trending-up', 'Development', 'Priorities and goals'], ['#journal', 'notebook-pen', 'Journal', 'Notes after sessions and games'], ['#habits', 'list-checks', 'Habits', 'Sleep, nutrition, recovery'], ['#profile', 'user', 'Profile & data', 'Settings and backup']];
+  return pageHead('More', 'Everything', '') + '<div class="morehub">' + items.map(function (x) { return '<a href="' + x[0] + '"><span>' + ic(x[1], 22) + '</span><b>' + x[2] + '</b><small>' + x[3] + '</small></a>'; }).join('') + '</div>';
+}
+var _routeView = routeView;
+routeView = function (route) {
+  coachState(); filmState(); courseState();
+  if (route === 'home') return viewHomePro();
+  if (route === 'dashboard') return viewHome();
+  if (route === 'coach') return viewCoach();
+  if (route === 'coach-setup') return viewCoachSetup();
+  if (route === 'shots') return viewShots();
+  if (route === 'film') return viewFilm();
+  if (route.indexOf('film-') === 0) return viewFilmClip(route.slice(5));
+  if (route === 'courses') return viewCourses();
+  if (route.indexOf('course-') === 0) return viewCourse(route.slice(7));
+  if (route === 'recruit') return viewRecruit();
+  if (route === 'more') return viewMore();
+  if (route === 'dev') return viewDev();
+  return _routeView(route);
+};
+/* sidebar + tab bar icons, then redraw with the new routes */
+(function () {
+  $$('[data-ico]').forEach(function (el) { el.innerHTML = ic(el.dataset.ico, el.dataset.s ? +el.dataset.s : 20); });
+  var _render = render;
+  render = function () { _render(); var r = (location.hash || '#home').slice(1), sub = r.split('-')[0]; $$('.side a[data-r]').forEach(function (a) { a.classList.toggle('on', a.dataset.r === r || a.dataset.r === sub || (a.dataset.r === 'courses' && sub === 'course') || (a.dataset.r === 'film' && sub === 'film')); }); var m = $('#app'); if (m) m.classList.toggle('noanim', UI.lastRoute === r); if (UI.lastRoute !== r) { UI.lastRoute = r; window.scrollTo(0, 0); } };
+  window.addEventListener('hashchange', function () { /* app.js re-renders on hashchange */ });
+  render();
+})();

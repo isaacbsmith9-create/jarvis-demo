@@ -1,159 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Basketball Training Center</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#0d0a14; --surface:#171224; --surface2:#211a31; --line:#2f2643;
-  --ink:#f3effa; --muted:#a398bb; --accent:#9b6dff; --gold:#f2b84b;
-  --good:#4ade80; --warn:#fbbf24; --bad:#f87171;
-  --radius:16px;
-  font-family:"Manrope",system-ui,-apple-system,sans-serif;
-}
-*{box-sizing:border-box}
-html,body{margin:0;min-height:100%}
-body{background:var(--bg);color:var(--ink);color-scheme:dark;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
-h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif;margin:0;letter-spacing:-.01em;text-wrap:balance}
-h1{font-size:24px} h2{font-size:21px} h3{font-size:16px}
-p{margin:6px 0}
-.app{max-width:760px;margin:0 auto;padding:0 16px calc(104px + env(safe-area-inset-bottom))}
-header.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0 10px;background:rgba(13,10,20,.92);backdrop-filter:blur(8px)}
-.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700}
-nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line)}
-nav.bottom a{text-align:center;color:var(--muted);text-decoration:none;font-size:12px;font-weight:600;padding:9px 2px;border-radius:12px}
-nav.bottom a.on{color:var(--ink);background:var(--surface2);box-shadow:inset 0 -2px 0 var(--accent)}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:12px 0}
-.card.hi{border-color:#5b3fa0;background:linear-gradient(180deg,#22183a,var(--surface))}
-.stack>*+*{margin-top:10px}
-.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.row.end{justify-content:flex-end}
-.grow{flex:1;min-width:0}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-@media(max-width:460px){.grid2{grid-template-columns:1fr}.grid4{grid-template-columns:1fr 1fr}}
-.muted{color:var(--muted)}
-.small{font-size:13px}
-.tiny{font-size:12px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--surface2);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none;min-height:40px}
-.btn:hover{border-color:#4a3a6e}
-.btn.primary{background:var(--accent);color:#120a22;border-color:transparent}
-.btn.ghost{background:transparent}
-.btn.danger{color:var(--bad)}
-.btn.small{padding:6px 10px;font-size:13px;min-height:32px}
-.btn.big{width:100%;padding:14px;font-size:16px}
-.btn-group{display:flex;gap:6px;flex-wrap:wrap}
-input,select,textarea{width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit}
-textarea{resize:vertical;min-height:60px}
-label{display:block;font-size:11px;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.07em;font-weight:700}
-.check{display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink);margin:10px 0}
-.check input{width:auto}
-.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}
-.chips::-webkit-scrollbar{display:none}
-.chip{flex:0 0 auto;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:99px;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
-.chip.on{background:var(--accent);color:#120a22;border-color:transparent}
-.badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:var(--surface2);color:var(--muted);border:1px solid var(--line)}
-.badge.gold{color:var(--gold);border-color:#5c4a22}
-.badge.good{color:var(--good);border-color:#23543a}
-.badge.warn{color:var(--warn);border-color:#5c4a22}
-.badge.bad{color:var(--bad);border-color:#5c2a2a}
-.bar{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden}
-.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:99px}
-.cols{display:flex;align-items:flex-end;gap:6px;height:130px;padding-top:8px}
-.col{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}
-.col i{width:100%;max-width:38px;background:linear-gradient(180deg,var(--accent),#5a3fa8);border-radius:8px 8px 3px 3px;min-height:2px}
-.col.now i{background:linear-gradient(180deg,var(--gold),#a7742b)}
-.col span{font-size:11px;color:var(--muted);white-space:nowrap}
-.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-@media(min-width:620px){.tiles{grid-template-columns:repeat(4,1fr)}}
-.tile{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:12px}
-.tile .n{font-family:"Bricolage Grotesque",sans-serif;font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
-.tile .l{font-size:12px;color:var(--muted)}
-.list>*+*{border-top:1px solid var(--line)}
-.li{padding:12px 0}
-.drill-row{all:unset;display:block;width:100%;box-sizing:border-box;cursor:pointer;padding:12px 0;border-top:1px solid var(--line)}
-.drill-row:first-child{border-top:0}
-.drill-row:focus-visible,.btn:focus-visible,.chip:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.dots{letter-spacing:2px;color:var(--gold)}
-.ok{color:var(--good)} .bad-t{color:var(--bad)} .warn-t{color:var(--warn)}
-.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:22px 0 4px}
-.empty{color:var(--muted);text-align:center;padding:24px 8px;border:1px dashed var(--line);border-radius:var(--radius)}
-.banner{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#2b1f47;border:1px solid #5b3fa0;border-radius:14px;padding:10px 14px;margin:10px 0}
-.quick{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.quick .btn{justify-content:flex-start}
-.more{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
-.more .btn{justify-content:flex-start;min-height:52px}
-.coach{margin:8px 0;padding-left:18px}
-.coach li{margin:4px 0}
-.targets{font-size:13px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0}
-.timer-box{text-align:center;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}
-.timer{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:52px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1;margin:4px 0}
-.rest{text-align:center;background:#1f3a2c;border:1px solid #2f6a48;border-radius:14px;padding:10px;margin:10px 0;font-weight:700}
-.rest span{font-family:ui-monospace,monospace;font-size:20px;font-variant-numeric:tabular-nums}
-.set-log{font-size:13px;color:var(--muted);margin-top:8px}
-.item-row{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px;margin:8px 0}
-.queue button{all:unset;display:flex;justify-content:space-between;gap:8px;width:100%;box-sizing:border-box;padding:9px 6px;border-top:1px solid var(--line);cursor:pointer;font-size:14px}
-.queue button:focus-visible{outline:2px solid var(--gold)}
-.queue button.cur{color:var(--gold);font-weight:700}
-.queue button.off{color:var(--muted);text-decoration:line-through}
-#runner{position:fixed;inset:0;z-index:20;background:var(--bg);overflow:auto;padding:14px 16px calc(40px + env(safe-area-inset-bottom))}
-#runner .run{max-width:640px;margin:0 auto}
-#modal{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
-#modal .sheet{background:var(--surface);width:100%;max-width:720px;max-height:92vh;overflow:auto;border:1px solid var(--line);border-radius:20px 20px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom))}
-@media(min-width:720px){#modal{align-items:center}#modal .sheet{border-radius:20px}}
-[hidden]{display:none!important}
-.lbl-inline{display:inline-flex;align-items:center;gap:6px}
-.hr{height:1px;background:var(--line);margin:14px 0}
-.spacer{height:4px}
-:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-</style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
-<style>/* Basketball Training Center inside the Athlete suite: Athlete OS palette, fonts, cards and tab bar, orange accent,
-   light and dark. Overrides its tokens and the few hard-coded colors; its layout and features stay as they are. */
-:root {
-  --bg: #eef2fb; --surface: #ffffff; --surface2: #e6ebf7; --line: #d5ddef; --ink: #0b1330; --muted: #5b6687;
-  --accent: #ea580c; --gold: #b45309; --good: #16a34a; --warn: #b45309; --bad: #c93c3c; --radius: 18px;
-  --fg: var(--ink); --surface-2: var(--surface2);
-  --f-display: "Space Grotesk", "Inter", system-ui, sans-serif; --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  font-family: var(--f-body);
-  --hdr: rgba(238, 242, 251, .9); --hi-a: #fff1e8; --tint-good: #e3f6ea; --on-accent: #ffffff;
-}
-:root[data-theme="dark"] {
-  --bg: #060a17; --surface: #0d1430; --surface2: #161f42; --line: #222d57; --ink: #eef2ff; --muted: #8e9ac4;
-  --accent: #ff7a45; --gold: #ffb547; --good: #2fd68a; --warn: #ffb547; --bad: #ff6b7a;
-  --hdr: rgba(6, 10, 23, .88); --hi-a: #2a1a14; --tint-good: #0f3326; --on-accent: #1a0b03;
-}
-body { color-scheme: light; font-family: var(--f-body); }
-:root[data-theme="dark"] body { color-scheme: dark; }
-h1, h2, h3, .tile .n { font-family: var(--f-display); letter-spacing: -.3px; }
-header.top { background: var(--hdr); align-items: flex-start; }
-header.top h1 { font-size: 22px; margin-top: 6px; }
-.card { box-shadow: 0 1px 2px rgba(20, 30, 70, .06); }
-:root[data-theme="dark"] .card { background: linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, 0) 40%), var(--surface); border-color: rgba(120, 140, 255, .16); box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 12px 30px -18px rgba(0, 0, 0, .8); }
-.card.hi { border-color: color-mix(in srgb, var(--accent) 45%, transparent); background: linear-gradient(160deg, var(--hi-a), var(--surface) 70%); }
-.banner { background: var(--hi-a); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
-.btn:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
-.btn.primary { background: linear-gradient(135deg, #f97316, #ef4444); color: #fff; box-shadow: 0 8px 22px -10px rgba(249, 115, 22, .6); }
-.chip.on { background: var(--accent); color: var(--on-accent); }
-.badge.gold { border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
-.badge.good { border-color: color-mix(in srgb, var(--good) 45%, transparent); }
-.badge.warn { border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
-.badge.bad { border-color: color-mix(in srgb, var(--bad) 45%, transparent); }
-.bar > i { background: linear-gradient(90deg, #f97316, var(--gold)); }
-.col i { background: linear-gradient(180deg, #f97316, #c2410c); }
-.col.now i { background: linear-gradient(180deg, var(--gold), #b45309); }
-.rest { background: var(--tint-good); border-color: color-mix(in srgb, var(--good) 45%, transparent); }
-input, select, textarea { font-size: 16px; }
-nav.bottom { background: var(--surface); }
-:root[data-theme="dark"] nav.bottom { background: rgba(9, 14, 34, .86); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); border-top-color: rgba(120, 140, 255, .14); }
-nav.bottom a.on { box-shadow: inset 0 -2px 0 var(--accent); }
-.btc-link { display: flex; gap: 10px; align-items: center; justify-content: space-between; font-size: 13px; }
-
-/* Athlete suite: the app switcher, identical on every page. Uses each page's own tokens (--fg, --muted, --surface…). */
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>/* Athlete suite: the app switcher, identical on every page. Uses each page's own tokens (--fg, --muted, --surface…). */
 .suite { position: relative; display: inline-flex; min-width: 0; z-index: 30; }
 .suite-btn { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; color: var(--fg); cursor: pointer; padding: 4px 6px 4px 0; border-radius: 12px; font: 700 18px/1.1 var(--f-display); letter-spacing: -.2px; min-width: 0; }
 .suite-btn .suite-name { white-space: nowrap; }
@@ -174,7 +19,9 @@ nav.bottom a.on { box-shadow: inset 0 -2px 0 var(--accent); }
 .suite-item em { font: 600 11px var(--f-body); font-style: normal; color: var(--c); }
 .suite-item.on { background: color-mix(in srgb, var(--c) 12%, transparent); }
 .suite-item.going { opacity: .6; }
-</style>
+
+.suite { --surface: var(--panel); --surface-2: var(--raised); --fg: var(--ink); }
+#suite-host-side { padding: 4px 4px 16px; }</style>
 <script>
 // ===================== Shared day records: merge instead of overwrite =====================
 // Several apps write the same "day-YYYY-MM-DD" doc (MacroLens meals and water, Athlete OS and Recovery Lens check-ins,
@@ -276,6 +123,8 @@ nav.bottom a.on { box-shadow: inset 0 -2px 0 var(--accent); }
 
 </script>
 <script>
+// 14 rotating daily backup slots, so backups never pile up in the shared account collection.
+function tcSlot(tag) { var m = /^day-(\d{4})(\d{2})(\d{2})$/.exec(tag); if (!m) return tag; return 'day-' + (Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / 864e5) % 14); }
 // ===================== Athlete suite: shared across every page of the bundle =====================
 // One app switcher (the app's name, top-left, on every page), one theme setting, one list of apps.
 // Each page calls Suite.mount(el, '<app id>', beforeLeave) — beforeLeave saves pending changes before navigating.
@@ -319,1459 +168,104 @@ nav.bottom a.on { box-shadow: inset 0 -2px 0 var(--accent); }
   window.Suite = { APPS, mount, theme, THEME_KEY };
 })();
 
-Suite.theme();
 </script>
+</head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090a0b">
+<title>Training Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Figtree:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="tc/styles.css">
+<link rel="stylesheet" href="tc/pro.css">
 </head>
 <body>
-<div class="app">
-  <header class="top">
-    <div>
-      <div id="suite-host"></div>
-      <h1 id="ttl">Training Center</h1>
-    </div>
-    <small id="sync" class="muted tiny">Saved in this browser</small>
-  </header>
-  <div id="banner"></div>
-  <main id="main"></main>
+<div class="shell">
+  <aside class="side" aria-label="Main navigation">
+    <div class="brand" id="suite-host-side"></div>
+    <a href="#home" data-r="home"><i data-ico="house"></i>Home</a>
+    <a href="#coach" data-r="coach"><i data-ico="target"></i>Coach</a>
+    <a href="#shots" data-r="shots"><i data-ico="crosshair"></i>Shot Lab</a>
+    <a href="#train" data-r="train"><i data-ico="dumbbell"></i>Train</a>
+    <a href="#film" data-r="film"><i data-ico="clapperboard"></i>Film Room</a>
+    <a href="#courses" data-r="courses"><i data-ico="graduation-cap"></i>Courses</a>
+    <a href="#plan" data-r="plan"><i data-ico="calendar-days"></i>Plan</a>
+    <a href="#analytics" data-r="analytics"><i data-ico="chart-line"></i>Analytics</a>
+    <div class="grp">Develop</div>
+    <a href="#library" data-r="library"><i data-ico="library"></i>Drill library</a>
+    <a href="#recruit" data-r="recruit"><i data-ico="id-card"></i>Recruiting</a>
+    <a href="#dev" data-r="dev"><i data-ico="trending-up"></i>Development</a>
+    <a href="#journal" data-r="journal"><i data-ico="notebook-pen"></i>Journal</a>
+    <a href="#habits" data-r="habits"><i data-ico="list-checks"></i>Habits</a>
+    <a href="#profile" data-r="profile"><i data-ico="user"></i>Profile &amp; data</a>
+    <div class="sync" data-status></div>
+  </aside>
+  <div class="content" style="min-width:0">
+    <header class="topbar">
+      <div class="in">
+        <div id="suite-host"></div>
+        <div class="sync" data-status></div>
+      </div>
+    </header>
+    <main id="app" tabindex="-1"></main>
+  </div>
 </div>
-<nav class="bottom" id="nav" aria-label="Main"></nav>
-<div id="runner" hidden></div>
+
+<nav class="tabbar" aria-label="Sections">
+  <a href="#home" data-tab="home"><span class="ic"></span><i data-ico="house" data-s="22"></i>Home</a>
+  <a href="#coach" data-tab="coach"><span class="ic"></span><i data-ico="target" data-s="22"></i>Coach</a>
+  <a href="#shots" data-tab="shots"><span class="ic"></span><i data-ico="crosshair" data-s="22"></i>Shot Lab</a>
+  <a href="#train" data-tab="train"><span class="ic"></span><i data-ico="dumbbell" data-s="22"></i>Train</a>
+  <a href="#more" data-tab="more"><span class="ic"></span><i data-ico="layout-grid" data-s="22"></i>More</a>
+</nav>
+
+<div id="runner" hidden role="region" aria-label="Workout runner"></div>
 <div id="modal" hidden></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
+<script src="tc/js/data.js"></script>
+<script src="tc/js/data-pro.js"></script>
+<script src="tc/js/core.js"></script>
+<script src="tc/js/charts.js"></script>
+<script src="tc/js/icons.js"></script>
+<script src="tc/js/app.js"></script>
+<script src="tc/js/coach.js"></script>
+<script src="tc/js/shotlab.js"></script>
+<script src="tc/js/film.js"></script>
+<script src="tc/js/courses.js"></script>
+<script src="tc/js/pro.js"></script>
+<script src="tc/js/pro2.js"></script>
+<script src="tc/js/builder.js"></script>
+<script src="tc/js/pro3.js"></script>
+<script src="tc/js/pro4.js"></script>
+<script src="tc/js/shotbook.js"></script>
+<script src="tc/js/pro5.js"></script>
+<script src="tc/js/myweek.js"></script>
+<script src="tc/js/writer.js"></script>
+<script src="tc/js/programs.js"></script>
+<script src="tc/js/postgame.js"></script>
+<script src="tc/js/buildme.js"></script>
+<script src="tc/js/buildme2.js"></script>
+<script src="tc/js/floaters.js"></script>
+<script src="tc/js/spotflow.js"></script>
+<script src="tc/js/backups.js"></script>
 <script>
-'use strict';
-/* ============ helpers ============ */
-const KEY = 'ml:btc-local';
-const DAY = 864e5;
-const $ = (s, r = document) => r.querySelector(s);
-const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const pad = n => String(n).padStart(2, '0');
-const fmtD = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-const today = () => fmtD(new Date());
-const addDays = (ds, n) => { const d = new Date(ds + 'T12:00:00'); d.setDate(d.getDate() + n); return fmtD(d); };
-const dayLabel = ds => new Date(ds + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
-const sum = (a, f = x => x) => a.reduce((s, x) => s + (+f(x) || 0), 0);
-const pctOf = (m, a) => a ? Math.round(100 * m / a) : null;
-const pctTxt = p => p == null ? '—' : p + '%';
-const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-const fmtSec = s => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + pad(s % 60); };
-const fmtMin = m => { m = Math.round(m || 0); return m >= 60 ? Math.floor(m / 60) + 'h ' + pad(m % 60) + 'm' : m + ' min'; };
-const dots = n => '<span class="dots" aria-label="Difficulty ' + n + ' of 5">' + '●'.repeat(n) + '<span class="muted">' + '●'.repeat(5 - n) + '</span></span>';
-
-/* ============ reference data ============ */
-const AREAS = ['Finishing', 'Shooting', 'Ball Handling', 'Pick-and-Roll', 'Footwork', 'Movement', 'Conditioning', 'Passing', 'Game Situations', 'Partner Training'];
-const CATS = { micro: 'Micro (10–20 min)', focused: 'Focused (30–60 min)', competitive: 'Competitive (30–60 min)' };
-const CAT_SHORT = { micro: 'Micro', focused: 'Focused', competitive: 'Competitive' };
-const TAGS = [
-  { id: 'paint', label: 'Got into the paint', area: 'Finishing', good: true },
-  { id: 'fin-help', label: 'Struggled to finish vs help', area: 'Finishing' },
-  { id: 'fin-contact', label: 'Struggled to finish through contact', area: 'Finishing' },
-  { id: 'sep', label: 'Created separation', area: 'Ball Handling', good: true },
-  { id: 'handle', label: 'Handle broke down under pressure', area: 'Ball Handling' },
-  { id: 'cs-miss', label: 'Missed catch-and-shoot', area: 'Shooting' },
-  { id: 'cs-make', label: 'Caught and shot well', area: 'Shooting', good: true },
-  { id: 'pin', label: 'Struggled off pin-downs', area: 'Shooting' },
-  { id: 'deep', label: 'Deep three struggles', area: 'Shooting' },
-  { id: 'pr-foot', label: 'Footwork on pick-and-roll pull-up', area: 'Pick-and-Roll' },
-  { id: 'pr-read', label: 'Good read on pick-and-roll', area: 'Pick-and-Roll', good: true },
-  { id: 'pr-decide', label: 'Decisions rushed under pressure', area: 'Pick-and-Roll' }
-];
-const SUGGEST = [
-  [/got (in|into|to) the (paint|basket|rim)|in the paint|getting downhill|got downhill/i, 'paint'],
-  [/finish.*(help|defen)|help defen/i, 'fin-help'],
-  [/contact/i, 'fin-contact'],
-  [/separation/i, 'sep'],
-  [/handl|dribbl/i, 'handle'],
-  [/catch.?and.?shoot/i, 'cs-make'],
-  [/pin.?down/i, 'pin'],
-  [/deep (three|3)/i, 'deep'],
-  [/pull.?up/i, 'pr-foot'],
-  [/read/i, 'pr-read'],
-  [/rushed|under pressure|pressure/i, 'pr-decide']
-];
-const SUBSKILLS = {
-  'Finishing': ['Finishing through multiple defenders', 'Two-foot power finishes', 'Finishing through contact', 'Inside-hand and outside-hand finishes', 'Up-and-under finishes', 'Reverse finishes', 'Wrong-foot finishes', 'Floaters', 'Finishing creativity', 'Finishing against help defense'],
-  'Shooting': ['Catch-and-shoot', 'Midrange pull-ups', 'Shooting directly after cuts', 'Catch-and-hop shooting', 'Shooting off pin-downs', 'Movement shooting', 'Deep three-point shooting', 'Difficult shots from uncomfortable positions', 'Shooting with momentum', 'High-release mechanics'],
-  'Ball Handling': ['Tight handles', 'Change of pace', 'Separation moves', 'Creating space', 'Advanced combination moves', 'Ball handling into pull-ups', 'Ball handling into finishing'],
-  'Pick-and-Roll': ['Reading defenders', 'Snake dribbles', 'Pull-up shooting', 'Getting downhill', 'Creating separation', 'Making decisions under pressure']
-};
-
-const D = (name, category, difficulty, secondary, instructions, coaching, minutes, sets, attempts, metric, partner) => ({
-  id: 'd-' + slug(name), name, category, difficulty, secondary, instructions, coaching,
-  equipment: partner ? 'Ball, hoop, partner' : 'Ball, hoop', minutes, sets, attempts, metric,
-  partner: !!partner, favorite: false, custom: false, video: ''
-});
-const DRILLS = [
-  D('Two-foot power finish', 'Finishing', 2, ['Contact'], 'Gather two steps from the rim, jump off two feet, and finish strong with two hands.', ['Land on two feet', 'Hold the ball high through contact'], 6, 3, 10, 'makes'),
-  D('Inside-hand finish off the glass', 'Finishing', 2, ['Touch'], 'Attack the rim from the side and finish inside-hand off the backboard.', ['Angle off the glass', 'Soft wrist'], 6, 3, 10, 'makes'),
-  D('Outside-hand finish, both sides', 'Finishing', 2, [], 'Finish with the outside hand on both sides of the rim.', ['Use the far hand to protect the ball'], 6, 3, 10, 'makes'),
-  D('Up-and-under finish', 'Finishing', 3, ['Footwork'], 'Jump-stop past the rim, then bring the ball under and up with your body between the rim and the defender.', ['Pump fake first', 'Keep your body shielding'], 6, 3, 10, 'makes'),
-  D('Reverse finish', 'Finishing', 3, ['Footwork'], 'Go under the basket from one side and reverse to the other side off the backboard.', ['Wrap the ball', 'Eyes on the rim'], 6, 3, 10, 'makes'),
-  D('Wrong-foot finish', 'Finishing', 4, ['Footwork'], 'Take the layup off the foot opposite your natural stride.', ['Jump-stop to gather', 'Stay low on the plant'], 6, 3, 10, 'makes'),
-  D('Floater ladder', 'Finishing', 3, ['Touch'], 'Shoot floaters from three spots in the lane: left, middle, right.', ['Soft arc', 'Land on the same foot every time'], 8, 3, 15, 'makes'),
-  D('Finish through a defender', 'Finishing', 3, ['Contact'], 'Partner defends one step behind. Attack and finish through contact.', ['Protect with the body', 'Pick a finish before the gather'], 8, 3, 8, 'makes', true),
-  D('Finish vs help defense', 'Finishing', 4, ['Game Situations'], 'Partner steps in as help on your first step. Read the help, then finish or kick out.', ['Hit the pass if help arrives', 'Quick feet'], 8, 3, 8, 'makes', true),
-  D('Contact finish with pad', 'Finishing', 4, ['Contact'], 'Partner holds a pad on the rim side. Absorb the contact and finish.', ['Stay strong through the bump'], 8, 3, 8, 'makes', true),
-  D('Catch-and-shoot 5 spots', 'Shooting', 2, ['Movement'], 'Five spots around the arc. Catch with feet set and shoot immediately.', ['Ready hands', 'Same release every time'], 10, 5, 25, 'makes'),
-  D('Catch-and-hop from wing', 'Shooting', 3, ['Movement'], 'Hop into the shot on the catch from the wing and the corner.', ['Hop forward, not up'], 8, 3, 25, 'makes'),
-  D('Shooting off pin-downs', 'Shooting', 4, ['Movement', 'Pick-and-Roll'], 'Partner screens a pin-down. Come off and shoot on the catch.', ['Shoulder the screen tight', 'Set the shot before the feet'], 10, 4, 20, 'makes', true),
-  D('Shooting directly after cuts', 'Shooting', 3, ['Movement'], 'Cut off a line of cones and shoot on the first catch.', ['Load on the cut', 'No pause before the shot'], 8, 4, 20, 'makes'),
-  D('Midrange pull-up from elbows', 'Shooting', 3, ['Ball Handling'], 'Two dribbles from the elbow, pull up, and shoot from midrange.', ['Stop with a hard two-foot', 'Eyes on the rim'], 8, 4, 20, 'makes'),
-  D('Deep three from 25+ ft', 'Shooting', 4, [], 'Shoot from deep at five spots beyond the arc.', ['Legs drive the ball'], 10, 5, 15, 'makes'),
-  D('Movement shooting line', 'Shooting', 4, ['Movement', 'Conditioning'], 'Run cone to cone and shoot off the move at each cone.', ['Balance before release'], 8, 4, 15, 'makes'),
-  D('High-release one-motion shot', 'Shooting', 3, [], 'Quick one-motion shot from above the head at the top of the key.', ['Release above the eyes', 'No wasted motion'], 8, 4, 25, 'makes'),
-  D('Free throws, timed', 'Shooting', 2, [], 'Shoot free throws for the time limit. Same routine every shot.', ['Same breath and routine every time'], 3, 2, 20, 'makes'),
-  D('Shooting with momentum', 'Shooting', 4, ['Footwork'], 'Take a dribble toward the wing and shoot off the dribble.', ['Stay balanced through the catch'], 8, 4, 20, 'makes'),
-  D('Tight-handle cone series', 'Ball Handling', 2, ['Conditioning'], 'Stationary and moving handles through a cone line.', ['Ball low', 'Eyes up'], 5, 3, 20, 'reps'),
-  D('Change-of-pace ladder', 'Ball Handling', 3, ['Movement'], 'Dribble up a line at three speeds and burst on the signal.', ['Hard change of direction', 'Explode on the second gear'], 6, 3, 8, 'reps'),
-  D('Ball handling into pull-up', 'Ball Handling', 3, ['Game Situations'], 'Two-dribble combination into a pull-up from midrange.', ['Pick up the dribble low', 'Shoot balanced'], 8, 3, 15, 'makes'),
-  D('Ball handling into finish', 'Ball Handling', 3, ['Finishing'], 'Combination dribble moves into a layup or floater.', ['Change speed, not the ball path'], 8, 3, 10, 'makes'),
-  D('Separation dribble series', 'Ball Handling', 4, ['Game Situations'], 'Crossover, in-and-out, and hesitation moves to create space.', ['Sell the first move', 'Plant hard'], 8, 3, 10, 'reps'),
-  D('Snake dribble off the screen', 'Pick-and-Roll', 3, ['Ball Handling'], 'Partner screens. Snake the ball around the screen and attack.', ['Stay tight to the screen'], 8, 4, 10, 'reps', true),
-  D('Read the defender: pull, drive, pass', 'Pick-and-Roll', 4, ['Game Situations'], 'Partner defends the screen. Read the coverage, then choose pull-up, drive, or pass.', ['Decide in the first step', 'Pass to the roll man on the drop'], 10, 4, 8, 'reps', true),
-  D('Rushed pick-and-roll pull-up', 'Pick-and-Roll', 4, ['Shooting'], 'Partner closes out fast after the screen. Pull up in rhythm.', ['Set the feet before the shot'], 8, 4, 10, 'makes', true),
-  D('Getting downhill off the screen', 'Pick-and-Roll', 4, ['Finishing'], 'Attack downhill after the screen and finish or kick.', ['Attack the hip of the screener'], 8, 3, 8, 'makes', true),
-  D('Jump-stop and rise', 'Footwork', 2, ['Finishing'], 'Jump-stop, pivot, rise. Repeat both ways.', ['Land balanced'], 5, 3, 10, 'reps'),
-  D('Lateral slide conditioning', 'Movement', 2, ['Conditioning'], 'Slide touch to touch across the baseline.', ['Stay low'], 5, 3, 10, 'reps'),
-  D('Suicide ladder', 'Conditioning', 3, [], 'Baseline to free-throw line and back, increasing distance each rep.', ['Sprint speed on every rep'], 8, 3, 6, 'reps'),
-  D('1v1 scoring to 11', 'Game Situations', 4, ['Finishing', 'Shooting'], 'One-on-one. 1 point inside the arc, 2 points outside. First to 11, win by 1.', ['Use the same reads you use in games'], 12, 2, 11, 'makes', true),
-  D('Closeout attack 1v1', 'Game Situations', 4, ['Ball Handling'], 'Partner closes out from the arc. Attack the closeout and score.', ['Read the closeout feet'], 10, 3, 10, 'makes', true),
-  D('Limited-dribble 1v1', 'Game Situations', 4, ['Ball Handling'], 'Two dribbles max per possession, one-on-one to 11.', ['Speed and reads over dribbles'], 12, 2, 11, 'makes', true),
-  D('Shooting competition: 5 spots', 'Shooting', 3, ['Partner Training'], 'Trade 5 spots with a partner, 5 shots each. Most makes wins. Best of 3.', ['Same routine every shot'], 10, 3, 25, 'makes', true),
-  D('Advantage start', 'Game Situations', 4, ['Passing'], 'Partner gives you a head start. Attack the advantage and make the right read.', ['Look off the defender'], 8, 4, 8, 'makes', true)
-];
-const WORKOUT_SEED = [
-  ['15-Min Finishing Micro', 'micro', 'Finishing', 15, 2, 'Individual', [['Two-foot power finish', 3, 10, 30, 0], ['Inside-hand finish off the glass', 3, 10, 30, 0], ['Floater ladder', 3, 15, 30, 0]], '5 min: jog, then form layups both hands', 'Quick finishing reps. Keep it crisp.'],
-  ['20-Min Ball Handling Micro', 'micro', 'Ball Handling', 20, 3, 'Individual', [['Tight-handle cone series', 3, 20, 20, 60], ['Change-of-pace ladder', 3, 8, 30, 0], ['Ball handling into pull-up', 3, 15, 30, 0]], '3 min: stationary dribble warm-up', 'Ball low, eyes up.'],
-  ['300-Shot Catch-and-Shoot', 'focused', 'Shooting', 45, 3, 'Individual', [['Catch-and-shoot 5 spots', 4, 25, 20, 0], ['Catch-and-hop from wing', 3, 25, 20, 0], ['Shooting directly after cuts', 2, 25, 20, 0], ['Midrange pull-up from elbows', 2, 25, 20, 0], ['Deep three from 25+ ft', 1, 25, 20, 0]], '5 min: form shots, then 20 makes at close range', 'Total 300 attempts. Track makes on every set.'],
-  ['45-Min Finishing Through Contact', 'focused', 'Finishing', 45, 4, 'Partner', [['Finish through a defender', 4, 8, 40, 0], ['Finish vs help defense', 4, 8, 40, 0], ['Contact finish with pad', 3, 8, 40, 0], ['Reverse finish', 3, 10, 30, 0], ['Wrong-foot finish', 3, 10, 30, 0], ['Up-and-under finish', 3, 10, 30, 0]], '5 min: layups, then two contact layups', 'Finish strong. Do not rush the gather.'],
-  ['1v1 Scoring Competitive', 'competitive', 'Game Situations', 45, 4, 'Partner', [['1v1 scoring to 11', 3, 11, 90, 0], ['Closeout attack 1v1', 3, 10, 60, 0], ['Limited-dribble 1v1', 2, 11, 90, 0]], '5 min: shooting warm-up, then two-minute ball handling', 'Keep score honestly. Note the reads you used.'],
-  ['Pick-and-Roll with Partner', 'competitive', 'Pick-and-Roll', 30, 4, 'Partner', [['Snake dribble off the screen', 4, 10, 30, 0], ['Read the defender: pull, drive, pass', 4, 8, 30, 0], ['Rushed pick-and-roll pull-up', 4, 10, 30, 0], ['Getting downhill off the screen', 3, 8, 30, 0]], '5 min: screen-and-roll walkthrough', 'Decide in the first step.']
-].map(([name, category, objective, duration, difficulty, mode, items, warmup, notes]) => ({
-  id: 'w-' + slug(name), name, category, objective, secondary: [], duration, difficulty,
-  equipment: mode === 'Partner' ? 'Ball, hoop, partner' : 'Ball, hoop', mode, warmup, notes, target: '',
-  template: true, favorite: false, created: 0,
-  items: items.map(([dn, sets, attempts, restSec, timeLimit]) => ({ drillId: 'd-' + slug(dn), sets, attempts, restSec, timeLimit, targetPct: 0, coaching: '' }))
-}));
-const PRIORITY_SEED = () => ['Finishing', 'Shooting', 'Ball Handling', 'Pick-and-Roll'].map((area, i) => ({
-  id: 'p-' + slug(area), area, title: area, subskills: SUBSKILLS[area], assessment: '', target: '',
-  status: 'active', rank: i + 1, reviewDate: '', notes: [], progress: []
-}));
-
-function seed() {
-  return {
-    v: 1, savedAt: 0,
-    profile: { position: 'Guard', secondary: '', height: '', level: '', style: '', strengths: '', weaknesses: '', shortGoals: '', longGoals: '', equipment: 'Basketball, hoop', environments: '', partner: 'One consistent training partner, 1-on-1', schedule: '', games: '', durations: '15, 20, 30, 45, 60', weeklyMinutes: 180 },
-    drills: JSON.parse(JSON.stringify(DRILLS)),
-    workouts: JSON.parse(JSON.stringify(WORKOUT_SEED)),
-    sessions: [], journal: [], priorities: PRIORITY_SEED(),
-    habits: [
-      { id: 'h-makes', name: '100 shooting makes', target: 100, unit: 'makes', log: {} },
-      { id: 'h-handle', name: 'Ball handling', target: 15, unit: 'min', log: {} },
-      { id: 'h-finish', name: 'Finishing', target: 20, unit: 'min', log: {} }
-    ],
-    plan: [], collections: [], run: null
-  };
-}
-
-/* ============ state + storage ============ */
-let S = load();
-let view = 'home', trainTab = 'workouts', runnerMin = false, planDate = null;
-let libFilter = { q: '', cat: 'all', fav: false, coll: '' };
-let analyticsDays = 7;
-let editDraft = null;
-
-function load() {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) return Object.assign(seed(), JSON.parse(raw));
-  } catch (e) { /* fall through to seed */ }
-  return seed();
-}
-function save() {
-  S.savedAt = Date.now();
-  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* storage may be blocked */ }
-  syncDb();
-}
-
-/* Account sync: uses the artifact db when the viewer is signed in; otherwise local storage only. */
-let dbDoc = null, dbTimer = null;
-function setSync(t) { const el = $('#sync'); if (el) el.textContent = t; }
-async function initDb() {
-  try {
-    if (!window.claude || typeof window.claude.use !== 'function') return;
-    const ns = await window.claude.use('db');
-    if (!ns) return;
-    const user = await window.claude.use('user');
-    if (!user) return;
-    const id = await user.id();
-    dbDoc = ns.doc('data/users/' + id + '/btc-app');
-    const snap = await dbDoc.get();
-    const val = snap && (snap.data !== undefined ? snap.data : snap);
-    if (val && val.state && (val.state.savedAt || 0) > (S.savedAt || 0)) {
-      S = Object.assign(seed(), val.state);
-      render();
-    }
-    setSync('Saved to your account');
-    syncDb();
-  } catch (e) { setSync('Saved in this browser'); }
-}
-function syncDb() {
-  if (!dbDoc) return;
-  clearTimeout(dbTimer);
-  dbTimer = setTimeout(async () => {
-    try { await dbDoc.set({ state: S, savedAt: S.savedAt }); setSync('Saved to your account'); }
-    catch (e) { setSync('Saved in this browser'); }
-  }, 600);
-}
-
-/* ============ lookups & analytics ============ */
-const drill = id => S.drills.find(d => d.id === id);
-const workout = id => S.workouts.find(w => w.id === id);
-const sessionsIn = (start, end) => S.sessions.filter(s => s.endedAt >= start && s.endedAt < end);
-const sessionsSince = days => sessionsIn(Date.now() - days * DAY, Date.now() + 1);
-
-function activeItems(s) { return s.items.filter(i => i.status !== 'skipped'); }
-function itemStats(items) {
-  let att = 0, made = 0;
-  items.forEach(i => (i.setLog || []).forEach(l => { att += +l.att || 0; made += +l.made || 0; }));
-  return { att, made, pct: pctOf(made, att) };
-}
-function areaMinutesIn(start, end) {
-  const m = {};
-  AREAS.forEach(a => m[a] = 0);
-  sessionsIn(start, end).forEach(s => {
-    const items = activeItems(s);
-    const weights = items.map(i => ({ c: i.category, w: Math.max(1, (i.setLog || []).length) }));
-    const tot = sum(weights, x => x.w) || 1;
-    weights.forEach(x => { m[x.c] = (m[x.c] || 0) + s.minutes * x.w / tot; });
-  });
-  return m;
-}
-function areaMinutes(days) { return areaMinutesIn(Date.now() - days * DAY, Date.now() + 1); }
-function areaStatsIn(area, start, end) {
-  const items = [];
-  sessionsIn(start, end).forEach(s => activeItems(s).forEach(i => { if (i.category === area) items.push(i); }));
-  return itemStats(items);
-}
-function lastResultFor(drillId) {
-  const sorted = [...S.sessions].sort((a, b) => b.endedAt - a.endedAt);
-  for (const s of sorted) {
-    const it = s.items.find(i => i.drillId === drillId && i.status !== 'skipped');
-    if (it) { const st = itemStats([it]); if (st.pct != null) return st.pct; }
-  }
-  return null;
-}
-function habitStreak(h) {
-  let n = 0, d = today();
-  const met = ds => (h.log[ds] || 0) >= h.target;
-  if (!met(d)) d = addDays(d, -1);
-  while (met(d)) { n++; d = addDays(d, -1); }
-  return n;
-}
-function patternAnalysis(days = 21) {
-  const cut = fmtD(new Date(Date.now() - days * DAY));
-  const entries = S.journal.filter(j => j.date >= cut);
-  const counts = {};
-  entries.forEach(j => new Set(j.tags || []).forEach(t => counts[t] = (counts[t] || 0) + 1));
-  const rows = TAGS.map(t => ({ ...t, n: counts[t.id] || 0 })).filter(r => r.n > 0).sort((a, b) => b.n - a.n);
-  const verdict = r => r.n >= 3 ? (r.good ? 'Recurring strength' : 'Recurring weakness') : 'Watching: not enough repeats to act on';
-  return { entries: entries.length, rows, verdict };
-}
-function estMinutes(items) {
-  return Math.max(5, Math.round(sum(items, i => { const d = drill(i.drillId); const base = d ? d.minutes : 5; return base * (i.sets / ((d && d.sets) || i.sets || 1)); })));
-}
-
-/* Today's recommendation: rules over the plan, recent load and priorities. */
-function recommend() {
-  const t = today();
-  const active = S.priorities.filter(p => p.status === 'active').sort((a, b) => a.rank - b.rank);
-  const mins = areaMinutes(14);
-  const top = active[0] || null;
-  let area = top ? top.area : 'Finishing';
-  const untouched = active.find(p => (mins[p.area] || 0) === 0);
-  let reason = [];
-  if (untouched && top && untouched !== top && (mins[top.area] || 0) > 0) { area = untouched.area; reason.push(untouched.area + ' has had no logged work in 14 days.'); }
-  const game = S.plan.some(p => p.date === t && p.type === 'game');
-  const practice = S.plan.some(p => p.date === t && p.type === 'team');
-  const recentMin = sum(sessionsSince(1), s => s.minutes);
-  let mode, minutes, hard = false;
-  if (game) { mode = 'Game day'; minutes = 15; reason.push('Game on the schedule: keep it light, with form shots and free throws only.'); }
-  else if (practice) { mode = 'Practice day'; minutes = 20; reason.push('Team practice today: a short session on your top area.'); }
-  else if (recentMin >= 60) { mode = 'Recovery-leaning'; minutes = 20; reason.push('You trained ' + recentMin + ' min in the last 24 hours, so this block is shorter.'); }
-  else { mode = 'Full session'; minutes = 45; hard = true; reason.push('No practice or game today and recent load is low.'); }
-  return { area, mode, minutes, hard, reason: reason.join(' '), top, mins, weekMin: sum(sessionsSince(7), s => s.minutes), recentMin };
-}
-
-/* Rule-based builder: picks drills for one area, avoids the last two sessions, scales attempts from last results. */
-function generate({ minutes, area, partner, hard }) {
-  const recent = [...S.sessions].sort((a, b) => b.endedAt - a.endedAt).slice(0, 2);
-  const recentIds = new Set();
-  recent.forEach(s => s.items.forEach(i => recentIds.add(i.drillId)));
-  let pool = S.drills.filter(d => d.category === area && (partner || !d.partner));
-  if (!pool.length) pool = S.drills.filter(d => partner || !d.partner);
-  pool = pool.sort((a, b) => ((recentIds.has(a.id) ? 1 : 0) - (recentIds.has(b.id) ? 1 : 0)) || (hard ? b.difficulty - a.difficulty : a.difficulty - b.difficulty));
-  const items = [];
-  let rem = minutes;
-  const adjusted = [];
-  for (const d of pool) {
-    if (rem <= 3 || items.length >= 5) break;
-    const sets = hard ? d.sets + 1 : d.sets;
-    const est = d.minutes * sets / d.sets;
-    if (items.length && est > rem + 2) continue;
-    const last = lastResultFor(d.id);
-    let att = d.attempts;
-    if (last != null && last >= 75) { att = Math.round(att * 1.2); adjusted.push(d.name + ' up'); }
-    else if (last != null && last < 40) { att = Math.max(5, Math.round(att * 0.8)); adjusted.push(d.name + ' down'); }
-    items.push({ drillId: d.id, sets, attempts: att, restSec: hard ? 30 : 40, timeLimit: 0, targetPct: last != null ? Math.min(90, last + 5) : 0, coaching: '' });
-    rem -= est;
-  }
-  const notes = [
-    'Targets ' + area + '. Drills from your last two sessions were moved down the list.',
-    adjusted.length ? 'Attempts adjusted from your last results: ' + adjusted.join(', ') + '.' : 'No prior results yet for these drills, so starting at library defaults.'
-  ].join(' ');
-  const w = {
-    id: uid(), name: area + ' ' + minutes + '-min ' + (hard ? 'hard' : 'standard'),
-    category: minutes <= 20 ? 'micro' : (partner ? 'competitive' : 'focused'),
-    objective: area, secondary: [], duration: minutes, difficulty: hard ? 4 : 3,
-    equipment: partner ? 'Ball, hoop, partner' : 'Ball, hoop', mode: partner ? 'Partner' : 'Individual',
-    warmup: '5 min: jog, dynamic warm-up, 10 form shots', target: '', notes, template: false, favorite: false,
-    created: Date.now(), items
-  };
-  return w;
-}
-
-/* ============ navigation & render ============ */
-const VIEWS = { home: 'Home', plan: 'My Plan', train: 'Train', library: 'Library', analytics: 'Analytics', profile: 'Player Profile', journal: 'Practice Journal', dev: 'Development Board', habits: 'Daily Habits' };
-const MAIN = ['home', 'plan', 'train', 'library', 'analytics'];
-const MAIN_LABEL = { home: 'Home', plan: 'My Plan', train: 'Train', library: 'Library', analytics: 'Analytics' };
-function currentView() { const h = location.hash.replace('#', ''); return VIEWS[h] ? h : 'home'; }
-
-function render() {
-  view = currentView();
-  const navKey = MAIN.includes(view) ? view : 'home';
-  $('#nav').innerHTML = MAIN.map(k => '<a href="#' + k + '" class="' + (navKey === k ? 'on' : '') + '"' + (navKey === k ? ' aria-current="page"' : '') + '>' + MAIN_LABEL[k] + '</a>').join('');
-  $('#ttl').textContent = VIEWS[view];
-  const v = VIEW_FN[view]();
-  $('#main').innerHTML = (MAIN.includes(view) ? '' : '<a class="small muted" href="#home">← Home</a>') + v;
-  const banner = $('#banner');
-  banner.innerHTML = (S.run && runnerMin) ? '<div class="banner"><div><strong>Workout in progress</strong><div class="tiny muted">' + esc(S.run.name) + '</div></div><button class="btn small primary" data-a="run-max">Resume</button></div>' : '';
-  const runner = $('#runner');
-  if (S.run && !runnerMin) { runner.hidden = false; runner.innerHTML = runnerHTML(); }
-  else { runner.hidden = true; runner.innerHTML = ''; }
-}
-
-const VIEW_FN = {
-  home: homeView, plan: planView, train: trainView, library: libraryView, analytics: analyticsView,
-  profile: profileView, journal: journalView, dev: devView, habits: habitsView
-};
-
-/* ============ HOME ============ */
-function homeView() {
-  const r = recommend();
-  const t = today();
-  const upcoming = S.plan.filter(p => p.date >= t && p.date <= addDays(t, 6)).sort((a, b) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || ''))).slice(0, 4);
-  const neglected = S.priorities.filter(p => p.status === 'active' && (r.mins[p.area] || 0) === 0).map(p => p.area);
-  const habitsToday = S.habits.map(h => ({ h, v: h.log[t] || 0 }));
-  const metHabits = habitsToday.filter(x => x.v >= x.h.target).length;
-  return `
-  <section class="card hi">
-    <div class="row"><span class="badge gold">Today: ${esc(r.mode)}</span><span class="tiny muted">${dayLabel(t)}</span></div>
-    <h2 style="margin-top:10px">${r.minutes}-min ${esc(r.area)} session</h2>
-    <p class="muted small">${esc(r.reason)}</p>
-    <div class="btn-group" style="margin-top:12px">
-      <button class="btn primary" data-a="quick-build">Build this session</button>
-      <a class="btn" href="#train">Browse workouts</a>
-    </div>
-    ${neglected.length ? '<p class="small warn-t" style="margin-top:10px">No logged work in 14 days: ' + neglected.map(esc).join(', ') + '.</p>' : ''}
-  </section>
-
-  <div class="tiles" style="margin-top:12px">
-    <div class="tile"><div class="n">${fmtMin(r.weekMin)}</div><div class="l">Trained, last 7 days</div></div>
-    <div class="tile"><div class="n">${sessionsSince(7).length}</div><div class="l">Sessions, last 7 days</div></div>
-    <div class="tile"><div class="n">${metHabits}/${S.habits.length}</div><div class="l">Habits met today</div></div>
-    <div class="tile"><div class="n">${S.plan.filter(p => p.date === t && p.status !== 'done').length}</div><div class="l">Plan items left today</div></div>
-  </div>
-
-  <div class="sec-h"><h2>Development priorities</h2><a class="small" href="#" data-a="goto-dev">Board</a></div>
-  <div class="card list">${S.priorities.filter(p => p.status === 'active').sort((a, b) => a.rank - b.rank).map(p => {
-    const st = areaStatsIn(p.area, Date.now() - 14 * DAY, Date.now() + 1);
-    return `<div class="li"><div class="row"><strong>${esc(p.title)}</strong><span class="badge">Rank ${p.rank}</span></div>
-      <div class="tiny muted">${st.att ? 'Last 14 days: ' + pctTxt(st.pct) + ' on ' + st.att + ' attempts' : 'No logged attempts in 14 days'}</div>
-      ${p.target ? '<div class="tiny">Target: ' + esc(p.target) + '</div>' : '<div class="tiny warn-t">No measurable target yet</div>'}</div>`;
-  }).join('') || '<div class="empty">No active priorities. Add one on the Development board.</div>'}</div>
-
-  <div class="sec-h"><h2>Next on the plan</h2><a class="small" href="#plan">Plan</a></div>
-  <div class="card list">${upcoming.map(p => `<div class="li row"><div><strong>${esc(p.title)}</strong><div class="tiny muted">${dayLabel(p.date)}${p.time ? ' · ' + esc(p.time) : ''}${p.minutes ? ' · ' + p.minutes + ' min' : ''}</div></div><span class="badge">${esc(PLAN_TYPES[p.type] || p.type)}</span></div>`).join('') || '<div class="empty">Nothing planned in the next 7 days. Add practices, games and workouts on My Plan.</div>'}</div>
-
-  <div class="sec-h"><h2>More</h2></div>
-  <div class="more">
-    <a class="btn" href="#journal">Practice journal</a>
-    <a class="btn" href="#dev">Development board</a>
-    <a class="btn" href="#habits">Daily habits</a>
-    <a class="btn" href="#profile">Player profile</a>
-  </div>`;
-}
-
-/* ============ PLAN ============ */
-const PLAN_TYPES = { team: 'Team practice', game: 'Game', school: 'School', workout: 'Workout', micro: 'Micro session', partner: 'Partner session', rest: 'Rest day' };
-function planView() {
-  const t = today();
-  const pd = planDate || t;
-  const r = recommend();
-  const wkMin = sum(sessionsSince(7), s => s.minutes);
-  const target = +S.profile.weeklyMinutes || 0;
-  const days = [...Array(7)].map((_, i) => addDays(t, i));
-  const missed = S.plan.filter(p => p.date < t && p.status === 'planned' && ['workout', 'micro', 'partner'].includes(p.type));
-  const doneWk = S.plan.filter(p => p.date >= addDays(t, -6) && p.date <= t && p.status === 'done').length;
-  return `
-  <section class="card hi">
-    <div class="row"><span class="badge gold">${esc(r.mode)}</span><span class="tiny muted">Recommendation for today</span></div>
-    <h3 style="margin-top:8px">${r.minutes}-min ${esc(r.area)} session</h3>
-    <p class="small muted">${esc(r.reason)}</p>
-    <button class="btn primary" style="margin-top:8px" data-a="quick-build">Build this session</button>
-  </section>
-
-  <section class="card">
-    <div class="row"><h3>This week</h3><span class="tiny muted">${wkMin} of ${target} min target</span></div>
-    <div class="bar" style="margin:10px 0"><i style="width:${target ? Math.min(100, Math.round(100 * wkMin / target)) : 0}%"></i></div>
-    <div class="row small muted"><span>${doneWk} plan items done</span><span>${missed.length} missed workouts</span></div>
-  </section>
-
-  ${days.map(ds => {
-    const items = S.plan.filter(p => p.date === ds).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
-    return `<div class="sec-h"><h3>${dayLabel(ds)}${ds === t ? ' <span class="badge gold">Today</span>' : ''}</h3></div>
-    <div class="card list" style="padding:4px 14px">${items.map(p => {
-      const st = p.status === 'planned' && p.date < t ? 'missed' : p.status;
-      return `<div class="li row">
-        <div class="grow"><strong ${st === 'done' ? 'style="text-decoration:line-through;color:var(--muted)"' : ''}>${esc(p.title)}</strong>
-          <div class="tiny muted">${esc(PLAN_TYPES[p.type] || p.type)}${p.time ? ' · ' + esc(p.time) : ''}${p.minutes ? ' · ' + p.minutes + ' min' : ''}</div></div>
-        <div class="btn-group">
-          <span class="badge ${st === 'done' ? 'good' : st === 'missed' ? 'bad' : ''}">${st}</span>
-          <button class="btn small" data-a="plan-status" data-id="${p.id}" data-s="${st === 'done' ? 'planned' : 'done'}">${st === 'done' ? 'Undo' : 'Done'}</button>
-          <button class="btn small ghost" data-a="plan-del" data-id="${p.id}">Remove</button>
-        </div></div>`;
-    }).join('') || '<div class="li tiny muted">Nothing planned.</div>'}</div>`;
-  }).join('')}
-
-  <div class="sec-h"><h2>Add to plan</h2></div>
-  <form class="card" data-f="plan">
-    <div class="grid2">
-      <div><label>Date</label><input type="date" name="date" value="${pd}" required></div>
-      <div><label>Type</label><select name="type">${Object.entries(PLAN_TYPES).map(([k, v]) => '<option value="' + k + '">' + v + '</option>').join('')}</select></div>
-    </div>
-    <label>Title</label><input name="title" placeholder="e.g. Team practice, 3:30 gym" required>
-    <div class="grid2">
-      <div><label>Start time</label><input name="time" type="time"></div>
-      <div><label>Minutes</label><input name="minutes" type="number" min="0" placeholder="optional"></div>
-    </div>
-    <button class="btn primary big" style="margin-top:12px" type="submit">Add</button>
-  </form>
-
-  <p class="tiny muted" style="margin-top:14px">Practices can run early or late, and the plan does not assume a weekday schedule. Items you do not mark done by their date show as missed.</p>`;
-}
-
-/* ============ TRAIN (workouts, build, history) ============ */
-function trainView() {
-  const tabs = [['workouts', 'Workouts'], ['build', 'Build'], ['history', 'History']];
-  let body = '';
-  if (trainTab === 'workouts') body = workoutsTab();
-  else if (trainTab === 'build') body = buildTab();
-  else body = historyTab();
-  return `
-  <div class="chips" role="tablist" style="margin-top:6px">${tabs.map(([k, l]) => '<button role="tab" class="chip ' + (trainTab === k ? 'on' : '') + '" data-a="tab" data-id="' + k + '">' + l + '</button>').join('')}</div>
-  ${body}`;
-}
-function workoutsTab() {
-  const cat = libFilter.wcat || 'all';
-  const list = S.workouts.filter(w => cat === 'all' || w.category === cat).sort((a, b) => (b.favorite - a.favorite) || a.name.localeCompare(b.name));
-  return `
-  <div class="row" style="margin:12px 0 4px"><div class="chips grow">${['all', 'micro', 'focused', 'competitive'].map(c => '<button class="chip ' + (cat === c ? 'on' : '') + '" data-a="wcat" data-id="' + c + '">' + (c === 'all' ? 'All' : CAT_SHORT[c]) + '</button>').join('')}</div></div>
-  <div class="btn-group" style="margin-bottom:6px"><button class="btn primary small" data-a="wk-new">New workout</button><button class="btn small" data-a="tab" data-id="build">Build with rules</button></div>
-  ${list.map(w => {
-    const runs = S.sessions.filter(s => s.workoutId === w.id);
-    const last = runs.sort((a, b) => b.endedAt - a.endedAt)[0];
-    return `<article class="card">
-      <div class="row"><div class="grow"><h3>${w.favorite ? '★ ' : ''}${esc(w.name)}</h3></div><span class="badge">${CAT_SHORT[w.category] || w.category}</span></div>
-      <div class="tiny muted" style="margin-top:6px">${esc(w.objective)} · ${w.duration || estMinutes(w.items)} min · ${esc(w.mode || 'Individual')} · ${w.items.length} drills</div>
-      <div class="tiny muted">${last ? 'Last done ' + dayLabel(fmtD(new Date(last.endedAt))) + ' · ' + last.completionPct + '% complete' : 'Not completed yet'}${runs.length ? ' · ' + runs.length + ' session' + (runs.length > 1 ? 's' : '') : ''}</div>
-      ${w.notes ? '<p class="small" style="margin-top:6px">' + esc(w.notes) + '</p>' : ''}
-      <div class="btn-group" style="margin-top:10px">
-        <button class="btn primary small" data-a="run-start" data-id="${w.id}"${S.run ? ' disabled' : ''}>Start</button>
-        <button class="btn small" data-a="wk-edit" data-id="${w.id}">Edit</button>
-        <button class="btn small" data-a="wk-dup" data-id="${w.id}">Duplicate</button>
-        <button class="btn small ghost" data-a="wk-fav" data-id="${w.id}">${w.favorite ? 'Unfavorite' : 'Favorite'}</button>
-        <button class="btn small ghost danger" data-a="wk-del" data-id="${w.id}">Delete</button>
-      </div></article>`;
-  }).join('') || '<div class="empty">No workouts in this category.</div>'}
-  ${S.run ? '<p class="tiny warn-t">A workout is in progress. Finish or discard it to start another.</p>' : ''}`;
-}
-function buildTab() {
-  const r = recommend();
-  return `
-  <form class="card" data-f="build" style="margin-top:12px">
-    <h3>Build a workout</h3>
-    <p class="small muted">Builds from your priorities, the last two sessions, and your last results on each drill. You can edit everything before saving.</p>
-    <div class="grid2">
-      <div><label>Available time</label><select name="minutes">${[10, 15, 20, 30, 45, 60].map(m => '<option value="' + m + '"' + (m === r.minutes ? ' selected' : '') + '>' + m + ' min</option>').join('')}</select></div>
-      <div><label>Focus</label><select name="area">${AREAS.slice(0, 4).map(a => '<option' + (a === r.area ? ' selected' : '') + '>' + a + '</option>').join('')}</select></div>
-    </div>
-    <div class="grid2">
-      <div><label>Mode</label><select name="partner"><option value="0">Individual</option><option value="1">With partner (1-on-1)</option></select></div>
-      <div><label>Intensity</label><select name="hard"><option value="0"${r.hard ? '' : ' selected'}>Standard</option><option value="1"${r.hard ? ' selected' : ''}>Hard (+1 set)</option></select></div>
-    </div>
-    <button class="btn primary big" style="margin-top:12px" type="submit">Generate and review</button>
-  </form>
-  <p class="tiny muted">Generated workouts open in the editor. Nothing is saved until you press Save.</p>`;
-}
-function historyTab() {
-  const list = [...S.sessions].sort((a, b) => b.endedAt - a.endedAt);
-  if (!list.length) return '<div class="empty" style="margin-top:12px">No completed workouts yet. Finished sessions appear here.</div>';
-  return `<div class="card list" style="margin-top:12px;padding:4px 14px">${list.map(s => {
-    const st = itemStats(activeItems(s));
-    return `<button class="drill-row" data-a="hist-open" data-id="${s.id}">
-      <div class="row"><strong>${esc(s.name)}</strong><span class="badge ${s.completionPct >= 90 ? 'good' : ''}">${s.completionPct}% complete</span></div>
-      <div class="tiny muted">${dayLabel(fmtD(new Date(s.endedAt)))} · ${fmtMin(s.minutes)} · ${st.att} attempts · ${pctTxt(st.pct)} makes</div></button>`;
-  }).join('')}</div>`;
-}
-
-/* ============ WORKOUT EDITOR ============ */
-function newWorkoutDraft() {
-  return { id: uid(), name: 'New workout', category: 'micro', objective: 'Finishing', secondary: [], duration: 15, difficulty: 3, equipment: 'Ball, hoop', mode: 'Individual', warmup: '', notes: '', target: '', template: false, favorite: false, created: Date.now(), items: [] };
-}
-function openWorkoutEditor(w) {
-  editDraft = JSON.parse(JSON.stringify(w));
-  renderEditor();
-}
-function readEditorForm() {
-  const f = $('#wk-form');
-  if (!f || !editDraft) return;
-  const fd = new FormData(f);
-  editDraft.name = fd.get('name') || 'Untitled workout';
-  editDraft.category = fd.get('category') || 'micro';
-  editDraft.objective = fd.get('objective') || 'Finishing';
-  editDraft.secondary = (fd.get('secondary') || '').split(',').map(s => s.trim()).filter(Boolean);
-  editDraft.duration = +fd.get('duration') || estMinutes(editDraft.items);
-  editDraft.difficulty = Math.min(5, Math.max(1, +fd.get('difficulty') || 3));
-  editDraft.mode = fd.get('mode') || 'Individual';
-  editDraft.equipment = fd.get('equipment') || '';
-  editDraft.warmup = fd.get('warmup') || '';
-  editDraft.notes = fd.get('notes') || '';
-  editDraft.target = fd.get('target') || '';
-}
-function renderEditor() {
-  const w = editDraft;
-  const opts = S.drills.map(d => '<option value="' + d.id + '">' + esc(d.name) + '</option>').join('');
-  const rows = w.items.map((it, i) => {
-    const d = drill(it.drillId);
-    return `<div class="item-row">
-      <div class="row"><strong>${i + 1}. ${esc(d ? d.name : 'Removed drill')}</strong>
-        <div class="btn-group">
-          <button type="button" class="btn small ghost" data-a="ed-up" data-idx="${i}"${i === 0 ? ' disabled' : ''}>Up</button>
-          <button type="button" class="btn small ghost" data-a="ed-down" data-idx="${i}"${i === w.items.length - 1 ? ' disabled' : ''}>Down</button>
-          <button type="button" class="btn small ghost danger" data-a="ed-rm" data-idx="${i}">Remove</button></div></div>
-      <div class="grid4" style="margin-top:8px">
-        <div><label>Sets</label><input type="number" min="1" value="${it.sets}" data-ed="sets" data-idx="${i}"></div>
-        <div><label>Attempts/set</label><input type="number" min="1" value="${it.attempts}" data-ed="attempts" data-idx="${i}"></div>
-        <div><label>Rest (s)</label><input type="number" min="0" value="${it.restSec}" data-ed="restSec" data-idx="${i}"></div>
-        <div><label>Time limit (s)</label><input type="number" min="0" value="${it.timeLimit || 0}" data-ed="timeLimit" data-idx="${i}"></div>
-      </div>
-      <div style="margin-top:8px"><label>Target make %</label><input type="number" min="0" max="100" value="${it.targetPct || 0}" data-ed="targetPct" data-idx="${i}"></div>
-    </div>`;
-  }).join('');
-  $('#modal').innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="Workout editor">
-    <div class="row"><h2>Edit workout</h2><button class="btn small ghost" data-a="close">Close</button></div>
-    <form id="wk-form" data-f="workout" style="margin-top:8px">
-      <label>Name</label><input name="name" value="${esc(w.name)}" required>
-      <div class="grid2">
-        <div><label>Category</label><select name="category">${Object.entries(CATS).map(([k, v]) => '<option value="' + k + '"' + (w.category === k ? ' selected' : '') + '>' + v + '</option>').join('')}</select></div>
-        <div><label>Primary objective</label><select name="objective">${AREAS.map(a => '<option' + (w.objective === a ? ' selected' : '') + '>' + a + '</option>').join('')}</select></div>
-      </div>
-      <div class="grid2">
-        <div><label>Secondary objectives</label><input name="secondary" value="${esc((w.secondary || []).join(', '))}" placeholder="comma separated"></div>
-        <div><label>Duration (min)</label><input name="duration" type="number" min="1" value="${w.duration || estMinutes(w.items)}"></div>
-      </div>
-      <div class="grid2">
-        <div><label>Difficulty (1–5)</label><input name="difficulty" type="number" min="1" max="5" value="${w.difficulty || 3}"></div>
-        <div><label>Mode</label><select name="mode"><option${w.mode === 'Individual' ? ' selected' : ''}>Individual</option><option${w.mode === 'Partner' ? ' selected' : ''}>Partner</option></select></div>
-      </div>
-      <label>Equipment</label><input name="equipment" value="${esc(w.equipment || '')}">
-      <label>Warm-up</label><textarea name="warmup" rows="2">${esc(w.warmup || '')}</textarea>
-      <label>Coaching notes</label><textarea name="notes" rows="2">${esc(w.notes || '')}</textarea>
-      <label>Performance target</label><input name="target" value="${esc(w.target || '')}" placeholder="e.g. 300 attempts at 45%+ makes">
-      <div class="hr"></div>
-      <h3>Drills (${w.items.length}) · est. ${estMinutes(w.items)} min</h3>
-      <div style="margin-top:6px">${rows || '<p class="muted small">No drills yet. Add one below.</p>'}</div>
-      <div class="grid2" style="margin-top:10px"><select id="ed-add-sel">${opts}</select><button type="button" class="btn" data-a="ed-add">Add drill</button></div>
-      <div class="row end" style="margin-top:18px">
-        <button type="button" class="btn ghost" data-a="close">Cancel</button>
-        <button type="button" class="btn" data-a="wk-save-start"${w.items.length ? '' : ' disabled'}>Save and start</button>
-        <button class="btn primary" type="submit">Save workout</button>
-      </div>
-    </form></div>`;
-  $('#modal').hidden = false;
-}
-function saveWorkout(startAfter) {
-  readEditorForm();
-  if (!editDraft.items.length) return;
-  const idx = S.workouts.findIndex(x => x.id === editDraft.id);
-  if (idx >= 0) S.workouts[idx] = editDraft; else S.workouts.push(editDraft);
-  const saved = editDraft;
-  editDraft = null;
-  closeModal();
-  save();
-  if (startAfter && !S.run) startRun(saved);
-  else render();
-}
-
-/* ============ RUNNER ============ */
-function startRun(w) {
-  if (S.run) return;
-  S.run = {
-    id: uid(), workoutId: w.id, name: w.name, objective: w.objective, category: w.category,
-    startedAt: Date.now(), idx: 0, restEnd: 0, timerFor: null, tAcc: 0, tRunningSince: 0, modified: false, editTargets: false,
-    items: w.items.map(it => {
-      const d = drill(it.drillId);
-      return {
-        uid: uid(), drillId: it.drillId, name: d ? d.name : 'Removed drill', category: d ? d.category : w.objective,
-        metric: d ? d.metric : 'makes', instructions: d ? d.instructions : '', video: d ? d.video : '',
-        coaching: (it.coaching ? [it.coaching] : []).concat(d ? d.coaching : []),
-        sets: it.sets, attempts: it.attempts, restSec: it.restSec ?? 30, timeLimit: it.timeLimit || 0,
-        targetPct: it.targetPct || 0, status: 'pending', setLog: [], rating: 0, notes: ''
-      };
-    })
-  };
-  runnerMin = false;
-  save();
-  render();
-}
-function nextPending(from) {
-  const r = S.run, n = r.items.length;
-  for (let k = 0; k < n; k++) {
-    const i = (from + k) % n;
-    if (r.items[i].status === 'pending') return i;
-  }
-  return -1;
-}
-function ensureTimer(r, cur) {
-  if (r.timerFor !== cur.uid) { r.timerFor = cur.uid; r.tAcc = 0; r.tRunningSince = 0; }
-}
-function timerSec(r, cur) {
-  const elapsed = (r.tAcc + (r.tRunningSince ? Date.now() - r.tRunningSince : 0)) / 1000;
-  return cur.timeLimit ? Math.max(0, cur.timeLimit - elapsed) : elapsed;
-}
-function runnerHTML() {
-  const r = S.run;
-  const total = r.items.length;
-  const closed = r.items.filter(i => i.status !== 'pending').length;
-  const pct = Math.round(100 * closed / Math.max(1, total));
-  const cur = r.items[r.idx] || r.items[0];
-  r.idx = r.items.indexOf(cur);
-  ensureTimer(r, cur);
-  const curIdx = r.idx;
-  const running = !!r.tRunningSince;
-  const restLeft = Math.ceil((r.restEnd - Date.now()) / 1000);
-  const unit = cur.metric === 'reps' ? 'reps' : 'shots';
-  const logged = cur.setLog.length;
-
-  const head = `<div class="row">
-      <button class="btn small ghost" data-a="run-min">Minimize</button>
-      <div class="grow"><div class="tiny muted">${esc(r.name)} · ${closed}/${total} drills closed</div><div class="bar" style="margin-top:6px"><i style="width:${pct}%"></i></div></div>
-      <button class="btn small ghost danger" data-a="run-discard">Discard</button>
-    </div>`;
-
-  let body;
-  if (!cur || (closed === total)) {
-    body = `<section class="card" style="margin-top:14px"><h2>All drills closed</h2><p class="muted small">Review the queue below, then finish to save this workout to your history.</p></section>`;
-  } else {
-    const stats = itemStats([cur]);
-    const sets = cur.setLog.map((l, i) => 'Set ' + (i + 1) + ': ' + l.made + '/' + l.att + (l.att ? ' (' + pctOf(l.made, l.att) + '%)' : '')).join(' · ');
-    body = `<section class="card" style="margin-top:14px">
-      <div class="row"><span class="badge gold">${esc(CAT_SHORT[r.category] || r.category)} · ${esc(cur.category)}</span><span class="tiny muted">Drill ${curIdx + 1} of ${total}</span></div>
-      <h2 style="margin-top:10px">${esc(cur.name)}</h2>
-      ${cur.instructions ? '<p>' + esc(cur.instructions) + '</p>' : ''}
-      ${cur.coaching.length ? '<ul class="coach small">' + cur.coaching.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul>' : ''}
-      ${cur.video ? '<a class="btn small" href="' + esc(cur.video) + '" target="_blank" rel="noopener">Watch demonstration</a>' : '<span class="tiny muted">No demonstration linked. Add a video link in the Library.</span>'}
-      <div class="targets">Sets ${cur.sets} · ${cur.attempts} ${unit} per set · Rest ${cur.restSec}s${cur.targetPct ? ' · Target ' + cur.targetPct + '% makes' : ''}${cur.timeLimit ? ' · Time limit ' + cur.timeLimit + 's' : ''}</div>
-
-      <div class="timer-box">
-        <div class="tiny muted">${cur.timeLimit ? 'Countdown' : 'Stopwatch'}</div>
-        <div class="timer" id="t-main">${fmtSec(timerSec(r, cur))}</div>
-        <div class="btn-group" style="justify-content:center">
-          <button class="btn small" data-a="run-timer" data-op="${running ? 'pause' : 'start'}">${running ? 'Pause' : 'Start'}</button>
-          <button class="btn small ghost" data-a="run-timer" data-op="reset">Reset</button>
-        </div>
-      </div>
-      ${restLeft > 0 ? '<div class="rest">Rest <span id="t-rest">' + fmtSec(restLeft) + '</span></div>' : (r.restEnd ? '<div class="rest" style="background:#1f3a2c">Rest <span id="t-rest">Go</span></div>' : '')}
-
-      ${cur.status === 'pending' ? `
-      <form data-f="runlog" class="stack">
-        <div class="tiny muted">Set ${logged + 1} of ${cur.sets}</div>
-        <div class="grid2">
-          <div><label>Attempts</label><input name="att" type="number" min="0" value="${cur.attempts}" inputmode="numeric" required></div>
-          <div><label>${cur.metric === 'reps' ? 'Good reps' : 'Makes'}</label><input name="made" type="number" min="0" value="" inputmode="numeric" required></div>
-        </div>
-        <div class="grid2">
-          <div><label>Difficulty (1 easy – 5 hard)</label><select name="rating">${[1, 2, 3, 4, 5].map(n => '<option' + (cur.rating === n ? ' selected' : '') + '>' + n + '</option>').join('')}</select></div>
-          <div><label>Notes</label><input name="notes" value="${esc(cur.notes)}" placeholder="How did it feel?"></div>
-        </div>
-        <button class="btn primary big" type="submit">Log set</button>
-        <div class="btn-group" style="justify-content:space-between">
-          <button type="button" class="btn small ghost" data-a="run-skip">Skip drill</button>
-          <button type="button" class="btn small ghost" data-a="run-replace">Replace drill</button>
-          <button type="button" class="btn small ghost" data-a="run-add">Add drill</button>
-          <button type="button" class="btn small ghost" data-a="run-targets">Edit targets</button>
-        </div>
-      </form>` : `
-      <div class="card" style="background:var(--bg);margin-top:10px">
-        <div class="row"><strong>${cur.status === 'done' ? 'Drill complete' : 'Drill skipped'}</strong><span class="tiny muted">${stats.att ? stats.made + '/' + stats.att + ' · ' + pctTxt(stats.pct) : ''}</span></div>
-        ${cur.rating ? '<div class="tiny muted">Difficulty ' + cur.rating + '/5</div>' : ''}
-        ${cur.notes ? '<p class="small">' + esc(cur.notes) + '</p>' : ''}
-        <div class="btn-group" style="margin-top:8px">
-          <button class="btn primary" data-a="run-next">${nextPending(curIdx + 1) !== -1 ? 'Next drill' : 'Review and finish'}</button>
-          <button class="btn small ghost" data-a="run-reopen">Reopen</button>
-        </div>
-      </div>`}
-      ${sets ? '<div class="set-log">' + sets + '</div>' : ''}
-      ${r.editTargets && cur.status === 'pending' ? `
-      <form data-f="runtargets" class="card" style="background:var(--bg);margin-top:10px">
-        <div class="grid4">
-          <div><label>Sets</label><input type="number" name="sets" min="1" value="${cur.sets}"></div>
-          <div><label>Attempts</label><input type="number" name="attempts" min="1" value="${cur.attempts}"></div>
-          <div><label>Rest (s)</label><input type="number" name="restSec" min="0" value="${cur.restSec}"></div>
-          <div><label>Target %</label><input type="number" name="targetPct" min="0" max="100" value="${cur.targetPct || 0}"></div>
-        </div>
-        <div class="btn-group" style="margin-top:10px"><button class="btn small primary" type="submit">Apply to this drill</button><button type="button" class="btn small ghost" data-a="run-targets">Cancel</button></div>
-      </form>` : ''}
-    </section>`;
-  }
-
-  return `<div class="run">
-    ${head}
-    ${body}
-    <div class="card" style="margin-top:12px"><div class="tiny muted" style="margin-bottom:4px">Queue</div><div class="queue">
-      ${r.items.map((it, i) => '<button data-a="run-goto" data-id="' + i + '" class="' + (i === curIdx ? 'cur' : '') + (it.status === 'skipped' ? ' off' : '') + '"><span>' + (i + 1) + '. ' + esc(it.name) + '</span><span class="tiny">' + (it.status === 'done' ? 'Done' : it.status === 'skipped' ? 'Skipped' : it.setLog.length + '/' + it.sets + ' sets') + '</span></button>').join('')}
-    </div></div>
-    <div class="row end" style="margin-top:14px">
-      <button class="btn ghost" data-a="run-min">Minimize</button>
-      <button class="btn primary" data-a="run-finish">Finish workout</button>
-    </div>
-  </div>`;
-}
-function finishRun() {
-  const r = S.run;
-  if (!r) return;
-  const now = Date.now();
-  const active = r.items.filter(i => i.status !== 'skipped');
-  const planned = sum(active, i => i.sets) || 1;
-  const logged = sum(active, i => Math.min(i.setLog.length, i.sets));
-  const minutes = Math.max(1, Math.min(240, Math.round((now - r.startedAt) / 60000)));
-  S.sessions.push({
-    id: uid(), workoutId: r.workoutId, name: r.name, objective: r.objective, category: r.category,
-    startedAt: r.startedAt, endedAt: now, minutes, completionPct: Math.round(100 * logged / planned), modified: !!r.modified,
-    items: r.items.map(i => ({ drillId: i.drillId, name: i.name, category: i.category, metric: i.metric, sets: i.sets, attempts: i.attempts, restSec: i.restSec, timeLimit: i.timeLimit, status: i.status, setLog: i.setLog, rating: i.rating, notes: i.notes }))
-  });
-  S.run = null;
-  runnerMin = false;
-  save();
-  location.hash = 'train';
-  trainTab = 'history';
-  render();
-}
-function sessionAsWorkout(s) {
-  return { id: s.workoutId || uid(), name: s.name, category: s.category, objective: s.objective || 'Finishing', items: s.items.filter(i => i.drillId).map(i => ({ drillId: i.drillId, sets: i.sets, attempts: i.attempts, restSec: i.restSec ?? 30, timeLimit: i.timeLimit || 0, targetPct: 0, coaching: '' })) };
-}
-function pickerHTML(mode) {
-  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Choose a drill">
-    <div class="row"><h2>${mode === 'replace' ? 'Replace drill' : 'Add drill'}</h2><button class="btn small ghost" data-a="close">Close</button></div>
-    <input id="pick-q" placeholder="Search drills" style="margin-top:10px" aria-label="Search drills">
-    <div class="card list" style="padding:4px 14px;margin-top:10px">${S.drills.map(d => `<button class="drill-row pick-row" data-a="run-pick" data-id="${d.id}" data-mode="${mode}" data-name="${esc(d.name.toLowerCase())}"><strong>${esc(d.name)}</strong><div class="tiny muted">${esc(d.category)} · ${d.sets}×${d.attempts} · ${d.partner ? 'Partner' : 'Solo'}</div></button>`).join('')}</div>
-  </div>`;
-}
-
-/* ============ LIBRARY ============ */
-function libraryView() {
-  const cats = ['all', ...AREAS];
-  return `
-  <div class="card" style="margin-top:12px">
-    <input id="libq" type="search" placeholder="Search drills by name or skill" value="${esc(libFilter.q)}" aria-label="Search drills">
-    <div class="chips" style="margin-top:10px">${cats.map(c => '<button class="chip ' + (libFilter.cat === c ? 'on' : '') + '" data-a="lib-cat" data-id="' + c + '">' + (c === 'all' ? 'All' : esc(c)) + '</button>').join('')}</div>
-    <div class="row" style="margin-top:8px">
-      <label class="check"><input type="checkbox" data-a="lib-fav-only"${libFilter.fav ? ' checked' : ''}> Favorites only</label>
-      <button class="btn small primary" data-a="lib-new">New drill</button>
-    </div>
-  </div>
-  <div id="libList">${libList()}</div>
-  <div class="sec-h"><h2>Collections</h2></div>
-  <div class="card">
-    <div class="chips">${S.collections.map(c => '<button class="chip ' + (libFilter.coll === c.id ? 'on' : '') + '" data-a="coll-filter" data-id="' + c.id + '">' + esc(c.name) + ' (' + c.drillIds.length + ')</button>').join('') || '<span class="tiny muted">No collections yet.</span>'}</div>
-    <form data-f="coll" class="row" style="margin-top:10px"><input name="name" placeholder="New collection name" required style="flex:1"><button class="btn small" type="submit">Create</button></form>
-  </div>`;
-}
-function libList() {
-  const q = libFilter.q.trim().toLowerCase();
-  const coll = S.collections.find(c => c.id === libFilter.coll);
-  const list = S.drills.filter(d => (libFilter.cat === 'all' || d.category === libFilter.cat)
-    && (!libFilter.fav || d.favorite)
-    && (!coll || coll.drillIds.includes(d.id))
-    && (!q || d.name.toLowerCase().includes(q) || d.category.toLowerCase().includes(q) || d.secondary.join(' ').toLowerCase().includes(q)));
-  return `<div class="card list" style="padding:4px 14px">${list.map(d => `
-    <button class="drill-row" data-a="lib-open" data-id="${d.id}">
-      <div class="row"><strong>${d.favorite ? '★ ' : ''}${esc(d.name)}</strong><span class="tiny muted">${esc(d.metric === 'reps' ? 'reps' : 'makes')}</span></div>
-      <div class="tiny muted">${esc(d.category)}${d.secondary.length ? ' · ' + esc(d.secondary.join(', ')) : ''} · ${d.minutes} min · ${d.sets}×${d.attempts} · ${d.partner ? 'Partner' : 'Solo'}</div>
-      <div class="tiny">${dots(d.difficulty)}${d.custom ? ' <span class="badge">Custom</span>' : ''}</div>
-    </button>`).join('') || '<div class="empty">No drills match these filters.</div>'}</div>`;
-}
-function drillForm(d, isNew) {
-  return `<form data-f="drill" class="stack">
-    <input type="hidden" name="id" value="${esc(d ? d.id : '')}">
-    <label>Name</label><input name="name" required value="${esc(d ? d.name : '')}">
-    <div class="grid2">
-      <div><label>Category</label><select name="category">${AREAS.map(a => '<option' + (d && d.category === a ? ' selected' : '') + '>' + a + '</option>').join('')}</select></div>
-      <div><label>Difficulty (1–5)</label><input type="number" name="difficulty" min="1" max="5" value="${d ? d.difficulty : 3}"></div>
-    </div>
-    <label>Secondary skills</label><input name="secondary" value="${esc(d ? d.secondary.join(', ') : '')}" placeholder="comma separated">
-    <label>Instructions</label><textarea name="instructions" rows="3">${esc(d ? d.instructions : '')}</textarea>
-    <label>Coaching points (one per line)</label><textarea name="coaching" rows="3">${esc(d ? d.coaching.join('\n') : '')}</textarea>
-    <label>Equipment</label><input name="equipment" value="${esc(d ? d.equipment : 'Ball, hoop')}">
-    <div class="grid4">
-      <div><label>Minutes</label><input type="number" name="minutes" min="1" value="${d ? d.minutes : 8}"></div>
-      <div><label>Sets</label><input type="number" name="sets" min="1" value="${d ? d.sets : 3}"></div>
-      <div><label>Attempts/set</label><input type="number" name="attempts" min="1" value="${d ? d.attempts : 10}"></div>
-      <div><label>Metric</label><select name="metric"><option value="makes"${!d || d.metric === 'makes' ? ' selected' : ''}>Makes</option><option value="reps"${d && d.metric === 'reps' ? ' selected' : ''}>Good reps</option></select></div>
-    </div>
-    <label class="check"><input type="checkbox" name="partner"${d && d.partner ? ' checked' : ''}> Needs a partner</label>
-    <label>Video link (optional)</label><input name="video" type="url" value="${esc(d ? d.video : '')}" placeholder="https://">
-    <div class="row end" style="margin-top:14px">
-      <button class="btn primary" type="submit">${isNew ? 'Create drill' : 'Save drill'}</button>
-    </div>
-  </form>`;
-}
-function openDrill(id) {
-  const d = id ? drill(id) : null;
-  const extra = d ? `
-    <div class="card" style="background:var(--bg);margin-top:12px">
-      <h3>Add to a workout</h3>
-      <div class="grid2" style="margin-top:8px"><select id="addwk-sel">${S.workouts.map(w => '<option value="' + w.id + '">' + esc(w.name) + '</option>').join('')}</select>
-      <button class="btn" data-a="lib-addwk" data-id="${d.id}">Add</button></div>
-    </div>
-    <div class="card" style="background:var(--bg);margin-top:12px">
-      <h3>Collections</h3>
-      <div class="chips" style="margin-top:8px">${S.collections.map(c => '<button class="chip ' + (c.drillIds.includes(d.id) ? 'on' : '') + '" data-a="coll-toggle" data-id="' + c.id + '" data-drill="' + d.id + '">' + esc(c.name) + '</button>').join('') || '<span class="tiny muted">Create a collection in the Library first.</span>'}</div>
-    </div>
-    <div class="btn-group" style="margin-top:12px">
-      <button class="btn small ghost" data-a="lib-fav" data-id="${d.id}">${d.favorite ? 'Unfavorite' : 'Favorite'}</button>
-      <button class="btn small ghost danger" data-a="lib-del" data-id="${d.id}">Delete drill</button>
-    </div>` : '';
-  $('#modal').innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="Drill">
-    <div class="row"><h2>${d ? 'Edit drill' : 'New drill'}</h2><button class="btn small ghost" data-a="close">Close</button></div>
-    ${d && d.video ? '<a class="btn small" style="margin-top:10px" href="' + esc(d.video) + '" target="_blank" rel="noopener">Watch demonstration</a>' : ''}
-    <div style="margin-top:10px">${drillForm(d, !d)}</div>${extra}
-  </div>`;
-  $('#modal').hidden = false;
-}
-
-/* ============ ANALYTICS ============ */
-function analyticsView() {
-  const days = analyticsDays;
-  const now = Date.now();
-  const cur = { s: now - days * DAY, e: now + 1 };
-  const prev = { s: now - 2 * days * DAY, e: now - days * DAY };
-  const sessNow = sessionsIn(cur.s, cur.e), sessPrev = sessionsIn(prev.s, prev.e);
-  const minNow = sum(sessNow, s => s.minutes), minPrev = sum(sessPrev, s => s.minutes);
-  const stNow = itemStats(sessNow.flatMap(s => activeItems(s)));
-  const stPrev = itemStats(sessPrev.flatMap(s => activeItems(s)));
-  const dayset = new Set(sessNow.map(s => fmtD(new Date(s.endedAt))));
-  const consistency = Math.round(100 * dayset.size / days);
-  const weeks = [...Array(8)].map((_, k) => {
-    const e = now - k * 7 * DAY + 1, s = e - 7 * DAY;
-    return { label: k === 0 ? 'This wk' : k + 'w', min: sum(sessionsIn(s, e), x => x.minutes) };
-  }).reverse();
-  const maxW = Math.max(60, ...weeks.map(w => w.min));
-  const dist = areaMinutesIn(cur.s, cur.e);
-  const distTotal = sum(Object.values(dist)) || 1;
-  const distRows = Object.entries(dist).filter(([, m]) => m > 0).sort((a, b) => b[1] - a[1]);
-  const byDrill = {};
-  sessNow.forEach(s => activeItems(s).forEach(i => {
-    const k = i.drillId; byDrill[k] = byDrill[k] || { name: i.name, items: [] };
-    byDrill[k].items.push(i);
-  }));
-  const drillRows = Object.values(byDrill).map(x => ({ name: x.name, ...itemStats(x.items) })).filter(x => x.att > 0).sort((a, b) => b.att - a.att).slice(0, 8);
-  const feedback = [...Array(4)].map((_, k) => {
-    const e = now - k * 7 * DAY + 1, s = e - 7 * DAY;
-    const cut1 = fmtD(new Date(s)), cut2 = fmtD(new Date(e));
-    const js = S.journal.filter(j => j.date >= cut1 && j.date < cut2);
-    return { label: k === 0 ? 'This wk' : k + 'w', avg: js.length ? (sum(js, j => j.difficulty) / js.length) : null, n: js.length };
-  }).reverse();
-  const imp = AREAS.slice(0, 4).map(a => {
-    const x = areaStatsIn(a, cur.s, cur.e), y = areaStatsIn(a, prev.s, prev.e);
-    const delta = (x.pct != null && y.pct != null) ? x.pct - y.pct : null;
-    return { a, x, y, delta };
-  });
-  const arrow = d => d == null ? '<span class="muted">not enough data</span>' : d > 0 ? '<span class="ok">▲ ' + d + ' pts</span>' : d < 0 ? '<span class="bad-t">▼ ' + Math.abs(d) + ' pts</span>' : '<span class="muted">no change</span>';
-  return `
-  <div class="chips" style="margin:12px 0 4px">${[7, 28].map(d => '<button class="chip ' + (days === d ? 'on' : '') + '" data-a="an-period" data-id="' + d + '">Last ' + d + ' days</button>').join('')}</div>
-  <div class="tiles" style="margin-top:10px">
-    <div class="tile"><div class="n">${fmtMin(minNow)}</div><div class="l">Training time · prev ${fmtMin(minPrev)}</div></div>
-    <div class="tile"><div class="n">${sessNow.length}</div><div class="l">Workouts done · prev ${sessPrev.length}</div></div>
-    <div class="tile"><div class="n">${consistency}%</div><div class="l">Days trained</div></div>
-    <div class="tile"><div class="n">${pctTxt(stNow.pct)}</div><div class="l">Makes · ${stNow.att} attempts</div></div>
-  </div>
-
-  <div class="sec-h"><h2>Weekly training minutes</h2></div>
-  <div class="card"><div class="cols">${weeks.map((w, i) => '<div class="col ' + (i === weeks.length - 1 ? 'now' : '') + '"><span class="tiny">' + fmtMin(w.min).replace(' min', 'm') + '</span><i style="height:' + Math.max(2, Math.round(100 * w.min / maxW)) + '%"></i><span>' + w.label + '</span></div>').join('')}</div>
-    <p class="tiny muted" style="margin-top:8px">Your weekly target is ${S.profile.weeklyMinutes || 0} min, set on your profile.</p></div>
-
-  <div class="sec-h"><h2>Skill distribution</h2></div>
-  <div class="card list" style="padding:4px 14px">${distRows.map(([a, m]) => `<div class="li"><div class="row"><strong>${esc(a)}</strong><span class="tiny muted">${fmtMin(m)} · ${Math.round(100 * m / distTotal)}%</span></div><div class="bar" style="margin-top:6px"><i style="width:${Math.round(100 * m / distTotal)}%"></i></div></div>`).join('') || '<div class="li tiny muted">No training logged in this period.</div>'}</div>
-
-  <div class="sec-h"><h2>Improvement vs previous period</h2></div>
-  <div class="card list" style="padding:4px 14px">${imp.map(r => `<div class="li row"><div><strong>${esc(r.a)}</strong><div class="tiny muted">${r.x.att} attempts now · ${r.y.att} before</div></div><div>${arrow(r.delta)}</div></div>`).join('')}</div>
-
-  <div class="sec-h"><h2>Drill performance</h2></div>
-  <div class="card list" style="padding:4px 14px">${drillRows.map(d => `<div class="li row"><div class="grow"><strong>${esc(d.name)}</strong><div class="bar" style="margin-top:6px"><i style="width:${d.pct || 0}%"></i></div></div><div class="tiny muted" style="text-align:right;min-width:90px">${pctTxt(d.pct)} · ${d.att}</div></div>`).join('') || '<div class="li tiny muted">No shot data in this period.</div>'}</div>
-
-  <div class="sec-h"><h2>Practice feedback</h2></div>
-  <div class="card"><div class="cols" style="height:90px">${feedback.map((f, i) => '<div class="col ' + (i === feedback.length - 1 ? 'now' : '') + '"><span class="tiny">' + (f.avg == null ? '—' : f.avg.toFixed(1)) + '</span><i style="height:' + (f.avg == null ? 2 : Math.round(f.avg * 10)) + '%"></i><span>' + f.label + '</span></div>').join('')}</div>
-    <p class="tiny muted" style="margin-top:8px">Average practice difficulty (1–10) by week. Entries logged: ${feedback.map(f => f.n).join(', ')}.</p></div>
-
-  <p class="tiny muted" style="margin-top:14px">Shot Lab with location tracking and the full shot chart come in Phase 3.</p>`;
-}
-
-/* ============ PROFILE ============ */
-function profileView() {
-  const p = S.profile;
-  const f = (name, label, type = 'text', ph = '') => `<label>${label}</label><input name="${name}" type="${type}" value="${esc(p[name] ?? '')}" placeholder="${esc(ph)}">`;
-  const ta = (name, label, ph = '') => `<label>${label}</label><textarea name="${name}" rows="2" placeholder="${esc(ph)}">${esc(p[name] ?? '')}</textarea>`;
-  return `
-  <form class="card" data-f="profile" style="margin-top:12px">
-    <h3>Position and body</h3>
-    <div class="grid2">
-      <div>${f('position', 'Position')}</div><div>${f('secondary', 'Secondary position')}</div>
-      <div>${f('height', 'Height')}</div><div>${f('level', 'Current level', 'text', 'e.g. JV, varsity')}</div>
-    </div>
-    ${ta('style', 'Playing style', 'How you play, in your words')}
-    <div class="hr"></div>
-    <h3>Strengths and weaknesses</h3>
-    ${ta('strengths', 'Strengths (one per line)')}
-    ${ta('weaknesses', 'Weaknesses (one per line)')}
-    <div class="hr"></div>
-    <h3>Goals</h3>
-    ${ta('shortGoals', 'Short-term goals (next 4–8 weeks)')}
-    ${ta('longGoals', 'Long-term goals')}
-    <div class="hr"></div>
-    <h3>Training setup</h3>
-    ${ta('equipment', 'Available equipment')}
-    ${ta('environments', 'Training environments', 'Outdoor court, home gym, school gym')}
-    ${ta('partner', 'Training partner availability')}
-    ${ta('schedule', 'Weekly practice schedule')}
-    ${ta('games', 'Upcoming games')}
-    <div class="grid2">
-      <div>${f('durations', 'Preferred durations (min)', 'text', '15, 20, 30, 45')}</div>
-      <div>${f('weeklyMinutes', 'Weekly training target (min)', 'number')}</div>
-    </div>
-    <button class="btn primary big" style="margin-top:14px" type="submit">Save profile</button>
-  </form>`;
-}
-
-/* ============ JOURNAL ============ */
-function journalView() {
-  const t = today();
-  const pa = patternAnalysis(21);
-  const list = [...S.journal].sort((a, b) => b.date.localeCompare(a.date) || b.created - a.created).slice(0, 25);
-  return `
-  <form class="card" data-f="journal" id="jr-form" style="margin-top:12px">
-    <h3>After practice</h3>
-    <div class="grid2"><div><label>Date</label><input type="date" name="date" value="${t}" required></div>
-    <div><label>How hard was practice (1–10)</label><input type="number" name="difficulty" min="1" max="10" value="6"></div></div>
-    <label>What went well?</label><textarea name="well" rows="2" placeholder="I cut really well today and got to the basket several times"></textarea>
-    <label>What went poorly?</label><textarea name="poorly" rows="2" placeholder="Struggled to finish through help defense"></textarea>
-    <label>What opportunities did I create?</label><textarea name="opps" rows="2"></textarea>
-    <label>What mistakes did I make?</label><textarea name="mistakes" rows="2"></textarea>
-    <label>What do I want to improve?</label><textarea name="improve" rows="2"></textarea>
-    <div class="row" style="margin-top:10px"><span class="tiny muted">Tags</span><button type="button" class="btn small" data-a="jr-suggest">Suggest tags from my notes</button></div>
-    <div class="grid2" style="margin-top:6px">${TAGS.map(t => '<label class="check"><input type="checkbox" name="tags" value="' + t.id + '"> ' + esc(t.label) + '</label>').join('')}</div>
-    <button class="btn primary big" style="margin-top:14px" type="submit">Save entry</button>
-  </form>
-
-  <div class="sec-h"><h2>Patterns, last 21 days</h2><span class="tiny muted">${pa.entries} entr${pa.entries === 1 ? 'y' : 'ies'}</span></div>
-  <div class="card list" style="padding:4px 14px">${pa.rows.map(r => {
-    const area = r.area;
-    const v = pa.verdict(r);
-    const cls = r.n >= 3 ? (r.good ? 'good' : 'bad') : '';
-    return `<div class="li row"><div class="grow"><strong>${esc(r.label)}</strong><div class="tiny muted">${r.n} of ${pa.entries} practices · ${esc(area)}</div></div>
-      <div class="btn-group"><span class="badge ${cls}">${v}</span>${r.n >= 3 && !r.good ? '<button class="btn small" data-a="pr-from-tag" data-id="' + area + '">Add to priorities</button>' : ''}</div></div>`;
-  }).join('') || '<div class="li tiny muted">Log a few practices and recurring patterns appear here. One bad practice does not create a pattern.</div>'}</div>
-
-  <div class="sec-h"><h2>Entries</h2></div>
-  <div class="card list" style="padding:4px 14px">${list.map(j => `<div class="li">
-      <div class="row"><strong>${dayLabel(j.date)}</strong><span class="tiny muted">Difficulty ${j.difficulty}/10</span></div>
-      ${j.well ? '<p class="small"><span class="ok">Well:</span> ' + esc(j.well) + '</p>' : ''}
-      ${j.poorly ? '<p class="small"><span class="bad-t">Poorly:</span> ' + esc(j.poorly) + '</p>' : ''}
-      ${j.improve ? '<p class="small"><span class="warn-t">Improve:</span> ' + esc(j.improve) + '</p>' : ''}
-      <div class="chips" style="padding:4px 0">${(j.tags || []).map(id => { const t = TAGS.find(x => x.id === id); return t ? '<span class="badge ' + (t.good ? 'good' : '') + '">' + esc(t.label) + '</span>' : ''; }).join('')}</div>
-      <button class="btn small ghost danger" data-a="jr-del" data-id="${j.id}">Delete</button></div>`).join('') || '<div class="li tiny muted">No entries yet.</div>'}</div>`;
-}
-
-/* ============ DEVELOPMENT BOARD ============ */
-function devView() {
-  const now = Date.now();
-  const ps = [...S.priorities].sort((a, b) => (a.status === 'active' ? 0 : 1) - (b.status === 'active' ? 0 : 1) || a.rank - b.rank);
-  const active = ps.filter(p => p.status === 'active');
-  const pa = patternAnalysis(21);
-  const areaCards = ps.map((p, idx) => {
-    const st = areaStatsIn(p.area, now - 14 * DAY, now + 1);
-    const prev = areaStatsIn(p.area, now - 28 * DAY, now - 14 * DAY);
-    const delta = (st.pct != null && prev.pct != null) ? st.pct - prev.pct : null;
-    const trend = delta == null ? 'Not enough data to compare' : delta > 0 ? 'Improving: +' + delta + ' pts vs prior 14 days' : delta < 0 ? 'Declining: ' + delta + ' pts vs prior 14 days' : 'Flat vs prior 14 days';
-    const rel = S.drills.filter(d => d.category === p.area).slice(0, 4);
-    const wks = S.workouts.filter(w => w.objective === p.area).slice(0, 3);
-    const tagHits = pa.rows.filter(r => r.area === p.area);
-    const notes = p.notes.slice(-3).reverse();
-    const minutes = Math.round(areaMinutes(14)[p.area] || 0);
-    return `<article class="card ${p.status !== 'active' ? '' : 'hi'}">
-      <div class="row"><div class="grow"><div class="tiny muted">${esc(p.area)}</div><h3>${esc(p.title)}</h3></div>
-        <div class="btn-group">
-          <span class="badge ${p.status === 'active' ? 'gold' : p.status === 'achieved' ? 'good' : ''}">${esc(p.status)}</span>
-          ${p.status === 'active' ? '<button class="btn small ghost" data-a="pr-move" data-id="' + p.id + '" data-dir="-1"' + (idx === 0 ? ' disabled' : '') + '>↑</button><button class="btn small ghost" data-a="pr-move" data-id="' + p.id + '" data-dir="1"' + (idx === active.length - 1 ? ' disabled' : '') + '>↓</button>' : ''}
-        </div></div>
-      <div class="tiles" style="grid-template-columns:repeat(3,1fr);margin:12px 0">
-        <div class="tile"><div class="n">${pctTxt(st.pct)}</div><div class="l">Makes, 14 days</div></div>
-        <div class="tile"><div class="n">${st.att}</div><div class="l">Attempts, 14 days</div></div>
-        <div class="tile"><div class="n">${minutes}</div><div class="l">Min, 14 days</div></div>
-      </div>
-      <div class="small">${trend}</div>
-      ${tagHits.length ? '<div class="tiny" style="margin-top:6px">Journal: ' + tagHits.map(r => esc(r.label) + ' (' + r.n + ')').join(', ') + '</div>' : ''}
-      <form data-f="priority" data-id="${p.id}" class="stack" style="margin-top:12px">
-        <div class="grid2"><div><label>Title</label><input name="title" value="${esc(p.title)}"></div>
-        <div><label>Status</label><select name="status">${['active', 'paused', 'achieved'].map(s => '<option' + (p.status === s ? ' selected' : '') + '>' + s + '</option>').join('')}</select></div></div>
-        <label>Starting assessment</label><textarea name="assessment" rows="2" placeholder="Where you are now, with a number if you have one">${esc(p.assessment)}</textarea>
-        <label>Measurable target</label><textarea name="target" rows="2" placeholder="e.g. 50% on 100 catch-and-shoot attempts by Dec 20">${esc(p.target)}</textarea>
-        <div class="grid2"><div><label>Review date</label><input type="date" name="reviewDate" value="${esc(p.reviewDate)}"></div><div></div></div>
-        <div class="btn-group"><button class="btn small primary" type="submit">Save</button><button type="button" class="btn small ghost danger" data-a="pr-del" data-id="${p.id}">Delete</button></div>
-      </form>
-      <details style="margin-top:10px"><summary class="small muted">Sub-skills and related work</summary>
-        <div class="tiny muted" style="margin-top:6px">${p.subskills.map(esc).join(' · ')}</div>
-        <div class="tiny" style="margin-top:8px"><strong>Related drills:</strong> ${rel.map(d => esc(d.name)).join(', ') || 'None yet'}</div>
-        <div class="tiny" style="margin-top:4px"><strong>Related workouts:</strong> ${wks.map(w => esc(w.name)).join(', ') || 'None yet'}</div>
-      </details>
-      <form data-f="prNote" data-id="${p.id}" class="row" style="margin-top:10px"><input name="text" placeholder="Log a progress note" style="flex:1" required><button class="btn small" type="submit">Log</button></form>
-      ${notes.length ? '<div class="list tiny" style="margin-top:6px">' + notes.map(n => '<div class="li" style="padding:6px 0"><span class="muted">' + dayLabel(n.date) + ':</span> ' + esc(n.text) + '</div>').join('') + '</div>' : ''}
-    </article>`;
-  }).join('');
-  const neglected = active.filter(p => (areaMinutes(14)[p.area] || 0) === 0).map(p => p.title);
-  return `
-  <div class="card" style="margin-top:12px"><h3>Right now</h3>
-    <p class="small">${active.length} active priorit${active.length === 1 ? 'y' : 'ies'}.${neglected.length ? ' <span class="warn-t">Needs attention, no work logged in 14 days: ' + neglected.map(esc).join(', ') + '.</span>' : ' Every active area has had work in the last 14 days.'}</p>
-    <p class="small muted">Priorities change only when you change them. One bad practice does not reorder them; repeated journal patterns are flagged for you to act on.</p>
-  </div>
-  ${areaCards}
-  <form class="card" data-f="priorityNew" style="margin-top:12px"><h3>Add priority</h3>
-    <div class="grid2" style="margin-top:8px"><div><label>Area</label><select name="area">${AREAS.map(a => '<option>' + a + '</option>').join('')}</select></div>
-    <div><label>Title</label><input name="title" placeholder="Defaults to area"></div></div>
-    <button class="btn primary big" style="margin-top:12px" type="submit">Add priority</button>
-  </form>`;
-}
-
-/* ============ HABITS ============ */
-function habitsView() {
-  const t = today();
-  const days = [...Array(7)].map((_, i) => addDays(t, i - 6));
-  return `
-  <p class="small muted" style="margin:12px 0">Habits track consistency, not skill. Use them to make sure the work happens; judge progress on the Development board.</p>
-  ${S.habits.map(h => {
-    const v = h.log[t] || 0;
-    const met = v >= h.target;
-    const weekMet = days.filter(d => (h.log[d] || 0) >= h.target).length;
-    return `<article class="card">
-      <div class="row"><h3 class="grow">${esc(h.name)}</h3><span class="badge ${met ? 'good' : ''}">${met ? 'Met today' : v + ' / ' + h.target + ' ' + esc(h.unit)}</span></div>
-      <div class="cols" style="height:70px;margin-top:10px">${days.map(d => { const x = h.log[d] || 0; const p = Math.min(100, Math.round(100 * x / h.target)); return '<div class="col ' + (d === t ? 'now' : '') + '"><i style="height:' + Math.max(3, p) + '%"></i><span>' + dayLabel(d).split(',')[0] + '</span></div>'; }).join('')}</div>
-      <div class="row tiny muted" style="margin-top:8px"><span>Streak: ${habitStreak(h)} day${habitStreak(h) === 1 ? '' : 's'}</span><span>${weekMet}/7 days this week</span></div>
-      <form data-f="habitLog" data-id="${h.id}" class="row" style="margin-top:10px">
-        <input type="number" name="value" min="0" placeholder="Add ${esc(h.unit)} today" style="flex:1" inputmode="numeric" required>
-        <button class="btn small primary" type="submit">Add</button>
-      </form>
-      <div class="btn-group" style="margin-top:8px"><button class="btn small ghost danger" data-a="hb-del" data-id="${h.id}">Delete habit</button></div>
-    </article>`;
-  }).join('') || '<div class="empty">No habits yet.</div>'}
-  <form class="card" data-f="habit"><h3>New habit</h3>
-    <div class="grid2" style="margin-top:8px"><div><label>Name</label><input name="name" required placeholder="e.g. Free throws"></div>
-    <div><label>Daily target</label><input name="target" type="number" min="1" required value="50"></div></div>
-    <label>Unit</label><input name="unit" value="makes" placeholder="makes, min, reps">
-    <button class="btn primary big" style="margin-top:12px" type="submit">Add habit</button>
-  </form>`;
-}
-
-/* ============ ACTIONS ============ */
-function closeModal() { $('#modal').hidden = true; $('#modal').innerHTML = ''; editDraft = null; }
-function arm(t, fn) {
-  if (t.dataset.armed) { fn(); return; }
-  t.dataset.armed = '1';
-  const old = t.textContent;
-  t.textContent = 'Tap again to confirm';
-  setTimeout(() => { if (t.isConnected) { delete t.dataset.armed; t.textContent = old; } }, 3000);
-}
-function runNext(fromIdx) {
-  const r = S.run;
-  const n = nextPending(fromIdx + 1);
-  if (n === -1) { r.idx = fromIdx; } else { r.idx = n; }
-  r.restEnd = 0;
-  save(); render();
-}
-function quickBuild() {
-  const r = recommend();
-  openWorkoutEditor(generate({ minutes: r.minutes, area: r.area, partner: false, hard: r.hard }));
-}
-function pickDrill(mode, id) {
-  const r = S.run;
-  const d = drill(id);
-  if (!r || !d) return;
-  if (mode === 'replace') {
-    const cur = r.items[r.idx];
-    if (cur.setLog.length) return;
-    Object.assign(cur, { drillId: d.id, name: d.name, category: d.category, metric: d.metric, instructions: d.instructions, video: d.video, coaching: d.coaching, sets: d.sets, attempts: d.attempts, status: 'pending' });
-  } else {
-    r.items.splice(r.idx + 1, 0, { uid: uid(), drillId: d.id, name: d.name, category: d.category, metric: d.metric, instructions: d.instructions, video: d.video, coaching: d.coaching, sets: d.sets, attempts: d.attempts, restSec: 30, timeLimit: 0, targetPct: 0, status: 'pending', setLog: [], rating: 0, notes: '' });
-    r.idx = r.idx + 1;
-  }
-  r.modified = true;
-  closeModal();
-  save(); render();
-}
-function setPriorityFromTag(area) {
-  const p = S.priorities.find(x => x.area === area);
-  if (p && p.status === 'active') return;
-  if (p) { p.status = 'active'; p.rank = Math.max(0, ...S.priorities.map(x => x.rank)) + 1; }
-  else S.priorities.push({ id: 'p-' + slug(area) + '-' + uid(), area, title: area, subskills: SUBSKILLS[area] || [], assessment: '', target: '', status: 'active', rank: Math.max(0, ...S.priorities.map(x => x.rank)) + 1, reviewDate: '', notes: [], progress: [] });
-  renumber();
-}
-function renumber() {
-  S.priorities.filter(p => p.status === 'active').sort((a, b) => a.rank - b.rank).forEach((p, i) => p.rank = i + 1);
-}
-
-const ACT = {
-  'run-start': id => { const w = workout(id); if (w) startRun(w); },
-  'run-min': () => { runnerMin = true; render(); },
-  'run-max': () => { runnerMin = false; render(); },
-  'run-discard': t => arm(t, () => { S.run = null; runnerMin = false; save(); render(); }),
-  'run-finish': t => arm(t, () => finishRun()),
-  'run-timer': (t) => {
-    const r = S.run; if (!r) return;
-    const cur = r.items[r.idx]; ensureTimer(r, cur);
-    const op = t.dataset.op;
-    if (op === 'start' && !r.tRunningSince) r.tRunningSince = Date.now();
-    if (op === 'pause' && r.tRunningSince) { r.tAcc += Date.now() - r.tRunningSince; r.tRunningSince = 0; }
-    if (op === 'reset') { r.tAcc = 0; r.tRunningSince = 0; }
-    save(); render();
-  },
-  'run-goto': (t, id) => { const r = S.run; if (!r) return; r.idx = +id; r.restEnd = 0; save(); render(); },
-  'run-next': () => { const r = S.run; if (r) runNext(r.idx); },
-  'run-reopen': () => { const r = S.run; const cur = r && r.items[r.idx]; if (!cur) return; cur.status = 'pending'; save(); render(); },
-  'run-skip': () => {
-    const r = S.run; if (!r) return;
-    const cur = r.items[r.idx];
-    cur.status = 'skipped'; r.restEnd = 0; r.modified = true;
-    const n = nextPending(r.idx + 1);
-    if (n !== -1) r.idx = n;
-    save(); render();
-  },
-  'run-replace': () => { const r = S.run; if (!r) return; const cur = r.items[r.idx]; if (cur.setLog.length) { alertInline('Log sets are saved. Reopen or skip the drill to replace it.'); return; } openPicker('replace'); },
-  'run-add': () => openPicker('add'),
-  'run-pick': (t, id) => pickDrill(t.dataset.mode, id),
-  'run-targets': () => { const r = S.run; if (!r) return; r.editTargets = !r.editTargets; save(); render(); },
-  'wk-new': () => openWorkoutEditor(newWorkoutDraft()),
-  'wk-edit': id => { const w = workout(id); if (w) openWorkoutEditor(w); },
-  'wk-dup': id => {
-    const w = workout(id); if (!w) return;
-    const c = JSON.parse(JSON.stringify(w)); c.id = uid(); c.name = w.name + ' (copy)'; c.template = false; c.created = Date.now();
-    S.workouts.push(c); save(); render();
-  },
-  'wk-fav': id => { const w = workout(id); if (w) { w.favorite = !w.favorite; save(); render(); } },
-  'wk-del': (t, id) => arm(t, () => { S.workouts = S.workouts.filter(w => w.id !== id); save(); render(); }),
-  'wk-save-start': () => saveWorkout(true),
-  'wcat': (t, c) => { libFilter.wcat = c; render(); },
-  'tab': (t, k) => { trainTab = k; render(); },
-  'hist-open': (t, id) => openSession(id),
-  'hist-repeat': (t, id) => {
-    const s = S.sessions.find(x => x.id === id); if (!s) return;
-    const w = workout(s.workoutId) || sessionAsWorkout(s);
-    closeModal(); startRun(w);
-  },
-  'ed-add': () => {
-    readEditorForm();
-    const id = $('#ed-add-sel').value; const d = drill(id); if (!d) return;
-    editDraft.items.push({ drillId: d.id, sets: d.sets, attempts: d.attempts, restSec: 30, timeLimit: 0, targetPct: 0, coaching: '' });
-    renderEditor();
-  },
-  'ed-up': (t, _, e) => moveItem(+t.dataset.idx, -1),
-  'ed-down': (t) => moveItem(+t.dataset.idx, 1),
-  'ed-rm': (t) => { readEditorForm(); editDraft.items.splice(+t.dataset.idx, 1); renderEditor(); },
-  'quick-build': () => quickBuild(),
-  'lib-cat': (t, c) => { libFilter.cat = c; renderLibListOnly(); $$('[data-a="lib-cat"]').forEach(b => b.classList.toggle('on', b.dataset.id === c)); },
-  'lib-fav-only': () => { libFilter.fav = !libFilter.fav; renderLibListOnly(); },
-  'lib-open': (t, id) => openDrill(id),
-  'lib-new': () => openDrill(null),
-  'lib-fav': (t, id) => { const d = drill(id); if (d) { d.favorite = !d.favorite; save(); openDrill(id); renderLibListOnly(); } },
-  'lib-del': (t, id) => arm(t, () => {
-    S.drills = S.drills.filter(d => d.id !== id);
-    S.collections.forEach(c => c.drillIds = c.drillIds.filter(x => x !== id));
-    closeModal(); save(); render();
-  }),
-  'lib-addwk': (t, id) => {
-    const wid = $('#addwk-sel') && $('#addwk-sel').value; const w = workout(wid); const d = drill(id);
-    if (!w || !d) return;
-    w.items.push({ drillId: d.id, sets: d.sets, attempts: d.attempts, restSec: 30, timeLimit: 0, targetPct: 0, coaching: '' });
-    save(); openDrill(id);
-  },
-  'coll-filter': (t, id) => { libFilter.coll = libFilter.coll === id ? '' : id; render(); },
-  'coll-toggle': (t, id) => {
-    const c = S.collections.find(x => x.id === id); const did = t.dataset.drill; if (!c) return;
-    c.drillIds = c.drillIds.includes(did) ? c.drillIds.filter(x => x !== did) : [...c.drillIds, did];
-    save(); openDrill(did);
-  },
-  'an-period': (t, d) => { analyticsDays = +d; render(); },
-  'plan-status': (t, id) => { const p = S.plan.find(x => x.id === id); if (p) { p.status = t.dataset.s; save(); render(); } },
-  'plan-del': (t, id) => { S.plan = S.plan.filter(x => x.id !== id); save(); render(); },
-  'jr-suggest': () => {
-    const f = $('#jr-form'); if (!f) return;
-    const text = ['well', 'poorly', 'opps', 'mistakes', 'improve'].map(n => (f.elements[n] || {}).value || '').join(' ');
-    SUGGEST.forEach(([re, id]) => { if (re.test(text)) { const cb = f.querySelector('input[name="tags"][value="' + id + '"]'); if (cb) cb.checked = true; } });
-  },
-  'jr-del': (t, id) => arm(t, () => { S.journal = S.journal.filter(j => j.id !== id); save(); render(); }),
-  'pr-from-tag': (t, area) => { setPriorityFromTag(area); save(); location.hash = 'dev'; render(); },
-  'pr-move': (t, id, e) => {
-    const dir = +t.dataset.dir;
-    const act = S.priorities.filter(p => p.status === 'active').sort((a, b) => a.rank - b.rank);
-    const i = act.findIndex(p => p.id === id); const j = i + dir;
-    if (i < 0 || j < 0 || j >= act.length) return;
-    const tmp = act[i].rank; act[i].rank = act[j].rank; act[j].rank = tmp;
-    renumber(); save(); render();
-  },
-  'pr-del': (t, id) => arm(t, () => { S.priorities = S.priorities.filter(p => p.id !== id); renumber(); save(); render(); }),
-  'hb-del': (t, id) => arm(t, () => { S.habits = S.habits.filter(h => h.id !== id); save(); render(); }),
-  'goto-dev': () => { location.hash = 'dev'; },
-  'close': () => closeModal()
-};
-function moveItem(i, dir) {
-  readEditorForm();
-  const j = i + dir;
-  if (j < 0 || j >= editDraft.items.length) return;
-  const tmp = editDraft.items[i]; editDraft.items[i] = editDraft.items[j]; editDraft.items[j] = tmp;
-  renderEditor();
-}
-function alertInline(msg) {
-  const b = $('#banner'); if (!b) return;
-  b.innerHTML = '<div class="banner"><span class="small">' + esc(msg) + '</span></div>';
-  setTimeout(() => { if (S.run && runnerMin) render(); else b.innerHTML = ''; }, 2500);
-}
-function openPicker(mode) {
-  $('#modal').innerHTML = pickerHTML(mode);
-  $('#modal').hidden = false;
-  setTimeout(() => { const q = $('#pick-q'); if (q) q.focus(); }, 30);
-}
-function openSession(id) {
-  const s = S.sessions.find(x => x.id === id); if (!s) return;
-  const st = itemStats(activeItems(s));
-  const prior = S.sessions.filter(x => x.workoutId === s.workoutId && x.endedAt < s.endedAt).sort((a, b) => b.endedAt - a.endedAt).slice(0, 3);
-  $('#modal').innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="Session">
-    <div class="row"><h2>${esc(s.name)}</h2><button class="btn small ghost" data-a="close">Close</button></div>
-    <p class="small muted">${dayLabel(fmtD(new Date(s.endedAt)))} · ${fmtMin(s.minutes)} · ${s.completionPct}% complete${s.modified ? ' · modified during session' : ''}</p>
-    <div class="tiles" style="margin:12px 0"><div class="tile"><div class="n">${s.completionPct}%</div><div class="l">Completion</div></div><div class="tile"><div class="n">${pctTxt(st.pct)}</div><div class="l">Makes</div></div><div class="tile"><div class="n">${st.att}</div><div class="l">Attempts</div></div><div class="tile"><div class="n">${st.made}</div><div class="l">Makes total</div></div></div>
-    <div class="card list" style="padding:4px 14px">${s.items.map(i => { const x = itemStats([i]); return `<div class="li"><div class="row"><strong>${esc(i.name)}</strong><span class="tiny muted">${i.status === 'skipped' ? 'Skipped' : (i.setLog.length + '/' + i.sets + ' sets')}</span></div>
-      <div class="tiny muted">${x.att ? x.made + '/' + x.att + ' · ' + pctTxt(x.pct) : 'No attempts logged'}${i.rating ? ' · difficulty ' + i.rating + '/5' : ''}</div>
-      ${i.notes ? '<div class="tiny">' + esc(i.notes) + '</div>' : ''}</div>`; }).join('')}</div>
-    ${prior.length ? '<h3 style="margin-top:14px">Compared with previous runs</h3><div class="card list" style="padding:4px 14px">' + prior.map(p => { const pi = itemStats(activeItems(p)); return '<div class="li row"><span class="small">' + dayLabel(fmtD(new Date(p.endedAt))) + '</span><span class="tiny muted">' + p.completionPct + '% complete · ' + pctTxt(pi.pct) + ' makes</span></div>'; }).join('') + '</div>' : ''}
-    <div class="row end" style="margin-top:16px"><button class="btn primary" data-a="hist-repeat" data-id="${s.id}"${S.run ? ' disabled' : ''}>Repeat workout</button></div>
-  </div>`;
-  $('#modal').hidden = false;
-}
-function renderLibListOnly() { const el = $('#libList'); if (el) el.innerHTML = libList(); }
-
-/* ============ FORMS ============ */
-const FORM = {
-  runlog(fd) {
-    const r = S.run; if (!r) return;
-    const cur = r.items[r.idx];
-    if (!cur || cur.status !== 'pending') return;
-    const att = Math.max(0, +fd.get('att') || 0);
-    const made = Math.max(0, Math.min(att, +fd.get('made') || 0));
-    cur.setLog.push({ att, made, at: Date.now() });
-    cur.rating = +fd.get('rating') || cur.rating || 0;
-    cur.notes = fd.get('notes') || '';
-    if (cur.setLog.length >= cur.sets) { cur.status = 'done'; r.restEnd = 0; }
-    else { r.restEnd = Date.now() + (cur.restSec || 0) * 1000; }
-    save(); render();
-  },
-  runtargets(fd) {
-    const r = S.run; if (!r) return;
-    const cur = r.items[r.idx];
-    cur.sets = Math.max(1, +fd.get('sets') || cur.sets);
-    cur.attempts = Math.max(1, +fd.get('attempts') || cur.attempts);
-    cur.restSec = Math.max(0, +fd.get('restSec') || 0);
-    cur.targetPct = Math.min(100, Math.max(0, +fd.get('targetPct') || 0));
-    r.editTargets = false; r.modified = true;
-    save(); render();
-  },
-  workout(fd) { saveWorkout(false); },
-  build(fd) {
-    const w = generate({ minutes: +fd.get('minutes') || 20, area: fd.get('area') || 'Finishing', partner: fd.get('partner') === '1', hard: fd.get('hard') === '1' });
-    if (!w.items.length) { alertInline('No drills match that mode. Try Individual or another focus.'); return; }
-    openWorkoutEditor(w);
-  },
-  drill(fd) {
-    const id = fd.get('id');
-    const existing = id ? drill(id) : null;
-    const d = {
-      id: existing ? existing.id : 'c-' + uid(),
-      name: (fd.get('name') || 'Untitled drill').trim(),
-      category: fd.get('category') || 'Finishing',
-      difficulty: Math.min(5, Math.max(1, +fd.get('difficulty') || 3)),
-      secondary: (fd.get('secondary') || '').split(',').map(s => s.trim()).filter(Boolean),
-      instructions: fd.get('instructions') || '',
-      coaching: (fd.get('coaching') || '').split('\n').map(s => s.trim()).filter(Boolean),
-      equipment: fd.get('equipment') || '',
-      minutes: Math.max(1, +fd.get('minutes') || 8),
-      sets: Math.max(1, +fd.get('sets') || 3),
-      attempts: Math.max(1, +fd.get('attempts') || 10),
-      metric: fd.get('metric') === 'reps' ? 'reps' : 'makes',
-      partner: fd.get('partner') === 'on',
-      favorite: existing ? existing.favorite : false,
-      custom: existing ? existing.custom : true,
-      video: fd.get('video') || ''
-    };
-    if (existing) Object.assign(existing, d); else S.drills.push(d);
-    closeModal(); save(); render();
-  },
-  coll(fd) {
-    const name = (fd.get('name') || '').trim(); if (!name) return;
-    S.collections.push({ id: uid(), name, drillIds: [] });
-    save(); render();
-  },
-  profile(fd) {
-    ['position', 'secondary', 'height', 'level', 'style', 'strengths', 'weaknesses', 'shortGoals', 'longGoals', 'equipment', 'environments', 'partner', 'schedule', 'games', 'durations'].forEach(k => S.profile[k] = fd.get(k) || '');
-    S.profile.weeklyMinutes = Math.max(0, +fd.get('weeklyMinutes') || 0);
-    save(); render();
-  },
-  journal(fd) {
-    const text = ['well', 'poorly', 'opps', 'mistakes', 'improve'].map(k => fd.get(k) || '').join(' ');
-    const picked = new Set(fd.getAll('tags'));
-    const entry = {
-      id: uid(), date: fd.get('date') || today(), difficulty: Math.min(10, Math.max(1, +fd.get('difficulty') || 5)),
-      well: fd.get('well') || '', poorly: fd.get('poorly') || '', opps: fd.get('opps') || '', mistakes: fd.get('mistakes') || '', improve: fd.get('improve') || '',
-      tags: [...picked], created: Date.now()
-    };
-    if (!text.trim()) return;
-    S.journal.push(entry);
-    save(); render();
-  },
-  priority(fd, f) {
-    const p = S.priorities.find(x => x.id === f.dataset.id); if (!p) return;
-    const prevStatus = p.status;
-    p.title = fd.get('title') || p.area;
-    p.status = fd.get('status') || 'active';
-    p.assessment = fd.get('assessment') || '';
-    p.target = fd.get('target') || '';
-    p.reviewDate = fd.get('reviewDate') || '';
-    if (prevStatus !== p.status && p.status !== 'active') p.rank = 0;
-    if (p.status === 'active' && prevStatus !== 'active') p.rank = Math.max(0, ...S.priorities.map(x => x.rank)) + 1;
-    renumber(); save(); render();
-  },
-  priorityNew(fd) {
-    const area = fd.get('area') || 'Finishing';
-    const nextRank = Math.max(0, ...S.priorities.map(x => x.rank)) + 1;
-    S.priorities.push({ id: 'p-' + slug(area) + '-' + uid(), area, title: (fd.get('title') || '').trim() || area, subskills: SUBSKILLS[area] || [], assessment: '', target: '', status: 'active', rank: nextRank, reviewDate: '', notes: [], progress: [] });
-    renumber(); save(); render();
-  },
-  prNote(fd, f) {
-    const p = S.priorities.find(x => x.id === f.dataset.id); const text = (fd.get('text') || '').trim();
-    if (!p || !text) return;
-    p.notes.push({ date: today(), text });
-    save(); render();
-  },
-  plan(fd) {
-    const title = (fd.get('title') || '').trim(); if (!title) return;
-    S.plan.push({ id: uid(), date: fd.get('date') || today(), type: fd.get('type') || 'workout', title, time: fd.get('time') || '', minutes: +fd.get('minutes') || 0, status: 'planned' });
-    planDate = fd.get('date') || null;
-    save(); render();
-  },
-  habit(fd) {
-    const name = (fd.get('name') || '').trim(); if (!name) return;
-    S.habits.push({ id: uid(), name, target: Math.max(1, +fd.get('target') || 1), unit: (fd.get('unit') || '').trim() || 'reps', log: {} });
-    save(); render();
-  },
-  habitLog(fd, f) {
-    const h = S.habits.find(x => x.id === f.dataset.id); if (!h) return;
-    const v = Math.max(0, +fd.get('value') || 0);
-    const t = today();
-    h.log[t] = (h.log[t] || 0) + v;
-    save(); render();
-  }
-};
-
-/* ============ WIRING ============ */
-document.addEventListener('click', e => {
-  if (e.target && e.target.id === 'modal') { closeModal(); return; }
-  const t = e.target.closest('[data-a]');
-  if (!t || t.disabled) return;
-  const fn = ACT[t.dataset.a];
-  if (!fn) return;
-  if (t.tagName === 'A') e.preventDefault();
-  try { fn(t, t.dataset.id, e); } catch (err) { console.error(err); }
-  if (t.dataset.a === 'goto-dev') e.preventDefault();
-});
-document.addEventListener('submit', e => {
-  e.preventDefault();
-  const f = e.target;
-  const kind = f.dataset.f;
-  if (!kind || !FORM[kind]) return;
-  try { FORM[kind](new FormData(f), f); } catch (err) { console.error(err); }
-});
-document.addEventListener('change', e => {
-  const el = e.target;
-  if (el.dataset && el.dataset.ed && editDraft) {
-    const it = editDraft.items[+el.dataset.idx];
-    if (it) it[el.dataset.ed] = Math.max(el.dataset.ed === 'sets' || el.dataset.ed === 'attempts' ? 1 : 0, +el.value || 0);
-  }
-});
-document.addEventListener('input', e => {
-  if (e.target.id === 'libq') { libFilter.q = e.target.value; renderLibListOnly(); }
-  if (e.target.id === 'pick-q') {
-    const q = e.target.value.trim().toLowerCase();
-    $$('.pick-row').forEach(b => { b.hidden = !!q && !b.dataset.name.includes(q); });
-  }
-});
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').hidden) closeModal(); });
-window.addEventListener('hashchange', () => { if (!S.run) runnerMin = false; render(); });
-
-setInterval(() => {
-  const r = S.run; if (!r) return;
-  const cur = r.items[r.idx]; if (!cur) return;
-  ensureTimer(r, cur);
-  const tm = $('#t-main'); if (tm) tm.textContent = fmtSec(timerSec(r, cur));
-  const rt = $('#t-rest');
-  if (rt) {
-    const left = Math.ceil((r.restEnd - Date.now()) / 1000);
-    if (left > 0) rt.textContent = fmtSec(left);
-    else { rt.textContent = 'Go'; }
-  }
-}, 250);
-
-render();
-initDb();
-</script>
-<script>
-// ===================== Training Center ↔ Athlete suite bridge =====================
-// Runs after the Training Center's own script (vendor/btc.html, unchanged except its storage names).
-// 1. App switcher (saves before leaving).
-// 2. Finished sessions become workouts in day-YYYY-MM-DD → exercise[] (CONTRACT.md), so they count in Athlete OS load,
-//    analytics and the Lab, and in MacroLens calories. One entry per session (id "btc-<session id>"), never twice.
-// 3. Today's recommendation also reads Athlete OS: the calendar (games, practices), load ratio and readiness (read-only).
-// 4. Publishes "btc-sig", the Training Center's weekly summary.
+// ===================== Training Center ↔ Hub bridge =====================
+// Runs after the Training Center's own scripts (vendor/training-center, unchanged except its storage names:
+// account doc "tc-app", backups "tc-backup-*" in 14 rotating daily slots, device key "tc:local-v3").
+// 1. App switcher in place of its brand (saves before leaving).
+// 2. Finished sessions become workouts in day-YYYY-MM-DD → exercise[] (CONTRACT.md), one entry per session
+//    (id "btc-<session id>", source "training-center"), so they count in the Hub, Athlete OS load and MacroLens.
+// 3. Publishes "btc-sig", the Training Center's weekly summary.
 (function () {
+  const DAY = 864e5;
   const lsJ = (k) => { try { return JSON.parse(localStorage.getItem('ml:' + k)); } catch { return null; } };
   const lsW = (k, v) => { try { localStorage.setItem('ml:' + k, JSON.stringify(v)); } catch {} };
+  const pad = (n) => String(n).padStart(2, '0');
+  const iso = (t) => { const d = new Date(t); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
   let coll = null;
   const ready = (async () => {
     if (!window.claude?.use) return null;
@@ -1780,105 +274,93 @@ initDb();
     if (!db || !id) return null;
     coll = db.collection('data/users/' + id); return coll;
   })().catch(() => null);
-  /** Fresh copies of the docs we need (from the account when available, else this device). */
-  async function fetchDocs(keys) {
-    const out = {}; for (const k of keys) out[k] = lsJ(k);
-    const c = await ready; if (!c) return out;
-    try { const snap = await c.get(); for (const d of snap.docs) if (d.exists && keys.includes(d.id)) { out[d.id] = JSON.parse(JSON.stringify(d.data())); lsW(d.id, out[d.id]); } } catch {}
-    return out;
+  async function getDoc(k) {
+    const c = await ready; if (!c) return lsJ(k);
+    try { const d = await c.doc(k).get(); if (d && d.exists) { const v = JSON.parse(JSON.stringify(d.data())); lsW(k, v); return v; } return null; } catch { return lsJ(k); }
   }
   async function writeDoc(k, v) { lsW(k, v); const c = await ready; if (c) { try { await c.doc(k).set(JSON.parse(JSON.stringify(v))); } catch {} } }
 
   // ---------- 1. switcher ----------
   async function saveNow() {
-    clearTimeout(dbTimer);
-    if (dbDoc) { try { await dbDoc.set({ state: S, savedAt: S.savedAt }); } catch {} }
+    try { clearTimeout(UI.dbTimer); if (UI.dbDoc && UI.ready) await UI.dbDoc.set({ state: S, savedAt: S.savedAt }); } catch {}
     await exportSessions();
   }
-  Suite.mount(document.getElementById('suite-host'), 'btc', saveNow);
+  for (const id of ['suite-host-side', 'suite-host']) { const el = document.getElementById(id); if (el) Suite.mount(el, 'btc', saveNow); }
 
   // ---------- 2. sessions → workouts ----------
-  const AREA_TYPE = { Shooting: 'shooting', 'Ball Handling': 'handles', Finishing: 'finishing', Conditioning: 'conditioning', Movement: 'conditioning' };
+  const AREA_TYPE = { Shooting: 'shooting', 'Ball Handling': 'handles', Finishing: 'finishing', Conditioning: 'conditioning', Movement: 'conditioning', Footwork: 'skill', Defense: 'skill' };
   const MET = { shooting: 4.5, handles: 5, finishing: 6, skill: 5.5, conditioning: 9 }, INTF = { light: 0.8, moderate: 1, hard: 1.2 };
+  const setsOf = (i) => (Array.isArray(i.sets) ? i.sets : []);
+  function stats(s) {
+    let att = 0, made = 0;
+    for (const i of s.items || []) if (i.metric === 'makes') for (const x of setsOf(i)) { att += +x.att || 0; made += +x.made || 0; }
+    return { attempts: att, makes: made, pct: att ? Math.round((made / att) * 100) : null };
+  }
+  function areaWeights(s) {
+    const w = {};
+    for (const i of s.items || []) if (i.status !== 'skipped') w[i.category || 'Shooting'] = (w[i.category || 'Shooting'] || 0) + Math.max(1, setsOf(i).length);
+    return w;
+  }
   function asWorkout(s, weightLb) {
-    const items = activeItems(s), w = {};
-    for (const i of items) w[i.category] = (w[i.category] || 0) + Math.max(1, (i.setLog || []).length);
-    const top = Object.entries(w).sort((a, b) => b[1] - a[1])[0]?.[0] || s.objective, type = AREA_TYPE[top] || 'skill';
-    const rated = items.filter((i) => i.rating), rpe = rated.length ? Math.max(2, Math.min(10, Math.round((sum(rated, (i) => i.rating) / rated.length) * 2))) : null;
-    const int = rpe == null ? 'moderate' : rpe >= 7 ? 'hard' : rpe <= 3 ? 'light' : 'moderate', st = itemStats(items), d = new Date(s.startedAt);
-    const kcal = Math.round(MET[type] * INTF[int] * (weightLb || 150) * 0.4536 * (s.minutes / 60));
-    return { date: fmtD(d), entry: { id: 'btc-' + s.id, type, name: s.name, mins: s.minutes, int, ...(rpe ? { rpe } : {}), time: pad(d.getHours()) + ':' + pad(d.getMinutes()), kcal, addedAt: s.endedAt, source: 'training-center', btc: { sessionId: s.id, workoutId: s.workoutId, area: top, attempts: st.att, makes: st.made, pct: st.pct, completionPct: s.completionPct } } };
+    const w = areaWeights(s), top = Object.entries(w).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Shooting', type = AREA_TYPE[top] || 'skill';
+    const rpe = s.rpe ? Math.max(1, Math.min(10, Math.round(+s.rpe))) : null;
+    const int = rpe == null ? 'moderate' : rpe >= 7 ? 'hard' : rpe <= 3 ? 'light' : 'moderate', st = stats(s), t = s.startedAt || s.endedAt || Date.now(), d = new Date(t);
+    const kcal = Math.round(MET[type] * INTF[int] * (weightLb || 150) * 0.4536 * ((s.minutes || 0) / 60));
+    return { date: s.date || iso(t), entry: { id: 'btc-' + s.id, type, name: s.workoutName || 'Training Center session', mins: s.minutes || 0, int, ...(rpe ? { rpe } : {}), time: pad(d.getHours()) + ':' + pad(d.getMinutes()), kcal, addedAt: s.endedAt || t, source: 'training-center', btc: { sessionId: s.id, workoutId: s.workoutId || null, area: top, attempts: st.attempts, makes: st.makes, pct: st.pct, completionPct: s.completionPct ?? null } } };
   }
   let exporting = null;
   function exportSessions() {
     if (exporting) return exporting;
-    // The finally below must run after this assignment, so the work starts after one await.
     exporting = (async () => {
       await null;
       try {
-        const since = Date.now() - 60 * DAY, todo = S.sessions.filter((s) => s.endedAt >= since);
+        const since = Date.now() - 60 * DAY, todo = (S.sessions || []).filter((s) => s && s.id && (s.endedAt || 0) >= since && !s.external);
         if (!todo.length) return;
-        const sync = (await fetchDocs(['btc-sync']))['btc-sync'] || { exported: {} }, pending = todo.filter((s) => !sync.exported[s.id]);
+        const sync = (await getDoc('tc-sync')) || { exported: {} }; sync.exported ||= {};
+        const pending = todo.filter((s) => !sync.exported[s.id]);
         if (!pending.length) return;
-        const wl = (await fetchDocs(['core'])).core?.profile?.weightLb;
+        const wl = (await getDoc('core'))?.profile?.weightLb;
         const byDate = {}; for (const s of pending) { const x = asWorkout(s, wl); (byDate[x.date] ||= []).push(x.entry); }
-        const days = await fetchDocs(Object.keys(byDate).map((d) => 'day-' + d));
         for (const [date, entries] of Object.entries(byDate)) {
-          const k = 'day-' + date, doc = days[k] || { breakfast: [], lunch: [], dinner: [], snacks: [], water: 0 }, ids = new Set(entries.map((e) => e.id));
+          const k = 'day-' + date, doc = (await getDoc(k)) || { breakfast: [], lunch: [], dinner: [], snacks: [], water: 0 }, ids = new Set(entries.map((e) => e.id));
           doc.exercise = [...(doc.exercise || []).filter((e) => !ids.has(e.id)), ...entries];
           if (doc.type === 'rest') doc.type = 'training';
           await writeDoc(k, doc);
           for (const e of entries) sync.exported[e.btc.sessionId] = date;
         }
-        await writeDoc('btc-sync', sync);
+        await writeDoc('tc-sync', sync);
       } catch (e) { console.error(e); } finally { exporting = null; }
     })();
     return exporting;
   }
-  const _finish = finishRun;
-  finishRun = function () { _finish(); exportSessions().then(writeSig); };
+  const _commit = commitSession;
+  commitSession = function () { const r = _commit.apply(this, arguments); setTimeout(() => { exportSessions().then(writeSig); }, 300); return r; };
 
-  // ---------- 3. Athlete OS context for today's recommendation ----------
-  let ctx = null;
-  function aosToday() {
-    const t = today(), wd = new Date(t + 'T12:00:00').getDay(), evs = (ctx?.plan?.events || []).filter((e) => !(e.skip || []).includes(t) && (e.date === t || (e.recur?.days?.includes(wd) && t >= e.date && (!e.recur.until || t <= e.recur.until))));
-    return { game: evs.some((e) => e.type === 'game') || ctx?.aos?.profile?.nextGame === t || (ctx?.core?.game?.date === t), practice: evs.some((e) => e.type === 'practice') };
-  }
-  const _rec = recommend;
-  recommend = function () {
-    const r = _rec(); if (!ctx) return r;
-    const fresh = ctx.sig && ctx.sig.updated && (Date.now() - new Date(ctx.sig.updated + 'T12:00:00')) < 3 * DAY ? ctx.sig : null, td = aosToday(), notes = [];
-    if (td.game && r.mode !== 'Game day') { Object.assign(r, { mode: 'Game day', minutes: 15, hard: false }); notes.push('Your Athlete OS calendar has a game today: form shots and free throws only.'); }
-    else if (td.practice && r.mode === 'Full session') { Object.assign(r, { mode: 'Practice day', minutes: 20, hard: false }); notes.push('Your Athlete OS calendar has team practice today.'); }
-    if (r.hard && fresh?.acwr != null && fresh.acwr > 1.3) { Object.assign(r, { mode: 'Recovery-leaning', minutes: Math.min(r.minutes, 20), hard: false }); notes.push(`Athlete OS load ratio is ${fresh.acwr}, above 1.3, so this block is lighter.`); }
-    else if (r.hard && fresh?.readiness != null && fresh.readiness < 45) { Object.assign(r, { mode: 'Recovery-leaning', minutes: Math.min(r.minutes, 20), hard: false }); notes.push(`Athlete OS readiness is ${fresh.readiness}/100 today.`); }
-    if (r.mode === 'Full session' && fresh?.acwr != null) r.reason = r.reason.replace('recent load is low', `your Athlete OS load ratio is ${fresh.acwr}`);
-    if (notes.length) r.reason = [r.reason.replace('No practice or game today and recent load is low.', '').trim(), ...notes].filter(Boolean).join(' ');
-    r.fromAos = true;
-    return r;
-  };
-
-  // ---------- 4. weekly signals ----------
+  // ---------- 3. weekly signals ----------
   function writeSig() {
     try {
-      const t = today(), wd = (new Date(t + 'T12:00:00').getDay() + 6) % 7, mon = addDays(t, -wd), monMs = new Date(mon + 'T00:00:00').getTime();
-      const mins = areaMinutes(7), next = S.plan.filter((p) => p.date >= t && p.status !== 'done').sort((a, b) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')))[0];
-      const s = { v: 1, app: 'btc', week: mon, updated: t, sessionsDone: S.sessions.filter((x) => x.endedAt >= monMs).length, minsByArea7d: Object.fromEntries(Object.entries(mins).filter(([, m]) => m > 0).map(([a, m]) => [a, Math.round(m)])), nextPlanned: next ? { date: next.date, title: next.title, type: next.type } : null };
+      const now = new Date(), t = iso(now), wd = (now.getDay() + 6) % 7, monMs = new Date(now.getFullYear(), now.getMonth(), now.getDate() - wd).getTime();
+      const mins = {};
+      for (const s of S.sessions || []) {
+        if ((s.endedAt || 0) < Date.now() - 7 * DAY) continue;
+        const w = areaWeights(s), tot = Object.values(w).reduce((a, b) => a + b, 0) || 1;
+        for (const [a, n] of Object.entries(w)) mins[a] = (mins[a] || 0) + (s.minutes || 0) * n / tot;
+      }
+      const next = (S.plan || []).filter((p) => p.date >= t && p.status !== 'done').sort((a, b) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')))[0];
+      const s = { v: 1, app: 'btc', week: iso(monMs), updated: t, sessionsDone: (S.sessions || []).filter((x) => (x.endedAt || 0) >= monMs).length, minsByArea7d: Object.fromEntries(Object.entries(mins).filter(([, m]) => m > 0).map(([a, m]) => [a, Math.round(m)])), nextPlanned: next ? { date: next.date, title: next.title, type: next.type } : null };
       const cur = lsJ('btc-sig') || {}; if (JSON.stringify({ ...cur, updated: 0 }) === JSON.stringify({ ...s, updated: 0 })) return;
       writeDoc('btc-sig', s);
     } catch (e) { console.error(e); }
   }
 
-  (async () => {
-    const d = await fetchDocs(['aos-signals', 'aos-plan', 'aos', 'core']);
-    ctx = { sig: d['aos-signals'], plan: d['aos-plan'], aos: d.aos, core: d.core };
-    render();
-    setTimeout(() => { exportSessions().then(writeSig); }, 1500);
-  })();
-  window.addEventListener('pagehide', () => { try { if (dbDoc) dbDoc.set({ state: S, savedAt: S.savedAt }); } catch {} });
-  window.BTC_SUITE = { exportSessions, asWorkout, ctx: () => ctx };
+  const start = () => { exportSessions().then(writeSig); };
+  (function waitReady(n) { if (window.UI && UI.ready) setTimeout(start, 800); else if (n < 60) setTimeout(() => waitReady(n + 1), 250); })(0);
+  window.addEventListener('pagehide', () => { try { if (UI.dbDoc && UI.ready) UI.dbDoc.set({ state: S, savedAt: S.savedAt }); } catch {} });
+  window.TC_SUITE = { exportSessions, asWorkout, writeSig };
 })();
 
 </script>
 </body>
 </html>
+
+</body></html>

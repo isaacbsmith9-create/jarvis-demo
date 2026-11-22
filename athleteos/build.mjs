@@ -2,10 +2,10 @@
 //   dist/index.html     Hub (the front door: every app in one place), dist/athlete.html Athlete OS (src/)
 //   dist/macrolens.html MacroLens copy    (vendor/macrolens.html = macrolens/artifact.html from the MacroLens branch, unchanged)
 //   dist/gameplan.html  Gameplan copy     (vendor/gameplan.html  = gameplan/artifact.html, restyled with the suite look)
-//   dist/btc.html       Basketball Training Center (vendor/btc.html = its published page, restyled, connected by src/suite/btc-bridge.js)
+//   dist/btc.html       Training Center (vendor/training-center = its published files under tc/, connected by src/suite/tc-bridge.js)
 // Every page gets the same app switcher (src/suite/suite.js + suite.css) in place of its brand, and one theme setting.
 // Usage: node athleteos/build.mjs
-import { readFileSync, writeFileSync, mkdirSync, cpSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, cpSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -76,14 +76,41 @@ setTimeout(gpSignals, 1500);
 window.addEventListener('pagehide', () => { try { gpSignals(); if (pending.size) flush(); } catch {} });
 </script>`);
 writeFileSync(join(out, 'gameplan.html'), SKELETON + firstScript(gp) + '\n</body></html>\n');
-// ---------- Basketball Training Center (vendor/btc.html = its published page; storage renamed into the suite) ----------
-let btc = vendor('btc.html');
-btc = swap(btc, "const KEY = 'btc-training-center-v1';", "const KEY = 'ml:btc-local';", 'Training Center storage key');
-btc = swap(btc, "ns.doc('data/users/' + id + '/app')", "ns.doc('data/users/' + id + '/btc-app')", 'Training Center account doc');
-btc = swap(btc, '<div class="eyebrow">Player development</div>', '<div id="suite-host"></div>', 'Training Center brand');
-btc = swap(btc, '</style>', `</style>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">\n<style>${src('suite/btc-skin.css')}\n${SUITE_CSS}</style>\n<script>\n${SUITE_JS}\nSuite.theme();\n</script>`, 'Training Center style');
-btc = beforeLastScript(btc, `<script>\n${src('suite/btc-bridge.js')}\n</script>`);
-writeFileSync(join(out, 'btc.html'), firstScript(btc));
+// ---------- Training Center (vendor/training-center = its published files; connected by src/suite/tc-bridge.js) ----------
+// Multi-file: btc.html plus tc/*.css and tc/js/*.js (under tc/ because Student Lens owns js/app.js etc. at the root).
+// Only its storage names change: account doc "tc-app", backups "tc-backup-*" (14 rotating daily slots), device key "tc:".
+const TCD = join(here, 'vendor', 'training-center');
+mkdirSync(join(out, 'tc', 'js'), { recursive: true });
+for (const f of ['styles.css', 'pro.css']) cpSync(join(TCD, f), join(out, 'tc', f));
+for (const f of readdirSync(join(TCD, 'js'))) {
+  let t = readFileSync(join(TCD, 'js', f), 'utf8');
+  if (f === 'app.js') {
+    t = swap(t, "var KEY = 'btc-training-center-v3';", "var KEY = 'tc:local-v3';", 'TC device key');
+    t = swap(t, "var KEY_V2 = 'btc-training-center-v2';", "var KEY_V2 = 'tc:local-v2';", 'TC old device key');
+    t = swap(t, "UI.dbDoc = ns.doc('data/users/' + id + '/app');", "UI.dbDoc = ns.doc('data/users/' + id + '/tc-app');", 'TC account doc');
+    t = swap(t, "UI.dbNs.doc('data/users/' + UI.uid + '/backup-' + tag)", "UI.dbNs.doc('data/users/' + UI.uid + '/tc-backup-' + tcSlot(tag))", 'TC backup write');
+    t = swap(t, "ns.doc('data/users/' + id + '/backup-' + tag)", "ns.doc('data/users/' + id + '/tc-backup-' + tcSlot(tag))", 'TC backup check');
+  }
+  if (f === 'backups.js') t = swap(t, "UI.dbNs.doc('data/users/' + UI.uid + '/backup-' + t)", "UI.dbNs.doc('data/users/' + UI.uid + '/tc-backup-' + tcSlot(t))", 'TC backup list');
+  if (/[^\w]backup-'/.test(t.replace(/tc-backup-'/g, ''))) throw new Error('Training Center: unrenamed backup doc in ' + f);
+  writeFileSync(join(out, 'tc', 'js', f), t);
+}
+let tc = readFileSync(join(TCD, 'index.html'), 'utf8');
+const TC_BRAND = '<a class="brand" href="#home" aria-label="Training Center home">\n      <span class="mk" aria-hidden="true">TC</span>\n      <span class="nm">Training Center<small>Player development</small></span>\n    </a>';
+tc = swap(tc, TC_BRAND, '<div class="brand" id="suite-host-side"></div>', 'Training Center side brand');
+tc = swap(tc, TC_BRAND.replace(/\n {4}/g, '\n        ').replace('\n    </a>', '\n        </a>'), '<div id="suite-host"></div>', 'Training Center top brand');
+tc = tc.replace(/(href|src)="(styles\.css|pro\.css|js\/[a-z0-9-]+\.js)"/g, '$1="tc/$2"');
+tc = swap(tc, '</head>', `<style>${SUITE_CSS}
+.suite { --surface: var(--panel); --surface-2: var(--raised); --fg: var(--ink); }
+#suite-host-side { padding: 4px 4px 16px; }</style>
+<script>
+// 14 rotating daily backup slots, so backups never pile up in the shared account collection.
+function tcSlot(tag) { var m = /^day-(\\d{4})(\\d{2})(\\d{2})$/.exec(tag); if (!m) return tag; return 'day-' + (Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / 864e5) % 14); }
+${SUITE_JS}
+</script>
+</head>`, 'Training Center head');
+tc = beforeLastScript(tc, `<script>\n${src('suite/tc-bridge.js')}\n</script>`);
+writeFileSync(join(out, 'btc.html'), firstScript(tc));
 // ---------- Recovery Lens (vendor/recovery.html = its published page; built to be page 6 of this bundle) ----------
 let rlp = vendor('recovery.html');
 rlp = swap(rlp, "  { id: 'aos', plain: 'Athlete OS', href: 'index.html',", "  { id: 'hub', plain: 'Hub', href: 'index.html', desc: 'Every app in one place: your day, alerts and graphs', color: '#14b8a6' },\n  { id: 'aos', plain: 'Athlete OS', href: 'athlete.html',", 'Recovery Lens app list');
