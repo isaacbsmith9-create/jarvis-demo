@@ -13,7 +13,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const src = (f) => readFileSync(join(here, 'src', f), 'utf8');
 const vendor = (f) => readFileSync(join(here, 'vendor', f), 'utf8');
 const SKELETON = '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>\n';
-const JS = ['icons.js', 'store.js', 'data.js', 'charts.js', 'shell.js', 'home.js', 'analytics.js', 'hoops.js', 'tests.js', 'coach.js', 'sheets.js', 'library.js', 'intel.js', 'train.js', 'calendar.js', 'routines.js', 'load.js', 'goals.js', 'mind.js', 'hoops2.js', 'analytics2.js', 'director.js', 'profile.js', 'hub.js', 'gameplan.js', 'intel2.js', 'labengine.js', 'lab.js', 'lab2.js', 'signals.js', 'visuals.js', 'today.js', 'command.js', 'patterns.js', 'school.js', 'dash2.js', 'events.js', 'look.js', 'main.js'];
+const JS = ['icons.js', 'store.js', 'data.js', 'charts.js', 'shell.js', 'home.js', 'analytics.js', 'hoops.js', 'tests.js', 'coach.js', 'sheets.js', 'library.js', 'intel.js', 'train.js', 'calendar.js', 'routines.js', 'load.js', 'goals.js', 'mind.js', 'hoops2.js', 'analytics2.js', 'director.js', 'profile.js', 'hub.js', 'gameplan.js', 'intel2.js', 'labengine.js', 'lab.js', 'lab2.js', 'signals.js', 'visuals.js', 'today.js', 'command.js', 'patterns.js', 'school.js', 'dash2.js', 'events.js', 'ecohub.js', 'look.js', 'main.js'];
 const SUITE_JS = src('suite/suite.js'), SUITE_CSS = src('suite/suite.css');
 const out = join(here, 'dist');
 mkdirSync(out, { recursive: true });
@@ -27,6 +27,8 @@ const page = src('index.html')
 writeFileSync(join(out, 'index.html'), SKELETON + page + '\n</body></html>\n');
 // School: the same bundle in "school" mode (Athlete Life OS, first module).
 writeFileSync(join(out, 'school.html'), SKELETON + page.replace('<script>', '<script>window.APP_MODE = "school";</script>\n<script>') + '\n</body></html>\n');
+// Hub: the ecosystem app (opens every app, one agenda, cross-app graphs), the same bundle in "hub" mode.
+writeFileSync(join(out, 'hub.html'), SKELETON + page.replace('<script>', '<script>window.APP_MODE = "hub";</script>\n<script>') + '\n</body></html>\n');
 
 // ---------- MacroLens (unchanged app; only its brand becomes the suite switcher) ----------
 let ml = vendor('macrolens.html');
@@ -78,4 +80,4 @@ btc = swap(btc, '<div class="eyebrow">Player development</div>', '<div id="suite
 btc = swap(btc, '</style>', `</style>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">\n<style>${src('suite/btc-skin.css')}\n${SUITE_CSS}</style>\n<script>\n${SUITE_JS}\nSuite.theme();\n</script>`, 'Training Center style');
 btc = beforeLastScript(btc, `<script>\n${src('suite/btc-bridge.js')}\n</script>`);
 writeFileSync(join(out, 'btc.html'), btc);
-console.log('built', ['index.html', 'school.html', 'macrolens.html', 'gameplan.html', 'btc.html'].map((f) => join(out, f)).join(' '));
+console.log('built', ['index.html', 'school.html', 'hub.html', 'macrolens.html', 'gameplan.html', 'btc.html'].map((f) => join(out, f)).join(' '));

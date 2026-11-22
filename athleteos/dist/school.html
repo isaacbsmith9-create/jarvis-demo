@@ -786,6 +786,68 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .ev-a small { font-size: 10px; color: var(--muted); white-space: nowrap; }
 @media (max-width: 400px) { .ev-a small { display: none; } .ev-a span { font-size: 9.5px; } }
 
+/* ---- Hub app (hub.html) ---- */
+.mode-hub .tabbar { display: none; }
+.mode-hub body { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+.hub-head { padding: 6px 4px 2px; }
+.hub-head h1 { font: 700 28px/1.15 var(--f-display); letter-spacing: -.6px; margin: 2px 0 4px; text-wrap: balance; }
+.hub-sum { margin: 0; color: var(--muted); font-size: 14px; }
+.hub-apps { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 10px; margin: 14px 0; }
+.hub-app { display: grid; gap: 8px; padding: 14px; border-radius: var(--card-r); background: var(--surface); border: 1px solid var(--hair); border-top: 3px solid var(--c); color: var(--fg); text-decoration: none; min-width: 0; transition: transform .12s, border-color .12s; }
+.hub-app:hover { border-color: color-mix(in srgb, var(--c) 55%, var(--hair)); transform: translateY(-1px); }
+@media (prefers-reduced-motion: reduce) { .hub-app { transition: none; } .hub-app:hover { transform: none; } }
+.hub-app-h { display: flex; align-items: center; gap: 8px; }
+.hub-app-h b { font: 700 15px var(--f-display); flex: 1; min-width: 0; }
+.hub-app-ic { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; color: var(--c); background: color-mix(in srgb, var(--c) 15%, transparent); flex: none; }
+.hub-app-ic svg { width: 17px; height: 17px; }
+.hub-go { color: var(--muted); font-size: 15px; }
+.hub-app-n { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.hub-app-n b { font: 700 30px/1 var(--f-display); font-variant-numeric: tabular-nums; letter-spacing: -.8px; }
+.hub-app-n small { color: var(--muted); font-size: 12.5px; }
+.hub-app-bar { height: 5px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.hub-app-bar i { display: block; height: 100%; background: var(--c); border-radius: 99px; }
+.hub-app-l { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+@media (max-width: 520px) {
+  .hub-apps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .hub-app:first-child { grid-column: span 2; }
+  .hub-app { padding: 12px; gap: 6px; }
+  .hub-app-n b { font-size: 24px; }
+}
+.hub-ag { list-style: none; margin: 0; padding: 0; position: relative; }
+.hub-ag li { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--hair); }
+.hub-ag li:last-child { border-bottom: 0; }
+.hub-ag-t { font: 600 12.5px var(--f-body); color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 2px; }
+.hub-ag-b { display: grid; border-left: 3px solid var(--c); padding-left: 10px; min-width: 0; }
+.hub-ag-b b { font-size: 14px; overflow-wrap: anywhere; }
+.hub-ag-b small { font-size: 12px; color: var(--muted); }
+.hub-ag li.done .hub-ag-b b { text-decoration: line-through; color: var(--muted); }
+.hub-ag li.past:not(.done) { opacity: .6; }
+.hub-ag li.now { background: color-mix(in srgb, var(--accent) 8%, transparent); border-radius: 12px; }
+.hub-ag li.now .hub-ag-t { color: var(--accent); }
+.hub-ag li.now .hub-ag-t::after { content: " now"; font-weight: 700; }
+.hub-due { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; font-size: 12.5px; }
+.hub-due span { border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); border-radius: 99px; padding: 3px 10px; }
+.hub-att { list-style: none; margin: 0; padding: 0; }
+.hub-att li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--hair); }
+.hub-att li:last-child { border-bottom: 0; }
+.hub-att-d { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+.hub-att li.act .hub-att-d { box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 45%, transparent); }
+.hub-att li.watch .hub-att-d { box-shadow: 0 0 0 3px color-mix(in srgb, var(--warn) 45%, transparent); }
+.hub-att-b { display: grid; min-width: 0; }
+.hub-att-b b { font-size: 14px; overflow-wrap: anywhere; }
+.hub-att-b small { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.hub-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.hub-kpis div { display: grid; padding: 10px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--hair); border-left: 3px solid var(--c); min-width: 0; }
+.hub-kpis small { font: 600 10.5px var(--f-body); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hub-kpis b { font: 700 22px/1.2 var(--f-display); font-variant-numeric: tabular-nums; }
+.hub-kpis b i { font-style: normal; font-size: 13px; color: var(--muted); margin-left: 1px; }
+.hub-kpis span { font-size: 11px; color: var(--muted); }
+@media (max-width: 600px) { .hub-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .hub-kpis div:last-child { grid-column: span 2; } }
+.hub-h4 { margin: 16px 0 8px; font: 700 12px var(--f-body); text-transform: uppercase; letter-spacing: .1em; }
+.hub-pulse { display: grid; grid-template-columns: 62px repeat(var(--n), minmax(0, 1fr)); gap: 3px; align-items: center; }
+.hub-pulse-l { font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hub-pulse i { aspect-ratio: 1; border-radius: 3px; background: color-mix(in srgb, var(--c) calc(var(--o) * 100%), var(--surface-2)); min-width: 0; }
+
 </style>
 <div class="wrap">
   <header class="topbar">
@@ -805,6 +867,7 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
     <section id="view-mind" class="view" hidden></section>
     <section id="view-intel" class="view" hidden></section>
     <section id="view-school" class="view" hidden></section>
+    <section id="view-hub" class="view" hidden></section>
     <section id="view-lab" class="view" hidden></section>
     <section id="view-coach" class="view" hidden></section>
     <section id="view-profile" class="view" hidden></section>
@@ -821,6 +884,7 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 // Each page calls Suite.mount(el, '<app id>', beforeLeave) — beforeLeave saves pending changes before navigating.
 (function () {
   const APPS = [
+    { id: 'hub', name: 'Hub', plain: 'Hub', href: 'hub.html', desc: 'Every app in one place: your day, alerts and graphs', color: '#14b8a6' },
     { id: 'aos', name: 'Athlete<i>OS</i>', plain: 'Athlete OS', href: 'index.html', desc: 'Training, performance, load and the Lab', color: '#3d8bff' },
     { id: 'gp', name: 'Game<i>plan</i>', plain: 'Gameplan', href: 'gameplan.html', desc: 'Your day hour by hour, Top 3, night routine', color: '#22c55e' },
     { id: 'school', name: 'School', plain: 'School', href: 'school.html', desc: 'Classes, assignments, tests and grades', color: '#0ea5e9' },
@@ -6798,6 +6862,177 @@ function homeApps(el) {
     if (s) { try { homeApps(s); } catch (e) { console.error(e); s.innerHTML = '<p class="muted small">Could not load activity.</p>'; } }
   };
 }
+
+// ---- ecohub.js ----
+// ===================== HUB: the ecosystem app (hub.html) =====================
+// Its own app in the switcher. It owns no data: it reads every app's records (and the event stream in events.js),
+// opens each app, organizes the day across all of them, and charts everything side by side.
+// hub.html = this bundle with window.APP_MODE = 'hub' (like School).
+VIEWS.splice(VIEWS.length - 1, 0, ['hub', 'Hub', 'grid', true]);
+SUBS.hub = [['today', 'Today'], ['graphs', 'Graphs'], ['timeline', 'Timeline']];
+const HUB = {};
+RENDER.hub = (el, sub) => (HUB[sub] || HUB.today)(el);
+if (window.APP_MODE === 'hub') {
+  for (const v of VIEWS) v[3] = v[0] !== 'hub';
+  if (!location.hash.startsWith('#hub')) history.replaceState(null, '', '#hub');
+  document.documentElement.classList.add('mode-hub');
+}
+const hubIn = (n, end = todayIso()) => { const a = []; for (let i = n - 1; i >= 0; i--) a.push(shiftIso(end, -i)); return a; };
+const hubPct = (a, b) => (b ? Math.round((a / b) * 100) : null);
+const hubSafe = (fn, fb = null) => { try { return fn(); } catch (e) { console.error(e); return fb; } };
+const hubMind = (d) => hubSafe(() => mentalScore(d));
+const hubSleep = (d) => hubSafe(() => recoveryInputs(d).sleepH ?? null);
+const hubBlocks = (d) => hubSafe(() => gpBlocks(d), []) || [];
+const btcOn = (d) => (doc('day-' + d)?.exercise || []).filter((w) => w.source === 'training-center');
+
+// ---------- launcher: each app with a live number ----------
+function hubApps() {
+  const t = todayIso(), wk = hubIn(7), T = totalsOf(t), G = targets(t), bl = hubBlocks(t).filter((b) => b.type !== 'sleep');
+  const rd = hubSafe(() => readiness(t)?.score), tr = trainingOf(t).mins, st = streaks();
+  const S = doc('life-school'), due = S ? scDue(t, shiftIso(t, 6)).length : 0, od = S ? scOverdue().length : 0, g = S ? hubSafe(() => gpa()) : null;
+  const btcWk = sum(wk.map((d) => btcOn(d).length)), btcMin = sum(wk.flatMap((d) => btcOn(d).map((w) => w.mins || 0)));
+  const fed = hasFood(t);
+  return [
+    { id: 'aos', href: 'index.html', icon: 'logo', big: rd ?? '—', unit: rd != null ? 'readiness' : 'no check-in', line: `${tr} min trained today · ${st.current}-day streak`, pct: rd },
+    { id: 'gp', href: 'gameplan.html', icon: 'calendar', big: bl.length ? `${bl.filter((b) => b.done).length}/${bl.length}` : '—', unit: 'blocks done', line: bl.length ? (() => { const n = nowM(), nx = bl.find((b) => !b.done && b.st + b.mins > n); return nx ? `Next: ${nx.title} at ${tdClock(nx.st)}` : 'All blocks done'; })() : 'No blocks planned today', pct: bl.length ? hubPct(bl.filter((b) => b.done).length, bl.length) : null },
+    { id: 'school', href: 'school.html', icon: 'book', big: due, unit: 'due this week', line: `${od} overdue${g != null ? ` · GPA ${g}` : ''}`, pct: due + od ? hubPct(due, due + od) : null },
+    { id: 'btc', href: 'btc.html', icon: 'dumbbell', big: btcWk, unit: 'sessions this week', line: btcMin ? `${btcMin} min of drills` : 'Run a session to see it here', pct: hubPct(Math.min(btcWk, 5), 5) },
+    { id: 'ml', href: 'macrolens.html', icon: 'fork', big: fed ? Math.round(T.calories).toLocaleString() : '—', unit: fed ? `of ${G.calories.toLocaleString()} kcal` : 'nothing logged', line: fed ? `${Math.round(T.protein)} / ${G.protein} g protein` : 'Log a meal to start the day', pct: fed ? Math.min(100, hubPct(T.calories, G.calories)) : null },
+  ];
+}
+function hubLauncher() {
+  return `<div class="hub-apps">${hubApps().map((a) => { const A = EV_APPS[a.id]; return `<a class="hub-app" href="${a.href}" data-hub-open="${a.href}" style="--c:${A.color}">
+    <span class="hub-app-h"><span class="hub-app-ic" aria-hidden="true">${ICONS[a.icon] || ICONS.grid}</span><b>${A.name}</b><span class="hub-go" aria-hidden="true">↗</span></span>
+    <span class="hub-app-n"><b>${a.big}</b><small>${a.unit}</small></span>
+    <span class="hub-app-bar"><i style="width:${a.pct ?? 0}%"></i></span>
+    <span class="hub-app-l">${esc(a.line)}</span></a>`; }).join('')}</div>`;
+}
+
+// ---------- organized: one agenda + what needs attention ----------
+function hubAgenda() {
+  const t = todayIso(), n = nowM(), its = hubSafe(() => tdItems(t), []) || [];
+  const S = doc('life-school'), dueT = S ? scDue(t, t) : [];
+  const rows = its.map((x) => ({ st: x.st, end: x.st + (x.mins || 30), title: x.title, src: x.src, done: x.done, color: x.color, app: x.src === 'Gameplan' ? 'gp' : 'aos' }));
+  const html = rows.length ? `<ol class="hub-ag">${rows.map((r) => `<li class="${r.done ? 'done' : ''}${!r.done && r.st <= n && r.end > n ? ' now' : ''}${!r.done && r.end <= n ? ' past' : ''}" style="--c:${r.color};--a:${EV_APPS[r.app].color}">
+      <span class="hub-ag-t">${tdClock(r.st)}</span><span class="hub-ag-b"><b>${esc(r.title)}</b><small>${tdClock(r.end)} · ${esc(r.src)}${r.done ? ' · done' : ''}</small></span></li>`).join('')}</ol>`
+    : `<p class="small muted" style="margin:4px 0 0">Nothing on the clock today. Plan your day in Gameplan and it lines up here.</p>`;
+  return `${html}${dueT.length ? `<div class="hub-due"><b>Due today</b>${dueT.map((x) => `<span style="--c:${scClass(x.cls)?.color || EV_APPS.school.color}">${esc(x.title)}</span>`).join('')}</div>` : ''}`;
+}
+function hubAttention() {
+  const t = todayIso(), h = new Date().getHours(), out = [];
+  const S = doc('life-school');
+  if (S) {
+    for (const x of scOverdue().slice(0, 3)) out.push({ app: 'school', lvl: 'act', t: `Overdue: ${x.title}`, s: `was due ${fmtD(x.due)}`, href: 'school.html' });
+    for (const x of scDue(shiftIso(t, 1), shiftIso(t, 3)).filter((x) => ['test', 'exam', 'quiz', 'project'].includes(x.type))) out.push({ app: 'school', lvl: 'watch', t: `${x.type[0].toUpperCase() + x.type.slice(1)} ${evWhen(x.due).toLowerCase() === 'tomorrow' ? 'tomorrow' : 'on ' + fmtDL(x.due)}: ${x.title}`, s: 'Plan study time and a lighter session the night before', href: 'gameplan.html' });
+    const e = hubSafe(() => eligibility()); if (e && (e.flag === 'act' || e.flag === 'watch')) out.push({ app: 'school', lvl: e.flag, t: 'Grades to watch for eligibility', s: (e.low || []).map((c) => c.name || c).join(', '), href: 'school.html' });
+  }
+  if (!mcheck(t) && h >= 7) out.push({ app: 'aos', lvl: 'info', t: 'No mental check-in yet', s: '30 seconds in Athlete OS › Mind', href: 'index.html#mind-checkin' });
+  if (hubSleep(t) == null && h >= 7) out.push({ app: 'aos', lvl: 'info', t: 'No recovery check-in yet', s: 'Log sleep and soreness so readiness is accurate', href: 'index.html' });
+  const T = totalsOf(t), G = targets(t);
+  if (h >= 17 && T.protein < G.protein * 0.6) out.push({ app: 'ml', lvl: 'watch', t: `Protein at ${Math.round(T.protein)} of ${G.protein} g`, s: 'A protein-heavy dinner closes the gap', href: 'macrolens.html' });
+  const sig = doc('aos-signals'); if (sig?.acwr > 1.3) out.push({ app: 'aos', lvl: 'watch', t: `Training load ratio ${sig.acwr}`, s: 'Load is rising fast. Keep today lighter.', href: 'index.html#train-load' });
+  const tasks = (doc('gp-core')?.tasks || []).filter((x) => !x.done);
+  if (tasks.length) out.push({ app: 'gp', lvl: 'info', t: `${tasks.length} open task${tasks.length > 1 ? 's' : ''} in Gameplan`, s: tasks.slice(0, 2).map((x) => x.title).join(' · '), href: 'gameplan.html' });
+  const order = { act: 0, watch: 1, info: 2 };
+  return out.sort((a, b) => order[a.lvl] - order[b.lvl]);
+}
+
+// ---------- Today ----------
+HUB.today = (el) => {
+  const t = todayIso(), att = hubAttention(), wk = evStream(shiftIso(t, -6)), tod = evStream(t);
+  const hr = new Date().getHours(), name = aos().profile?.name;
+  el.innerHTML = `<section class="hub-head"><p class="tiny muted">${fmtDL(t)}</p><h1>${hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening'}${name ? ', ' + esc(name) : ''}</h1>
+      <p class="hub-sum">${tod.length} things logged today across ${new Set(tod.map((e) => e.app)).size} apps · ${att.length ? `${att.length} need${att.length === 1 ? 's' : ''} attention` : 'nothing needs attention'}</p></section>
+    <section aria-label="Your apps">${hubLauncher()}</section>
+    <div class="grid two">
+      <section class="card"><div class="card-head"><div><h3>Your day</h3><span class="sub">Calendar and Gameplan in one schedule</span></div><a class="btn sm" data-hub-open="gameplan.html" href="gameplan.html">Plan</a></div>${hubAgenda()}</section>
+      <section class="card"><div class="card-head"><div><h3>Needs attention</h3><span class="sub">From every app, most urgent first</span></div></div>
+        ${att.length ? `<ul class="hub-att">${att.map((a) => `<li class="${a.lvl}" style="--c:${EV_APPS[a.app].color}"><span class="hub-att-d"></span><span class="hub-att-b"><b>${esc(a.t)}</b>${a.s ? `<small>${esc(a.s)}</small>` : ''}</span><a class="btn sm" data-hub-open="${a.href}" href="${a.href}">${EV_APPS[a.app].name.split(' ')[0]}</a></li>`).join('')}</ul>` : `<p class="small muted" style="margin:4px 0 0">You're caught up everywhere.</p>`}</section>
+    </div>
+    <section class="card"><div class="card-head"><div><h3>This week across your apps</h3><span class="sub">${wk.length} events · last 7 days</span></div><button type="button" class="btn sm" data-go="hub-graphs">All graphs</button></div>
+      ${hubKpis()}<div class="chart" id="hub-act"></div></section>
+    <section class="card"><div class="card-head"><div><h3>Latest</h3><span class="sub">Newest activity from every app</span></div><button type="button" class="btn sm" data-go="hub-timeline">Timeline</button></div>
+      ${tod.length || wk.length ? `<ul class="ev-list">${(tod.length ? tod : wk).slice(0, 6).map(evRow).join('')}</ul>` : emptyState('Nothing logged yet', 'Log a meal, finish a session or check off a block. It shows up here.', 'calendar')}</section>`;
+  hubActivity($('#hub-act', el), 7);
+};
+function hubKpis() {
+  const wk = hubIn(7), tm = sum(wk.map((d) => trainingOf(d).mins)), sl = wk.map(hubSleep).filter((x) => x != null), md = wk.map(hubMind).filter((x) => x != null);
+  const pd = wk.filter((d) => hasFood(d) && totalsOf(d).protein >= targets(d).protein * 0.9).length;
+  const bl = wk.flatMap((d) => hubBlocks(d).filter((b) => b.type !== 'sleep' && b.st + b.mins <= (d === todayIso() ? nowM() : 1e9)));
+  return `<div class="hub-kpis">
+    <div style="--c:${EV_APPS.aos.color}"><small>Training</small><b>${Math.round(tm / 6) / 10}<i>h</i></b><span>${wk.filter(isActive).length} active days</span></div>
+    <div style="--c:#8b5cff"><small>Sleep</small><b>${sl.length ? nf(mean(sl), 1) : '—'}<i>h</i></b><span>avg per night</span></div>
+    <div style="--c:${EV_APPS.ml.color}"><small>Protein goal</small><b>${pd}<i>/7</i></b><span>days hit</span></div>
+    <div style="--c:${EV_APPS.gp.color}"><small>Plan kept</small><b>${bl.length ? hubPct(bl.filter((b) => b.done).length, bl.length) : '—'}<i>${bl.length ? '%' : ''}</i></b><span>blocks done</span></div>
+    <div style="--c:#e879f9"><small>Mind</small><b>${md.length ? Math.round(mean(md)) : '—'}</b><span>avg mental score</span></div>
+  </div>`;
+}
+function hubActivity(el, n) {
+  const days = hubIn(n), ev = evStream(days[0]);
+  drawBars(el, days.map((d, i) => ({ label: n <= 7 ? DOW[parseIso(d).getDay()] : i % Math.ceil(n / 7) === 0 ? fmtD(d) : '', tip: fmtDL(d), segs: Object.entries(EV_APPS).map(([k, A]) => ({ v: ev.filter((e) => e.date === d && e.app === k).length, color: A.color, name: A.name })) })), { h: 150, fmt: (v) => String(Math.round(v)) });
+}
+
+// ---------- Graphs ----------
+function hubBalance(end) {
+  const wk = hubIn(7, end), wd = Number(aos().profile?.weeklyDays) || 5;
+  const sl = wk.map(hubSleep).filter((x) => x != null), md = wk.map(hubMind).filter((x) => x != null);
+  const fed = wk.filter(hasFood), bl = wk.flatMap((d) => hubBlocks(d).filter((b) => b.type !== 'sleep'));
+  const S = doc('life-school'), due = S ? S.items.filter((x) => x.due >= wk[0] && x.due <= end) : [];
+  return [
+    { label: 'Training', v: Math.min(100, hubPct(wk.filter(isActive).length, wd)) },
+    { label: 'Sleep', v: sl.length ? Math.min(100, Math.round((mean(sl) / 8) * 100)) : null },
+    { label: 'Nutrition', v: fed.length ? Math.round(mean(fed.map((d) => Math.min(1, totalsOf(d).protein / (targets(d).protein || 1)))) * 100) : null },
+    { label: 'Mind', v: md.length ? Math.round(mean(md)) : null },
+    { label: 'School', v: due.length ? hubPct(due.filter((x) => x.done || x.due >= todayIso()).length, due.length) : null },
+    { label: 'Planning', v: bl.length ? hubPct(bl.filter((b) => b.done).length, bl.length) : null },
+  ];
+}
+HUB.graphs = (el) => {
+  const r = ui('hubRange', '30'), n = Number(r), days = hubIn(n), from = days[0], t = todayIso();
+  const now = hubBalance(t), prev = hubBalance(shiftIso(t, -7)), items = now.map((x, i) => ({ ...x, v2: prev[i].v ?? 0 }));
+  const ev = evStream(from), cnt = evCountBy(ev);
+  const S = doc('life-school'), classes = S?.classes || [];
+  el.innerHTML = `<section class="hub-head"><h1>Graphs</h1><p class="hub-sum">Every app side by side · ${ev.length} events in ${n} days</p><div style="margin-top:10px">${seg('hubRange', [['14', '14D'], ['30', '30D'], ['60', '60D']], r)}</div></section>
+    <div class="grid two">
+      <section class="card"><div class="card-head"><div><h3>Life balance</h3><span class="sub">This week (solid) vs last week (dashed), 0–100</span></div></div>${radar(items, { size: 240, compare: true, label: 'Life balance' })}
+        <div class="list">${now.map((x, i) => `<div class="li"><span class="small">${x.label}</span><span class="small"><b>${x.v ?? '—'}</b> <span class="tiny ${x.v != null && prev[i].v != null ? (x.v >= prev[i].v ? 'up' : 'down') : 'muted'}">${x.v != null && prev[i].v != null ? (x.v >= prev[i].v ? '+' : '') + (x.v - prev[i].v) : ''}</span></span></div>`).join('')}</div></section>
+      <section class="card"><div class="card-head"><div><h3>Where your time goes</h3><span class="sub">Share of everything logged, by app</span></div></div>${donut(Object.entries(EV_APPS).map(([k, A]) => ({ label: A.name, v: cnt[k], color: A.color })), { size: 150, fmt: (v) => `${v}`, label: 'Events by app' })}
+        <h4 class="hub-h4">App pulse</h4><div class="hub-pulse" style="--n:${Math.min(n, 30)}">${Object.entries(EV_APPS).map(([k, A]) => `<span class="hub-pulse-l">${A.name.split(' ')[0]}</span>${days.slice(-30).map((d) => { const c = ev.filter((e) => e.app === k && e.date === d).length; return `<i style="--c:${A.color};--o:${c ? Math.min(1, 0.3 + c * 0.2) : 0}" title="${A.name} · ${fmtD(d)}: ${c}"></i>`; }).join('')}`).join('')}</div><p class="tiny muted" style="margin:6px 0 0">Each square is a day (last ${Math.min(n, 30)}). Darker = more logged.</p></section>
+    </div>
+    <section class="card"><div class="card-head"><div><h3>Activity by app</h3><span class="sub">Events per day, stacked by app</span></div></div><div class="chart" id="hg-act"></div></section>
+    <div class="grid two">
+      <section class="card"><div class="card-head"><div><h3>Training minutes</h3><span class="sub">Athlete OS + Training Center sessions</span></div></div><div class="chart" id="hg-train"></div></section>
+      <section class="card"><div class="card-head"><div><h3>Nutrition vs goals</h3><span class="sub">MacroLens · % of daily target</span></div></div><div class="chart" id="hg-fuel"></div></section>
+      <section class="card"><div class="card-head"><div><h3>Sleep and readiness</h3><span class="sub">Hours slept and readiness score</span></div></div><div class="chart" id="hg-sleep"></div><div class="chart" id="hg-ready"></div></section>
+      <section class="card"><div class="card-head"><div><h3>Mental score</h3><span class="sub">Daily check-ins, 0–100</span></div></div><div class="chart" id="hg-mind"></div></section>
+      <section class="card"><div class="card-head"><div><h3>How your days are planned</h3><span class="sub">Gameplan hours per day by type</span></div></div><div class="chart" id="hg-plan"></div></section>
+      <section class="card"><div class="card-head"><div><h3>School</h3><span class="sub">${classes.length ? `Current grade by class${hubSafe(() => gpa()) != null ? ` · GPA ${gpa()}` : ''}` : 'Add classes in School to see grades'}</span></div></div><div class="chart" id="hg-school"></div><div class="chart" id="hg-gpa"></div></section>
+    </div>`;
+  const opt = { from, to: t, h: 170 };
+  hubActivity($('#hg-act', el), n);
+  // Training: stacked by source
+  drawBars($('#hg-train', el), days.map((d, i) => { const ex = doc('day-' + d)?.exercise || []; return { label: i % Math.ceil(n / 6) === 0 ? fmtD(d) : '', tip: fmtDL(d), segs: [{ v: sum(ex.filter((w) => w.source !== 'training-center').map((w) => w.mins || 0)), color: EV_APPS.aos.color, name: 'Athlete OS' }, { v: sum(ex.filter((w) => w.source === 'training-center').map((w) => w.mins || 0)), color: EV_APPS.btc.color, name: 'Training Center' }] }; }), { h: 170, fmt: (v) => `${Math.round(v)} min` });
+  const fed = days.filter(hasFood);
+  drawMulti($('#hg-fuel', el), [
+    { name: 'Calories', color: EV_APPS.ml.color, pts: fed.map((d) => ({ date: d, v: hubPct(totalsOf(d).calories, targets(d).calories) })) },
+    { name: 'Protein', color: 'var(--protein)', pts: fed.map((d) => ({ date: d, v: hubPct(totalsOf(d).protein, targets(d).protein) })) },
+  ], { ...opt, yMin: 0, fmt: (v) => `${Math.round(v)}%` });
+  drawLine($('#hg-sleep', el), days.map((d) => ({ date: d, v: hubSleep(d) })).filter((p) => p.v != null), { ...opt, h: 130, color: '#8b5cff', fmt: (v) => `${nf(v, 1)} h` });
+  drawLine($('#hg-ready', el), days.map((d) => ({ date: d, v: hubSafe(() => readiness(d)?.score) })).filter((p) => p.v != null), { ...opt, h: 130, color: 'var(--good)', yMin: 0, yMax: 100, fmt: (v) => String(Math.round(v)) });
+  drawLine($('#hg-mind', el), days.map((d) => ({ date: d, v: hubMind(d) })).filter((p) => p.v != null), { ...opt, color: '#e879f9', yMin: 0, yMax: 100, fmt: (v) => String(Math.round(v)) });
+  const pd = days.slice(-14), types = [...new Set(pd.flatMap((d) => hubBlocks(d).map((b) => b.type)))].filter((x) => x !== 'sleep');
+  drawBars($('#hg-plan', el), pd.map((d, i) => ({ label: i % 2 === 0 ? fmtD(d) : '', tip: fmtDL(d), segs: types.map((ty) => ({ v: sum(hubBlocks(d).filter((b) => b.type === ty).map((b) => b.mins || 0)) / 60, color: gpType(ty)[1], name: gpType(ty)[0] })) })), { h: 170, fmt: (v) => `${nf(v, 1)} h` });
+  if (classes.length) {
+    drawBars($('#hg-school', el), classes.map((c) => ({ label: c.name.slice(0, 8), tip: c.name, segs: [{ v: hubSafe(() => classPct(c)) ?? 0, color: c.color || EV_APPS.school.color, name: c.name }] })), { h: 160, goal: 90, fmt: (v) => `${Math.round(v)}%` });
+    const sn = Object.entries(S.snaps || {}).sort().map(([d, v]) => ({ date: d, v }));
+    if (sn.length > 1) drawLine($('#hg-gpa', el), sn, { h: 120, color: EV_APPS.school.color, fmt: (v) => nf(v, 2) });
+  } else $('#hg-school', el).innerHTML = emptyState('No classes yet', 'Add your classes and grades in School.', 'chart', '<a class="btn sm primary" href="school.html" data-hub-open="school.html">Open School</a>');
+  for (const id of ['hg-fuel', 'hg-sleep', 'hg-ready', 'hg-mind']) { const c = $('#' + id, el); if (c && !c.innerHTML.trim()) c.innerHTML = '<p class="small muted">Not enough data in this range yet.</p>'; }
+};
+HUB.timeline = (el) => INTEL.timeline(el);
+
+// Open another app after saving
+document.addEventListener('click', (e) => { const a = e.target.closest('[data-hub-open]'); if (!a) return; e.preventDefault(); goTo(a.dataset.hubOpen); });
 
 // ---- look.js ----
 // ===================== COURTSIDE LOOK: Home structure =====================
