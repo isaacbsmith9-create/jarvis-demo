@@ -26,9 +26,9 @@ const page = src('index.html')
   .replace('/*JS*/', () => `// ---- suite.js ----\n${SUITE_JS}\n` + JS.map((f) => `// ---- ${f} ----\n${src(f)}`).join('\n'));
 writeFileSync(join(out, 'athlete.html'), SKELETON + page + '\n</body></html>\n');
 // School: the same bundle in "school" mode (Athlete Life OS, first module).
-writeFileSync(join(out, 'school.html'), SKELETON + page.replace('<script>', '<script>window.APP_MODE = "school";</script>\n<script>') + '\n</body></html>\n');
+writeFileSync(join(out, 'school.html'), SKELETON + page.replace('<title>Athlete OS</title>', '<title>School</title>').replace('<script>', '<script>window.APP_MODE = "school";</script>\n<script>') + '\n</body></html>\n');
 // Hub: the ecosystem app (opens every app, one agenda, cross-app graphs), the same bundle in "hub" mode.
-writeFileSync(join(out, 'index.html'), SKELETON + page.replace('<script>', '<script>window.APP_MODE = "hub";</script>\n<script>') + '\n</body></html>\n');
+writeFileSync(join(out, 'index.html'), SKELETON + page.replace('<title>Athlete OS</title>', '<title>Hub</title>').replace('<script>', '<script>window.APP_MODE = "hub";</script>\n<script>') + '\n</body></html>\n');
 
 // ---------- MacroLens (unchanged app; only its brand becomes the suite switcher) ----------
 let ml = vendor('macrolens.html');

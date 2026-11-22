@@ -147,6 +147,8 @@ function homeApps(el) {
     // Give people who customized Home the new card once, right after "Up next" (they can remove it in Customize).
     const P = aos().profile;
     if (Array.isArray(P?.widgets) && P.widgets.length && !P.widgets.includes('apps') && !aos().evOffered) { const i = P.widgets.indexOf('upnext'); P.widgets.splice(i >= 0 ? i + 1 : 1, 0, 'apps'); aos().evOffered = true; persist('aos'); }
+    // School data in Athlete OS: add the School card once for people who customized Home before it existed.
+    if (Array.isArray(P?.widgets) && P.widgets.length && !P.widgets.includes('school') && !aos().scOffered) { const i = P.widgets.indexOf('apps'); P.widgets.splice(i >= 0 ? i + 1 : 1, 0, 'school'); aos().scOffered = true; persist('aos'); }
     base(el);
     const s = $('[data-widget="apps"]', el);
     if (s) { try { homeApps(s); } catch (e) { console.error(e); s.innerHTML = '<p class="muted small">Could not load activity.</p>'; } }
