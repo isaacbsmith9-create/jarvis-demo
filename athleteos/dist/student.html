@@ -207,6 +207,7 @@
         setLocalAt(remote.updatedAt || Date.now()); publish();
       } else if (hasData()) pushNow();
       await consumeInbox(snap?.docs);
+      mirrorGoals(snap?.docs);
     } catch (e) { applying = false; console.error(e); publish(); }
   };
 
@@ -239,6 +240,21 @@
       }
       lsW('sl-inbox', box); writeDoc('sl-inbox', box);
       setTimeout(() => toast(`Added ${todo.length} item${todo.length === 1 ? '' : 's'} from the Hub`), 400);
+    } catch (e) { console.error(e); }
+  }
+
+  // ---------- school goals from the shared goals list (doc "aos-goals") ----------
+  // GPA and class-grade goals made in the Hub or Athlete OS show in Student Lens's Goals (ids "hub-<goal id>").
+  function mirrorGoals(docs) {
+    try {
+      const d = docs?.find((x) => x.exists && x.id === 'aos-goals'), list = (d ? d.data().goals : lsJ('aos-goals')?.goals) || [];
+      const want = list.filter((g) => g.mode !== 'ms' && /^school:(gpa|wgpa|cls:)/.test(g.source || '')).map((g) => {
+        const cid = g.source.startsWith('school:cls:') ? g.source.slice(11) : '';
+        return { id: 'hub-' + g.id, type: cid ? 'class_grade' : 'gpa', weighted: g.source === 'school:wgpa', classId: cid, target: g.target, start: g.start, title: g.title, deadline: g.date || '', createdAt: g.created || Date.now(), fromHub: true };
+      }).filter((g) => g.type === 'gpa' || cls(g.classId));
+      const ids = new Set(want.map((g) => g.id)), before = JSON.stringify(S.goals.filter((g) => g.fromHub));
+      S.goals = [...S.goals.filter((g) => !g.fromHub || ids.has(g.id)).map((g) => { const w = want.find((x) => x.id === g.id); return w ? { ...g, ...w } : g; }), ...want.filter((w) => !S.goals.some((g) => g.id === w.id))];
+      if (JSON.stringify(S.goals.filter((g) => g.fromHub)) !== before) save('goals');
     } catch (e) { console.error(e); }
   }
 

@@ -102,7 +102,7 @@ ACTIONS.goal = (b) => {
       if (mode !== 'ms') { start = num($('#go-start', d).value); target = num($('#go-target', d).value); if (!Number.isFinite(start) || !Number.isFinite(target) || $('#go-target', d).value === '' || $('#go-start', d).value === '') return toast('Enter a starting and target value'); if (start === target) return toast('Target must differ from the start'); }
       else if (!msLines.length) return toast('Add at least one milestone');
       const rec = { ...(g || {}), id: g?.id || uid('goal'), title: title.slice(0, 60), desc: $('#go-desc', d).value.trim().slice(0, 300), cat: $('#go-cat', d).value, horizon: $('#go-h', d).value, priority: $('#go-pri', d).value, date: $('#go-date', d).value || null, mode: mode === 'ms' ? 'ms' : null, source: mode === 'ms' ? 'manual' : src, start, target, unit: mode === 'ms' ? '' : $('#go-unit', d).value.trim(), better: $('#go-better', d).value, milestones: msLines, created: g?.created || Date.now(), history: g?.history || [] };
-      doc('aos-goals').goals = [...goals().filter((x) => x.id !== rec.id), rec]; persist('aos-goals'); setUi('goal', rec.id); closeSheet(); toast('Goal saved'); go('train', 'goals');
+      doc('aos-goals').goals = [...goals().filter((x) => x.id !== rec.id), rec]; persist('aos-goals'); setUi('goal', rec.id); closeSheet(); toast('Goal saved'); go(window.APP_MODE === 'hub' ? 'hub' : 'train', 'goals');
     });
   });
 };

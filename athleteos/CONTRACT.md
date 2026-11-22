@@ -119,3 +119,13 @@ Days without it use Athlete OS's own calculation.
 Hub › Today box. Student Lens items go to doc `sl-inbox` { items [{id, kind: assignment|exam, classId, title, type, date,
 time, at, done}] } and to `life-school.items` (pending:true) right away; Student Lens adds them when it opens and sets
 `done`. Training goes to `aos-plan` events, tasks to `gp-core.tasks`, food opens MacroLens with the text copied.
+
+## Hub 2.0 Phase A (src/phasea.js)
+- **One summary format:** `Ecosystem.signals()` returns, for every app, `{ app, name, color, href, updated, stale,
+  metrics: [{k, label, v, unit}], flags: [text] }`, built from what each app already publishes. New code reads apps
+  through it, not their raw docs.
+- **One check-in:** Recovery Lens owns the morning check-in. Athlete OS's check-in buttons open `recovery.html#morning`,
+  which goes straight to it.
+- **One goals list:** `aos-goals` is the shared list. Extra auto sources: `school:gpa`, `school:wgpa`,
+  `school:cls:<class id>`, `rl:ready7`, `nut:pdays7`. Hub › Goals shows it. GPA and class-grade goals are mirrored into
+  Student Lens's goals as `hub-<goal id>` (read-only copies; edit them in the Hub or Athlete OS).

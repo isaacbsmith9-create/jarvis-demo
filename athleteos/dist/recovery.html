@@ -3494,5 +3494,9 @@ async function detectBundle() { try { const r = await fetch('macrolens.html', { 
 })();
 
 </script>
+<script>
+// Opened from another app's check-in button (recovery.html#morning): go straight to the morning check-in.
+if (location.hash === '#morning') { history.replaceState(null, '', location.pathname); setTimeout(() => { try { ACT.morning(); } catch (e) { console.error(e); } }, 800); }
+</script>
 </body>
 </html>

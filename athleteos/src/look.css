@@ -252,3 +252,12 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .cap-row { display: flex; gap: 8px; }
 .cap-row input { flex: 1; min-width: 0; font-size: 16px; padding: 11px 14px; border-radius: 12px; }
 .cap-prev { margin-top: 10px; padding: 12px; border-radius: 14px; border-left: 4px solid var(--c); background: color-mix(in srgb, var(--c) 9%, var(--surface-2)); }
+/* Hub goals */
+.hg-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.hg { padding: 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--hair); border-top: 3px solid var(--c); min-width: 0; }
+.hg-h { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 6px; }
+.hg-cat { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--c); }
+.hg-app { font-size: 11px; color: var(--muted); padding: 1px 7px; border-radius: 99px; border: 1px solid color-mix(in srgb, var(--a, var(--muted)) 50%, transparent); }
+.hg-h .tag { margin-left: auto; }
+.hg-t { display: block; font-size: 15px; margin-bottom: 4px; }
+.hg-n { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--muted); margin-bottom: 8px; } .hg-n b { color: var(--fg); }
