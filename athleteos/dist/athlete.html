@@ -6941,7 +6941,7 @@ function hubAttention() {
   const t = todayIso(), h = new Date().getHours(), out = [];
   const S = doc('life-school');
   if (S) {
-    for (const x of scOverdue().slice(0, 3)) out.push({ app: 'school', lvl: 'act', t: `Overdue: ${x.title}`, s: `was due ${fmtD(x.due)}`, href: 'student.html' });
+    for (const x of scOverdue().slice(0, 3)) { const lp = scClass(x.cls)?.latePolicy; out.push({ app: 'school', lvl: lp === 'full' ? 'watch' : 'act', t: `Overdue: ${x.title}`, s: `was due ${fmtD(x.due)}${lp === 'full' ? ' · late still gets full credit' : lp === 'none' ? ' · no late work in this class' : ''}`, href: 'student.html' }); }
     for (const x of scDue(shiftIso(t, 1), shiftIso(t, 3)).filter((x) => ['test', 'exam', 'quiz', 'project'].includes(x.type))) out.push({ app: 'school', lvl: 'watch', t: `${x.type[0].toUpperCase() + x.type.slice(1)} ${evWhen(x.due).toLowerCase() === 'tomorrow' ? 'tomorrow' : 'on ' + fmtDL(x.due)}: ${x.title}`, s: 'Plan study time and a lighter session the night before', href: 'gameplan.html' });
     const e = hubSafe(() => eligibility()); if (e && (e.flag === 'act' || e.flag === 'watch')) out.push({ app: 'school', lvl: e.flag, t: 'Grades to watch for eligibility', s: (e.low || []).map((c) => c.name || c).join(', '), href: 'student.html' });
   }

@@ -37,7 +37,7 @@
   const r1 = (x) => (x == null ? null : Math.round(x * 10) / 10);
   function project() {
     const t = today(), g = gpaFor();
-    const classes = S.classes.map((c) => { const cg = classGrade(c.id) || {}; return { id: c.id, name: c.name, teacher: c.teacher || '', period: c.period || '', level: c.level || 'regular', color: c.color, core: c.core !== false, active: isActiveClass(c, t), slPct: r1(cg.pct), letter: cg.letter || null }; });
+    const classes = S.classes.map((c) => { const cg = classGrade(c.id) || {}; return { id: c.id, name: c.name, teacher: c.teacher || '', period: c.period || '', level: c.level || 'regular', color: c.color, core: c.core !== false, active: isActiveClass(c, t), latePolicy: c.latePolicy || null, startDate: c.startDate || '', endDate: c.endDate || '', slPct: r1(cg.pct), letter: cg.letter || null }; });
     const items = [
       ...S.assignments.filter((a) => a.due).map((a) => ({ id: a.id, title: a.title, cls: a.classId, type: TYPE_MAP[a.type] || 'other', due: a.due, time: a.dueTime || '', mins: Number(a.estMins) || DEF_MINS[a.type] || 30, done: isDone(a) })),
       ...S.exams.filter((e) => e.date).map((e) => ({ id: e.id, title: e.title, cls: e.classId, type: 'exam', due: e.date, time: e.time || '', mins: 60, done: (e.score != null && e.score !== '') || e.date < t })),
@@ -81,6 +81,21 @@
         setLocalAt(remote.updatedAt || Date.now()); publish();
       } else if (hasData()) pushNow();
     } catch (e) { applying = false; console.error(e); publish(); }
+  };
+
+  // ---------- late-work policy per class (class.latePolicy: 'full' | 'some' | 'none') ----------
+  // Overdue and deadline risks follow the class's rule: full credit late = lower urgency, no late work = always high.
+  const LATE = { full: 'Late work still gets full credit in this class.', some: 'Late work is only sometimes accepted in this class.', none: 'Late work is not accepted in this class, so a miss can be a zero.' };
+  const DOWN = { high: 'medium', medium: 'low', low: 'low' };
+  const _risks = risks;
+  risks = function () {
+    const out = _risks().map((r) => {
+      const p = r.classId && cls(r.classId)?.latePolicy; if (!LATE[p] || !/^(overdue|missing|deadline):/.test(r.id)) return r;
+      const level = p === 'none' ? 'high' : p === 'full' && !r.id.startsWith('deadline:') ? DOWN[r.level] : r.level;
+      const action = p === 'none' && !r.id.startsWith('deadline:') ? 'Ask the teacher today whether it can still be turned in, and do it first if so.' : p === 'full' && !r.id.startsWith('deadline:') ? 'Turn it in when you can; it still counts fully. Put tighter deadlines first.' : r.action;
+      return { ...r, level, why: `${LATE[p]} ${r.why}`, action };
+    });
+    return out.sort((a, b) => LVL[b.level][0] - LVL[a.level][0]);
   };
 
   // ---------- downloads ----------
