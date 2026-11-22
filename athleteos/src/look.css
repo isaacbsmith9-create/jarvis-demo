@@ -186,7 +186,6 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .hub-app-l { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
 @media (max-width: 520px) {
   .hub-apps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .hub-app:first-child { grid-column: span 2; }
   .hub-app { padding: 12px; gap: 6px; }
   .hub-app-n b { font-size: 24px; }
 }

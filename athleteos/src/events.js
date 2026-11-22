@@ -6,12 +6,13 @@
 // Later phases (inbox, automations, assistant) read from evStream().
 const EV_APPS = {
   aos: { name: 'Athlete OS', color: '#3d8bff', href: null },
+  rl: { name: 'Recovery Lens', color: '#2fd29b', href: 'recovery.html' },
   gp: { name: 'Gameplan', color: '#22c55e', href: 'gameplan.html' },
   school: { name: 'School', color: '#0ea5e9', href: 'school.html' },
   btc: { name: 'Training Center', color: '#f97316', href: 'btc.html' },
   ml: { name: 'MacroLens', color: '#eab308', href: 'macrolens.html' },
 };
-const EV_ICON = { workout: 'dumbbell', meal: 'fork', water: 'drop', weight: 'scale', recovery: 'moon', mind: 'brain', test: 'bolt', record: 'trophy', shooting: 'ball', game: 'ball', goal: 'target', grade: 'chart', due: 'calendar', block: 'calendar', night: 'moon', note: 'spark' };
+const EV_ICON = { readiness: 'heart', body: 'heart', protocol: 'moon', workout: 'dumbbell', meal: 'fork', water: 'drop', weight: 'scale', recovery: 'moon', mind: 'brain', test: 'bolt', record: 'trophy', shooting: 'ball', game: 'ball', goal: 'target', grade: 'chart', due: 'calendar', block: 'calendar', night: 'moon', note: 'spark' };
 const evTime = (ms) => { if (!(ms > 1e12)) return null; const d = new Date(ms); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
 const evKind = (type) => type.split('.')[0];
 const MEAL_NAME = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snacks: 'Snacks' };
@@ -37,10 +38,11 @@ function evStream(from = shiftIso(todayIso(), -59), to = todayIso()) {
       if (day.water > 0) add({ id: `ml:${d}:water`, app: 'ml', type: 'water.logged', date: d, title: `${day.water} oz water`, detail: (() => { const t = targets(d)?.water; return t ? `${Math.round((day.water / t) * 100)}% of ${t} oz goal` : ''; })() });
       // Workouts: Training Center sessions vs everything logged in Athlete OS / MacroLens
       for (const w of day.exercise || []) {
-        const app = w.source === 'training-center' ? 'btc' : 'aos';
+        const app = w.source === 'training-center' ? 'btc' : w.source === 'recovery-lens' ? 'rl' : 'aos';
         add({ id: `${app}:w:${w.id}`, app, type: 'workout.finished', date: d, time: w.time || evTime(w.addedAt), title: w.name && w.name !== 'W' ? w.name : `${(w.type || 'Workout')[0].toUpperCase()}${(w.type || 'workout').slice(1)} session`, detail: [w.mins && `${w.mins} min`, w.type, w.rpe ? `RPE ${w.rpe}` : w.int].filter(Boolean).join(' · '), link: app === 'aos' ? 'train-overview' : null });
       }
-      if (day.feel && (day.feel.sleepH || day.feel.energy)) add({ id: `aos:${d}:feel`, app: 'aos', type: 'recovery.checkin', date: d, title: 'Recovery check-in', detail: [day.feel.sleepH && `${day.feel.sleepH} h sleep`, day.feel.energy && `energy ${day.feel.energy}/5`, day.feel.sore && `soreness ${day.feel.sore}/5`].filter(Boolean).join(' · '), link: 'analytics-overview' });
+      const rlDay = doc('rl-check')?.days?.[d] || doc('rl-sleep')?.nights?.[d];
+      if (day.feel && (day.feel.sleepH || day.feel.energy)) add({ id: `${rlDay ? 'rl' : 'aos'}:${d}:feel`, app: rlDay ? 'rl' : 'aos', type: 'recovery.checkin', date: d, title: 'Recovery check-in', detail: [day.feel.sleepH && `${day.feel.sleepH} h sleep`, day.feel.energy && `energy ${day.feel.energy}/5`, day.feel.sore && `soreness ${day.feel.sore}/5`].filter(Boolean).join(' · '), link: 'analytics-overview' });
     }
     // Mind
     const mc = mcheck(d);
@@ -68,6 +70,12 @@ function evStream(from = shiftIso(todayIso(), -59), to = todayIso()) {
   }
   for (const gm of doc('aos-games').games || []) add({ id: `aos:g:${gm.id}`, app: 'aos', type: 'game.played', date: gm.date, title: `Game vs ${gm.opp || 'opponent'}`, detail: [gm.pts != null && `${gm.pts} pts`, gm.reb != null && `${gm.reb} reb`, gm.ast != null && `${gm.ast} ast`].filter(Boolean).join(' · ') });
   for (const gl of doc('aos-goals').goals || []) for (const m of gl.milestones || []) if (m.done) add({ id: `aos:ms:${gl.id}:${m.label || m.v}`, app: 'aos', type: 'goal.milestone', date: m.done, title: `Milestone: ${m.label || m.v}`, detail: gl.title, link: 'train-goals' });
+  // Recovery Lens: readiness, sore areas, recovery protocols
+  const RR = doc('rl-ready')?.days || {};
+  for (const [d, r] of Object.entries(RR)) if (r?.score != null) add({ id: `rl:ready:${d}`, app: 'rl', type: 'readiness.scored', date: d, time: evTime(r.at), title: `Readiness ${r.score}`, detail: `${Math.round((r.completeness || 0) * 100)}% of inputs · Recovery Lens` });
+  const sore = {}; for (const b of doc('rl-body')?.records || []) (sore[b.date] = sore[b.date] || []).push(b);
+  for (const [d, rs] of Object.entries(sore)) { const top = rs.slice().sort((a, b) => (b.soreness || 0) - (a.soreness || 0))[0]; add({ id: `rl:body:${d}`, app: 'rl', type: 'body.logged', date: d, time: evTime(Math.max(...rs.map((r) => r.at || 0))), title: `Soreness logged · ${new Set(rs.map((r) => r.area)).size} area${new Set(rs.map((r) => r.area)).size > 1 ? 's' : ''}`, detail: `Worst: ${top.area} ${top.soreness ?? 0}/10${rs.some((r) => r.kind === 'pain' || r.kind === 'injury') ? ' · pain flagged' : ''}` }); }
+  for (const p of doc('rl-proto')?.sessions || []) add({ id: `rl:p:${p.id}`, app: 'rl', type: 'protocol.done', date: p.date, time: evTime(p.at), title: p.name, detail: `${p.mins} min recovery protocol` });
   // School: grades posted
   const S = doc('life-school');
   if (S) for (const gr of S.grades || []) { const cls = (S.classes || []).find((c) => c.id === gr.cls); add({ id: `school:gr:${gr.id}`, app: 'school', type: 'grade.posted', date: gr.date, title: `${cls?.name || 'Class'}: ${gr.title || gr.cat}`, detail: gr.max ? `${gr.score}/${gr.max} · ${Math.round((gr.score / gr.max) * 100)}%` : String(gr.score) }); }
@@ -116,8 +124,8 @@ INTEL.timeline = (el) => {
   const r = ui('evRange', '7'), on = ui('evApps', null), from = shiftIso(todayIso(), -(Number(r) - 1));
   const all = evStream(from), shown = on ? all.filter((e) => on.includes(e.app)) : all, cnt = evCountBy(all), up = evUpcoming(7);
   const appsActive = Object.values(cnt).filter(Boolean).length;
-  el.innerHTML = `<section class="card ev-hero"><div class="card-head"><div><h3>Timeline</h3><span class="sub">Everything you did, across all five apps, in one place</span></div>${seg('evRange', [['7', '7D'], ['30', '30D'], ['60', '60D']], r)}</div>
-    <div class="ev-kpis"><div><b>${all.length}</b><span>events</span></div><div><b>${appsActive}<small>/5</small></b><span>apps active</span></div><div><b>${new Set(all.map((e) => e.date)).size}</b><span>days with activity</span></div></div>
+  el.innerHTML = `<section class="card ev-hero"><div class="card-head"><div><h3>Timeline</h3><span class="sub">Everything you did, across all your apps, in one place</span></div>${seg('evRange', [['7', '7D'], ['30', '30D'], ['60', '60D']], r)}</div>
+    <div class="ev-kpis"><div><b>${all.length}</b><span>events</span></div><div><b>${appsActive}<small>/${Object.keys(EV_APPS).length}</small></b><span>apps active</span></div><div><b>${new Set(all.map((e) => e.date)).size}</b><span>days with activity</span></div></div>
     <div class="ev-filter" role="group" aria-label="Show apps">${Object.entries(EV_APPS).map(([k, A]) => `<button type="button" data-ev-app="${k}" class="${!on || on.includes(k) ? 'on' : ''}" aria-pressed="${!on || on.includes(k)}" style="--c:${A.color}"><i></i>${A.name}<b>${cnt[k]}</b></button>`).join('')}</div>
     <div class="chart" id="ev-chart" aria-label="Events per day by app"></div></section>
     ${up.length ? `<section class="card"><div class="card-head"><div><h3>Coming up</h3><span class="sub">Already scheduled in the next 7 days</span></div></div><ul class="ev-list">${up.map(evRow).join('')}</ul></section>` : ''}

@@ -5,6 +5,7 @@
   const APPS = [
     { id: 'hub', name: 'Hub', plain: 'Hub', href: 'index.html', desc: 'Every app in one place: your day, alerts and graphs', color: '#14b8a6' },
     { id: 'aos', name: 'Athlete<i>OS</i>', plain: 'Athlete OS', href: 'athlete.html', desc: 'Training, performance, load and the Lab', color: '#3d8bff' },
+    { id: 'rl', name: 'Recovery<i>Lens</i>', plain: 'Recovery Lens', href: 'recovery.html', desc: 'Readiness, sleep, soreness and recovery', color: '#2fd29b' },
     { id: 'gp', name: 'Game<i>plan</i>', plain: 'Gameplan', href: 'gameplan.html', desc: 'Your day hour by hour, Top 3, night routine', color: '#22c55e' },
     { id: 'school', name: 'School', plain: 'School', href: 'school.html', desc: 'Classes, assignments, tests and grades', color: '#0ea5e9' },
     { id: 'btc', name: 'Training<i>Center</i>', plain: 'Training Center', href: 'btc.html', desc: 'Drills, workouts and running your sessions', color: '#f97316' },

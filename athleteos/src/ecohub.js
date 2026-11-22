@@ -28,6 +28,7 @@ function hubApps() {
   const fed = hasFood(t);
   return [
     { id: 'aos', href: 'athlete.html', icon: 'logo', big: rd ?? '—', unit: rd != null ? 'readiness' : 'no check-in', line: `${tr} min trained today · ${st.current}-day streak`, pct: rd },
+    (() => { const R = doc('rl-ready')?.days?.[t] || null, sl = doc('rl-sleep')?.nights?.[t]; return { id: 'rl', href: 'recovery.html', icon: 'heart', big: R?.score ?? '—', unit: R?.score != null ? 'recovery readiness' : 'not enough data', line: `${R ? Math.round((R.completeness || 0) * 100) + '% of inputs' : 'Do the morning check-in'}${sl?.asleepH ? ` · slept ${nf(sl.asleepH, 1)} h` : ''}`, pct: R?.score ?? null }; })(),
     { id: 'gp', href: 'gameplan.html', icon: 'calendar', big: bl.length ? `${bl.filter((b) => b.done).length}/${bl.length}` : '—', unit: 'blocks done', line: bl.length ? (() => { const n = nowM(), nx = bl.find((b) => !b.done && b.st + b.mins > n); return nx ? `Next: ${nx.title} at ${tdClock(nx.st)}` : 'All blocks done'; })() : 'No blocks planned today', pct: bl.length ? hubPct(bl.filter((b) => b.done).length, bl.length) : null },
     { id: 'school', href: 'school.html', icon: 'book', big: due, unit: 'due this week', line: `${od} overdue${g != null ? ` · GPA ${g}` : ''}`, pct: due + od ? hubPct(due, due + od) : null },
     { id: 'btc', href: 'btc.html', icon: 'dumbbell', big: btcWk, unit: 'sessions this week', line: btcMin ? `${btcMin} min of drills` : 'Run a session to see it here', pct: hubPct(Math.min(btcWk, 5), 5) },
@@ -61,7 +62,9 @@ function hubAttention() {
     const e = hubSafe(() => eligibility()); if (e && (e.flag === 'act' || e.flag === 'watch')) out.push({ app: 'school', lvl: e.flag, t: 'Grades to watch for eligibility', s: (e.low || []).map((c) => c.name || c).join(', '), href: 'school.html' });
   }
   if (!mcheck(t) && h >= 7) out.push({ app: 'aos', lvl: 'info', t: 'No mental check-in yet', s: '30 seconds in Athlete OS › Mind', href: 'athlete.html#mind-checkin' });
-  if (hubSleep(t) == null && h >= 7) out.push({ app: 'aos', lvl: 'info', t: 'No recovery check-in yet', s: 'Log sleep and soreness so readiness is accurate', href: 'athlete.html' });
+  if (hubSleep(t) == null && !doc('rl-check')?.days?.[t] && h >= 7) out.push({ app: 'rl', lvl: 'info', t: 'No morning check-in yet', s: 'Sleep, feel and soreness in Recovery Lens, 30 seconds', href: 'recovery.html' });
+  const pain = (doc('rl-body')?.records || []).filter((r) => r.date >= shiftIso(t, -2) && (r.kind === 'pain' || r.kind === 'injury'));
+  if (pain.length) out.push({ app: 'rl', lvl: 'act', t: `Pain flagged: ${[...new Set(pain.map((r) => r.area))].join(', ')}`, s: 'Get it checked by your athletic trainer before training through it', href: 'recovery.html' });
   const T = totalsOf(t), G = targets(t);
   if (h >= 17 && T.protein < G.protein * 0.6) out.push({ app: 'ml', lvl: 'watch', t: `Protein at ${Math.round(T.protein)} of ${G.protein} g`, s: 'A protein-heavy dinner closes the gap', href: 'macrolens.html' });
   const sig = doc('aos-signals'); if (sig?.acwr > 1.3) out.push({ app: 'aos', lvl: 'watch', t: `Training load ratio ${sig.acwr}`, s: 'Load is rising fast. Keep today lighter.', href: 'athlete.html#train-load' });
@@ -137,7 +140,7 @@ HUB.graphs = (el) => {
     <div class="grid two">
       <section class="card"><div class="card-head"><div><h3>Training minutes</h3><span class="sub">Athlete OS + Training Center sessions</span></div></div><div class="chart" id="hg-train"></div></section>
       <section class="card"><div class="card-head"><div><h3>Nutrition vs goals</h3><span class="sub">MacroLens · % of daily target</span></div></div><div class="chart" id="hg-fuel"></div></section>
-      <section class="card"><div class="card-head"><div><h3>Sleep and readiness</h3><span class="sub">Hours slept and readiness score</span></div></div><div class="chart" id="hg-sleep"></div><div class="chart" id="hg-ready"></div></section>
+      <section class="card"><div class="card-head"><div><h3>Sleep and readiness</h3><span class="sub">Hours slept · readiness from Athlete OS and Recovery Lens</span></div></div><div class="chart" id="hg-sleep"></div><div class="chart" id="hg-ready"></div></section>
       <section class="card"><div class="card-head"><div><h3>Mental score</h3><span class="sub">Daily check-ins, 0–100</span></div></div><div class="chart" id="hg-mind"></div></section>
       <section class="card"><div class="card-head"><div><h3>How your days are planned</h3><span class="sub">Gameplan hours per day by type</span></div></div><div class="chart" id="hg-plan"></div></section>
       <section class="card"><div class="card-head"><div><h3>School</h3><span class="sub">${classes.length ? `Current grade by class${hubSafe(() => gpa()) != null ? ` · GPA ${gpa()}` : ''}` : 'Add classes in School to see grades'}</span></div></div><div class="chart" id="hg-school"></div><div class="chart" id="hg-gpa"></div></section>
@@ -152,7 +155,8 @@ HUB.graphs = (el) => {
     { name: 'Protein', color: 'var(--protein)', pts: fed.map((d) => ({ date: d, v: hubPct(totalsOf(d).protein, targets(d).protein) })) },
   ], { ...opt, yMin: 0, fmt: (v) => `${Math.round(v)}%` });
   drawLine($('#hg-sleep', el), days.map((d) => ({ date: d, v: hubSleep(d) })).filter((p) => p.v != null), { ...opt, h: 130, color: '#8b5cff', fmt: (v) => `${nf(v, 1)} h` });
-  drawLine($('#hg-ready', el), days.map((d) => ({ date: d, v: hubSafe(() => readiness(d)?.score) })).filter((p) => p.v != null), { ...opt, h: 130, color: 'var(--good)', yMin: 0, yMax: 100, fmt: (v) => String(Math.round(v)) });
+  const RR = doc('rl-ready')?.days || {};
+  drawMulti($('#hg-ready', el), [{ name: 'Athlete OS readiness', color: 'var(--good)', pts: days.map((d) => ({ date: d, v: hubSafe(() => readiness(d)?.score) })).filter((p) => p.v != null) }, { name: 'Recovery Lens readiness', color: EV_APPS.rl.color, pts: days.map((d) => ({ date: d, v: RR[d]?.score ?? null })).filter((p) => p.v != null) }], { ...opt, h: 150, yMin: 0, yMax: 100, fmt: (v) => String(Math.round(v)) });
   drawLine($('#hg-mind', el), days.map((d) => ({ date: d, v: hubMind(d) })).filter((p) => p.v != null), { ...opt, color: '#e879f9', yMin: 0, yMax: 100, fmt: (v) => String(Math.round(v)) });
   const pd = days.slice(-14), types = [...new Set(pd.flatMap((d) => hubBlocks(d).map((b) => b.type)))].filter((x) => x !== 'sleep');
   drawBars($('#hg-plan', el), pd.map((d, i) => ({ label: i % 2 === 0 ? fmtD(d) : '', tip: fmtDL(d), segs: types.map((ty) => ({ v: sum(hubBlocks(d).filter((b) => b.type === ty).map((b) => b.mins || 0)) / 60, color: gpType(ty)[1], name: gpType(ty)[0] })) })), { h: 170, fmt: (v) => `${nf(v, 1)} h` });

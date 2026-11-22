@@ -19,6 +19,7 @@ account collection `data/users/<user id>`.
 | MacroLens | `core`, meals / water / feel in `day-*` (and game-day workouts it logs) | workouts in `day-*` |
 | School (Life OS) | `life-school` { classes [{id,name,teacher,period,level,core,color}], items [{id,title,cls,type: hw/quiz/test/exam/project/essay/other,due,time,mins,done}], grades [{id,cls,cat: test/quiz/hw,title,score,max,date}], snaps {date: gpa} } | calendar, signals |
 | Gameplan / Life OS | `gp-*` (`gp-core`, `gp-d-YYYY-MM-DD`, `gp-sig`); later `life-*` | `aos-plan` calendar events, signals |
+| Recovery Lens (`recovery.html`) | `rl`, `rl-*` (sleep, check-ins, body map, protocols, readiness, baselines, AI, games, injuries); also `feel.sleepH/energy/sore/fatigue` and sessions (`source: 'recovery-lens'`) in `day-*` | meals, water, targets, workouts, calendar |
 | Basketball Training Center | `btc-app` (its whole state: drills, workouts, plan, sessions, journal…), `btc-sync` (which sessions were exported), `btc-sig`, and **finished sessions as workouts** in `day-*` | `aos-signals` (load ratio, readiness), `aos-plan` (games, practices), `aos`, `core` |
 
 ## Workout format (how a finished session counts in load, analytics and the Lab)
@@ -96,3 +97,9 @@ The ecosystem app: the Athlete OS bundle in `APP_MODE = 'hub'`, switcher id `hub
 app's records and the event stream to show one launcher (a live number per app), one agenda (calendar + Gameplan),
 "Needs attention" from every app, cross-app graphs (life balance, app pulse, activity, training, nutrition, sleep,
 mind, planning, school) and the Timeline. Code: `src/ecohub.js`.
+
+## Recovery Lens (recovery.html)
+
+`vendor/recovery.html` is its published page. The build only changes its app list (adds Hub, Athlete OS → `athlete.html`).
+It detects the bundle itself (`macrolens.html` exists) and then reads the shared records. Hub shows its stored readiness
+(`rl-ready`), pain flags (`rl-body`) and protocols (`rl-proto`), and the event stream attributes its records to app `rl`.

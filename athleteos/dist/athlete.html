@@ -809,7 +809,6 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .hub-app-l { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
 @media (max-width: 520px) {
   .hub-apps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .hub-app:first-child { grid-column: span 2; }
   .hub-app { padding: 12px; gap: 6px; }
   .hub-app-n b { font-size: 24px; }
 }
@@ -885,6 +884,7 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
   const APPS = [
     { id: 'hub', name: 'Hub', plain: 'Hub', href: 'index.html', desc: 'Every app in one place: your day, alerts and graphs', color: '#14b8a6' },
     { id: 'aos', name: 'Athlete<i>OS</i>', plain: 'Athlete OS', href: 'athlete.html', desc: 'Training, performance, load and the Lab', color: '#3d8bff' },
+    { id: 'rl', name: 'Recovery<i>Lens</i>', plain: 'Recovery Lens', href: 'recovery.html', desc: 'Readiness, sleep, soreness and recovery', color: '#2fd29b' },
     { id: 'gp', name: 'Game<i>plan</i>', plain: 'Gameplan', href: 'gameplan.html', desc: 'Your day hour by hour, Top 3, night routine', color: '#22c55e' },
     { id: 'school', name: 'School', plain: 'School', href: 'school.html', desc: 'Classes, assignments, tests and grades', color: '#0ea5e9' },
     { id: 'btc', name: 'Training<i>Center</i>', plain: 'Training Center', href: 'btc.html', desc: 'Drills, workouts and running your sessions', color: '#f97316' },
@@ -6715,12 +6715,13 @@ function d2Timeline(el) {
 // Later phases (inbox, automations, assistant) read from evStream().
 const EV_APPS = {
   aos: { name: 'Athlete OS', color: '#3d8bff', href: null },
+  rl: { name: 'Recovery Lens', color: '#2fd29b', href: 'recovery.html' },
   gp: { name: 'Gameplan', color: '#22c55e', href: 'gameplan.html' },
   school: { name: 'School', color: '#0ea5e9', href: 'school.html' },
   btc: { name: 'Training Center', color: '#f97316', href: 'btc.html' },
   ml: { name: 'MacroLens', color: '#eab308', href: 'macrolens.html' },
 };
-const EV_ICON = { workout: 'dumbbell', meal: 'fork', water: 'drop', weight: 'scale', recovery: 'moon', mind: 'brain', test: 'bolt', record: 'trophy', shooting: 'ball', game: 'ball', goal: 'target', grade: 'chart', due: 'calendar', block: 'calendar', night: 'moon', note: 'spark' };
+const EV_ICON = { readiness: 'heart', body: 'heart', protocol: 'moon', workout: 'dumbbell', meal: 'fork', water: 'drop', weight: 'scale', recovery: 'moon', mind: 'brain', test: 'bolt', record: 'trophy', shooting: 'ball', game: 'ball', goal: 'target', grade: 'chart', due: 'calendar', block: 'calendar', night: 'moon', note: 'spark' };
 const evTime = (ms) => { if (!(ms > 1e12)) return null; const d = new Date(ms); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
 const evKind = (type) => type.split('.')[0];
 const MEAL_NAME = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snacks: 'Snacks' };
@@ -6746,10 +6747,11 @@ function evStream(from = shiftIso(todayIso(), -59), to = todayIso()) {
       if (day.water > 0) add({ id: `ml:${d}:water`, app: 'ml', type: 'water.logged', date: d, title: `${day.water} oz water`, detail: (() => { const t = targets(d)?.water; return t ? `${Math.round((day.water / t) * 100)}% of ${t} oz goal` : ''; })() });
       // Workouts: Training Center sessions vs everything logged in Athlete OS / MacroLens
       for (const w of day.exercise || []) {
-        const app = w.source === 'training-center' ? 'btc' : 'aos';
+        const app = w.source === 'training-center' ? 'btc' : w.source === 'recovery-lens' ? 'rl' : 'aos';
         add({ id: `${app}:w:${w.id}`, app, type: 'workout.finished', date: d, time: w.time || evTime(w.addedAt), title: w.name && w.name !== 'W' ? w.name : `${(w.type || 'Workout')[0].toUpperCase()}${(w.type || 'workout').slice(1)} session`, detail: [w.mins && `${w.mins} min`, w.type, w.rpe ? `RPE ${w.rpe}` : w.int].filter(Boolean).join(' · '), link: app === 'aos' ? 'train-overview' : null });
       }
-      if (day.feel && (day.feel.sleepH || day.feel.energy)) add({ id: `aos:${d}:feel`, app: 'aos', type: 'recovery.checkin', date: d, title: 'Recovery check-in', detail: [day.feel.sleepH && `${day.feel.sleepH} h sleep`, day.feel.energy && `energy ${day.feel.energy}/5`, day.feel.sore && `soreness ${day.feel.sore}/5`].filter(Boolean).join(' · '), link: 'analytics-overview' });
+      const rlDay = doc('rl-check')?.days?.[d] || doc('rl-sleep')?.nights?.[d];
+      if (day.feel && (day.feel.sleepH || day.feel.energy)) add({ id: `${rlDay ? 'rl' : 'aos'}:${d}:feel`, app: rlDay ? 'rl' : 'aos', type: 'recovery.checkin', date: d, title: 'Recovery check-in', detail: [day.feel.sleepH && `${day.feel.sleepH} h sleep`, day.feel.energy && `energy ${day.feel.energy}/5`, day.feel.sore && `soreness ${day.feel.sore}/5`].filter(Boolean).join(' · '), link: 'analytics-overview' });
     }
     // Mind
     const mc = mcheck(d);
@@ -6777,6 +6779,12 @@ function evStream(from = shiftIso(todayIso(), -59), to = todayIso()) {
   }
   for (const gm of doc('aos-games').games || []) add({ id: `aos:g:${gm.id}`, app: 'aos', type: 'game.played', date: gm.date, title: `Game vs ${gm.opp || 'opponent'}`, detail: [gm.pts != null && `${gm.pts} pts`, gm.reb != null && `${gm.reb} reb`, gm.ast != null && `${gm.ast} ast`].filter(Boolean).join(' · ') });
   for (const gl of doc('aos-goals').goals || []) for (const m of gl.milestones || []) if (m.done) add({ id: `aos:ms:${gl.id}:${m.label || m.v}`, app: 'aos', type: 'goal.milestone', date: m.done, title: `Milestone: ${m.label || m.v}`, detail: gl.title, link: 'train-goals' });
+  // Recovery Lens: readiness, sore areas, recovery protocols
+  const RR = doc('rl-ready')?.days || {};
+  for (const [d, r] of Object.entries(RR)) if (r?.score != null) add({ id: `rl:ready:${d}`, app: 'rl', type: 'readiness.scored', date: d, time: evTime(r.at), title: `Readiness ${r.score}`, detail: `${Math.round((r.completeness || 0) * 100)}% of inputs · Recovery Lens` });
+  const sore = {}; for (const b of doc('rl-body')?.records || []) (sore[b.date] = sore[b.date] || []).push(b);
+  for (const [d, rs] of Object.entries(sore)) { const top = rs.slice().sort((a, b) => (b.soreness || 0) - (a.soreness || 0))[0]; add({ id: `rl:body:${d}`, app: 'rl', type: 'body.logged', date: d, time: evTime(Math.max(...rs.map((r) => r.at || 0))), title: `Soreness logged · ${new Set(rs.map((r) => r.area)).size} area${new Set(rs.map((r) => r.area)).size > 1 ? 's' : ''}`, detail: `Worst: ${top.area} ${top.soreness ?? 0}/10${rs.some((r) => r.kind === 'pain' || r.kind === 'injury') ? ' · pain flagged' : ''}` }); }
+  for (const p of doc('rl-proto')?.sessions || []) add({ id: `rl:p:${p.id}`, app: 'rl', type: 'protocol.done', date: p.date, time: evTime(p.at), title: p.name, detail: `${p.mins} min recovery protocol` });
   // School: grades posted
   const S = doc('life-school');
   if (S) for (const gr of S.grades || []) { const cls = (S.classes || []).find((c) => c.id === gr.cls); add({ id: `school:gr:${gr.id}`, app: 'school', type: 'grade.posted', date: gr.date, title: `${cls?.name || 'Class'}: ${gr.title || gr.cat}`, detail: gr.max ? `${gr.score}/${gr.max} · ${Math.round((gr.score / gr.max) * 100)}%` : String(gr.score) }); }
@@ -6825,8 +6833,8 @@ INTEL.timeline = (el) => {
   const r = ui('evRange', '7'), on = ui('evApps', null), from = shiftIso(todayIso(), -(Number(r) - 1));
   const all = evStream(from), shown = on ? all.filter((e) => on.includes(e.app)) : all, cnt = evCountBy(all), up = evUpcoming(7);
   const appsActive = Object.values(cnt).filter(Boolean).length;
-  el.innerHTML = `<section class="card ev-hero"><div class="card-head"><div><h3>Timeline</h3><span class="sub">Everything you did, across all five apps, in one place</span></div>${seg('evRange', [['7', '7D'], ['30', '30D'], ['60', '60D']], r)}</div>
-    <div class="ev-kpis"><div><b>${all.length}</b><span>events</span></div><div><b>${appsActive}<small>/5</small></b><span>apps active</span></div><div><b>${new Set(all.map((e) => e.date)).size}</b><span>days with activity</span></div></div>
+  el.innerHTML = `<section class="card ev-hero"><div class="card-head"><div><h3>Timeline</h3><span class="sub">Everything you did, across all your apps, in one place</span></div>${seg('evRange', [['7', '7D'], ['30', '30D'], ['60', '60D']], r)}</div>
+    <div class="ev-kpis"><div><b>${all.length}</b><span>events</span></div><div><b>${appsActive}<small>/${Object.keys(EV_APPS).length}</small></b><span>apps active</span></div><div><b>${new Set(all.map((e) => e.date)).size}</b><span>days with activity</span></div></div>
     <div class="ev-filter" role="group" aria-label="Show apps">${Object.entries(EV_APPS).map(([k, A]) => `<button type="button" data-ev-app="${k}" class="${!on || on.includes(k) ? 'on' : ''}" aria-pressed="${!on || on.includes(k)}" style="--c:${A.color}"><i></i>${A.name}<b>${cnt[k]}</b></button>`).join('')}</div>
     <div class="chart" id="ev-chart" aria-label="Events per day by app"></div></section>
     ${up.length ? `<section class="card"><div class="card-head"><div><h3>Coming up</h3><span class="sub">Already scheduled in the next 7 days</span></div></div><ul class="ev-list">${up.map(evRow).join('')}</ul></section>` : ''}
@@ -6895,6 +6903,7 @@ function hubApps() {
   const fed = hasFood(t);
   return [
     { id: 'aos', href: 'athlete.html', icon: 'logo', big: rd ?? '—', unit: rd != null ? 'readiness' : 'no check-in', line: `${tr} min trained today · ${st.current}-day streak`, pct: rd },
+    (() => { const R = doc('rl-ready')?.days?.[t] || null, sl = doc('rl-sleep')?.nights?.[t]; return { id: 'rl', href: 'recovery.html', icon: 'heart', big: R?.score ?? '—', unit: R?.score != null ? 'recovery readiness' : 'not enough data', line: `${R ? Math.round((R.completeness || 0) * 100) + '% of inputs' : 'Do the morning check-in'}${sl?.asleepH ? ` · slept ${nf(sl.asleepH, 1)} h` : ''}`, pct: R?.score ?? null }; })(),
     { id: 'gp', href: 'gameplan.html', icon: 'calendar', big: bl.length ? `${bl.filter((b) => b.done).length}/${bl.length}` : '—', unit: 'blocks done', line: bl.length ? (() => { const n = nowM(), nx = bl.find((b) => !b.done && b.st + b.mins > n); return nx ? `Next: ${nx.title} at ${tdClock(nx.st)}` : 'All blocks done'; })() : 'No blocks planned today', pct: bl.length ? hubPct(bl.filter((b) => b.done).length, bl.length) : null },
     { id: 'school', href: 'school.html', icon: 'book', big: due, unit: 'due this week', line: `${od} overdue${g != null ? ` · GPA ${g}` : ''}`, pct: due + od ? hubPct(due, due + od) : null },
     { id: 'btc', href: 'btc.html', icon: 'dumbbell', big: btcWk, unit: 'sessions this week', line: btcMin ? `${btcMin} min of drills` : 'Run a session to see it here', pct: hubPct(Math.min(btcWk, 5), 5) },
@@ -6928,7 +6937,9 @@ function hubAttention() {
     const e = hubSafe(() => eligibility()); if (e && (e.flag === 'act' || e.flag === 'watch')) out.push({ app: 'school', lvl: e.flag, t: 'Grades to watch for eligibility', s: (e.low || []).map((c) => c.name || c).join(', '), href: 'school.html' });
   }
   if (!mcheck(t) && h >= 7) out.push({ app: 'aos', lvl: 'info', t: 'No mental check-in yet', s: '30 seconds in Athlete OS › Mind', href: 'athlete.html#mind-checkin' });
-  if (hubSleep(t) == null && h >= 7) out.push({ app: 'aos', lvl: 'info', t: 'No recovery check-in yet', s: 'Log sleep and soreness so readiness is accurate', href: 'athlete.html' });
+  if (hubSleep(t) == null && !doc('rl-check')?.days?.[t] && h >= 7) out.push({ app: 'rl', lvl: 'info', t: 'No morning check-in yet', s: 'Sleep, feel and soreness in Recovery Lens, 30 seconds', href: 'recovery.html' });
+  const pain = (doc('rl-body')?.records || []).filter((r) => r.date >= shiftIso(t, -2) && (r.kind === 'pain' || r.kind === 'injury'));
+  if (pain.length) out.push({ app: 'rl', lvl: 'act', t: `Pain flagged: ${[...new Set(pain.map((r) => r.area))].join(', ')}`, s: 'Get it checked by your athletic trainer before training through it', href: 'recovery.html' });
   const T = totalsOf(t), G = targets(t);
   if (h >= 17 && T.protein < G.protein * 0.6) out.push({ app: 'ml', lvl: 'watch', t: `Protein at ${Math.round(T.protein)} of ${G.protein} g`, s: 'A protein-heavy dinner closes the gap', href: 'macrolens.html' });
   const sig = doc('aos-signals'); if (sig?.acwr > 1.3) out.push({ app: 'aos', lvl: 'watch', t: `Training load ratio ${sig.acwr}`, s: 'Load is rising fast. Keep today lighter.', href: 'athlete.html#train-load' });
@@ -7004,7 +7015,7 @@ HUB.graphs = (el) => {
     <div class="grid two">
       <section class="card"><div class="card-head"><div><h3>Training minutes</h3><span class="sub">Athlete OS + Training Center sessions</span></div></div><div class="chart" id="hg-train"></div></section>
       <section class="card"><div class="card-head"><div><h3>Nutrition vs goals</h3><span class="sub">MacroLens · % of daily target</span></div></div><div class="chart" id="hg-fuel"></div></section>
-      <section class="card"><div class="card-head"><div><h3>Sleep and readiness</h3><span class="sub">Hours slept and readiness score</span></div></div><div class="chart" id="hg-sleep"></div><div class="chart" id="hg-ready"></div></section>
+      <section class="card"><div class="card-head"><div><h3>Sleep and readiness</h3><span class="sub">Hours slept · readiness from Athlete OS and Recovery Lens</span></div></div><div class="chart" id="hg-sleep"></div><div class="chart" id="hg-ready"></div></section>
       <section class="card"><div class="card-head"><div><h3>Mental score</h3><span class="sub">Daily check-ins, 0–100</span></div></div><div class="chart" id="hg-mind"></div></section>
       <section class="card"><div class="card-head"><div><h3>How your days are planned</h3><span class="sub">Gameplan hours per day by type</span></div></div><div class="chart" id="hg-plan"></div></section>
       <section class="card"><div class="card-head"><div><h3>School</h3><span class="sub">${classes.length ? `Current grade by class${hubSafe(() => gpa()) != null ? ` · GPA ${gpa()}` : ''}` : 'Add classes in School to see grades'}</span></div></div><div class="chart" id="hg-school"></div><div class="chart" id="hg-gpa"></div></section>
@@ -7019,7 +7030,8 @@ HUB.graphs = (el) => {
     { name: 'Protein', color: 'var(--protein)', pts: fed.map((d) => ({ date: d, v: hubPct(totalsOf(d).protein, targets(d).protein) })) },
   ], { ...opt, yMin: 0, fmt: (v) => `${Math.round(v)}%` });
   drawLine($('#hg-sleep', el), days.map((d) => ({ date: d, v: hubSleep(d) })).filter((p) => p.v != null), { ...opt, h: 130, color: '#8b5cff', fmt: (v) => `${nf(v, 1)} h` });
-  drawLine($('#hg-ready', el), days.map((d) => ({ date: d, v: hubSafe(() => readiness(d)?.score) })).filter((p) => p.v != null), { ...opt, h: 130, color: 'var(--good)', yMin: 0, yMax: 100, fmt: (v) => String(Math.round(v)) });
+  const RR = doc('rl-ready')?.days || {};
+  drawMulti($('#hg-ready', el), [{ name: 'Athlete OS readiness', color: 'var(--good)', pts: days.map((d) => ({ date: d, v: hubSafe(() => readiness(d)?.score) })).filter((p) => p.v != null) }, { name: 'Recovery Lens readiness', color: EV_APPS.rl.color, pts: days.map((d) => ({ date: d, v: RR[d]?.score ?? null })).filter((p) => p.v != null) }], { ...opt, h: 150, yMin: 0, yMax: 100, fmt: (v) => String(Math.round(v)) });
   drawLine($('#hg-mind', el), days.map((d) => ({ date: d, v: hubMind(d) })).filter((p) => p.v != null), { ...opt, color: '#e879f9', yMin: 0, yMax: 100, fmt: (v) => String(Math.round(v)) });
   const pd = days.slice(-14), types = [...new Set(pd.flatMap((d) => hubBlocks(d).map((b) => b.type)))].filter((x) => x !== 'sleep');
   drawBars($('#hg-plan', el), pd.map((d, i) => ({ label: i % 2 === 0 ? fmtD(d) : '', tip: fmtDL(d), segs: types.map((ty) => ({ v: sum(hubBlocks(d).filter((b) => b.type === ty).map((b) => b.mins || 0)) / 60, color: gpType(ty)[1], name: gpType(ty)[0] })) })), { h: 170, fmt: (v) => `${nf(v, 1)} h` });

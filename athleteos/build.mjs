@@ -80,4 +80,9 @@ btc = swap(btc, '<div class="eyebrow">Player development</div>', '<div id="suite
 btc = swap(btc, '</style>', `</style>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">\n<style>${src('suite/btc-skin.css')}\n${SUITE_CSS}</style>\n<script>\n${SUITE_JS}\nSuite.theme();\n</script>`, 'Training Center style');
 btc = beforeLastScript(btc, `<script>\n${src('suite/btc-bridge.js')}\n</script>`);
 writeFileSync(join(out, 'btc.html'), btc);
-console.log('built', ['index.html', 'athlete.html', 'school.html', 'macrolens.html', 'gameplan.html', 'btc.html'].map((f) => join(out, f)).join(' '));
+// ---------- Recovery Lens (vendor/recovery.html = its published page; built to be page 6 of this bundle) ----------
+let rlp = vendor('recovery.html');
+rlp = swap(rlp, "  { id: 'aos', plain: 'Athlete OS', href: 'index.html',", "  { id: 'hub', plain: 'Hub', href: 'index.html', desc: 'Every app in one place: your day, alerts and graphs', color: '#14b8a6' },\n  { id: 'aos', plain: 'Athlete OS', href: 'athlete.html',", 'Recovery Lens app list');
+rlp = swap(rlp, 'data-nav href="index.html"', 'data-nav href="athlete.html"', 'Recovery Lens Athlete OS link');
+writeFileSync(join(out, 'recovery.html'), rlp);
+console.log('built', ['index.html', 'athlete.html', 'school.html', 'macrolens.html', 'gameplan.html', 'btc.html', 'recovery.html'].map((f) => join(out, f)).join(' '));
