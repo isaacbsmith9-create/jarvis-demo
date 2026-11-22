@@ -847,6 +847,30 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .hub-pulse-l { font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hub-pulse i { aspect-ratio: 1; border-radius: 3px; background: color-mix(in srgb, var(--c) calc(var(--o) * 100%), var(--surface-2)); min-width: 0; }
 
+/* ---------- Hub+: briefing, week ---------- */
+.hb-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.hb-t { display: grid; gap: 2px; padding: 10px 12px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--hair); border-top: 3px solid var(--c); min-width: 0; }
+.hb-t small { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.hb-t b { font: 700 24px/1.1 var(--f-display); } .hb-t b i { font: 600 12px var(--f-body); font-style: normal; color: var(--muted); }
+.hb-t span { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hb-top { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; }
+.hb-top small { font-size: 11px; font-weight: 600; color: var(--muted); margin-right: 4px; }
+.hb-top span { padding: 4px 10px; border-radius: 99px; background: color-mix(in srgb, #22c55e 14%, transparent); font-size: 12.5px; }
+.hb-call { margin: 12px 0 0; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, #14b8a6 12%, var(--surface-2)); border-left: 4px solid #14b8a6; font-size: 14px; line-height: 1.45; }
+.hb-call b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #14b8a6; margin-bottom: 2px; }
+.wk-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.wk-d { min-width: 0; padding: 10px 8px; border-radius: 14px; background: var(--surface); border: 1px solid var(--hair); }
+.wk-d.today { border-color: #14b8a6; box-shadow: 0 0 0 1px #14b8a6 inset; }
+.wk-h { display: flex; align-items: baseline; gap: 6px; margin-bottom: 8px; }
+.wk-h span { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); } .wk-h b { font: 700 18px var(--f-display); }
+.wk-flag { margin-left: auto; font: 700 10px var(--f-body); font-style: normal; padding: 2px 6px; border-radius: 6px; background: color-mix(in srgb, #ef4444 18%, transparent); color: #ef4444; }
+.wk-d ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.wk-d li { display: grid; padding: 5px 7px; border-radius: 8px; border-left: 3px solid var(--c); background: color-mix(in srgb, var(--c) 10%, transparent); min-width: 0; }
+.wk-d li b { font-size: 12px; font-weight: 600; overflow-wrap: anywhere; } .wk-d li small { font-size: 10.5px; color: var(--muted); }
+.wk-d li.done { opacity: .55; } .wk-d li.done b { text-decoration: line-through; }
+.wk-d li.wk-due { background: color-mix(in srgb, var(--c) 18%, transparent); }
+@media (max-width: 900px) { .wk-grid { grid-template-columns: minmax(0, 1fr); } .wk-d ul { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } .hb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
 </style>
 <div class="wrap">
   <header class="topbar">
@@ -7150,6 +7174,99 @@ HUB.timeline = (el) => INTEL.timeline(el);
 
 // Open another app after saving
 document.addEventListener('click', (e) => { const a = e.target.closest('[data-hub-open]'); if (!a) return; e.preventDefault(); goTo(a.dataset.hubOpen); });
+
+// ---- hubplus.js ----
+// ===================== Hub+: Morning Briefing, conflict alerts, Week calendar, connection graphs =====================
+// Builds on ecohub.js. Everything is read from docs the apps already write; nothing here writes data.
+SUBS.hub.splice(1, 0, ['week', 'Week']);
+const hpCorr = (k) => CORR_VARS.find((v) => v[0] === k)[3];
+const hpReady = (d) => doc('rl-ready')?.days?.[d]?.score ?? hubSafe(() => readiness(d)?.score);
+const hpSleepNight = (d) => doc('rl-sleep')?.nights?.[d]?.asleepH ?? hubSleep(d);
+const HP_TESTS = ['test', 'exam', 'quiz'];
+const hpTestsOn = (d) => (doc('life-school') ? scDue(d, d).filter((x) => HP_TESTS.includes(x.type)) : []);
+const hpHard = (its) => its.filter((x) => ['lift', 'game', 'conditioning', 'practice'].includes(x.type) || (x.src === 'Gameplan' && x.type === 'training'));
+const hpBed = () => doc('gp-core')?.routine?.bed || doc('gp-sig')?.bed || null;
+const hpPain = (t) => (doc('rl-body')?.records || []).filter((r) => r.date >= shiftIso(t, -2) && (r.kind === 'pain' || r.kind === 'injury'));
+function hpShotPct(d) {
+  const a = hubSafe(() => hpCorr('shotpct')(d)); if (a != null) return a;
+  const b = btcOn(d).map((w) => w.btc).filter((x) => x?.attempts >= 20);
+  return b.length ? r1((sum(b.map((x) => x.makes)) / sum(b.map((x) => x.attempts))) * 100) : null;
+}
+const hpClsName = (id) => hubSafe(() => scClass(id)?.name) || '';
+
+// ---------- Morning Briefing ----------
+function hubBriefing() {
+  const t = todayIso(), tm = shiftIso(t, 1), rd = hpReady(t), sl = hpSleepNight(t), its = hubSafe(() => tdItems(t), []) || [];
+  const S = doc('life-school'), dueT = S ? scDue(t, t) : [], testsTm = hpTestsOn(tm), soon = S ? scDue(tm, shiftIso(t, 3)).filter((x) => HP_TESTS.includes(x.type)) : [];
+  const hard = hpHard(its), game = its.some((x) => x.type === 'game'), pain = hpPain(t), G = targets(t), T = totalsOf(t);
+  const sig = doc('gp-sig'), top3 = sig?.updated === t ? sig.top3Today || [] : [];
+  const bed = hpBed();
+  const tile = (c, k, v, s) => `<div class="hb-t" style="--c:${c}"><small>${k}</small><b>${v}</b><span>${s}</span></div>`;
+  let call;
+  if (pain.length) call = `Pain flagged (${[...new Set(pain.map((r) => r.area))].join(', ')}). Get it checked before training hard today.`;
+  else if (game) call = `Game day. Keep shooting light, eat a carb-heavy meal 3–4 hours before, and finish ${dueT.length || testsTm.length ? 'homework' : 'anything due'} before you leave.`;
+  else if (testsTm.length && (hard.length || (rd != null && rd < 60))) call = `${testsTm[0].title} tomorrow${hpClsName(testsTm[0].cls) ? ' (' + hpClsName(testsTm[0].cls) + ')' : ''}. Keep training ${hard.length ? 'moderate' : 'light'}, study 30–45 min tonight${bed ? `, in bed by ${fmtClock(bed)}` : ''}.`;
+  else if (testsTm.length) call = `${testsTm[0].title} tomorrow. Block 30–45 min of review before dinner${bed ? ` and keep bedtime at ${fmtClock(bed)}` : ''}.`;
+  else if (rd != null && rd < 50) call = `Readiness is low (${rd}). Swap hard work for skill work, mobility and an early night.`;
+  else if (rd != null && rd >= 75) call = `Green light (readiness ${rd}). Good day for your hardest session${dueT.length ? `, after the ${dueT.length} thing${dueT.length > 1 ? 's' : ''} due today` : ''}.`;
+  else call = `Normal day. ${dueT.length ? `Knock out the ${dueT.length} thing${dueT.length > 1 ? 's' : ''} due today first, then train.` : 'Train, eat and sleep on schedule.'}`;
+  return `<section class="card hb"><div class="card-head"><div><h3>Morning briefing</h3><span class="sub">Recovery, school, training, plan and fuel in one look</span></div></div>
+    <div class="hb-grid">
+      ${tile(EV_APPS.rl.color, 'Readiness', rd ?? '—', sl != null ? `slept ${nf(sl, 1)} h` : 'no check-in yet')}
+      ${tile(EV_APPS.school.color, 'School', dueT.length, `due today${soon.length ? ` · ${soon.length} test${soon.length > 1 ? 's' : ''} soon` : ''}`)}
+      ${tile(EV_APPS.aos.color, 'Training', hard.length || '—', hard.length ? esc(hard.map((x) => x.title).slice(0, 2).join(', ')) : 'nothing on the calendar')}
+      ${tile(EV_APPS.ml.color, 'Fuel', `${Math.round(T.protein)}<i>/${G.protein}g</i>`, `protein · ${G.calories.toLocaleString()} kcal target`)}
+    </div>
+    ${top3.length ? `<div class="hb-top"><small>Gameplan Top 3</small>${top3.map((x) => `<span>${esc(x)}</span>`).join('')}</div>` : ''}
+    <p class="hb-call"><b>Today's call</b>${esc(call)}</p></section>`;
+}
+
+// ---------- conflict alerts (added to Needs attention) ----------
+const hpAtt = hubAttention;
+hubAttention = function () {
+  const out = hpAtt(), t = todayIso(), tm = shiftIso(t, 1), S = doc('life-school');
+  const its = hubSafe(() => tdItems(t), []) || [], hard = hpHard(its), testsTm = hpTestsOn(tm), sl = hpSleepNight(t);
+  if (testsTm.length && hard.length) out.push({ app: 'aos', lvl: 'watch', t: `${hard[0].title} tonight, ${testsTm[0].title} tomorrow`, s: 'Keep the session moderate and finish studying before it', href: 'athlete.html' });
+  if (S && its.some((x) => x.type === 'game')) { const d = scDue(tm, tm), mins = sum(d.map((x) => x.mins || 30)); if (d.length >= 2 || mins >= 120) out.push({ app: 'school', lvl: 'watch', t: `Game today and ${d.length} due tomorrow (~${Math.round(mins / 6) / 10} h)`, s: 'Get it done before you leave for the game', href: 'student.html' }); }
+  if (S) for (const x of scDue(t, shiftIso(t, 2)).filter((x) => scClass(x.cls)?.latePolicy === 'none')) out.push({ app: 'school', lvl: x.due <= tm ? 'act' : 'watch', t: `${hpClsName(x.cls)}: ${x.title} due ${evWhen(x.due).toLowerCase()}`, s: 'No late work in this class. Finish it early.', href: 'student.html' });
+  if (testsTm.length && sl != null && sl < 7) out.push({ app: 'rl', lvl: 'watch', t: `Only ${nf(sl, 1)} h of sleep and a test tomorrow`, s: `Aim for bed ${hpBed() ? 'by ' + fmtClock(hpBed()) : '30 minutes earlier'} tonight`, href: 'gameplan.html' });
+  const order = { act: 0, watch: 1, info: 2 };
+  return out.sort((a, b) => order[a.lvl] - order[b.lvl]);
+};
+const hpToday = HUB.today;
+HUB.today = (el) => { hpToday(el); hubSafe(() => $('.hub-head', el)?.insertAdjacentHTML('afterend', hubBriefing())); };
+
+// ---------- Week: one calendar for every app ----------
+HUB.week = (el) => {
+  const off = Number(ui('hubWk', '0')), mon = shiftIso(mondayOf(todayIso()), off * 7), days = Array.from({ length: 7 }, (_, i) => shiftIso(mon, i)), t = todayIso(), S = doc('life-school');
+  const col = (d) => {
+    const its = hubSafe(() => tdItems(d), []) || [], due = S ? S.items.filter((x) => x.due === d) : [], btc = btcOn(d);
+    const rows = [
+      ...due.map((x) => `<li class="wk-due${x.done ? ' done' : ''}" style="--c:${scClass(x.cls)?.color || EV_APPS.school.color}"><b>${esc(x.title)}</b><small>${HP_TESTS.includes(x.type) ? x.type.toUpperCase() : 'due'}${hpClsName(x.cls) ? ' · ' + esc(hpClsName(x.cls)) : ''}</small></li>`),
+      ...its.map((x) => `<li${x.done ? ' class="done"' : ''} style="--c:${x.color}"><b>${esc(x.title)}</b><small>${tdClock(x.st)} · ${x.src}</small></li>`),
+      ...btc.map((w) => `<li style="--c:${EV_APPS.btc.color}"><b>${esc(w.name || 'Training Center')}</b><small>${w.mins} min · done</small></li>`),
+    ];
+    return `<div class="wk-d${d === t ? ' today' : ''}"><div class="wk-h"><span>${DOW[parseIso(d).getDay()]}</span><b>${parseIso(d).getDate()}</b>${hpTestsOn(d).length ? '<i class="wk-flag">Test</i>' : ''}</div>${rows.length ? `<ul>${rows.join('')}</ul>` : '<p class="tiny muted">Free</p>'}</div>`;
+  };
+  el.innerHTML = `<section class="hub-head"><h1>Week</h1><p class="hub-sum">Classes due, calendar, Gameplan blocks and sessions · ${fmtD(days[0])} – ${fmtD(days[6])}</p><div style="margin-top:10px">${seg('hubWk', [['-1', 'Last'], ['0', 'This week'], ['1', 'Next'], ['2', '+2']], String(off))}</div></section>
+    <div class="wk-grid">${days.map(col).join('')}</div>
+    <div class="legend small muted" style="margin-top:8px">${['school', 'aos', 'gp', 'btc'].map((k) => `<span><i class="dot" style="background:${EV_APPS[k].color}"></i>${EV_APPS[k].name}</span>`).join(' ')}</div>`;
+};
+
+// ---------- Graphs: how your apps affect each other ----------
+const hpGraphs = HUB.graphs;
+HUB.graphs = (el) => {
+  hpGraphs(el);
+  const n = Number(ui('hubRange', '30')), days = hubIn(Math.max(n, 60)), S = doc('life-school');
+  const sets = [
+    { id: 'hc-sleep', h: 'Sleep → test and quiz scores', s: 'Sleep the night before each graded test or quiz', xl: 'Sleep (h)', yl: 'Score %', ps: (S?.grades || []).filter((g) => ['test', 'quiz'].includes(g.cat) && g.max > 0).map((g) => [hpSleepNight(g.date), r1((g.score / g.max) * 100), g.date]).filter((p) => p[0] != null) },
+    { id: 'hc-shoot', h: 'Readiness → shooting %', s: 'Recovery readiness vs. makes that day (20+ shots)', xl: 'Readiness', yl: 'Shooting %', ps: days.map((d) => [hpReady(d), hpShotPct(d), d]).filter((p) => p[0] != null && p[1] != null) },
+    { id: 'hc-prot', h: 'Protein → next-day soreness', s: 'MacroLens protein vs. soreness the morning after', xl: 'Protein (g)', yl: 'Soreness (1–5)', ps: hubSafe(() => corrPairs('protein', 'sore', days, 1), []) || [] },
+  ];
+  el.insertAdjacentHTML('beforeend', `<section class="card"><div class="card-head"><div><h3>How your apps connect</h3><span class="sub">Each dot is one day. A pattern needs ${CORR_MIN}+ days; correlation is not proof.</span></div></div>
+    <div class="grid three">${sets.map((x) => { const st = x.ps.length >= CORR_MIN ? pearson(x.ps) : null; return `<div><b class="small">${x.h}</b><p class="tiny muted" style="margin:2px 0 6px">${x.s}</p>${st ? `<div class="chart" id="${x.id}"></div><p class="tiny"><b>r = ${st.r >= 0 ? '+' : ''}${st.r.toFixed(2)}</b> · ${strength(st.r)} ${st.r >= 0 ? 'positive' : 'negative'} · ${x.ps.length} days</p>` : `<p class="small muted">${x.ps.length} of ${CORR_MIN} days so far. Keep logging and this fills in.</p>`}</div>`; }).join('')}</div></section>`);
+  for (const x of sets) { const st = x.ps.length >= CORR_MIN ? pearson(x.ps) : null; if (st) drawScatter($('#' + x.id, el), x.ps, { xl: x.xl, yl: x.yl, fit: st, h: 200, label: x.h }); }
+};
 
 // ---- look.js ----
 // ===================== COURTSIDE LOOK: Home structure =====================
