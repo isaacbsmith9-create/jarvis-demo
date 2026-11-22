@@ -18,17 +18,21 @@ const SUITE_JS = src('suite/suite.js'), SUITE_CSS = src('suite/suite.css');
 const out = join(here, 'dist');
 mkdirSync(out, { recursive: true });
 const swap = (html, from, to, what) => { if (!html.includes(from)) throw new Error(`${what}: anchor not found`); return html.replace(from, () => to); };
+const DAYMERGE = `<script>\n${src('suite/daymerge.js')}\n</script>\n`;
+// Every page loads the day-record merge layer before any of its own scripts.
+const firstScript = (html) => { const i = html.indexOf('<script'); if (i < 0) throw new Error('no script'); return html.slice(0, i) + DAYMERGE + html.slice(i); };
 const beforeLastScript = (html, add) => { const i = html.lastIndexOf('</script>') + '</script>'.length; return html.slice(0, i) + '\n' + add + html.slice(i); };
 
 // ---------- Athlete OS ----------
 const page = src('index.html')
   .replace('/*CSS*/', () => src('os.css') + '\n' + SUITE_CSS + '\n' + src('look.css'))
   .replace('/*JS*/', () => `// ---- suite.js ----\n${SUITE_JS}\n` + JS.map((f) => `// ---- ${f} ----\n${src(f)}`).join('\n'));
-writeFileSync(join(out, 'athlete.html'), SKELETON + page + '\n</body></html>\n');
+const pageDm = firstScript(page);
+writeFileSync(join(out, 'athlete.html'), SKELETON + pageDm + '\n</body></html>\n');
 // School is Student Lens now (student.html); old links to school.html forward there.
 writeFileSync(join(out, 'school.html'), '<!doctype html><html><head><meta charset="utf-8"><title>Student Lens</title><meta http-equiv="refresh" content="0;url=student.html"></head><body><script>location.replace(\'student.html\' + location.hash);</script><a href="student.html">Open Student Lens</a></body></html>\n');
 // Hub: the ecosystem app (opens every app, one agenda, cross-app graphs), the same bundle in "hub" mode.
-writeFileSync(join(out, 'index.html'), SKELETON + page.replace('<title>Athlete OS</title>', '<title>Hub</title>').replace('<script>', '<script>window.APP_MODE = "hub";</script>\n<script>') + '\n</body></html>\n');
+writeFileSync(join(out, 'index.html'), SKELETON + pageDm.replace('<title>Athlete OS</title>', '<title>Hub</title>').replace('<script>', '<script>window.APP_MODE = "hub";</script>\n<script>') + '\n</body></html>\n');
 
 // ---------- MacroLens (unchanged app; only its brand becomes the suite switcher) ----------
 let ml = vendor('macrolens.html');
@@ -47,7 +51,7 @@ window.addEventListener('pagehide', () => { try { if (pending.size) flush(); } c
   if (v === 'coach' && g && typeof setCoachGroup === 'function') setCoachGroup(g);
 })();
 </script>`);
-writeFileSync(join(out, 'macrolens.html'), SKELETON + ml + '\n</body></html>\n');
+writeFileSync(join(out, 'macrolens.html'), SKELETON + firstScript(ml) + '\n</body></html>\n');
 
 // ---------- Gameplan (shares this artifact's storage: keys "ml:gp-…", docs "gp-…"; restyled with the suite look) ----------
 let gp = vendor('gameplan.html');
@@ -71,7 +75,7 @@ function gpSignals() {
 setTimeout(gpSignals, 1500);
 window.addEventListener('pagehide', () => { try { gpSignals(); if (pending.size) flush(); } catch {} });
 </script>`);
-writeFileSync(join(out, 'gameplan.html'), SKELETON + gp + '\n</body></html>\n');
+writeFileSync(join(out, 'gameplan.html'), SKELETON + firstScript(gp) + '\n</body></html>\n');
 // ---------- Basketball Training Center (vendor/btc.html = its published page; storage renamed into the suite) ----------
 let btc = vendor('btc.html');
 btc = swap(btc, "const KEY = 'btc-training-center-v1';", "const KEY = 'ml:btc-local';", 'Training Center storage key');
@@ -79,13 +83,13 @@ btc = swap(btc, "ns.doc('data/users/' + id + '/app')", "ns.doc('data/users/' + i
 btc = swap(btc, '<div class="eyebrow">Player development</div>', '<div id="suite-host"></div>', 'Training Center brand');
 btc = swap(btc, '</style>', `</style>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">\n<style>${src('suite/btc-skin.css')}\n${SUITE_CSS}</style>\n<script>\n${SUITE_JS}\nSuite.theme();\n</script>`, 'Training Center style');
 btc = beforeLastScript(btc, `<script>\n${src('suite/btc-bridge.js')}\n</script>`);
-writeFileSync(join(out, 'btc.html'), btc);
+writeFileSync(join(out, 'btc.html'), firstScript(btc));
 // ---------- Recovery Lens (vendor/recovery.html = its published page; built to be page 6 of this bundle) ----------
 let rlp = vendor('recovery.html');
 rlp = swap(rlp, "  { id: 'aos', plain: 'Athlete OS', href: 'index.html',", "  { id: 'hub', plain: 'Hub', href: 'index.html', desc: 'Every app in one place: your day, alerts and graphs', color: '#14b8a6' },\n  { id: 'aos', plain: 'Athlete OS', href: 'athlete.html',", 'Recovery Lens app list');
 rlp = swap(rlp, 'data-nav href="index.html"', 'data-nav href="athlete.html"', 'Recovery Lens Athlete OS link');
 rlp = swap(rlp, "{ id: 'school', plain: 'School', href: 'school.html', desc: 'Classes, assignments, tests and grades', color: '#0ea5e9' }", "{ id: 'school', plain: 'Student Lens', href: 'student.html', desc: 'Classes, assignments, grades, studying and exams', color: '#6d7cff' }", 'Recovery Lens Student Lens entry');
-writeFileSync(join(out, 'recovery.html'), rlp);
+writeFileSync(join(out, 'recovery.html'), firstScript(rlp));
 // ---------- Student Lens (vendor/student-lens = its published files, unchanged; connected by src/suite/sl-bridge.js) ----------
 // Multi-file: student.html plus app.css, js/*.js and vendor/pdf*.js at the bundle root (published with the page's files).
 const SLD = join(here, 'vendor', 'student-lens');

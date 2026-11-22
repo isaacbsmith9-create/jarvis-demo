@@ -103,3 +103,9 @@ mind, planning, school) and the Timeline. Code: `src/ecohub.js`.
 `vendor/recovery.html` is its published page. The build only changes its app list (adds Hub, Athlete OS → `athlete.html`).
 It detects the bundle itself (`macrolens.html` exists) and then reads the shared records. Hub shows its stored readiness
 (`rl-ready`), pain flags (`rl-body`) and protocols (`rl-proto`), and the event stream attributes its records to app `rl`.
+
+## Day-record safety (src/suite/daymerge.js)
+Every page loads a merge layer under its database before its own scripts. Saving a `day-YYYY-MM-DD` doc reads the account
+copy first and merges three ways against what that page last loaded: fields and id'd list items the page changed win;
+everything it did not touch keeps the account's value (including items other apps or devices added). Apps keep saving
+whole docs as before. Lists inside day docs should give each item an `id` so they merge item by item.
