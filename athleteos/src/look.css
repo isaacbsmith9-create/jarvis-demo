@@ -261,3 +261,13 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .hg-h .tag { margin-left: auto; }
 .hg-t { display: block; font-size: 15px; margin-bottom: 4px; }
 .hg-n { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--muted); margin-bottom: 8px; } .hg-n b { color: var(--fg); }
+/* engine insights */
+.ins-g { margin: 14px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.ins-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ins { padding: 12px 14px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--hair); border-left: 4px solid var(--c); min-width: 0; }
+.ins.act { border-left-color: var(--danger, #ef4444); } .ins.watch { border-left-color: var(--warn, #f59e0b); } .ins.good { border-left-color: var(--good, #22c55e); }
+.ins-h { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; } .ins-h b { font-size: 14.5px; }
+.ins-ev { margin: 6px 0 0; padding-left: 18px; font-size: 12.5px; color: var(--muted); }
+.ins-f { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin-top: 8px; font-size: 12px; }
+.ins-apps { color: var(--muted); } .ins-apps i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 0 4px 0 2px; }
+.ins-a { flex: 1 1 200px; } .ins-f .btn { margin-left: auto; }

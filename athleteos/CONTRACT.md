@@ -129,3 +129,11 @@ time, at, done}] } and to `life-school.items` (pending:true) right away; Student
 - **One goals list:** `aos-goals` is the shared list. Extra auto sources: `school:gpa`, `school:wgpa`,
   `school:cls:<class id>`, `rl:ready7`, `nut:pdays7`. Hub › Goals shows it. GPA and class-grade goals are mirrored into
   Student Lens's goals as `hub-<goal id>` (read-only copies; edit them in the Hub or Athlete OS).
+
+## Hub 2.0 Phase B: intelligence engine (src/engine.js)
+`Ecosystem.insights()` returns one list from every app and saves it to doc `hub-insights` { v, date, at, items }.
+Item: `{ id, kind: alert|trend|pattern|win|unlock, lvl: act|watch|good|info, apps, title, evidence: [text],
+confidence: high|medium|low, action, href }`. Sources: Hub alerts and conflicts, Student Lens grades and GPA trend,
+14-day vs previous 14-day trends (sleep, readiness, protein, shooting %, training, plan kept; needs 4+ days in each),
+cross-app patterns (60 days, 10+ paired days, |r| ≥ 0.4), goals (reached, behind), and wins (check-in streak, protein
+days). When data is short it returns an `unlock` item saying what's missing. Shown in Hub › Insights.
