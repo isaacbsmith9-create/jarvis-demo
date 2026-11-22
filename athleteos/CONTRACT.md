@@ -109,3 +109,13 @@ Every page loads a merge layer under its database before its own scripts. Saving
 copy first and merges three ways against what that page last loaded: fields and id'd list items the page changed win;
 everything it did not touch keeps the account's value (including items other apps or devices added). Apps keep saving
 whole docs as before. Lists inside day docs should give each item an `id` so they merge item by item.
+
+## Readiness owner (src/unify.js)
+Recovery Lens owns readiness. When `rl-ready.days[date].score` exists it is both `readiness(date).score` and
+`recoveryScore(date).score` everywhere in the bundle; Athlete OS adjustments (load spike, fatigue, injury) become notes.
+Days without it use Athlete OS's own calculation.
+
+## Quick capture (src/capture.js)
+Hub › Today box. Student Lens items go to doc `sl-inbox` { items [{id, kind: assignment|exam, classId, title, type, date,
+time, at, done}] } and to `life-school.items` (pending:true) right away; Student Lens adds them when it opens and sets
+`done`. Training goes to `aos-plan` events, tasks to `gp-core.tasks`, food opens MacroLens with the text copied.

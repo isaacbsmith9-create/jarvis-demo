@@ -70,7 +70,7 @@
   const _load = loadAll;
   loadAll = async function () {
     await _load();
-    const c = await withTimeout(ready, 8000); if (!c) { publish(); return; }
+    const c = await withTimeout(ready, 8000); if (!c) { await consumeInbox(null); publish(); return; }
     try {
       const snap = await withTimeout(c.get(), 8000);
       const d = snap?.docs?.find((x) => x.exists && x.id === 'sl-data'), remote = d ? JSON.parse(JSON.stringify(d.data())) : null;
@@ -80,6 +80,7 @@
         applying = true; importJSON(remote.state); await _flush(); applying = false;
         setLocalAt(remote.updatedAt || Date.now()); publish();
       } else if (hasData()) pushNow();
+      await consumeInbox(snap?.docs);
     } catch (e) { applying = false; console.error(e); publish(); }
   };
 
@@ -97,6 +98,23 @@
     });
     return out.sort((a, b) => LVL[b.level][0] - LVL[a.level][0]);
   };
+
+  // ---------- items added from the Hub's quick capture (doc "sl-inbox") ----------
+  async function consumeInbox(docs) {
+    try {
+      const remote = docs?.find((x) => x.exists && x.id === 'sl-inbox'), box = remote ? JSON.parse(JSON.stringify(remote.data())) : lsJ('sl-inbox') || { items: [] };
+      const todo = (box.items || []).filter((x) => !x.done && !byId(x.kind === 'exam' ? 'exams' : 'assignments', x.id));
+      if (!todo.length) return;
+      for (const x of todo) {
+        const classId = cls(x.classId) ? x.classId : '';
+        if (x.kind === 'exam') upsert('exams', { id: x.id, classId, title: x.title, date: x.date, time: x.time || '', max: 100, topics: [], plan: [], createdAt: Date.now(), from: 'hub' });
+        else upsert('assignments', { id: x.id, classId, title: x.title, type: x.type || 'homework', due: x.date, dueTime: x.time || '', status: 'not_started', estMins: DEF_MINS[x.type] || 30, createdAt: Date.now(), from: 'hub' });
+        x.done = Date.now();
+      }
+      lsW('sl-inbox', box); writeDoc('sl-inbox', box);
+      setTimeout(() => toast(`Added ${todo.length} item${todo.length === 1 ? '' : 's'} from the Hub`), 400);
+    } catch (e) { console.error(e); }
+  }
 
   // ---------- downloads ----------
   download = async function (name, text, type = 'text/plain') {
