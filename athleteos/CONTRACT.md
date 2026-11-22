@@ -137,3 +137,12 @@ confidence: high|medium|low, action, href }`. Sources: Hub alerts and conflicts,
 14-day vs previous 14-day trends (sleep, readiness, protein, shooting %, training, plan kept; needs 4+ days in each),
 cross-app patterns (60 days, 10+ paired days, |r| ≥ 0.4), goals (reached, behind), and wins (check-in streak, protein
 days). When data is short it returns an `unlock` item saying what's missing. Shown in Hub › Insights.
+
+## Hub 2.0 Phase C (src/phasec.js)
+- **Action Center** (Hub › Today, top): `Ecosystem.actions()` ranks candidates from Student Lens deadlines and tests
+  (no-late classes first), engine insights and Gameplan's Top 3; the top 3 not yet done/skipped are shown. Doc
+  `hub-actions` { v, days: { date: { shown: [ids], s: { id: { s: done|skip, at, title } } } } }, kept 60 days.
+- **Morning text**: doc `hub-brief` { v, at, days: { today, tomorrow: { date, readiness, lines, text } } }, rebuilt on
+  every page load of the bundle. A scheduled Claude task reads it at 8:15 AM ET and sends `text` (updating the readiness
+  line from `rl-ready` when a newer score exists).
+- Athlete OS's Command Center and "Start your day" are replaced by a "Today" card linking to the Hub.
