@@ -96,7 +96,7 @@ async function connectStore(onReady) {
       cache[d.id] = JSON.parse(JSON.stringify(d.data()));
       lsSet(d.id, cache[d.id]);
     }
-    for (const k of lsKeys()) if (!remoteKeys.has(k) && (k === 'core' || k.startsWith('day-') || k.startsWith('aos') || k.startsWith('life-'))) { doc(k); pending.add(k); }
+    for (const k of lsKeys()) if (!remoteKeys.has(k) && (k === 'core' || k.startsWith('day-') || k.startsWith('aos') || k.startsWith('life-') || k === 'ev-aos')) { doc(k); pending.add(k); }
     dbReady = true;
     setSync('synced');
     if (pending.size) flush();

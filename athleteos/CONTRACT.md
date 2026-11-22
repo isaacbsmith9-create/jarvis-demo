@@ -70,3 +70,22 @@ finished session once (id `btc-<session id>`, type from the session's main area,
 minutes from the session) and adds Athlete OS context (games, practices, load ratio > 1.3, readiness < 45) to its
 daily recommendation. To pick up a new Training Center version, replace `vendor/btc.html` and rebuild; the build
 stops with a clear error if one of those anchors changed.
+
+## Event stream (ecosystem phase 1)
+
+`src/events.js` turns every app's own records into one stream of events, so no app has to change to appear in it.
+Each event: `{ id, app: aos|gp|school|btc|ml, type: '<kind>.<verb>', date: 'YYYY-MM-DD', time: 'HH:MM' | null, title, detail }`.
+Ids are stable (built from the record's own id or date), so re-reading never duplicates an event.
+
+| App | Events read from its records |
+| --- | --- |
+| MacroLens | `meal.logged` (per meal), `water.logged`, `weight.logged` |
+| Training Center | `workout.finished` (exported sessions, `source: 'training-center'`) |
+| Athlete OS | `workout.finished`, `recovery.checkin`, `mind.checkin`, `test.result`, `record.set`, `shooting.session`, `game.played`, `goal.milestone` |
+| Gameplan | `block.done`, `night.done` |
+| School | `grade.posted`; upcoming `due.<type>` items for "Coming up" |
+
+For something an app's records can't show, the app appends to **its own** `ev-<app>` doc
+(`{ events: [{ id, type, date, time, title, detail }] }`, newest 300 kept). In Athlete OS: `Ecosystem.emit(type, title, detail)`.
+Read the stream with `Ecosystem.events(from, to)` and `Ecosystem.upcoming(days)`. Shown in Intel › Timeline and the
+Home card "Across your apps". Later phases (inbox, automations, assistant) build on this stream.

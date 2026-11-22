@@ -2,7 +2,7 @@
 // Visual only: nothing is removed. Home gets a scoreboard header (readiness, training, protein, sleep, streak),
 // jump chips, and section labels that group the cards (Today / Numbers / Progress) in whatever order you chose.
 const LOOK_GROUPS = {
-  today: ['command', 'upnext', 'today', 'status', 'mind', 'checklist', 'rec', 'fuel', 'calendar', 'school'],
+  today: ['command', 'upnext', 'apps', 'today', 'status', 'mind', 'checklist', 'rec', 'fuel', 'calendar', 'school'],
   numbers: ['charts', 'radar', 'heat', 'mix', 'compare', 'load', 'score', 'preview', 'week'],
   progress: ['timeline', 'goals', 'prs', 'ach'],
 };
