@@ -108,11 +108,7 @@ ACTIONS.settings = () => {
 const APPS = [
   ['MacroLens', 'Food diary, AI photo scan, eating schedule, bowl builder, snacks', ML(''), true],
   ['Training Center', 'Drills, workouts and running your basketball sessions', 'btc.html', true],
-  ['ReadyUp', 'Readiness check-ins and recovery routines', 'https://claude.ai/artifact/S9xPngi3ZUsD6okgc7jqwG', false],
-  ['Weekboard', 'Your week of school, practice and work', 'https://claude.ai/artifact/CT9KqYWe3FPY9a9n5EeLDN', false],
   ['Gameplan', 'Plan my day by voice, hour-by-hour schedule, Top 3, time tracker, night routine', 'gameplan.html', true],
-  ['Charla', 'Daily Spanish conversation practice', 'https://claude.ai/artifact/Ya3DWBwNJ7gtNNvZ1Ndgvz', false],
-  ['Baseline', 'All-in-one daily app', 'https://claude.ai/artifact/6yejSST4C1k4pprwDigbJc', false],
 ];
 ACTIONS.apps = () => openSheet('Your apps', `<div class="apps">${APPS.map(([n, d, u, same]) => `<a class="app" ${same ? 'data-ml' : 'target="_blank" rel="noopener"'} href="${u}"><b>${n}</b><span>${d}</span><span class="st ${same ? '' : 'off'}">${same ? '● Same data as Athlete OS' : 'Separate app · opens in a new tab'}</span></a>`).join('')}</div>
   <p class="muted small">MacroLens is built into Athlete OS and shares one live database with it. The other apps are separate Claude artifacts, which can't read each other's data, so they open on their own.</p>`);

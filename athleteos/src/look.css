@@ -280,3 +280,15 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .ac-b { display: grid; min-width: 0; } .ac-b b { font-size: 14.5px; } .ac-b small { font-size: 12px; color: var(--muted); }
 .ac-btns { display: flex; gap: 6px; }
 @media (max-width: 420px) { .ac-list li { grid-template-columns: 28px minmax(0, 1fr); } .ac-btns { grid-column: 2; } }
+/* Phase D */
+.pd-t { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.pd-t th { text-align: right; font-size: 11px; color: var(--muted); font-weight: 600; padding: 4px 6px; } .pd-t th:first-child { text-align: left; }
+.pd-t td { padding: 7px 6px; border-top: 1px solid var(--hair); } .pd-t td.num { text-align: right; white-space: nowrap; }
+.pd-t td.up { color: var(--good, #22c55e); } .pd-t td.down { color: var(--danger, #ef4444); }
+.pd-ul { margin: 0; padding-left: 18px; font-size: 13.5px; } .pd-ul.up li::marker { color: var(--good, #22c55e); } .pd-ul.down li::marker { color: var(--danger, #ef4444); }
+.pd-hab { display: grid; gap: 10px; }
+.pd-h { display: grid; grid-template-columns: minmax(120px, 170px) minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.pd-hl { font-size: 13px; } .pd-hp { font-size: 12px; color: var(--muted); white-space: nowrap; } .pd-hp b { color: var(--fg); }
+.pd-sq { display: grid; grid-template-columns: repeat(28, minmax(0, 1fr)); gap: 2px; }
+.pd-sq i { aspect-ratio: 1; border-radius: 2px; background: var(--surface-2); border: 1px solid var(--hair); } .pd-sq i.on { background: var(--c); border-color: var(--c); }
+@media (max-width: 560px) { .pd-h { grid-template-columns: minmax(0, 1fr) auto; } .pd-sq { grid-column: 1 / -1; grid-row: 2; } }

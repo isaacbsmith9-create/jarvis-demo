@@ -146,3 +146,10 @@ days). When data is short it returns an `unlock` item saying what's missing. Sho
   every page load of the bundle. A scheduled Claude task reads it at 8:15 AM ET and sends `text` (updating the readiness
   line from `rl-ready` when a newer score exists).
 - Athlete OS's Command Center and "Start your day" are replaced by a "Today" card linking to the Hub.
+
+## Hub 2.0 Phase D: Insights tab (src/phased.js)
+Hub › Insights adds, under the engine's list: Week in review (Mon–Sun vs the week before: better, slipped, best and
+toughest day), Compare (last 7 / 30 / 365 days vs the same length before, 12 metrics across apps), Habits (28-day grid
+for check-in, 8+ h sleep, trained, logged food, hit protein, kept the plan, with % and streak) and Long-term (vertical,
+GPA, weekly shooting %, weekly readiness and sleep). On Sundays the morning text gets a "📈 Week:" line.
+`Ecosystem.compare(n)`, `.habits()`, `.weekReview(date)`.
