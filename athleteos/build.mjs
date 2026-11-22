@@ -1,5 +1,5 @@
 // Builds the Athlete suite artifact, one bundle with one shared database:
-//   dist/index.html     Athlete OS        (src/)
+//   dist/index.html     Hub (the front door: every app in one place), dist/athlete.html Athlete OS (src/)
 //   dist/macrolens.html MacroLens copy    (vendor/macrolens.html = macrolens/artifact.html from the MacroLens branch, unchanged)
 //   dist/gameplan.html  Gameplan copy     (vendor/gameplan.html  = gameplan/artifact.html, restyled with the suite look)
 //   dist/btc.html       Basketball Training Center (vendor/btc.html = its published page, restyled, connected by src/suite/btc-bridge.js)
@@ -24,11 +24,11 @@ const beforeLastScript = (html, add) => { const i = html.lastIndexOf('</script>'
 const page = src('index.html')
   .replace('/*CSS*/', () => src('os.css') + '\n' + SUITE_CSS + '\n' + src('look.css'))
   .replace('/*JS*/', () => `// ---- suite.js ----\n${SUITE_JS}\n` + JS.map((f) => `// ---- ${f} ----\n${src(f)}`).join('\n'));
-writeFileSync(join(out, 'index.html'), SKELETON + page + '\n</body></html>\n');
+writeFileSync(join(out, 'athlete.html'), SKELETON + page + '\n</body></html>\n');
 // School: the same bundle in "school" mode (Athlete Life OS, first module).
 writeFileSync(join(out, 'school.html'), SKELETON + page.replace('<script>', '<script>window.APP_MODE = "school";</script>\n<script>') + '\n</body></html>\n');
 // Hub: the ecosystem app (opens every app, one agenda, cross-app graphs), the same bundle in "hub" mode.
-writeFileSync(join(out, 'hub.html'), SKELETON + page.replace('<script>', '<script>window.APP_MODE = "hub";</script>\n<script>') + '\n</body></html>\n');
+writeFileSync(join(out, 'index.html'), SKELETON + page.replace('<script>', '<script>window.APP_MODE = "hub";</script>\n<script>') + '\n</body></html>\n');
 
 // ---------- MacroLens (unchanged app; only its brand becomes the suite switcher) ----------
 let ml = vendor('macrolens.html');
@@ -80,4 +80,4 @@ btc = swap(btc, '<div class="eyebrow">Player development</div>', '<div id="suite
 btc = swap(btc, '</style>', `</style>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">\n<style>${src('suite/btc-skin.css')}\n${SUITE_CSS}</style>\n<script>\n${SUITE_JS}\nSuite.theme();\n</script>`, 'Training Center style');
 btc = beforeLastScript(btc, `<script>\n${src('suite/btc-bridge.js')}\n</script>`);
 writeFileSync(join(out, 'btc.html'), btc);
-console.log('built', ['index.html', 'school.html', 'hub.html', 'macrolens.html', 'gameplan.html', 'btc.html'].map((f) => join(out, f)).join(' '));
+console.log('built', ['index.html', 'athlete.html', 'school.html', 'macrolens.html', 'gameplan.html', 'btc.html'].map((f) => join(out, f)).join(' '));

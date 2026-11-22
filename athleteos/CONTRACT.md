@@ -90,7 +90,7 @@ For something an app's records can't show, the app appends to **its own** `ev-<a
 Read the stream with `Ecosystem.events(from, to)` and `Ecosystem.upcoming(days)`. Shown in Intel › Timeline and the
 Home card "Across your apps". Later phases (inbox, automations, assistant) build on this stream.
 
-## Hub (hub.html)
+## Hub (index.html, the artifact's front page; Athlete OS is athlete.html)
 
 The ecosystem app: the Athlete OS bundle in `APP_MODE = 'hub'`, switcher id `hub`. It owns no data. It reads every
 app's records and the event stream to show one launcher (a live number per app), one agenda (calendar + Gameplan),

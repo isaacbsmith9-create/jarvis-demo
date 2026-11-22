@@ -1,7 +1,7 @@
 // ===================== HUB: the ecosystem app (hub.html) =====================
 // Its own app in the switcher. It owns no data: it reads every app's records (and the event stream in events.js),
 // opens each app, organizes the day across all of them, and charts everything side by side.
-// hub.html = this bundle with window.APP_MODE = 'hub' (like School).
+// index.html (the artifact's front page) = this bundle with window.APP_MODE = 'hub' (like School).
 VIEWS.splice(VIEWS.length - 1, 0, ['hub', 'Hub', 'grid', true]);
 SUBS.hub = [['today', 'Today'], ['graphs', 'Graphs'], ['timeline', 'Timeline']];
 const HUB = {};
@@ -27,7 +27,7 @@ function hubApps() {
   const btcWk = sum(wk.map((d) => btcOn(d).length)), btcMin = sum(wk.flatMap((d) => btcOn(d).map((w) => w.mins || 0)));
   const fed = hasFood(t);
   return [
-    { id: 'aos', href: 'index.html', icon: 'logo', big: rd ?? '—', unit: rd != null ? 'readiness' : 'no check-in', line: `${tr} min trained today · ${st.current}-day streak`, pct: rd },
+    { id: 'aos', href: 'athlete.html', icon: 'logo', big: rd ?? '—', unit: rd != null ? 'readiness' : 'no check-in', line: `${tr} min trained today · ${st.current}-day streak`, pct: rd },
     { id: 'gp', href: 'gameplan.html', icon: 'calendar', big: bl.length ? `${bl.filter((b) => b.done).length}/${bl.length}` : '—', unit: 'blocks done', line: bl.length ? (() => { const n = nowM(), nx = bl.find((b) => !b.done && b.st + b.mins > n); return nx ? `Next: ${nx.title} at ${tdClock(nx.st)}` : 'All blocks done'; })() : 'No blocks planned today', pct: bl.length ? hubPct(bl.filter((b) => b.done).length, bl.length) : null },
     { id: 'school', href: 'school.html', icon: 'book', big: due, unit: 'due this week', line: `${od} overdue${g != null ? ` · GPA ${g}` : ''}`, pct: due + od ? hubPct(due, due + od) : null },
     { id: 'btc', href: 'btc.html', icon: 'dumbbell', big: btcWk, unit: 'sessions this week', line: btcMin ? `${btcMin} min of drills` : 'Run a session to see it here', pct: hubPct(Math.min(btcWk, 5), 5) },
@@ -60,11 +60,11 @@ function hubAttention() {
     for (const x of scDue(shiftIso(t, 1), shiftIso(t, 3)).filter((x) => ['test', 'exam', 'quiz', 'project'].includes(x.type))) out.push({ app: 'school', lvl: 'watch', t: `${x.type[0].toUpperCase() + x.type.slice(1)} ${evWhen(x.due).toLowerCase() === 'tomorrow' ? 'tomorrow' : 'on ' + fmtDL(x.due)}: ${x.title}`, s: 'Plan study time and a lighter session the night before', href: 'gameplan.html' });
     const e = hubSafe(() => eligibility()); if (e && (e.flag === 'act' || e.flag === 'watch')) out.push({ app: 'school', lvl: e.flag, t: 'Grades to watch for eligibility', s: (e.low || []).map((c) => c.name || c).join(', '), href: 'school.html' });
   }
-  if (!mcheck(t) && h >= 7) out.push({ app: 'aos', lvl: 'info', t: 'No mental check-in yet', s: '30 seconds in Athlete OS › Mind', href: 'index.html#mind-checkin' });
-  if (hubSleep(t) == null && h >= 7) out.push({ app: 'aos', lvl: 'info', t: 'No recovery check-in yet', s: 'Log sleep and soreness so readiness is accurate', href: 'index.html' });
+  if (!mcheck(t) && h >= 7) out.push({ app: 'aos', lvl: 'info', t: 'No mental check-in yet', s: '30 seconds in Athlete OS › Mind', href: 'athlete.html#mind-checkin' });
+  if (hubSleep(t) == null && h >= 7) out.push({ app: 'aos', lvl: 'info', t: 'No recovery check-in yet', s: 'Log sleep and soreness so readiness is accurate', href: 'athlete.html' });
   const T = totalsOf(t), G = targets(t);
   if (h >= 17 && T.protein < G.protein * 0.6) out.push({ app: 'ml', lvl: 'watch', t: `Protein at ${Math.round(T.protein)} of ${G.protein} g`, s: 'A protein-heavy dinner closes the gap', href: 'macrolens.html' });
-  const sig = doc('aos-signals'); if (sig?.acwr > 1.3) out.push({ app: 'aos', lvl: 'watch', t: `Training load ratio ${sig.acwr}`, s: 'Load is rising fast. Keep today lighter.', href: 'index.html#train-load' });
+  const sig = doc('aos-signals'); if (sig?.acwr > 1.3) out.push({ app: 'aos', lvl: 'watch', t: `Training load ratio ${sig.acwr}`, s: 'Load is rising fast. Keep today lighter.', href: 'athlete.html#train-load' });
   const tasks = (doc('gp-core')?.tasks || []).filter((x) => !x.done);
   if (tasks.length) out.push({ app: 'gp', lvl: 'info', t: `${tasks.length} open task${tasks.length > 1 ? 's' : ''} in Gameplan`, s: tasks.slice(0, 2).map((x) => x.title).join(' · '), href: 'gameplan.html' });
   const order = { act: 0, watch: 1, info: 2 };
