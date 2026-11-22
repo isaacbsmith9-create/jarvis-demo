@@ -49,7 +49,7 @@ document.addEventListener('click', (e) => { const d = e.target.closest('[data-wk
 function doFirst() {
   const t = todayIso(), h = new Date().getHours(), out = [], dd = dayDoc(t) || {}, its = itemsOn(t);
   if (recoveryInputs(t).sleepH == null && !dd.feel) out.push({ id: 'checkin', ic: 'moon', title: 'Morning check-in', why: 'Sleep, energy and soreness set your readiness and recovery for today.', btn: `<button type="button" class="btn sm primary" data-act="checkin">Check in</button>` });
-  if (!mind().checks?.[t]) out.push({ id: 'mind', ic: 'brain', title: 'Mental check-in', why: 'Confidence, focus and stress in 30 seconds.', btn: `<button type="button" class="btn sm" data-go="mind-checkin">Check in</button>` });
+  if (!mind().checks?.[t] && !doc('rl-check')?.days?.[t]) out.push({ id: 'mind', ic: 'brain', title: 'Mental check-in', why: 'Confidence, focus and stress in 30 seconds.', btn: `<button type="button" class="btn sm" data-go="mind-checkin">Check in</button>` });
   if (!gpBlocks(t, its).length && h < 21) out.push({ id: 'plan', ic: 'calendar', title: 'Block out your day', why: 'Say or type your day in Gameplan and it shows up here and in your calendar.', btn: `<a class="btn sm" data-ml href="gameplan.html">Plan my day</a>` });
   for (const x of its.filter((x) => (x.type === 'practice' || x.type === 'game') && x.time && !isChecked(t, x.key))) {
     const end = x.end ? toMinT(x.end) : toMinT(x.time) + (x.mins || 120);

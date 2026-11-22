@@ -7,7 +7,7 @@ $('#btn-settings').innerHTML = ICONS.user;
 parseHash();
 mirrorCourtLab();
 render();
-connectStore(() => { mirrorCourtLab(); refresh(); writeSignals(); });
+connectStore(() => { _evCache = {}; mirrorCourtLab(); refresh(); writeSignals(); });
 setTimeout(writeSignals, 1500);
 (async () => {
   if (!window.claude?.use) return;
