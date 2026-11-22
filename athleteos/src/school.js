@@ -15,6 +15,7 @@ SUBS.school = [['due', 'Due'], ['classes', 'Classes'], ['grades', 'Grades']];
 
 // ---------- grade math ----------
 function classPct(c) {
+  if (school().sl) return c.slPct ?? null; // published by Student Lens (its own weights and categories)
   const gs = school().grades.filter((g) => g.cls === c.id && Number(g.max) > 0);
   if (!gs.length) return null;
   const w = c.weights || Object.fromEntries(SC_CATS.map(([k, , v]) => [k, v])); let tot = 0, wsum = 0;
@@ -24,6 +25,8 @@ function classPct(c) {
 const letterOf = (p) => (p == null ? '—' : p >= 90 ? 'A' : p >= 80 ? 'B' : p >= 70 ? 'C' : p >= 60 ? 'D' : 'F');
 const pointsOf = (p) => (p == null ? null : p >= 90 ? 4 : p >= 80 ? 3 : p >= 70 ? 2 : p >= 60 ? 1 : 0);
 function gpa(filter = () => true, weighted = false) {
+  if (school().sl && school().gpa && arguments.length === 0) return school().gpa.unweighted;
+  if (school().sl && school().gpa && arguments.length === 2 && weighted && filter.toString() === '() => true') return school().gpa.weighted;
   const cs = school().classes.filter(filter).map((c) => ({ c, p: pointsOf(classPct(c)) })).filter((x) => x.p != null);
   if (!cs.length) return null;
   const bump = (c) => (!weighted ? 0 : c.level === 'ap' ? 1 : c.level === 'honors' ? 0.5 : 0);
@@ -39,7 +42,13 @@ const scOverdue = () => school().items.filter((x) => !x.done && x.due < todayIso
 const scOn = (d) => school().items.filter((x) => x.due === d);
 
 // ---------- School app screens ----------
-RENDER.school = (el, sub) => SCHOOL[sub](el);
+RENDER.school = (el, sub) => {
+  if (!school().sl) return SCHOOL[sub](el);
+  // Student Lens owns school data now: show it read-only here and send edits there (they would be overwritten otherwise).
+  SCHOOL[sub](el);
+  el.insertAdjacentHTML('afterbegin', `<section class="card" style="border-left:4px solid #6d7cff"><div class="card-head"><div><h3>From Student Lens</h3><span class="sub">Classes, assignments and grades come from Student Lens. Make changes there.</span></div><a class="btn sm primary" data-ml href="student.html">Open Student Lens</a></div></section>`);
+  el.querySelectorAll('[data-act^="sc-"]').forEach((b) => { b.hidden = true; });
+};
 const SCHOOL = {};
 const itemRow = (x) => { const c = scClass(x.cls), [, l, col] = scType(x.type), late = !x.done && x.due < todayIso();
   return `<div class="li"><label class="check" style="flex:1;min-width:0"><input type="checkbox" data-sc-done="${x.id}" ${x.done ? 'checked' : ''} aria-label="Mark ${esc(x.title)} done"><span class="dot" style="background:${c?.color || col}"></span><span style="min-width:0"><span class="t" style="${x.done ? 'text-decoration:line-through;opacity:.6' : ''}">${esc(x.title)}</span><span class="s" style="display:block">${esc(c?.name || 'No class')} · <span style="color:${col}">${l}</span> · ${late ? '<span class="down">late · </span>' : ''}${esc(fmtDL(x.due))}${x.mins ? ` · ~${fmtDur(x.mins)}` : ''}</span></span></label><button type="button" class="chip" data-act="sc-item" data-id="${x.id}">Edit</button></div>`; };
@@ -138,10 +147,10 @@ WIDGETS.splice(2, 0, ['school', 'School this week']);
 DEFAULT_W.splice(DEFAULT_W.indexOf('calendar') + 1, 0, 'school');
 function homeSchool(el) {
   const t = todayIso(), od = scOverdue(), wk = scDue(t, shiftIso(t, 6)), tests = wk.filter((x) => ['test', 'exam', 'quiz', 'project'].includes(x.type)), e = eligibility();
-  el.innerHTML = `<div class="card-head"><div><h3>School this week</h3><span class="sub">${wk.length} due · ${od.length} overdue${gpa() != null ? ` · GPA ${gpa()}` : ''}</span></div><a class="btn sm" data-ml href="school.html">Open School</a></div>
+  el.innerHTML = `<div class="card-head"><div><h3>School this week</h3><span class="sub">${wk.length} due · ${od.length} overdue${gpa() != null ? ` · GPA ${gpa()}` : ''}</span></div><a class="btn sm" data-ml href="student.html">Open Student Lens</a></div>
     ${school().classes.length || school().items.length ? `<div class="list">${[...od, ...wk].slice(0, 4).map((x) => `<div class="li"><span class="small" style="min-width:0"><i class="dot" style="background:${scClass(x.cls)?.color || scType(x.type)[2]};margin-right:6px"></i>${esc(x.title)} <span class="muted">· ${esc(scType(x.type)[1])}</span></span><span class="tiny ${x.due < t ? 'down' : 'muted'}">${x.due < t ? 'late' : x.due === t ? 'today' : esc(DOW[parseIso(x.due).getDay()])}</span></div>`).join('') || '<p class="muted small">Nothing due this week.</p>'}</div>
       ${tests.length ? `<p class="tiny" style="margin-top:6px">${tests.length} test/project day${tests.length > 1 ? 's' : ''} this week: plan lighter training the night before.</p>` : ''}${e.flag === 'act' || e.flag === 'watch' ? `<p class="tiny down" style="margin-top:4px">Grades to watch: ${e.low.map((x) => esc(x.c.name)).join(', ')}</p>` : ''}`
-    : emptyState('Add your classes', 'Track assignments, tests and grades. Tests show up on your calendar and in your daily briefing.', 'book', '<a class="btn sm primary" data-ml href="school.html">Set up School</a>')}`;
+    : emptyState('Add your classes', 'Track assignments, tests and grades. Tests show up on your calendar and in your daily briefing.', 'book', '<a class="btn sm primary" data-ml href="student.html">Set up Student Lens</a>')}`;
 }
 {
   const base = RENDER.home;
@@ -157,7 +166,7 @@ function homeSchool(el) {
   const base = doFirst;
   doFirst = function () {
     const out = base(), t = todayIso(), tm = scDue(shiftIso(t, 1), shiftIso(t, 1)), od = scOverdue();
-    if (od.length) out.push({ id: 'sc-od', ic: 'book', title: `${od.length} overdue assignment${od.length > 1 ? 's' : ''}`, why: od.slice(0, 2).map((x) => x.title).join(', '), btn: '<a class="btn sm" data-ml href="school.html">School</a>' });
+    if (od.length) out.push({ id: 'sc-od', ic: 'book', title: `${od.length} overdue assignment${od.length > 1 ? 's' : ''}`, why: od.slice(0, 2).map((x) => x.title).join(', '), btn: '<a class="btn sm" data-ml href="student.html">Student Lens</a>' });
     if (tm.length && new Date().getHours() >= 12) out.push({ id: 'sc-tm', ic: 'book', title: `Due tomorrow: ${tm[0].title}${tm.length > 1 ? ` +${tm.length - 1}` : ''}`, why: tm[0].mins ? `About ${fmtDur(sum(tm.map((x) => Number(x.mins) || 0)))} of work. Block it in Gameplan.` : 'Block time for it in Gameplan.', btn: '<a class="btn sm" data-ml href="gameplan.html">Block time</a>' });
     return out;
   };
@@ -175,5 +184,5 @@ function homeSchool(el) {
 // Calendar day card: school items
 {
   const base = dayCard;
-  dayCard = function (el, d) { base(el, d); const xs = scOn(d); if (xs.length) el.insertAdjacentHTML('beforeend', `<div class="hr"></div><div class="gp-head"><span class="tiny muted">FROM SCHOOL · ${xs.length}</span><a class="chip" data-ml href="school.html">Open School ›</a></div><div class="list">${xs.map(itemRow).join('')}</div>`); };
+  dayCard = function (el, d) { base(el, d); const xs = scOn(d); if (xs.length) el.insertAdjacentHTML('beforeend', `<div class="hr"></div><div class="gp-head"><span class="tiny muted">FROM STUDENT LENS · ${xs.length}</span><a class="chip" data-ml href="student.html">Open Student Lens ›</a></div><div class="list">${xs.map(itemRow).join('')}</div>`); };
 }

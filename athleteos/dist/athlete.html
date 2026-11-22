@@ -886,7 +886,7 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
     { id: 'aos', name: 'Athlete<i>OS</i>', plain: 'Athlete OS', href: 'athlete.html', desc: 'Training, performance, load and the Lab', color: '#3d8bff' },
     { id: 'rl', name: 'Recovery<i>Lens</i>', plain: 'Recovery Lens', href: 'recovery.html', desc: 'Readiness, sleep, soreness and recovery', color: '#2fd29b' },
     { id: 'gp', name: 'Game<i>plan</i>', plain: 'Gameplan', href: 'gameplan.html', desc: 'Your day hour by hour, Top 3, night routine', color: '#22c55e' },
-    { id: 'school', name: 'School', plain: 'School', href: 'school.html', desc: 'Classes, assignments, tests and grades', color: '#0ea5e9' },
+    { id: 'school', name: 'Student<i>Lens</i>', plain: 'Student Lens', href: 'student.html', desc: 'Classes, assignments, grades, studying and exams', color: '#6d7cff' },
     { id: 'btc', name: 'Training<i>Center</i>', plain: 'Training Center', href: 'btc.html', desc: 'Drills, workouts and running your sessions', color: '#f97316' },
     { id: 'ml', name: 'Macro<i>Lens</i>', plain: 'MacroLens', href: 'macrolens.html', desc: 'Food, macros, water and game-day fuel', color: '#eab308' },
   ];
@@ -6366,6 +6366,7 @@ SUBS.school = [['due', 'Due'], ['classes', 'Classes'], ['grades', 'Grades']];
 
 // ---------- grade math ----------
 function classPct(c) {
+  if (school().sl) return c.slPct ?? null; // published by Student Lens (its own weights and categories)
   const gs = school().grades.filter((g) => g.cls === c.id && Number(g.max) > 0);
   if (!gs.length) return null;
   const w = c.weights || Object.fromEntries(SC_CATS.map(([k, , v]) => [k, v])); let tot = 0, wsum = 0;
@@ -6375,6 +6376,8 @@ function classPct(c) {
 const letterOf = (p) => (p == null ? '—' : p >= 90 ? 'A' : p >= 80 ? 'B' : p >= 70 ? 'C' : p >= 60 ? 'D' : 'F');
 const pointsOf = (p) => (p == null ? null : p >= 90 ? 4 : p >= 80 ? 3 : p >= 70 ? 2 : p >= 60 ? 1 : 0);
 function gpa(filter = () => true, weighted = false) {
+  if (school().sl && school().gpa && arguments.length === 0) return school().gpa.unweighted;
+  if (school().sl && school().gpa && arguments.length === 2 && weighted && filter.toString() === '() => true') return school().gpa.weighted;
   const cs = school().classes.filter(filter).map((c) => ({ c, p: pointsOf(classPct(c)) })).filter((x) => x.p != null);
   if (!cs.length) return null;
   const bump = (c) => (!weighted ? 0 : c.level === 'ap' ? 1 : c.level === 'honors' ? 0.5 : 0);
@@ -6390,7 +6393,13 @@ const scOverdue = () => school().items.filter((x) => !x.done && x.due < todayIso
 const scOn = (d) => school().items.filter((x) => x.due === d);
 
 // ---------- School app screens ----------
-RENDER.school = (el, sub) => SCHOOL[sub](el);
+RENDER.school = (el, sub) => {
+  if (!school().sl) return SCHOOL[sub](el);
+  // Student Lens owns school data now: show it read-only here and send edits there (they would be overwritten otherwise).
+  SCHOOL[sub](el);
+  el.insertAdjacentHTML('afterbegin', `<section class="card" style="border-left:4px solid #6d7cff"><div class="card-head"><div><h3>From Student Lens</h3><span class="sub">Classes, assignments and grades come from Student Lens. Make changes there.</span></div><a class="btn sm primary" data-ml href="student.html">Open Student Lens</a></div></section>`);
+  el.querySelectorAll('[data-act^="sc-"]').forEach((b) => { b.hidden = true; });
+};
 const SCHOOL = {};
 const itemRow = (x) => { const c = scClass(x.cls), [, l, col] = scType(x.type), late = !x.done && x.due < todayIso();
   return `<div class="li"><label class="check" style="flex:1;min-width:0"><input type="checkbox" data-sc-done="${x.id}" ${x.done ? 'checked' : ''} aria-label="Mark ${esc(x.title)} done"><span class="dot" style="background:${c?.color || col}"></span><span style="min-width:0"><span class="t" style="${x.done ? 'text-decoration:line-through;opacity:.6' : ''}">${esc(x.title)}</span><span class="s" style="display:block">${esc(c?.name || 'No class')} · <span style="color:${col}">${l}</span> · ${late ? '<span class="down">late · </span>' : ''}${esc(fmtDL(x.due))}${x.mins ? ` · ~${fmtDur(x.mins)}` : ''}</span></span></label><button type="button" class="chip" data-act="sc-item" data-id="${x.id}">Edit</button></div>`; };
@@ -6489,10 +6498,10 @@ WIDGETS.splice(2, 0, ['school', 'School this week']);
 DEFAULT_W.splice(DEFAULT_W.indexOf('calendar') + 1, 0, 'school');
 function homeSchool(el) {
   const t = todayIso(), od = scOverdue(), wk = scDue(t, shiftIso(t, 6)), tests = wk.filter((x) => ['test', 'exam', 'quiz', 'project'].includes(x.type)), e = eligibility();
-  el.innerHTML = `<div class="card-head"><div><h3>School this week</h3><span class="sub">${wk.length} due · ${od.length} overdue${gpa() != null ? ` · GPA ${gpa()}` : ''}</span></div><a class="btn sm" data-ml href="school.html">Open School</a></div>
+  el.innerHTML = `<div class="card-head"><div><h3>School this week</h3><span class="sub">${wk.length} due · ${od.length} overdue${gpa() != null ? ` · GPA ${gpa()}` : ''}</span></div><a class="btn sm" data-ml href="student.html">Open Student Lens</a></div>
     ${school().classes.length || school().items.length ? `<div class="list">${[...od, ...wk].slice(0, 4).map((x) => `<div class="li"><span class="small" style="min-width:0"><i class="dot" style="background:${scClass(x.cls)?.color || scType(x.type)[2]};margin-right:6px"></i>${esc(x.title)} <span class="muted">· ${esc(scType(x.type)[1])}</span></span><span class="tiny ${x.due < t ? 'down' : 'muted'}">${x.due < t ? 'late' : x.due === t ? 'today' : esc(DOW[parseIso(x.due).getDay()])}</span></div>`).join('') || '<p class="muted small">Nothing due this week.</p>'}</div>
       ${tests.length ? `<p class="tiny" style="margin-top:6px">${tests.length} test/project day${tests.length > 1 ? 's' : ''} this week: plan lighter training the night before.</p>` : ''}${e.flag === 'act' || e.flag === 'watch' ? `<p class="tiny down" style="margin-top:4px">Grades to watch: ${e.low.map((x) => esc(x.c.name)).join(', ')}</p>` : ''}`
-    : emptyState('Add your classes', 'Track assignments, tests and grades. Tests show up on your calendar and in your daily briefing.', 'book', '<a class="btn sm primary" data-ml href="school.html">Set up School</a>')}`;
+    : emptyState('Add your classes', 'Track assignments, tests and grades. Tests show up on your calendar and in your daily briefing.', 'book', '<a class="btn sm primary" data-ml href="student.html">Set up Student Lens</a>')}`;
 }
 {
   const base = RENDER.home;
@@ -6508,7 +6517,7 @@ function homeSchool(el) {
   const base = doFirst;
   doFirst = function () {
     const out = base(), t = todayIso(), tm = scDue(shiftIso(t, 1), shiftIso(t, 1)), od = scOverdue();
-    if (od.length) out.push({ id: 'sc-od', ic: 'book', title: `${od.length} overdue assignment${od.length > 1 ? 's' : ''}`, why: od.slice(0, 2).map((x) => x.title).join(', '), btn: '<a class="btn sm" data-ml href="school.html">School</a>' });
+    if (od.length) out.push({ id: 'sc-od', ic: 'book', title: `${od.length} overdue assignment${od.length > 1 ? 's' : ''}`, why: od.slice(0, 2).map((x) => x.title).join(', '), btn: '<a class="btn sm" data-ml href="student.html">Student Lens</a>' });
     if (tm.length && new Date().getHours() >= 12) out.push({ id: 'sc-tm', ic: 'book', title: `Due tomorrow: ${tm[0].title}${tm.length > 1 ? ` +${tm.length - 1}` : ''}`, why: tm[0].mins ? `About ${fmtDur(sum(tm.map((x) => Number(x.mins) || 0)))} of work. Block it in Gameplan.` : 'Block time for it in Gameplan.', btn: '<a class="btn sm" data-ml href="gameplan.html">Block time</a>' });
     return out;
   };
@@ -6526,7 +6535,7 @@ function homeSchool(el) {
 // Calendar day card: school items
 {
   const base = dayCard;
-  dayCard = function (el, d) { base(el, d); const xs = scOn(d); if (xs.length) el.insertAdjacentHTML('beforeend', `<div class="hr"></div><div class="gp-head"><span class="tiny muted">FROM SCHOOL · ${xs.length}</span><a class="chip" data-ml href="school.html">Open School ›</a></div><div class="list">${xs.map(itemRow).join('')}</div>`); };
+  dayCard = function (el, d) { base(el, d); const xs = scOn(d); if (xs.length) el.insertAdjacentHTML('beforeend', `<div class="hr"></div><div class="gp-head"><span class="tiny muted">FROM STUDENT LENS · ${xs.length}</span><a class="chip" data-ml href="student.html">Open Student Lens ›</a></div><div class="list">${xs.map(itemRow).join('')}</div>`); };
 }
 
 // ---- dash2.js ----
@@ -6717,7 +6726,7 @@ const EV_APPS = {
   aos: { name: 'Athlete OS', color: '#3d8bff', href: null },
   rl: { name: 'Recovery Lens', color: '#2fd29b', href: 'recovery.html' },
   gp: { name: 'Gameplan', color: '#22c55e', href: 'gameplan.html' },
-  school: { name: 'School', color: '#0ea5e9', href: 'school.html' },
+  school: { name: 'Student Lens', color: '#6d7cff', href: 'student.html' },
   btc: { name: 'Training Center', color: '#f97316', href: 'btc.html' },
   ml: { name: 'MacroLens', color: '#eab308', href: 'macrolens.html' },
 };
@@ -6905,7 +6914,7 @@ function hubApps() {
     { id: 'aos', href: 'athlete.html', icon: 'logo', big: rd ?? '—', unit: rd != null ? 'readiness' : 'no check-in', line: `${tr} min trained today · ${st.current}-day streak`, pct: rd },
     (() => { const R = doc('rl-ready')?.days?.[t] || null, sl = doc('rl-sleep')?.nights?.[t]; return { id: 'rl', href: 'recovery.html', icon: 'heart', big: R?.score ?? '—', unit: R?.score != null ? 'recovery readiness' : 'not enough data', line: `${R ? Math.round((R.completeness || 0) * 100) + '% of inputs' : 'Do the morning check-in'}${sl?.asleepH ? ` · slept ${nf(sl.asleepH, 1)} h` : ''}`, pct: R?.score ?? null }; })(),
     { id: 'gp', href: 'gameplan.html', icon: 'calendar', big: bl.length ? `${bl.filter((b) => b.done).length}/${bl.length}` : '—', unit: 'blocks done', line: bl.length ? (() => { const n = nowM(), nx = bl.find((b) => !b.done && b.st + b.mins > n); return nx ? `Next: ${nx.title} at ${tdClock(nx.st)}` : 'All blocks done'; })() : 'No blocks planned today', pct: bl.length ? hubPct(bl.filter((b) => b.done).length, bl.length) : null },
-    { id: 'school', href: 'school.html', icon: 'book', big: due, unit: 'due this week', line: `${od} overdue${g != null ? ` · GPA ${g}` : ''}`, pct: due + od ? hubPct(due, due + od) : null },
+    { id: 'school', href: 'student.html', icon: 'book', big: due, unit: 'due this week', line: `${od} overdue${g != null ? ` · GPA ${g}` : ''}`, pct: due + od ? hubPct(due, due + od) : null },
     { id: 'btc', href: 'btc.html', icon: 'dumbbell', big: btcWk, unit: 'sessions this week', line: btcMin ? `${btcMin} min of drills` : 'Run a session to see it here', pct: hubPct(Math.min(btcWk, 5), 5) },
     { id: 'ml', href: 'macrolens.html', icon: 'fork', big: fed ? Math.round(T.calories).toLocaleString() : '—', unit: fed ? `of ${G.calories.toLocaleString()} kcal` : 'nothing logged', line: fed ? `${Math.round(T.protein)} / ${G.protein} g protein` : 'Log a meal to start the day', pct: fed ? Math.min(100, hubPct(T.calories, G.calories)) : null },
   ];
@@ -6932,9 +6941,9 @@ function hubAttention() {
   const t = todayIso(), h = new Date().getHours(), out = [];
   const S = doc('life-school');
   if (S) {
-    for (const x of scOverdue().slice(0, 3)) out.push({ app: 'school', lvl: 'act', t: `Overdue: ${x.title}`, s: `was due ${fmtD(x.due)}`, href: 'school.html' });
+    for (const x of scOverdue().slice(0, 3)) out.push({ app: 'school', lvl: 'act', t: `Overdue: ${x.title}`, s: `was due ${fmtD(x.due)}`, href: 'student.html' });
     for (const x of scDue(shiftIso(t, 1), shiftIso(t, 3)).filter((x) => ['test', 'exam', 'quiz', 'project'].includes(x.type))) out.push({ app: 'school', lvl: 'watch', t: `${x.type[0].toUpperCase() + x.type.slice(1)} ${evWhen(x.due).toLowerCase() === 'tomorrow' ? 'tomorrow' : 'on ' + fmtDL(x.due)}: ${x.title}`, s: 'Plan study time and a lighter session the night before', href: 'gameplan.html' });
-    const e = hubSafe(() => eligibility()); if (e && (e.flag === 'act' || e.flag === 'watch')) out.push({ app: 'school', lvl: e.flag, t: 'Grades to watch for eligibility', s: (e.low || []).map((c) => c.name || c).join(', '), href: 'school.html' });
+    const e = hubSafe(() => eligibility()); if (e && (e.flag === 'act' || e.flag === 'watch')) out.push({ app: 'school', lvl: e.flag, t: 'Grades to watch for eligibility', s: (e.low || []).map((c) => c.name || c).join(', '), href: 'student.html' });
   }
   if (!mcheck(t) && h >= 7) out.push({ app: 'aos', lvl: 'info', t: 'No mental check-in yet', s: '30 seconds in Athlete OS › Mind', href: 'athlete.html#mind-checkin' });
   if (hubSleep(t) == null && !doc('rl-check')?.days?.[t] && h >= 7) out.push({ app: 'rl', lvl: 'info', t: 'No morning check-in yet', s: 'Sleep, feel and soreness in Recovery Lens, 30 seconds', href: 'recovery.html' });
@@ -7018,7 +7027,7 @@ HUB.graphs = (el) => {
       <section class="card"><div class="card-head"><div><h3>Sleep and readiness</h3><span class="sub">Hours slept · readiness from Athlete OS and Recovery Lens</span></div></div><div class="chart" id="hg-sleep"></div><div class="chart" id="hg-ready"></div></section>
       <section class="card"><div class="card-head"><div><h3>Mental score</h3><span class="sub">Daily check-ins, 0–100</span></div></div><div class="chart" id="hg-mind"></div></section>
       <section class="card"><div class="card-head"><div><h3>How your days are planned</h3><span class="sub">Gameplan hours per day by type</span></div></div><div class="chart" id="hg-plan"></div></section>
-      <section class="card"><div class="card-head"><div><h3>School</h3><span class="sub">${classes.length ? `Current grade by class${hubSafe(() => gpa()) != null ? ` · GPA ${gpa()}` : ''}` : 'Add classes in School to see grades'}</span></div></div><div class="chart" id="hg-school"></div><div class="chart" id="hg-gpa"></div></section>
+      <section class="card"><div class="card-head"><div><h3>School</h3><span class="sub">${classes.length ? `Current grade by class${hubSafe(() => gpa()) != null ? ` · GPA ${gpa()}` : ''}` : 'Add classes in Student Lens to see grades'}</span></div></div><div class="chart" id="hg-school"></div><div class="chart" id="hg-gpa"></div></section>
     </div>`;
   const opt = { from, to: t, h: 170 };
   hubActivity($('#hg-act', el), n);
@@ -7039,7 +7048,7 @@ HUB.graphs = (el) => {
     drawBars($('#hg-school', el), classes.map((c) => ({ label: c.name.slice(0, 8), tip: c.name, segs: [{ v: hubSafe(() => classPct(c)) ?? 0, color: c.color || EV_APPS.school.color, name: c.name }] })), { h: 160, goal: 90, fmt: (v) => `${Math.round(v)}%` });
     const sn = Object.entries(S.snaps || {}).sort().map(([d, v]) => ({ date: d, v }));
     if (sn.length > 1) drawLine($('#hg-gpa', el), sn, { h: 120, color: EV_APPS.school.color, fmt: (v) => nf(v, 2) });
-  } else $('#hg-school', el).innerHTML = emptyState('No classes yet', 'Add your classes and grades in School.', 'chart', '<a class="btn sm primary" href="school.html" data-hub-open="school.html">Open School</a>');
+  } else $('#hg-school', el).innerHTML = emptyState('No classes yet', 'Add your classes and grades in Student Lens.', 'chart', '<a class="btn sm primary" href="student.html" data-hub-open="student.html">Open Student Lens</a>');
   for (const id of ['hg-fuel', 'hg-sleep', 'hg-ready', 'hg-mind']) { const c = $('#' + id, el); if (c && !c.innerHTML.trim()) c.innerHTML = '<p class="small muted">Not enough data in this range yet.</p>'; }
 };
 HUB.timeline = (el) => INTEL.timeline(el);

@@ -8,7 +8,7 @@ const EV_APPS = {
   aos: { name: 'Athlete OS', color: '#3d8bff', href: null },
   rl: { name: 'Recovery Lens', color: '#2fd29b', href: 'recovery.html' },
   gp: { name: 'Gameplan', color: '#22c55e', href: 'gameplan.html' },
-  school: { name: 'School', color: '#0ea5e9', href: 'school.html' },
+  school: { name: 'Student Lens', color: '#6d7cff', href: 'student.html' },
   btc: { name: 'Training Center', color: '#f97316', href: 'btc.html' },
   ml: { name: 'MacroLens', color: '#eab308', href: 'macrolens.html' },
 };

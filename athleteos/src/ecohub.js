@@ -30,7 +30,7 @@ function hubApps() {
     { id: 'aos', href: 'athlete.html', icon: 'logo', big: rd ?? '—', unit: rd != null ? 'readiness' : 'no check-in', line: `${tr} min trained today · ${st.current}-day streak`, pct: rd },
     (() => { const R = doc('rl-ready')?.days?.[t] || null, sl = doc('rl-sleep')?.nights?.[t]; return { id: 'rl', href: 'recovery.html', icon: 'heart', big: R?.score ?? '—', unit: R?.score != null ? 'recovery readiness' : 'not enough data', line: `${R ? Math.round((R.completeness || 0) * 100) + '% of inputs' : 'Do the morning check-in'}${sl?.asleepH ? ` · slept ${nf(sl.asleepH, 1)} h` : ''}`, pct: R?.score ?? null }; })(),
     { id: 'gp', href: 'gameplan.html', icon: 'calendar', big: bl.length ? `${bl.filter((b) => b.done).length}/${bl.length}` : '—', unit: 'blocks done', line: bl.length ? (() => { const n = nowM(), nx = bl.find((b) => !b.done && b.st + b.mins > n); return nx ? `Next: ${nx.title} at ${tdClock(nx.st)}` : 'All blocks done'; })() : 'No blocks planned today', pct: bl.length ? hubPct(bl.filter((b) => b.done).length, bl.length) : null },
-    { id: 'school', href: 'school.html', icon: 'book', big: due, unit: 'due this week', line: `${od} overdue${g != null ? ` · GPA ${g}` : ''}`, pct: due + od ? hubPct(due, due + od) : null },
+    { id: 'school', href: 'student.html', icon: 'book', big: due, unit: 'due this week', line: `${od} overdue${g != null ? ` · GPA ${g}` : ''}`, pct: due + od ? hubPct(due, due + od) : null },
     { id: 'btc', href: 'btc.html', icon: 'dumbbell', big: btcWk, unit: 'sessions this week', line: btcMin ? `${btcMin} min of drills` : 'Run a session to see it here', pct: hubPct(Math.min(btcWk, 5), 5) },
     { id: 'ml', href: 'macrolens.html', icon: 'fork', big: fed ? Math.round(T.calories).toLocaleString() : '—', unit: fed ? `of ${G.calories.toLocaleString()} kcal` : 'nothing logged', line: fed ? `${Math.round(T.protein)} / ${G.protein} g protein` : 'Log a meal to start the day', pct: fed ? Math.min(100, hubPct(T.calories, G.calories)) : null },
   ];
@@ -57,9 +57,9 @@ function hubAttention() {
   const t = todayIso(), h = new Date().getHours(), out = [];
   const S = doc('life-school');
   if (S) {
-    for (const x of scOverdue().slice(0, 3)) out.push({ app: 'school', lvl: 'act', t: `Overdue: ${x.title}`, s: `was due ${fmtD(x.due)}`, href: 'school.html' });
+    for (const x of scOverdue().slice(0, 3)) out.push({ app: 'school', lvl: 'act', t: `Overdue: ${x.title}`, s: `was due ${fmtD(x.due)}`, href: 'student.html' });
     for (const x of scDue(shiftIso(t, 1), shiftIso(t, 3)).filter((x) => ['test', 'exam', 'quiz', 'project'].includes(x.type))) out.push({ app: 'school', lvl: 'watch', t: `${x.type[0].toUpperCase() + x.type.slice(1)} ${evWhen(x.due).toLowerCase() === 'tomorrow' ? 'tomorrow' : 'on ' + fmtDL(x.due)}: ${x.title}`, s: 'Plan study time and a lighter session the night before', href: 'gameplan.html' });
-    const e = hubSafe(() => eligibility()); if (e && (e.flag === 'act' || e.flag === 'watch')) out.push({ app: 'school', lvl: e.flag, t: 'Grades to watch for eligibility', s: (e.low || []).map((c) => c.name || c).join(', '), href: 'school.html' });
+    const e = hubSafe(() => eligibility()); if (e && (e.flag === 'act' || e.flag === 'watch')) out.push({ app: 'school', lvl: e.flag, t: 'Grades to watch for eligibility', s: (e.low || []).map((c) => c.name || c).join(', '), href: 'student.html' });
   }
   if (!mcheck(t) && h >= 7) out.push({ app: 'aos', lvl: 'info', t: 'No mental check-in yet', s: '30 seconds in Athlete OS › Mind', href: 'athlete.html#mind-checkin' });
   if (hubSleep(t) == null && !doc('rl-check')?.days?.[t] && h >= 7) out.push({ app: 'rl', lvl: 'info', t: 'No morning check-in yet', s: 'Sleep, feel and soreness in Recovery Lens, 30 seconds', href: 'recovery.html' });
@@ -143,7 +143,7 @@ HUB.graphs = (el) => {
       <section class="card"><div class="card-head"><div><h3>Sleep and readiness</h3><span class="sub">Hours slept · readiness from Athlete OS and Recovery Lens</span></div></div><div class="chart" id="hg-sleep"></div><div class="chart" id="hg-ready"></div></section>
       <section class="card"><div class="card-head"><div><h3>Mental score</h3><span class="sub">Daily check-ins, 0–100</span></div></div><div class="chart" id="hg-mind"></div></section>
       <section class="card"><div class="card-head"><div><h3>How your days are planned</h3><span class="sub">Gameplan hours per day by type</span></div></div><div class="chart" id="hg-plan"></div></section>
-      <section class="card"><div class="card-head"><div><h3>School</h3><span class="sub">${classes.length ? `Current grade by class${hubSafe(() => gpa()) != null ? ` · GPA ${gpa()}` : ''}` : 'Add classes in School to see grades'}</span></div></div><div class="chart" id="hg-school"></div><div class="chart" id="hg-gpa"></div></section>
+      <section class="card"><div class="card-head"><div><h3>School</h3><span class="sub">${classes.length ? `Current grade by class${hubSafe(() => gpa()) != null ? ` · GPA ${gpa()}` : ''}` : 'Add classes in Student Lens to see grades'}</span></div></div><div class="chart" id="hg-school"></div><div class="chart" id="hg-gpa"></div></section>
     </div>`;
   const opt = { from, to: t, h: 170 };
   hubActivity($('#hg-act', el), n);
@@ -164,7 +164,7 @@ HUB.graphs = (el) => {
     drawBars($('#hg-school', el), classes.map((c) => ({ label: c.name.slice(0, 8), tip: c.name, segs: [{ v: hubSafe(() => classPct(c)) ?? 0, color: c.color || EV_APPS.school.color, name: c.name }] })), { h: 160, goal: 90, fmt: (v) => `${Math.round(v)}%` });
     const sn = Object.entries(S.snaps || {}).sort().map(([d, v]) => ({ date: d, v }));
     if (sn.length > 1) drawLine($('#hg-gpa', el), sn, { h: 120, color: EV_APPS.school.color, fmt: (v) => nf(v, 2) });
-  } else $('#hg-school', el).innerHTML = emptyState('No classes yet', 'Add your classes and grades in School.', 'chart', '<a class="btn sm primary" href="school.html" data-hub-open="school.html">Open School</a>');
+  } else $('#hg-school', el).innerHTML = emptyState('No classes yet', 'Add your classes and grades in Student Lens.', 'chart', '<a class="btn sm primary" href="student.html" data-hub-open="student.html">Open Student Lens</a>');
   for (const id of ['hg-fuel', 'hg-sleep', 'hg-ready', 'hg-mind']) { const c = $('#' + id, el); if (c && !c.innerHTML.trim()) c.innerHTML = '<p class="small muted">Not enough data in this range yet.</p>'; }
 };
 HUB.timeline = (el) => INTEL.timeline(el);
