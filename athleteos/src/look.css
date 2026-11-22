@@ -292,3 +292,25 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .pd-sq { display: grid; grid-template-columns: repeat(28, minmax(0, 1fr)); gap: 2px; }
 .pd-sq i { aspect-ratio: 1; border-radius: 2px; background: var(--surface-2); border: 1px solid var(--hair); } .pd-sq i.on { background: var(--c); border-color: var(--c); }
 @media (max-width: 560px) { .pd-h { grid-template-columns: minmax(0, 1fr) auto; } .pd-sq { grid-column: 1 / -1; grid-row: 2; } }
+
+/* ---------- Ask AI + Records (phasee.js) ---------- */
+.ask-box textarea { width: 100%; min-height: 64px; resize: vertical; }
+.ask-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.ask-chips .chip { font-size: 13px; }
+.ask-a { margin-top: 12px; }
+.ask-qt { display: block; font-size: 15px; }
+.ask-body { margin-top: 8px; line-height: 1.55; overflow-wrap: anywhere; }
+.ask-body p { margin: 0 0 8px; } .ask-body ul { margin: 0 0 8px; padding-left: 20px; } .ask-body li { margin: 3px 0; }
+.rec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 10px; }
+.rec-t { padding: 12px; border-radius: 14px; border: 1px solid var(--line); border-top: 3px solid var(--c); display: grid; gap: 2px; min-width: 0; }
+.rec-t small { color: var(--muted); font-size: 12px; } .rec-t b { font-size: 24px; } .rec-t span { font-size: 12px; color: var(--muted); }
+.rec-ach { list-style: none; padding: 0; margin: 10px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.rec-ach li { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); opacity: .8; min-width: 0; }
+.rec-ach li > div { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.rec-ach li.on { opacity: 1; border-color: var(--c); }
+.rec-ach small { color: var(--muted); font-size: 12px; }
+.rec-badge { font-size: 22px; line-height: 1; color: var(--c); }
+.rec-res { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 6px; }
+.rec-res li { display: grid; gap: 2px; padding: 8px 10px; border-left: 3px solid var(--c); border-radius: 8px; background: var(--surface-2, rgba(127,127,127,.08)); min-width: 0; }
+.rec-res small { color: var(--muted); overflow-wrap: anywhere; } .rec-res em { font-style: normal; font-size: 12px; color: var(--muted); }
+.rec-app { font-size: 11px; font-weight: 700; color: var(--c); text-transform: uppercase; letter-spacing: .06em; }

@@ -157,3 +157,13 @@ toughest day), Compare (last 7 / 30 / 365 days vs the same length before, 12 met
 for check-in, 8+ h sleep, trained, logged food, hit protein, kept the plan, with % and streak) and Long-term (vertical,
 GPA, weekly shooting %, weekly readiness and sleep). On Sundays the morning text gets a "📈 Week:" line.
 `Ecosystem.compare(n)`, `.habits()`, `.weekReview(date)`.
+
+## Ask AI and Records (Hub 2.0 phases E + F)
+
+`src/phasee.js` adds two Hub tabs. **Ask AI** sends one question plus `hubContext()` (Coach snapshot, app summaries,
+morning brief, readiness, 7-day schedule, Student Lens classes and work due in 14 days, Gameplan tasks, `btc-sig`,
+goals, top insights) through the `sample` capability; the last 30 Q&As are kept in doc `hub-ask` `{ v, items: [{ q, a, at }] }`.
+The per-app coaches are unchanged. **Records** computes personal records and achievements from day docs (Training
+Center makes/attempts, training streaks and weekly minutes, Recovery Lens readiness and sleep, MacroLens protein streak,
+Student Lens GPA), searches events (365 days), classes, assignments, Gameplan tasks, goals and Ask history, and
+exports a text summary or a JSON backup of every doc (except `tc-backup-*`) through the downloads capability.
