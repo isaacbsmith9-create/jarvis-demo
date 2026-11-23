@@ -292,9 +292,12 @@ function tcSlot(tag) { var m = /^day-(\d{4})(\d{2})(\d{2})$/.exec(tag); if (!m) 
   const MET = { shooting: 4.5, handles: 5, finishing: 6, skill: 5.5, conditioning: 9 }, INTF = { light: 0.8, moderate: 1, hard: 1.2 };
   const setsOf = (i) => (Array.isArray(i.sets) ? i.sets : []);
   function stats(s) {
-    let att = 0, made = 0;
-    for (const i of s.items || []) if (i.metric === 'makes') for (const x of setsOf(i)) { att += +x.att || 0; made += +x.made || 0; }
-    return { attempts: att, makes: made, pct: att ? Math.round((made / att) * 100) : null };
+    let att = 0, made = 0, shots = 0;
+    for (const i of s.items || []) {
+      if (i.metric === 'makes') for (const x of setsOf(i)) { att += +x.att || 0; made += +x.made || 0; }
+      else if ((i.category === 'Shooting' || /^shot-/.test(i.drillId || '')) && !setsOf(i).length) shots += +i.reps || 0; // logged shots, makes not counted
+    }
+    return { attempts: att, makes: made, pct: att ? Math.round((made / att) * 100) : null, shots: att + shots };
   }
   function areaWeights(s) {
     const w = {};
@@ -306,7 +309,7 @@ function tcSlot(tag) { var m = /^day-(\d{4})(\d{2})(\d{2})$/.exec(tag); if (!m) 
     const rpe = s.rpe ? Math.max(1, Math.min(10, Math.round(+s.rpe))) : null;
     const int = rpe == null ? 'moderate' : rpe >= 7 ? 'hard' : rpe <= 3 ? 'light' : 'moderate', st = stats(s), t = s.startedAt || s.endedAt || Date.now(), d = new Date(t);
     const kcal = Math.round(MET[type] * INTF[int] * (weightLb || 150) * 0.4536 * ((s.minutes || 0) / 60));
-    return { date: s.date || iso(t), entry: { id: 'btc-' + s.id, type, name: s.workoutName || 'Training Center session', mins: s.minutes || 0, int, ...(rpe ? { rpe } : {}), time: pad(d.getHours()) + ':' + pad(d.getMinutes()), kcal, addedAt: s.endedAt || t, source: 'training-center', btc: { sessionId: s.id, workoutId: s.workoutId || null, area: top, attempts: st.attempts, makes: st.makes, pct: st.pct, completionPct: s.completionPct ?? null } } };
+    return { date: s.date || iso(t), entry: { id: 'btc-' + s.id, type, name: s.workoutName || 'Training Center session', mins: s.minutes || 0, int, ...(rpe ? { rpe } : {}), time: pad(d.getHours()) + ':' + pad(d.getMinutes()), kcal, addedAt: s.endedAt || t, source: 'training-center', btc: { sessionId: s.id, workoutId: s.workoutId || null, area: top, attempts: st.attempts, makes: st.makes, pct: st.pct, shots: st.shots, completionPct: s.completionPct ?? null } } };
   }
   let exporting = null;
   function exportSessions() {
