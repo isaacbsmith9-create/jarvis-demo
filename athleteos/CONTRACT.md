@@ -181,3 +181,12 @@ artifacts show a banner pointing here, since separate artifacts can't share this
 workout via `addWorkout`, `source: 'hub'`; shooting adds `btc: { attempts, makes, shots, pct }`, which `btcOn` counts),
 and **plan** (a whole day in words becomes `gp-d-<date>.blocks`, `src: 'Hub'`, skipping same title + start). Several
 items separated by new lines or ";" preview one at a time. Voice uses the `dictation` capability, else browser speech.
+
+## Day templates and daily score (Round 2)
+
+`src/round2.js`. **Templates**: four built-ins (School + practice, Game day, Off day, Weekend) plus your own in doc
+`hub-templates` `{ v, list: [{ id, name, icon, train, blocks: [{ title, start (minutes), mins, type }] }] }`; a saved
+copy of a built-in replaces it (same id) until reset. Loading one fills the Round 1 plan preview (today, or tomorrow
+after 8 PM). **Daily score** 0–100: trained 25 (or a rest day when readiness < 45), protein 25 (share of target),
+schoolwork due today 20, check-in 15, sleep 15 (8 h+ full). Streak = days at 70+. Today's score is saved in
+`hub-score` `{ v, days: { date: { score, parts, at } } }` (90 days kept) for the recaps.
