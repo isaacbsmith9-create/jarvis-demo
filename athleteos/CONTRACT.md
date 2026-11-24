@@ -199,3 +199,9 @@ schoolwork due today 20, check-in 15, sleep 15 (8 h+ full). Streak = days at 70+
 `gp-core.tasks[].top === <tomorrow>`, routine checks in `gp-d-<night>.night.done` (+ `completedAt`). `briefFor` adds
 "⭐ Top 3: …" so it reaches the morning text. **Recap**: doc `hub-recap` `{ date, at, lines, text }` is rewritten each
 time Hub Today renders; the "Hub evening recap" scheduled task sends it (or builds it from raw docs if it's stale).
+
+## Customize Hub Today (Round 4)
+
+`src/round4.js` runs last on Hub Today. Each top-level card gets a key (known classes, "apps", or `h:<heading slug>`);
+doc `hub-layout` `{ v, order: [key], hidden: [key] }` sets the order and hides cards. Cards not in `order` keep their
+default position. "⚙︎ Customize" in the page header opens the list (move up/down, show/hide, reset).

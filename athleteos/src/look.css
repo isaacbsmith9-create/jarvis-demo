@@ -364,3 +364,11 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .r3-steps label { display: flex; gap: 10px; align-items: center; min-height: 32px; }
 .r3-steps label { justify-content: flex-start; width: 100%; }
 .r3-steps input[type=checkbox] { width: 20px; height: 20px; min-width: 20px; flex: none; margin: 0; padding: 0; }
+/* Round 4: customize Hub Today */
+.r4-btn { margin-top: 10px; }
+.r4-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.r4-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); }
+.r4-list li:first-child { border-top: 0; }
+.r4-list label { display: flex; gap: 10px; align-items: center; min-width: 0; }
+.r4-list input[type=checkbox] { width: 20px; height: 20px; min-width: 20px; flex: none; margin: 0; }
+.r4-list li.off label { color: var(--muted); text-decoration: line-through; }
