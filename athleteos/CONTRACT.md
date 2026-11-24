@@ -72,7 +72,7 @@ Student Lens owns `js/app.js` and friends at the bundle root). The build only re
 `tc:local-v3`; both brand blocks become the switcher. `src/suite/tc-bridge.js` wraps `commitSession` (last) and exports
 each finished session once to `day-*.exercise` (id `btc-<session id>`, source `training-center`, type from the main
 area, intensity from the session RPE, `btc: { attempts, makes, pct, area, completionPct }`), records exports in `tc-sync`,
-and writes `btc-sig`. Film videos stay in the device's IndexedDB `btc-film`. To pick up a new version, replace
+and writes `btc-sig`. Film videos stay in the device's IndexedDB `btc-film`. `js/log.js` (log a workout done outside the app) is included; logged rows without makes count as `btc.shots` volume. To pick up a new version, replace
 `vendor/training-center` and rebuild; the build stops if a storage anchor changed or an un-renamed backup doc is left.
 The old `btc-app`/`btc-sync` docs from the earlier Training Center are left in place, unused.
 
@@ -167,3 +167,9 @@ The per-app coaches are unchanged. **Records** computes personal records and ach
 Center makes/attempts, training streaks and weekly minutes, Recovery Lens readiness and sleep, MacroLens protein streak,
 Student Lens GPA), searches events (365 days), classes, assignments, Gameplan tasks, goals and Ask history, and
 exports a text summary or a JSON backup of every doc (except `tc-backup-*`) through the downloads capability.
+
+## Sync status
+
+`src/syncstat.js` adds a card under the Morning briefing on Hub Today: per app, the last day it sent data (from
+`appSignals()` plus day-doc activity), warning after 3 quiet days. The old standalone Training Center and Student Lens
+artifacts show a banner pointing here, since separate artifacts can't share this database.

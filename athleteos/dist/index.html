@@ -937,6 +937,13 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .rec-res li { display: grid; gap: 2px; padding: 8px 10px; border-left: 3px solid var(--c); border-radius: 8px; background: var(--surface-2, rgba(127,127,127,.08)); min-width: 0; }
 .rec-res small { color: var(--muted); overflow-wrap: anywhere; } .rec-res em { font-style: normal; font-size: 12px; color: var(--muted); }
 .rec-app { font-size: 11px; font-weight: 700; color: var(--c); text-transform: uppercase; letter-spacing: .06em; }
+.sync-list { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 4px; }
+.sync-list li { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); }
+.sync-list li:first-child { border-top: 0; }
+.sync-list i { width: 8px; height: 22px; border-radius: 4px; background: var(--c); }
+.sync-list b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sync-warn { color: var(--warn, #d97706); font-weight: 600; font-size: 13px; }
+.sync-list .muted { font-size: 13px; }
 
 </style>
 <div class="wrap">
@@ -7989,6 +7996,31 @@ HUB.records = (el, q = '') => {
     if (b.dataset.rec === 'txt') recSave(`hub-summary-${t}.txt`, recExportText()); else recSave(`hub-backup-${t}.json`, recExportJson()); };
 };
 window.Ecosystem = { ...(window.Ecosystem || {}), ask: (q) => askRun(q, document.createElement('div')), context: hubContext, records: recordsData, search: recSearch };
+
+// ---- syncstat.js ----
+// ===================== Hub: sync status =====================
+// One card on Hub Today: when each app last sent data to the Hub. A gap (more than 3 days) shows as a warning, so a
+// workout or check-in logged in an old standalone copy (which can't reach the Hub) gets noticed the same week.
+function syncRows() {
+  const t = todayIso(), sig = hubSafe(() => appSignals(), []) || [];
+  const lastDay = (f) => { const ks = allDayKeys().filter((d) => d <= t); for (let i = ks.length - 1; i >= 0; i--) if (hubSafe(() => f(ks[i]), false)) return ks[i]; return null; };
+  const later = (a, b) => (!a ? b : !b ? a : a > b ? a : b);
+  const extra = { btc: lastDay((d) => btcOn(d).length), ml: lastDay((d) => hasFood(d)), aos: lastDay((d) => exList(d).some((x) => !x.source || x.source === 'athlete-os')) };
+  return sig.map((s) => {
+    const upd = later(s.updated, extra[s.app] || null), age = upd ? daysBetween(upd, t) : null;
+    return { ...s, upd, age, warn: age == null || age > 3 };
+  });
+}
+function syncCardHtml() {
+  const rows = syncRows(); if (!rows.length) return '';
+  const lbl = (a) => (a == null ? 'Nothing yet' : a === 0 ? 'Today' : a === 1 ? 'Yesterday' : `${a} days ago`);
+  const bad = rows.filter((r) => r.warn).length;
+  return `<section class="card sync-card"><div class="row" style="justify-content:space-between"><h3>Sync status</h3><span class="tag ${bad ? 'warn' : ''}">${bad ? `${bad} quiet` : 'All synced'}</span></div>
+    <ul class="sync-list">${rows.map((r) => `<li style="--c:${r.color}"><i></i><b>${esc(r.name)}</b><span class="${r.warn ? 'sync-warn' : 'muted'}">${lbl(r.age)}</span>${r.href ? `<a class="btn sm" href="${r.href}">Open</a>` : ''}</li>`).join('')}</ul>
+    <p class="tiny muted" style="margin:8px 0 0">Log everything from the Hub's own copies (the app switcher). Old standalone apps can't send data here.</p></section>`;
+}
+{ const _today = HUB.today; HUB.today = (el) => { _today(el); hubSafe(() => { const b = el.querySelector('.hub-brief, .hb'); const at = b ? b.closest('section') : el.querySelector('.hub-head'); (at || el.firstElementChild)?.insertAdjacentHTML('afterend', syncCardHtml()); }); }; }
+window.Ecosystem = { ...(window.Ecosystem || {}), sync: syncRows };
 
 // ---- look.js ----
 // ===================== COURTSIDE LOOK: Home structure =====================

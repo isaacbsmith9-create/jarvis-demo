@@ -314,3 +314,10 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .rec-res li { display: grid; gap: 2px; padding: 8px 10px; border-left: 3px solid var(--c); border-radius: 8px; background: var(--surface-2, rgba(127,127,127,.08)); min-width: 0; }
 .rec-res small { color: var(--muted); overflow-wrap: anywhere; } .rec-res em { font-style: normal; font-size: 12px; color: var(--muted); }
 .rec-app { font-size: 11px; font-weight: 700; color: var(--c); text-transform: uppercase; letter-spacing: .06em; }
+.sync-list { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 4px; }
+.sync-list li { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); }
+.sync-list li:first-child { border-top: 0; }
+.sync-list i { width: 8px; height: 22px; border-radius: 4px; background: var(--c); }
+.sync-list b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sync-warn { color: var(--warn, #d97706); font-weight: 600; font-size: 13px; }
+.sync-list .muted { font-size: 13px; }
