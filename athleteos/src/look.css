@@ -349,3 +349,18 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .r2-hist span { display: block; height: max(3px, var(--h)); border-radius: 3px; background: color-mix(in srgb, #f97316 55%, transparent); }
 .r2-hist span.good { background: #22c55e; } .r2-hist span.none { background: var(--line); height: 3px; }
 .r2-hist span.now { outline: 2px solid var(--fg, #fff); outline-offset: 1px; }
+/* Round 3: right now + night shutdown */
+.r3-now { border-left: 4px solid #3d8bff; }
+.r3-title { margin: 6px 0 0; font-size: 19px; line-height: 1.25; }
+.r3-night h4 { margin: 14px 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.r3-bed { display: flex; align-items: baseline; gap: 8px; margin-top: 8px; } .r3-bed b { font-size: 28px; } .r3-bed span { color: var(--muted); font-size: 13px; }
+.r3-list, .r3-steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.r3-list li { display: flex; gap: 8px; align-items: center; min-width: 0; overflow-wrap: anywhere; }
+.r3-list li small { color: var(--muted); margin-left: auto; font-size: 12px; white-space: nowrap; }
+.r3-list li.on { font-weight: 600; }
+.r3-star { background: none; border: 0; font-size: 20px; line-height: 1; padding: 2px 4px; cursor: pointer; color: var(--muted); }
+.r3-star.on { color: #eab308; }
+.r3-add { display: flex; gap: 8px; margin-top: 8px; } .r3-add input { flex: 1; min-width: 0; }
+.r3-steps label { display: flex; gap: 10px; align-items: center; min-height: 32px; }
+.r3-steps label { justify-content: flex-start; width: 100%; }
+.r3-steps input[type=checkbox] { width: 20px; height: 20px; min-width: 20px; flex: none; margin: 0; padding: 0; }

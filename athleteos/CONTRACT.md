@@ -190,3 +190,12 @@ copy of a built-in replaces it (same id) until reset. Loading one fills the Roun
 after 8 PM). **Daily score** 0–100: trained 25 (or a rest day when readiness < 45), protein 25 (share of target),
 schoolwork due today 20, check-in 15, sleep 15 (8 h+ full). Streak = days at 70+. Today's score is saved in
 `hub-score` `{ v, days: { date: { score, parts, at } } }` (90 days kept) for the recaps.
+
+## Right now, night shutdown, evening recap (Round 3)
+
+`src/round3.js`. **Right now** card (under the quick-add box): rule-based next action from the clock, today's
+`tdItems`, due work, tests tomorrow, protein gap, check-in, workout and bedtime; "Ask Claude" sends it to Ask AI.
+**Night shutdown** (from 8:30 PM, or on tap) uses Gameplan's own data: bedtime `gp-core.routine.bed`, Top 3 =
+`gp-core.tasks[].top === <tomorrow>`, routine checks in `gp-d-<night>.night.done` (+ `completedAt`). `briefFor` adds
+"⭐ Top 3: …" so it reaches the morning text. **Recap**: doc `hub-recap` `{ date, at, lines, text }` is rewritten each
+time Hub Today renders; the "Hub evening recap" scheduled task sends it (or builds it from raw docs if it's stale).
