@@ -8546,7 +8546,7 @@ let wpDraft = null;
 const wpMonday = () => { const t = todayIso(), dow = parseIso(t).getDay(); return dow === 6 ? shiftIso(t, 2) : dow === 0 ? shiftIso(t, 1) : shiftIso(t, -(dow - 1)); };
 const wpDoc = () => doc('hub-week');
 function wpEvents(d) {
-  const its = hubSafe(() => tdItems(d), []) || [];
+  const its = [...(hubSafe(() => tdItems(d), []) || []), ...(hubSafe(() => itemsOn(d), []) || []).filter((x) => !x.time).map((x) => ({ title: x.title, type: x.type, st: null }))];
   const game = its.find((x) => x.type === 'game' || (/\bgame\b|\bvs\.?\b|@/i.test(x.title) && ['practice', 'game'].includes(x.type)));
   const prac = its.find((x) => x !== game && (x.type === 'practice' || /practice/i.test(x.title)));
   return { game, prac };
@@ -8563,8 +8563,8 @@ function wpBuild(mon = wpMonday(), keep = null) {
   // levels: games light, around games light, practice moderate; off/weekend fill with hard/moderate under the caps
   for (let i = 0; i < 7; i++) { const x = days[i]; if (x.levelLocked) continue;
     if (x.kind === 'game') { x.level = 'light'; x.focus = WP_FOCUS_LIGHT.game; }
-    else if (isGame(i + 1)) { x.level = 'light'; x.focus = WP_FOCUS_LIGHT.before; }
-    else if (isGame(i - 1)) { x.level = x.kind === 'weekend' ? 'rest' : 'light'; x.focus = WP_FOCUS_LIGHT.after; }
+    else if (isGame(i + 1)) { x.level = 'light'; x.focus = x.kind === 'practice' ? 'Practice only, nothing extra: game tomorrow' : WP_FOCUS_LIGHT.before; }
+    else if (isGame(i - 1)) { x.level = x.kind === 'weekend' ? 'rest' : 'light'; x.focus = x.kind === 'practice' ? 'Practice only, then recover from the game' : WP_FOCUS_LIGHT.after; }
     else if (x.kind === 'practice') { x.level = 'moderate'; x.focus = WP_FOCUS_LIGHT.practice; } }
   let hard = days.filter((x) => x.level === 'hard').length, rot = 0;
   const hardOk = rd == null || rd >= 55;
@@ -8595,7 +8595,7 @@ function wpBlocks(x) {
   // skip template blocks your schedule already has (same title, or a practice/game within an hour of it)
   let out = tpl.blocks.map((b) => ({ ...b })).filter((b) => !have.some((h) => norm(h.title) === norm(b.title) || (['practice'].includes(b.type) && (['practice', 'game'].includes(h.type) || /practice|game/i.test(h.title)) && Math.abs(h.st - b.start) <= 60)));
   const wi = out.findIndex((b) => b.type === 'train' && !/warm-up/i.test(b.title));
-  const noExtra = x.level === 'rest' || x.focus === WP_FOCUS_LIGHT.practice || x.kind === 'game';
+  const noExtra = x.level === 'rest' || x.kind === 'game' || /^Practice (is the session|only)/.test(x.focus);
   if (wi >= 0 && noExtra) out.splice(wi, 1);
   else if (wi >= 0) {
     const [head, ...rest] = x.focus.split(':'), tail = rest.join(':').trim();
