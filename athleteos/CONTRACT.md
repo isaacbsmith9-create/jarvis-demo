@@ -217,3 +217,10 @@ the day before, and a work block the day before an assignment. Days you change a
 Approve writes each day's template (round2) into `gp-d-<date>` (`src: 'Weekly plan'`), skipping blocks the schedule
 already has and titles already on that day, and saves doc `hub-week` `{ v, week, days, readiness, built, approvedAt }`.
 `briefFor` adds "📅 Plan: <level> · <focus>" to the morning brief.
+
+### Weekly plan, Round A
+Each day has taps: Practice / Game / Sit / Off / ? (locks that day; the rest rebalance). `sit` = sitting with varsity
+(also auto-detected from event titles with "sitting" or "varsity only"): never hard, adds an evening note. `unsure`
+= flexible plan (light next to a game). Holidays (Thanksgiving, Dec 24/25/31, Jan 1, Jul 4) with no team event default
+to rest. Approving saves the week's day kinds in doc `hub-week-hist` `{ v, weeks: { monday: { dow: kind } } }` (last 12);
+an empty weekday takes the kind seen 2+ times in the last 6 weeks, tagged "your usual".

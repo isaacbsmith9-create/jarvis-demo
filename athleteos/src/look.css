@@ -382,3 +382,7 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .wp-focus { margin: 6px 0 0; font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
 .wp-study { margin: 4px 0 0; font-size: 13px; overflow-wrap: anywhere; }
 .wp-card { border-left: 4px solid #6d7cff; }
+.wp-chips { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
+.wp-chips .chip { padding: 4px 10px; font-size: 13px; min-height: 30px; }
+.wp-chips .chip.on { background: var(--c); color: #fff; border-color: transparent; }
+.wp-sel .tag { align-self: center; }
