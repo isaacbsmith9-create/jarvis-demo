@@ -205,3 +205,15 @@ time Hub Today renders; the "Hub evening recap" scheduled task sends it (or buil
 `src/round4.js` runs last on Hub Today. Each top-level card gets a key (known classes, "apps", or `h:<heading slug>`);
 doc `hub-layout` `{ v, order: [key], hidden: [key] }` sets the order and hides cards. Cards not in `order` keep their
 default position. "⚙︎ Customize" in the page header opens the list (move up/down, show/hide, reset).
+
+## Sunday Weekly Plan
+
+`src/weekplan.js` adds the "Plan week" Hub tab and, Saturday to Monday noon, a "Plan the week" card on Hub Today until
+that week is approved. `wpBuild(monday)` reads tdItems (calendar + Gameplan) for games/practices, `scDue` for tests and
+work, and the 7-day `rl-ready` average. Rules: game days and the day before are light, the day after a game is light
+(rest on a weekend), practice days are moderate (practice is the session), otherwise hard under a cap of 2, never
+back to back (none if readiness < 55), and at least one rest day. Study: 30 min two days before a test, 45 min review
+the day before, and a work block the day before an assignment. Days you change are locked and the rest rebalance.
+Approve writes each day's template (round2) into `gp-d-<date>` (`src: 'Weekly plan'`), skipping blocks the schedule
+already has and titles already on that day, and saves doc `hub-week` `{ v, week, days, readiness, built, approvedAt }`.
+`briefFor` adds "📅 Plan: <level> · <focus>" to the morning brief.

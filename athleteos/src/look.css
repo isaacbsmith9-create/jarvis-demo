@@ -372,3 +372,13 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .r4-list label { display: flex; gap: 10px; align-items: center; min-width: 0; }
 .r4-list input[type=checkbox] { width: 20px; height: 20px; min-width: 20px; flex: none; margin: 0; }
 .r4-list li.off label { color: var(--muted); text-decoration: line-through; }
+/* Weekly plan */
+.wp-days { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.wp-days li { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; padding: 10px 10px 10px 12px; border-radius: 12px; border: 1px solid var(--line); border-left: 4px solid var(--c); }
+.wp-days li.past { opacity: .55; }
+.wp-d b { display: block; font-size: 15px; } .wp-d small { color: var(--muted); font-size: 12px; }
+.wp-main { min-width: 0; }
+.wp-sel { display: flex; gap: 6px; flex-wrap: wrap; } .wp-sel select { flex: 1 1 130px; min-width: 0; }
+.wp-focus { margin: 6px 0 0; font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+.wp-study { margin: 4px 0 0; font-size: 13px; overflow-wrap: anywhere; }
+.wp-card { border-left: 4px solid #6d7cff; }
