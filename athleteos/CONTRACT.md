@@ -173,3 +173,11 @@ exports a text summary or a JSON backup of every doc (except `tc-backup-*`) thro
 `src/syncstat.js` adds a card under the Morning briefing on Hub Today: per app, the last day it sent data (from
 `appSignals()` plus day-doc activity), warning after 3 quiet days. The old standalone Training Center and Student Lens
 artifacts show a banner pointing here, since separate artifacts can't share this database.
+
+## Quick add, voice and plan my day (Round 1)
+
+`src/round1.js` extends the Hub Today capture box (capture.js). New destinations: **food** (written straight into
+`day-*.<meal>` in MacroLens's entry shape, `source: 'hub'`; macros typed or filled in by Claude), **done** (a finished
+workout via `addWorkout`, `source: 'hub'`; shooting adds `btc: { attempts, makes, shots, pct }`, which `btcOn` counts),
+and **plan** (a whole day in words becomes `gp-d-<date>.blocks`, `src: 'Hub'`, skipping same title + start). Several
+items separated by new lines or ";" preview one at a time. Voice uses the `dictation` capability, else browser speech.

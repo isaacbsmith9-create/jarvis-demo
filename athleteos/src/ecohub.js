@@ -17,7 +17,7 @@ const hubSafe = (fn, fb = null) => { try { return fn(); } catch (e) { console.er
 const hubMind = (d) => hubSafe(() => mentalScore(d));
 const hubSleep = (d) => hubSafe(() => recoveryInputs(d).sleepH ?? null);
 const hubBlocks = (d) => hubSafe(() => gpBlocks(d), []) || [];
-const btcOn = (d) => (doc('day-' + d)?.exercise || []).filter((w) => w.source === 'training-center');
+const btcOn = (d) => (doc('day-' + d)?.exercise || []).filter((w) => w.source === 'training-center' || (w.source === 'hub' && w.btc));
 
 // ---------- launcher: each app with a live number ----------
 function hubApps() {

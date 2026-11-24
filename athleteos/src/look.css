@@ -321,3 +321,14 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .sync-list b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sync-warn { color: var(--warn, #d97706); font-weight: 600; font-size: 13px; }
 .sync-list .muted { font-size: 13px; }
+/* Round 1: quick-add + plan my day */
+.cap-mic { min-width: 44px; padding-inline: 10px; }
+.cap-mic.on { background: #ef4444; color: #fff; border-color: transparent; }
+.cap-hint { margin-top: 6px; }
+.r1-plan { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 6px; }
+.r1-plan li { display: grid; grid-template-columns: 6px 140px minmax(0, 1fr) 36px; grid-template-areas: "b t n x" "b m m ."; gap: 6px; align-items: center; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.r1-plan li:last-child { border-bottom: 0; }
+.r1-plan li > i { grid-area: b; width: 6px; align-self: stretch; border-radius: 3px; background: var(--c); }
+.r1-plan input[type=time] { grid-area: t; } .r1-plan input[type=text] { grid-area: n; } .r1-plan select { grid-area: m; max-width: 140px; }
+.r1-plan input, .r1-plan select { min-width: 0; width: 100%; }
+.r1-plan [data-r1x] { grid-area: x; width: 36px; min-width: 0; padding: 0; height: 36px; }
