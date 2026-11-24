@@ -224,3 +224,15 @@ Each day has taps: Practice / Game / Sit / Off / ? (locks that day; the rest reb
 = flexible plan (light next to a game). Holidays (Thanksgiving, Dec 24/25/31, Jan 1, Jul 4) with no team event default
 to rest. Approving saves the week's day kinds in doc `hub-week-hist` `{ v, weeks: { monday: { dow: kind } } }` (last 12);
 an empty weekday takes the kind seen 2+ times in the last 6 weeks, tagged "your usual".
+
+## Day-of changes and soreness adjust (Round B)
+
+`src/roundb.js`. Right now card gets "Today changed?": Practice canceled / Practice added / Game added / Day off, with
+Undo. Doc `hub-today` `{ v, date, change, at, undo }`. Canceled: today's practice events get `skip: [today]` (aos-plan
+and gp-core.repeats), one-day Gameplan practice blocks are removed, and "Workout (practice canceled)" is added at that
+time; Undo reverses exactly those. Added: an aos-plan event (`notes: 'Added in the Hub'`). Day off: a rest day.
+Soreness reads Recovery Lens `rl-body.records` (0–10 soreness/tightness, today + yesterday, latest per area) and the
+check-in: pain/injury → rest; legs 7+ → light upper body; legs 5+ → no lower lift/sprints/conditioning; upper 5+ on a
+lift day → shooting; check-in sore 4–5 → no hard day; practice/game days keep the session with a note.
+`wpDay(date)` combines the approved plan, today's change and soreness; Right now, the brief and the score use it
+(a rest day, planned or chosen, earns the 25 "Trained" points).

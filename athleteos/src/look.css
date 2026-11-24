@@ -386,3 +386,7 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .wp-chips .chip { padding: 4px 10px; font-size: 13px; min-height: 30px; }
 .wp-chips .chip.on { background: var(--c); color: #fff; border-color: transparent; }
 .wp-sel .tag { align-self: center; }
+/* Round B: quick change */
+.rb-row, .rb-form { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.rb-row .chip { font-size: 13px; padding: 5px 10px; }
+.rb-form input[type=time] { width: 120px; } .rb-form select { width: 80px; } .rb-form input[type=text] { flex: 1 1 140px; min-width: 0; }
