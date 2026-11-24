@@ -236,3 +236,11 @@ check-in: pain/injury → rest; legs 7+ → light upper body; legs 5+ → no low
 lift day → shooting; check-in sore 4–5 → no hard day; practice/game days keep the session with a note.
 `wpDay(date)` combines the approved plan, today's change and soreness; Right now, the brief and the score use it
 (a rest day, planned or chosen, earns the 25 "Trained" points).
+
+## Habit Builder
+
+`src/habits.js`: Habits tab + "Habits" card on Hub Today (after the score). Doc `hub-habits` `{ v, list: [{ id, name,
+icon, auto }], log: { date: { id: true } } }`; `log` holds manual checks only (120 days kept). Auto habits read existing
+data: makes100/shots200 (`exercise[].btc`), train (any workout, or a planned rest day), protein, water, sleep8,
+checkin, night (Gameplan night routine done), homework (all due that day done), score70. The evening recap adds
+"✅ Habits x/y · left: …".

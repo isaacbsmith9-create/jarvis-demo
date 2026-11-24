@@ -390,3 +390,17 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .rb-row, .rb-form { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
 .rb-row .chip { font-size: 13px; padding: 5px 10px; }
 .rb-form input[type=time] { width: 120px; } .rb-form select { width: 80px; } .rb-form input[type=text] { flex: 1 1 140px; min-width: 0; }
+/* Habits */
+.hab-list, .hab-full { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 6px; }
+.hab-list li { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.hab-check { width: 30px; height: 30px; border-radius: 9px; border: 2px solid var(--line); background: transparent; color: #fff; font-weight: 700; cursor: pointer; padding: 0; }
+.hab-list li.on .hab-check { background: #22c55e; border-color: #22c55e; }
+.hab-check:disabled { cursor: default; border-style: dashed; }
+.hab-list li.on .hab-check:disabled { border-style: solid; }
+.hab-n { min-width: 0; overflow-wrap: anywhere; } .hab-n small, .hab-full small { color: var(--muted); font-size: 11px; font-weight: 400; }
+.hab-list li.on .hab-n { color: var(--muted); }
+.hab-st { font-size: 13px; white-space: nowrap; }
+.hab-full li { padding: 10px 0; border-top: 1px solid var(--line); } .hab-full li:first-child { border-top: 0; }
+.hab-grid { display: grid; grid-template-columns: repeat(28, minmax(0, 1fr)); gap: 2px; margin-top: 8px; }
+.hab-grid span { aspect-ratio: 1; border-radius: 3px; background: var(--line); } .hab-grid span.on { background: #22c55e; } .hab-grid span.now { outline: 2px solid var(--fg, #fff); outline-offset: 1px; }
+.hab-add { display: flex; flex-wrap: wrap; gap: 6px; }
