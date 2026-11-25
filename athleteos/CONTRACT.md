@@ -244,3 +244,13 @@ icon, auto }], log: { date: { id: true } } }`; `log` holds manual checks only (1
 data: makes100/shots200 (`exercise[].btc`), train (any workout, or a planned rest day), protein, water, sleep8,
 checkin, night (Gameplan night routine done), homework (all due that day done), score70. The evening recap adds
 "✅ Habits x/y · left: …".
+
+## Auto-logged practices, shortcut bar, voice-only (Round C)
+
+`src/roundc.js`. When a calendar (aos-plan) practice/lift/game with a start time has ended, it's added to
+`day-*.exercise` (`source: 'auto-calendar'`, `autoFrom: '<event id>|<date>'`; practice/lift moderate, game hard); a lift
+inside a practice merges into it; 3-day look-back. Not added when the event is skipped that day, the day already has
+that type logged another way, or it was declined ("Didn't go" → doc `hub-autolog` `{ declined: [key] }`). The Right now
+card shows each auto-logged workout with an effort picker. Shortcut bar (class `hsc-bar`; `.sc-bar` is taken):
+4 buttons from doc `hub-shortcuts` `{ list }` (default food, shots, voice, check-in). Voice-only: "Tell me your day"
+dictates into quick add and splits it into items (Claude JSON split, else by sentence / then / also / plus).

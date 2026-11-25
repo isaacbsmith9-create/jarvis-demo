@@ -2,7 +2,7 @@
 // "Customize" on Hub Today opens a list of every card: move it up or down, or hide it. Saved in doc "hub-layout"
 // { v, order: [key], hidden: [key] }. Cards added later (new features) appear in their default spot until moved.
 // Runs last, so it sees every card the other layers added.
-const R4_KEYS = { ac: ['actions', 'Do these today'], cap: ['add', 'Quick add'], 'r3-now': ['now', 'Right now'], 'r3-night': ['night', 'Night shutdown'], 'r2-tpl': ['templates', 'Load a day'], 'r2-score': ['score', 'Daily score'], hb: ['brief', 'Morning briefing'], 'sync-card': ['sync', 'Sync status'], 'wp-card': ['weekplan', 'Plan the week (weekends)'], 'hab-card': ['habits', 'Habits'] };
+const R4_KEYS = { ac: ['actions', 'Do these today'], cap: ['add', 'Quick add'], 'r3-now': ['now', 'Right now'], 'r3-night': ['night', 'Night shutdown'], 'r2-tpl': ['templates', 'Load a day'], 'r2-score': ['score', 'Daily score'], hb: ['brief', 'Morning briefing'], 'sync-card': ['sync', 'Sync status'], 'wp-card': ['weekplan', 'Plan the week (weekends)'], 'hab-card': ['habits', 'Habits'], 'hsc-bar': ['shortcuts', 'Shortcuts'] };
 let r4Cards = [];
 const r4Lay = () => doc('hub-layout') || { v: 1, order: [], hidden: [] };
 function r4Key(c) {
