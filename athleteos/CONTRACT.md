@@ -254,3 +254,12 @@ that type logged another way, or it was declined ("Didn't go" → doc `hub-autol
 card shows each auto-logged workout with an effort picker. Shortcut bar (class `hsc-bar`; `.sc-bar` is taken):
 4 buttons from doc `hub-shortcuts` `{ list }` (default food, shots, voice, check-in). Voice-only: "Tell me your day"
 dictates into quick add and splits it into items (Claude JSON split, else by sentence / then / also / plus).
+
+## Morning routine + defense habit (Round D)
+
+`src/roundd.js`. Morning card (before noon until done, or via the "Morning" shortcut): 1) check-in → `rl-check.days[d]`
+`{ energy, sore, mood, at, source: 'hub' }`, `rl-sleep.nights[d].asleepH`, `day-*.feel { sleepH, energy, sore }`;
+2) today (wpDay, tdItems, due); 3) Top 3 for today (`gp-core.tasks[].top = today`). Defense: a habit with `def: true`
+("Defense with Owen") in `hub-habits`; done when a workout named /defen|owen/ is logged or tapped. Right now suggests it
+13:00–21:00 except game days, rest days and pain, with a 6-drill list. Quick add "defense with Owen 40 min" logs it.
+The brief adds "🛡️ Defense with Owen: ~35 min" on non-game, non-rest days.
