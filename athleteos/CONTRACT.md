@@ -263,3 +263,14 @@ dictates into quick add and splits it into items (Claude JSON split, else by sen
 ("Defense with Owen") in `hub-habits`; done when a workout named /defen|owen/ is logged or tapped. Right now suggests it
 13:00–21:00 except game days, rest days and pain, with a 6-drill list. Quick add "defense with Owen 40 min" logs it.
 The brief adds "🛡️ Defense with Owen: ~35 min" on non-game, non-rest days.
+
+## Forecast, trends, why, best-day recipe (Round E)
+
+`src/rounde.js`, read-only. **Forecast** (night shutdown): tomorrow's readiness for bedtimes at, +30 and +60 min past
+`gp-core.routine.bed` = 14-day readiness average + (sleep hours − 8) × slope (your own sleep→readiness regression with
+8+ pairs, else 5/hour) − today's load (hard −4, game −6); wake = routine wake or 45 min before tomorrow's first event.
+**Trends** (Hub Today top 3, all in Insights): protein under target ≥ half of logged days, <7 h sleep ≥3 of 7 nights,
+short sleep before games (30 days), training ±40%/−50% vs the prior 3-week average, check-ins ≤3/7, score ±8 vs last
+week, shooting % 3 weeks in one direction, defense days. **Why** (Hub Today: yesterday before noon, today after 7 PM):
+for scores ≥80 / ≤55, the top 3 factors vs your 14-day average. **Recipe** (Insights): averages of 80+ days vs the rest
+(unlocks at 3 such days).
