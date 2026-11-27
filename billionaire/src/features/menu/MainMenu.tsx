@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import keyart from '../../assets/menu-keyart.jpg';
+import logo256 from '../../assets/logo-256.png';
 import keyartSm from '../../assets/menu-keyart-sm.jpg';
 import { store } from '../../app/store';
 import { Modal } from '../../components/ui';
@@ -34,9 +35,7 @@ export function MainMenu() {
     <div className="menu">
       <div className="menu-left">
         <div className="menu-logo">
-          <div className="crest">
-            <span className="brand-mark">B</span>
-          </div>
+          <img className="menu-crest" src={logo256} alt="" width={64} height={64} />
           <h1>BILLIONAIRE</h1>
           <div className="rule" />
           <p>Build a business empire in Miami — from a laptop and five hundred dollars, or from a fortune with a past.</p>

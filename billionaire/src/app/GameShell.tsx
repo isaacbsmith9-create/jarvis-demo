@@ -19,6 +19,7 @@ import { balanceSheet } from '../simulation/finance/valuation';
 import { dayToDate, formatDate, formatShortDate, weekdayName } from '../utils/date';
 import { money } from '../utils/format';
 import { Modal } from '../components/ui';
+import logo96 from '../assets/logo-96.png';
 import { store, useStore, type Speed, type ViewId } from './store';
 
 const NAV: { id: ViewId; label: string; icon: keyof typeof Icon }[] = [
@@ -48,7 +49,7 @@ function TopBar() {
   return (
     <header className="topbar">
       <div className="brand">
-        <span className="brand-mark">B</span>
+        <img className="brand-logo" src={logo96} alt="BILLIONAIRE" width={34} height={34} />
       </div>
       <span className="wordmark desktop-only">BILLIONAIRE</span>
       <span className="sep desktop-only" />
