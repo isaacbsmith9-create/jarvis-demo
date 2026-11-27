@@ -12,7 +12,7 @@ let pending: Promise<Set<string>> | null = null;
 function loadManifest(): Promise<Set<string>> {
   if (manifest) return Promise.resolve(manifest);
   if (!pending) {
-    pending = fetch('/assets/manifest.json')
+    pending = fetch(`${import.meta.env.BASE_URL}assets/manifest.json`)
       .then((r) => (r.ok ? r.json() : { files: [] }))
       .then((j: { files?: string[] }) => new Set((j.files ?? []).map((f) => (f.startsWith('/') ? f : `/assets/${f}`))))
       .catch(() => new Set<string>())

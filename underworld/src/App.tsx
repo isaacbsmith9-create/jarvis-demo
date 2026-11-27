@@ -70,6 +70,7 @@ function TitleScreen({ onStart }: { onStart: () => void }) {
   const [hasSave] = useState(() => !!existingSave && (Object.keys(existingSave.owned).length > 0 || existingSave.cash !== ECONOMY.startCash));
   const owned = useGame((s) => s.owned);
   const cash = useGame((s) => s.cash);
+  const [confirmWipe, setConfirmWipe] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -101,16 +102,19 @@ function TitleScreen({ onStart }: { onStart: () => void }) {
               <button className="btn primary" onClick={onStart}>
                 Continue · ${cash.toLocaleString()} · {territoryPct(owned)}% territory
               </button>
+              {/* in-page two-step confirm: embedded viewers block window.confirm() */}
               <button
-                className="btn"
+                className={confirmWipe ? 'btn danger' : 'btn'}
                 onClick={() => {
-                  if (window.confirm('Start over? Your saved empire will be wiped.')) {
-                    newGame();
-                    onStart();
+                  if (!confirmWipe) {
+                    setConfirmWipe(true);
+                    return;
                   }
+                  newGame();
+                  onStart();
                 }}
               >
-                New Game
+                {confirmWipe ? 'Tap again to wipe your empire' : 'New Game'}
               </button>
             </>
           ) : (

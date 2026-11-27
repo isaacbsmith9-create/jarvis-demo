@@ -192,3 +192,5 @@ canvas { display: block; touch-action: none; }
   .menu-btn { padding: 5px 9px; font-size: 11px; }
   .title-goals { font-size: 13px; }
 }
+
+.btn.danger { border-color: var(--heat); color: var(--heat); }
