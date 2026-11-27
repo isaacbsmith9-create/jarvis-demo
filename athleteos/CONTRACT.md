@@ -274,3 +274,9 @@ short sleep before games (30 days), training ±40%/−50% vs the prior 3-week av
 week, shooting % 3 weeks in one direction, defense days. **Why** (Hub Today: yesterday before noon, today after 7 PM):
 for scores ≥80 / ≤55, the top 3 factors vs your 14-day average. **Recipe** (Insights): averages of 80+ days vs the rest
 (unlocks at 3 such days).
+
+### Time-of-day layout
+`hub-layout` gains `auto` (default true) and `orders: { morning, afternoon, evening }`. Periods: morning 4:00–11:59,
+afternoon 12:00–19:59, evening 20:00–3:59. With auto on, the order is your saved `orders[period]` or the built-in
+`R4_TIME[period]`; moving a card saves it for the current period only. With auto off, the single `order` is used.
+Hidden cards are hidden all day. Reset clears everything back to auto.

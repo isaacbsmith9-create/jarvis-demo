@@ -435,3 +435,5 @@ button.ev-app { cursor: pointer; text-decoration: underline; text-decoration-col
 .re-why.good { border-left: 4px solid #22c55e; } .re-why.bad { border-left: 4px solid #f59e0b; }
 .re-why.good .re-list li { border-color: #22c55e; } .re-why.bad .re-list li { border-color: #f59e0b; }
 .re-tbl { width: 100%; border-collapse: collapse; font-size: 14px; } .re-tbl th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; padding: 4px; } .re-tbl td { padding: 6px 4px; border-top: 1px solid var(--line); }
+.r4-auto { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border-radius: 12px; background: color-mix(in srgb, #3d8bff 10%, transparent); }
+.r4-auto input { width: 20px; height: 20px; min-width: 20px; margin: 2px 0 0; } .r4-auto span { display: grid; gap: 2px; } .r4-auto small { color: var(--muted); font-size: 12px; }
