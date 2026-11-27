@@ -329,15 +329,35 @@ export class CityScene extends Phaser.Scene {
 
   private setupInput() {
     const cam = this.cameras.main;
+    // Second touch pointer for pinch-to-zoom on phones and tablets.
+    this.input.addPointer(1);
+    let pinch: { dist: number; zoom: number } | null = null;
+    const touchDist = () => {
+      const a = this.input.pointer1;
+      const b = this.input.pointer2;
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    };
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      if (this.input.pointer1.isDown && this.input.pointer2.isDown) {
+        pinch = { dist: touchDist(), zoom: cam.zoom };
+        this.dragging = true;
+        return;
+      }
       this.dragging = false;
       this.dragStart = { x: p.x, y: p.y, sx: cam.scrollX, sy: cam.scrollY };
     });
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
+      if (pinch && this.input.pointer1.isDown && this.input.pointer2.isDown) {
+        const a = this.input.pointer1;
+        const b = this.input.pointer2;
+        const target = Phaser.Math.Clamp(pinch.zoom * (touchDist() / Math.max(1, pinch.dist)), 0.3, 2.2);
+        this.zoomBy(target / cam.zoom, (a.x + b.x) / 2, (a.y + b.y) / 2);
+        return;
+      }
       if (p.isDown) {
         const dx = p.x - this.dragStart.x;
         const dy = p.y - this.dragStart.y;
-        if (!this.dragging && Math.hypot(dx, dy) > 5) this.dragging = true;
+        if (!this.dragging && Math.hypot(dx, dy) > 8) this.dragging = true;
         if (this.dragging) {
           cam.scrollX = this.dragStart.sx - dx / cam.zoom;
           cam.scrollY = this.dragStart.sy - dy / cam.zoom;
@@ -349,6 +369,14 @@ export class CityScene extends Phaser.Scene {
       this.setHover(hit, p);
     });
     this.input.on('pointerup', (p: Phaser.Input.Pointer) => {
+      if (pinch) {
+        if (!this.input.pointer1.isDown && !this.input.pointer2.isDown) pinch = null;
+        // Resume single-finger drag from the remaining finger without a jump.
+        const rest = this.input.pointer1.isDown ? this.input.pointer1 : this.input.pointer2.isDown ? this.input.pointer2 : null;
+        if (rest) this.dragStart = { x: rest.x, y: rest.y, sx: cam.scrollX, sy: cam.scrollY };
+        this.dragging = true;
+        return;
+      }
       if (this.dragging) {
         this.dragging = false;
         return;

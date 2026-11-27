@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useLayout } from '../../app/layout';
 import { store, useStore } from '../../app/store';
 import { DISTRICTS, DISTRICT_ORDER } from '../../data/cities/miami';
 import { PROPERTY_TYPE_LABEL } from '../../data/properties/miami';
@@ -15,6 +16,9 @@ export function CityView({ active }: { active: boolean }) {
   const st = s.state!;
   const sel = s.selection;
   const hp = hover?.propertyId ? st.properties[hover.propertyId] : null;
+  const phone = useLayout() === 'phone';
+  const [hudOpen, setHudOpen] = useState(false);
+  const showHud = !phone || hudOpen;
 
   return (
     <div className="city-wrap" style={{ visibility: active ? 'visible' : 'hidden', pointerEvents: active ? 'auto' : 'none' }} data-testid="city-view">
@@ -25,7 +29,13 @@ export function CityView({ active }: { active: boolean }) {
             <div className="city-title">
               <div className="eyebrow">Florida · Alpha 0.1</div>
               <h2>Miami</h2>
+              {phone && (
+                <button className="btn sm ghost" style={{ marginTop: 6, marginLeft: -8 }} onClick={() => setHudOpen(!hudOpen)} data-testid="city-hud-toggle">
+                  {hudOpen ? 'Hide districts & key' : 'Districts & key'}
+                </button>
+              )}
             </div>
+            {showHud && (
             <div className="filter-box">
               <button className={s.cityFilter === null ? 'on' : ''} onClick={() => s.setCityFilter(null)}>
                 All districts
@@ -44,6 +54,8 @@ export function CityView({ active }: { active: boolean }) {
                 </button>
               ))}
             </div>
+            )}
+            {showHud && (
             <div className="legend-box">
               <span className="row">
                 <i className="sw" style={{ background: '#d8b260' }} /> Your property
@@ -58,9 +70,10 @@ export function CityView({ active }: { active: boolean }) {
                 <i className="sw" style={{ background: '#c65a63' }} /> Competitor-owned
               </span>
               <span className="dim tiny" style={{ marginTop: 4 }}>
-                Drag to pan · scroll to zoom · WASD
+                {phone ? 'Drag to pan · pinch to zoom · tap a building' : 'Drag to pan · scroll to zoom · WASD'}
               </span>
             </div>
+            )}
           </div>
           <div className="zoom-ctl">
             <button onClick={() => handle.current?.zoom(1.2)} aria-label="Zoom in">
@@ -70,7 +83,7 @@ export function CityView({ active }: { active: boolean }) {
               −
             </button>
           </div>
-          {hover && !sel.propertyId && (hp || hover.district) && (
+          {!phone && hover && !sel.propertyId && (hp || hover.district) && (
             <div className="hover-tip" style={{ left: hover.x + 16, top: hover.y + 12 }}>
               {hp ? (
                 <>

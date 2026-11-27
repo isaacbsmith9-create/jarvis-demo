@@ -4,6 +4,7 @@
  * The simulation itself lives in src/simulation and knows nothing about this.
  */
 import { useSyncExternalStore } from 'react';
+import { getLayout } from './layout';
 import { AUTOSAVE_SLOT, saveGame } from '../persistence/saves';
 import { advanceDay } from '../simulation/engine';
 import { createNewGame, type NewGameOptions } from '../simulation/newGame';
@@ -80,7 +81,7 @@ class GameStore {
   startNewGame(opts: NewGameOptions) {
     this.state = createNewGame(opts);
     this.enterGame();
-    this.toast('info', 'Welcome to Miami. Time is paused: press Space or use the speed controls to begin.');
+    this.toast('info', getLayout() === 'phone' ? 'Welcome to Miami. Time is paused: tap play at the top to begin.' : 'Welcome to Miami. Time is paused: press Space or use the speed controls to begin.');
   }
 
   loadState(state: GameState) {

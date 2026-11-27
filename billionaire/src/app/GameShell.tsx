@@ -15,7 +15,7 @@ import { PropertiesView } from '../features/properties/PropertiesView';
 import { SavesView } from '../features/saves/SavesView';
 import { alerts } from '../features/selectors';
 import { balanceSheet } from '../simulation/finance/valuation';
-import { formatDate, weekdayName } from '../utils/date';
+import { dayToDate, formatDate, formatShortDate, weekdayName } from '../utils/date';
 import { money } from '../utils/format';
 import { Modal } from '../components/ui';
 import { store, useStore, type Speed, type ViewId } from './store';
@@ -49,14 +49,16 @@ function TopBar() {
       <div className="brand">
         <span className="brand-mark">B</span>
       </div>
-      <span className="wordmark">BILLIONAIRE</span>
-      <span className="sep" />
+      <span className="wordmark desktop-only">BILLIONAIRE</span>
+      <span className="sep desktop-only" />
       <div className="clock">
         <div>
-          <div className="wd">{weekdayName(st.day)} · Day {st.day + 1}</div>
+          <div className="wd desktop-only">{weekdayName(st.day)} · Day {st.day + 1}</div>
           <div className="date num" data-testid="game-date">
-            {formatDate(st.day)}
+            <span className="desktop-only">{formatDate(st.day)}</span>
+            <span className="phone-only">{formatShortDate(st.day)}</span>
           </div>
+          <div className="wd phone-only">{dayToDate(st.day).getUTCFullYear()}</div>
         </div>
         <div className="speed" data-testid="speed-controls">
           {speeds.map((x) => {
@@ -67,13 +69,13 @@ function TopBar() {
               </button>
             );
           })}
-          <button title="Advance one day (N)" onClick={() => s.nextDay()} disabled={s.speed !== 0} data-testid="step-day" style={{ opacity: s.speed !== 0 ? 0.3 : 1 }}>
+          <button className="desktop-only" title="Advance one day (N)" onClick={() => s.nextDay()} disabled={s.speed !== 0} data-testid="step-day" style={{ opacity: s.speed !== 0 ? 0.3 : 1 }}>
             <Icon.step />
           </button>
         </div>
       </div>
-      <span className="sep" />
-      <div className="tb-group">
+      <span className="sep desktop-only" />
+      <div className="tb-group tb-money">
         <div className="tb-stat">
           <span className="l">Cash</span>
           <span className={`v ${bs.cash < 0 ? 'neg' : ''}`} data-testid="tb-cash">
@@ -87,14 +89,14 @@ function TopBar() {
           </span>
         </div>
         {bs.loans > 0 && (
-          <div className="tb-stat">
+          <div className="tb-stat desktop-only">
             <span className="l">Debt</span>
             <span className="v neg">{money(bs.loans)}</span>
           </div>
         )}
       </div>
-      <div style={{ flex: 1 }} />
-      <div className="tb-group" style={{ gap: 6 }}>
+      <div style={{ flex: 1 }} className="desktop-only" />
+      <div className="tb-group desktop-only" style={{ gap: 6 }}>
         <span className="dim tiny" style={{ marginRight: 6 }}>
           {s.saving ? 'Saving…' : s.lastSaved ? `Saved ${new Date(s.lastSaved).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Not saved'}
         </span>
@@ -105,6 +107,9 @@ function TopBar() {
           {st.player.name}
         </button>
       </div>
+      <button className="tb-save phone-only" onClick={() => void s.save('slot1')} aria-label="Quick save to Slot 1" title="Quick save">
+        {s.saving ? '…' : <Icon.save />}
+      </button>
     </header>
   );
 }
@@ -134,6 +139,10 @@ function NavRail() {
         );
       })}
       <div className="spacer" />
+      <button className={`phone-only ${s.view === 'profile' ? 'on' : ''}`} onClick={() => s.setView('profile')} data-testid="nav-profile">
+        <Icon.profile />
+        You
+      </button>
       <button className={s.view === 'saves' ? 'on' : ''} onClick={() => s.setView('saves')} data-testid="nav-saves">
         <Icon.save />
         Saves
