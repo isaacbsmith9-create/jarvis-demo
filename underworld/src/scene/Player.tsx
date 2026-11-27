@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { consumeCamYaw, getMoveIntent } from '../game/input';
-import { resolveCircleVsAABBs, world } from '../game/world';
+import { resolveCircleVsAABBs, segmentHit, world } from '../game/world';
 import { PLAYER } from '../game/config';
 
 const camTarget = new THREE.Vector3();
@@ -66,11 +66,22 @@ export function Player() {
     const dist = PLAYER.camDistance;
     camTarget.set(p.pos.x, p.pos.y + 1.4, p.pos.z);
     camPos.set(p.pos.x + sin * dist, p.pos.y + PLAYER.camHeight, p.pos.z + cos * dist);
-    camera.position.lerp(camPos, 1 - Math.exp(-8 * dt));
+    // pull the camera in front of any building between it and the player
+    const hit = segmentHit(camTarget.x, camTarget.y, camTarget.z, camPos.x, camPos.y, camPos.z, world.colliders);
+    if (hit < 1) {
+      const t = Math.max(0.15, hit - 0.06);
+      camPos.lerpVectors(camTarget, camPos, t);
+      camera.position.lerp(camPos, 1 - Math.exp(-25 * dt)); // snap faster when occluded
+    } else {
+      camera.position.lerp(camPos, 1 - Math.exp(-8 * dt));
+    }
+    if (import.meta.env.DEV && (window as unknown as { __aerial?: boolean }).__aerial) {
+      camera.position.set(p.pos.x + 60, 170, p.pos.z + 120);
+    }
     camera.lookAt(camTarget);
   });
 
-  const jacket = '#1b1b24';
+  const jacket = '#3a3346';
   const skin = '#c99a74';
   return (
     <group ref={root}>

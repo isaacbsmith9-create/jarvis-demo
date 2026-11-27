@@ -1,33 +1,37 @@
 import { useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Player } from './scene/Player';
+import { City } from './scene/City';
+import { Storefronts } from './scene/Storefronts';
 import { TouchControls } from './ui/TouchControls';
 import { bindKeyboard, input } from './game/input';
 import { world } from './game/world';
+import { buildColliders, SPAWN } from './game/city';
 
-function TestScene() {
-  // Phase 1 movement test: a few crates to collide with
-  const boxes = [
-    { x: 6, z: -6, w: 3, d: 3 },
-    { x: -8, z: -4, w: 4, d: 2 },
-    { x: 0, z: -14, w: 10, d: 2 },
-  ];
-  world.colliders = boxes.map((b) => ({
-    minX: b.x - b.w / 2, maxX: b.x + b.w / 2, minZ: b.z - b.d / 2, maxZ: b.z + b.d / 2,
-  }));
+// one-time world init (colliders + spawn)
+world.colliders = buildColliders();
+world.player.pos.set(SPAWN.x, 0, SPAWN.z);
+
+function Lighting() {
   return (
     <>
-      <mesh rotation-x={-Math.PI / 2} receiveShadow>
-        <planeGeometry args={[200, 200]} />
-        <meshStandardMaterial color="#3a3d46" />
-      </mesh>
-      <gridHelper args={[200, 100, '#555', '#444']} position-y={0.01} />
-      {boxes.map((b, i) => (
-        <mesh key={i} position={[b.x, 1, b.z]} castShadow receiveShadow>
-          <boxGeometry args={[b.w, 2, b.d]} />
-          <meshStandardMaterial color="#b0703a" />
-        </mesh>
-      ))}
+      <color attach="background" args={['#1a1630']} />
+      <fog attach="fog" args={['#1a1630', 70, 260]} />
+      <hemisphereLight args={['#a9a2e0', '#4a3d48', 1.5]} />
+      <ambientLight intensity={0.35} color="#ffd9c0" />
+      <directionalLight
+        position={[-60, 90, 40]}
+        intensity={1.8}
+        color="#ffc7a0"
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-140}
+        shadow-camera-right={140}
+        shadow-camera-top={140}
+        shadow-camera-bottom={-140}
+        shadow-camera-far={300}
+        shadow-bias={-0.0006}
+      />
     </>
   );
 }
@@ -48,11 +52,10 @@ export function App() {
       onPointerUp={() => { drag.current = null; }}
       onPointerCancel={() => { drag.current = null; }}
     >
-      <Canvas shadows camera={{ fov: 55, near: 0.1, far: 600, position: [0, 8, 10] }}>
-        <color attach="background" args={['#14141c']} />
-        <hemisphereLight args={['#b8c4ff', '#2a2230', 0.7]} />
-        <directionalLight position={[30, 50, 20]} intensity={1.4} castShadow />
-        <TestScene />
+      <Canvas shadows dpr={[1, 1.75]} camera={{ fov: 55, near: 0.1, far: 700, position: [0, 8, 10] }}>
+        <Lighting />
+        <City />
+        <Storefronts />
         <Player />
       </Canvas>
       <TouchControls actionLabel="ACT" />
