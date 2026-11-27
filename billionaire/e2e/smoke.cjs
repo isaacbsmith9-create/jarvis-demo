@@ -41,21 +41,29 @@ function assert(cond, msg) {
   });
   const rev = await page.evaluate(() => Object.values(window.__billionaire.state.companies)[0].lifetime.revenue);
   assert(rev > 0, 'company earned revenue');
+  // The campaign autosaves into the slot it was started in (slot 1 by default); also save a copy to slot 3.
   await page.click('[data-testid=nav-saves]');
-  await page.click('tr:has-text("Slot 3") >> text=Save here');
+  await page.click('[data-testid=save-slot1]');
   await page.waitForTimeout(500);
+  await page.click('[data-testid=save-slot3]');
+  await page.waitForTimeout(300);
+  await page.click('[data-testid=slot-confirm]', { timeout: 1000 }).catch(() => {});
+  await page.waitForTimeout(600);
+  assert((await page.evaluate(() => window.__billionaire.activeSlot)) === 'slot3', 'saving to another slot makes it the active slot');
   const date = await page.textContent('[data-testid=game-date]');
   await page.reload();
   await page.waitForTimeout(600);
   await page.click('[data-testid=menu-continue]');
   await page.waitForSelector('[data-testid=game-date]');
   assert((await page.textContent('[data-testid=game-date]')) === date, 'save restored the same date');
+  assert((await page.evaluate(() => window.__billionaire.activeSlot)) === 'slot3', 'continue resumes the latest slot');
   console.log('core loop ok —', date);
 
   for (const id of SCEN) {
     await page.evaluate(() => window.__billionaire.state && window.__billionaire.quitToMenu());
     await page.click('[data-testid=menu-new]');
     await page.click(`[data-testid=scenario-${id}]`);
+    await page.click(`[data-testid=pick-slot${(SCEN.indexOf(id) % 5) + 1}]`);
     await page.fill('[data-testid=player-name]', 'Smoke ' + id);
     await page.click('[data-testid=start-campaign]');
     await page.evaluate(() => {

@@ -520,3 +520,26 @@ kbd { font-family: var(--font-ui); font-size: 10px; border: 1px solid var(--line
 [data-layout='phone'] .newgame-f { flex-wrap: wrap; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); gap: 10px; }
 [data-layout='phone'] .newgame-f .field { width: auto !important; flex: 1 1 140px; }
 [data-layout='phone'] .newgame-f .btn { flex: 1 1 100%; }
+
+/* ---------- Save slots ---------- */
+.slot-list { display: flex; flex-direction: column; }
+.slot-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-bottom: 1px solid #1c1d22; flex-wrap: wrap; }
+.slot-row:last-child { border-bottom: 0; }
+.slot-row.current { background: var(--gold-faint); }
+.slot-num { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border: 1px solid var(--line-2); border-radius: var(--r); font-family: var(--font-display); font-size: 20px; color: var(--gold-2); }
+.slot-row.current .slot-num { border-color: var(--gold); }
+.slot-info { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 4px; }
+.slot-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.slot-confirm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.slot-foot { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.slot-pick { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.slot-pick button { text-align: left; padding: 8px 10px; background: var(--panel); border: 1px solid var(--line-2); border-radius: var(--r); color: var(--text); cursor: pointer; min-height: 52px; display: flex; flex-direction: column; gap: 2px; }
+.slot-pick button.on { border-color: var(--gold); background: var(--gold-faint); }
+.slot-pick button .n { font-family: var(--font-display); font-size: 16px; color: var(--gold-2); }
+.slot-pick button .who { font-size: 11px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-layout='phone'] .slot-actions { width: 100%; padding-left: 54px; }
+[data-layout='phone'] .slot-pick { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+[data-layout='phone'] .slot-pick button { padding: 6px; min-height: 46px; }
+
+button { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, .input:focus-visible, .select:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }

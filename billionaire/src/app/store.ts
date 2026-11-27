@@ -5,7 +5,7 @@
  */
 import { useSyncExternalStore } from 'react';
 import { getLayout } from './layout';
-import { AUTOSAVE_SLOT, saveGame } from '../persistence/saves';
+import { saveGame, type SaveLocation } from '../persistence/saves';
 import { advanceDay } from '../simulation/engine';
 import { createNewGame, type NewGameOptions } from '../simulation/newGame';
 import type { ActionResult } from '../simulation/result';
@@ -54,6 +54,12 @@ class GameStore {
   toasts: Toast[] = [];
   modal: Modal | null = null;
   lastSaved: number | null = null;
+  /** The save slot (slot1..slot5) this campaign lives in; autosave writes here. */
+  activeSlot: string | null = null;
+  savedWhere: SaveLocation[] = [];
+  private lastSavedDay = -1;
+  private savePending = false;
+  private autosaveTimer: ReturnType<typeof setInterval> | null = null;
   saving = false;
   cityFilter: DistrictId | null = null;
   /** One-shot camera focus requests for the city scene. */
@@ -78,16 +84,21 @@ class GameStore {
 
   /* ---------------- lifecycle ---------------- */
 
-  startNewGame(opts: NewGameOptions) {
+  startNewGame(opts: NewGameOptions, slot: string) {
     this.state = createNewGame(opts);
+    this.activeSlot = slot;
     this.enterGame();
+    void this.save(slot, true);
     this.toast('info', getLayout() === 'phone' ? 'Welcome to Miami. Time is paused: tap play at the top to begin.' : 'Welcome to Miami. Time is paused: press Space or use the speed controls to begin.');
   }
 
-  loadState(state: GameState) {
+  /** `slot` is the slot the game came from; null for imported files and the old shared autosave. */
+  loadState(state: GameState, slot: string | null) {
     this.state = state;
+    this.activeSlot = slot && slot.startsWith('slot') ? slot : null;
     this.enterGame();
-    this.toast('ok', 'Game loaded.');
+    this.lastSavedDay = state.day;
+    this.toast('ok', this.activeSlot ? `Game loaded from Slot ${this.activeSlot.slice(4)}.` : 'Game loaded. Pick a save slot in Saves so it can autosave.');
   }
 
   private enterGame() {
@@ -97,11 +108,22 @@ class GameStore {
     this.selection = { propertyId: null, district: null, companyId: null, employeeId: null, rivalId: null };
     this.modal = null;
     this.lastSaved = null;
+    this.savedWhere = [];
+    this.lastSavedDay = -1;
     this.startClock();
+    if (this.autosaveTimer) clearInterval(this.autosaveTimer);
+    // Autosave every 30 seconds while time has moved since the last save.
+    this.autosaveTimer = setInterval(() => {
+      if (this.state && this.state.day !== this.lastSavedDay) void this.autosave();
+    }, 30000);
     this.emit();
   }
 
   quitToMenu() {
+    void this.autosave();
+    if (this.autosaveTimer) clearInterval(this.autosaveTimer);
+    this.autosaveTimer = null;
+    this.activeSlot = null;
     this.stopClock();
     this.state = null;
     this.screen = 'menu';
@@ -238,14 +260,24 @@ class GameStore {
 
   /* ---------------- saving ---------------- */
 
+  /** Save to a slot. Saving to a different slot makes it this campaign's slot from then on. */
   async save(slot: string, silent = false): Promise<boolean> {
     if (!this.state) return false;
+    if (this.saving) {
+      // One save at a time; remember that another is wanted.
+      this.savePending = true;
+      return false;
+    }
+    const state = this.state;
     this.saving = true;
+    this.activeSlot = slot;
     this.emit();
     try {
-      await saveGame(slot, this.state);
+      const day = state.day;
+      this.savedWhere = await saveGame(slot, state);
       this.lastSaved = Date.now();
-      if (!silent) this.toast('ok', slot === AUTOSAVE_SLOT ? 'Autosaved.' : 'Game saved.');
+      this.lastSavedDay = day;
+      if (!silent) this.toast('ok', `Saved to Slot ${slot.slice(4)}${this.savedWhere.includes('cloud') ? ' (your account)' : ' (this browser only)'}.`);
       return true;
     } catch (e) {
       this.toast('error', `Save failed: ${e instanceof Error ? e.message : String(e)}`);
@@ -253,11 +285,24 @@ class GameStore {
     } finally {
       this.saving = false;
       this.emit();
+      if (this.savePending) {
+        this.savePending = false;
+        void this.autosave();
+      }
     }
   }
 
+  /** Save the current campaign into its own slot (does nothing until it has one). */
   async autosave() {
-    await this.save(AUTOSAVE_SLOT, true);
+    if (this.state && this.activeSlot) await this.save(this.activeSlot, true);
+  }
+
+  quickSave() {
+    if (this.activeSlot) void this.save(this.activeSlot);
+    else {
+      this.setView('saves');
+      this.toast('info', 'Choose a slot to save this game in.');
+    }
   }
 }
 

@@ -24,7 +24,7 @@ export function ProfileView() {
             store.openModal({
               kind: 'confirm',
               title: 'Quit to main menu?',
-              body: 'Unsaved progress since your last save will be lost. The game autosaves on the 1st of every month.',
+              body: 'Your game is saved to its slot as you leave, so you can continue it from the main menu.',
               confirmLabel: 'Quit to menu',
               onConfirm: () => store.quitToMenu(),
             })

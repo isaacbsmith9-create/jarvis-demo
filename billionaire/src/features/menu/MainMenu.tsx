@@ -51,7 +51,7 @@ export function MainMenu() {
 
   useEffect(() => {
     listSaves()
-      .then((s) => setLatest(s.find((x) => !x.error) ?? null))
+      .then((s) => setLatest(s.find((x) => !x.error && x.slot.startsWith('slot')) ?? s.find((x) => !x.error) ?? null))
       .catch((e) => {
         setLatest(null);
         setDbError(e instanceof Error ? e.message : String(e));
@@ -61,7 +61,7 @@ export function MainMenu() {
   const cont = async () => {
     if (!latest) return;
     try {
-      store.loadState(await loadGame(latest.slot));
+      store.loadState(await loadGame(latest.slot), latest.slot);
     } catch (e) {
       store.toast('error', `Could not load: ${e instanceof Error ? e.message : String(e)}`);
     }
@@ -89,7 +89,7 @@ export function MainMenu() {
           </button>
           <button onClick={() => setShowLoad(true)} data-testid="menu-load">
             Load Game
-            <span className="sub">Saves, autosave & import</span>
+            <span className="sub">5 save slots</span>
           </button>
         </div>
         {dbError && <div className="notice warn">Saving is unavailable in this browser: {dbError}</div>}

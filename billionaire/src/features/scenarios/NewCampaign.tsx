@@ -6,6 +6,8 @@ import { SUBTYPES } from '../../data/companies/industries';
 import { PROPERTY_DEFS } from '../../data/properties/miami';
 import { SCENARIOS, type ScenarioDef } from '../../data/scenarios/scenarios';
 import { moneyFull } from '../../utils/format';
+import { MANUAL_SLOTS } from '../../persistence/saves';
+import { useSaveList } from '../saves/SaveSlots';
 
 function balanceSheet(s: ScenarioDef) {
   const debt = s.loans.reduce((a, l) => a + l.principal, 0);
@@ -42,6 +44,11 @@ export function NewCampaign() {
   const [selected, setSelected] = useState<string>('entrepreneur');
   const [name, setName] = useState('');
   const [seed, setSeed] = useState('');
+  const { saves } = useSaveList();
+  const [slot, setSlot] = useState<string | null>(null);
+  const used = new Map((saves ?? []).map((x) => [x.slot, x]));
+  const chosen = slot ?? MANUAL_SLOTS.find((x) => !used.has(x)) ?? 'slot1';
+  const replacing = used.get(chosen);
   const s = SCENARIOS.find((x) => x.id === selected)!;
   const legit = SCENARIOS.filter((x) => x.track === 'legitimate');
   const under = SCENARIOS.filter((x) => x.track === 'underground');
@@ -49,7 +56,7 @@ export function NewCampaign() {
 
   const start = () => {
     if (!nameOk) return;
-    store.startNewGame({ playerName: name.trim(), scenarioId: selected, seed: seed.trim() || undefined });
+    store.startNewGame({ playerName: name.trim(), scenarioId: selected, seed: seed.trim() || undefined }, chosen);
   };
 
   const props = s.properties.map((p) => PROPERTY_DEFS.find((d) => d.id === p.id)!);
@@ -171,6 +178,23 @@ export function NewCampaign() {
         </aside>
       </div>
       <div className="newgame-f">
+        <div className="field" style={{ flex: '1 1 340px', maxWidth: 460 }}>
+          <label>
+            Save slot{' '}
+            {replacing?.summary ? <span className="warn">· replaces {replacing.summary.playerName} ({replacing.summary.scenario})</span> : <span className="dim">· your game saves here automatically</span>}
+          </label>
+          <div className="slot-pick" data-testid="slot-pick">
+            {MANUAL_SLOTS.map((x) => {
+              const u = used.get(x);
+              return (
+                <button key={x} className={chosen === x ? 'on' : ''} onClick={() => setSlot(x)} data-testid={`pick-${x}`}>
+                  <span className="n">{x.slice(4)}</span>
+                  <span className="who">{u?.summary ? u.summary.playerName : 'Empty'}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <div className="field" style={{ width: 260 }}>
           <label>Your name</label>
           <input className="input" value={name} maxLength={28} placeholder="e.g. Alex Rivera" onChange={(e) => setName(e.target.value)} data-testid="player-name" onKeyDown={(e) => e.key === 'Enter' && start()} />

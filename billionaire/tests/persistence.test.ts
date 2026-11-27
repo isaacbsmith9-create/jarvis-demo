@@ -8,7 +8,7 @@ describe('IndexedDB saves', () => {
   it('saves, lists, loads and deletes slots', async () => {
     const s = createNewGame({ playerName: 'Persist', scenarioId: 'owner', seed: 'p' });
     advanceDays(s, 40);
-    await saveGame('slot1', s);
+    expect(await saveGame('slot1', s)).toEqual(['device']);
     const list = await listSaves();
     const rec = list.find((x) => x.slot === 'slot1')!;
     expect(rec.error).toBeNull();

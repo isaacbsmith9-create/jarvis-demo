@@ -98,16 +98,16 @@ function TopBar() {
       <div style={{ flex: 1 }} className="desktop-only" />
       <div className="tb-group desktop-only" style={{ gap: 6 }}>
         <span className="dim tiny" style={{ marginRight: 6 }}>
-          {s.saving ? 'Saving…' : s.lastSaved ? `Saved ${new Date(s.lastSaved).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : 'Not saved'}
+          {s.saving ? 'Saving…' : !s.activeSlot ? 'No save slot' : s.lastSaved ? `Slot ${s.activeSlot.slice(4)} · saved ${new Date(s.lastSaved).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}${s.savedWhere.includes('cloud') ? '' : ' (browser only)'}` : `Slot ${s.activeSlot.slice(4)}`}
         </span>
-        <button className="btn sm ghost" onClick={() => void s.save('slot1')} title="Quick save to Slot 1 (Ctrl/⌘+S)">
-          Quick save
+        <button className="btn sm ghost" onClick={() => s.quickSave()} title="Save now (Ctrl/⌘+S)" data-testid="quick-save">
+          Save
         </button>
         <button className="btn sm ghost" onClick={() => s.setView('profile')} title="Profile">
           {st.player.name}
         </button>
       </div>
-      <button className="tb-save phone-only" onClick={() => void s.save('slot1')} aria-label="Quick save to Slot 1" title="Quick save">
+      <button className="tb-save phone-only" onClick={() => s.quickSave()} aria-label="Save now" title="Save now">
         {s.saving ? '…' : <Icon.save />}
       </button>
     </header>
@@ -193,7 +193,7 @@ export function GameShell() {
       if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        void store.save('slot1');
+        store.quickSave();
         return;
       }
       if (store.modal) return;
@@ -209,10 +209,16 @@ export function GameShell() {
       // Best-effort autosave when the window closes.
       void store.autosave();
     };
+    const onHide = () => {
+      // Save when you switch apps or tabs (the most reliable moment on phones).
+      if (document.visibilityState === 'hidden') void store.autosave();
+    };
     window.addEventListener('beforeunload', onUnload);
+    document.addEventListener('visibilitychange', onHide);
     return () => {
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('beforeunload', onUnload);
+      document.removeEventListener('visibilitychange', onHide);
     };
   }, []);
 
