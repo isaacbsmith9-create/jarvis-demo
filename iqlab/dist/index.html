@@ -5417,19 +5417,21 @@ function cvNewPoss() {
   for (const o of OFF) { const p = CV_SPOTS[o]; pos[o] = [p[0] + (Math.random() - 0.5) * 2, p[1] + (Math.random() - 0.5) * 2]; vel[o] = [0, 0]; }
   const S = { cov: CV.cov, intensity: 2, assign: Object.fromEntries(DEF.map((d, i) => [d, OFF[i]])), size: { O1: 1, O2: 2, O3: 3, O4: 4, O5: 5 }, names: Object.fromEntries(OFF.map((o) => [o, ROLE[o]])), pos };
   const d0 = defend(S, pos, 'O1', []); for (const d of DEF) { pos[d] = d0.m[d]; vel[d] = [0, 0]; }
-  Object.assign(G, { pos, vel, S, holder: 'O1', ball: { kind: 'hold' }, t: 0, clock: 24, tgt: {}, hist: [], defT: 0, caught: 0, call: 0, spot: { ...CV_SPOTS }, over: null, passes: 0, drib: 0, q: null, face: {}, camYaw: null, lastTap: 0, stick: null, dragAt: null });
+  Object.assign(G, { burstT: -9, dirHist: [], moves: 0, close: null, helpLog: [], review: null, flash: '', flashT: -9, pos, vel, S, holder: 'O1', ball: { kind: 'hold' }, t: 0, clock: 24, tgt: {}, hist: [], defT: 0, caught: 0, call: 0, spot: { ...CV_SPOTS }, over: null, passes: 0, drib: 0, q: null, face: {}, camYaw: null, lastTap: 0, stick: null, dragAt: null });
   G.face = Object.fromEntries([...OFF, ...DEF].map((id) => [id, norm(sub(T_HOOP, pos[id]))]));
   G.tgt = { ...d0.m };
 }
 function cvEnd(res, pts) {
   const G = CV.G; if (G.over) return;
+  if (res !== 'make' && res !== 'miss') cvReview(G.holder, 0, res);
   G.over = { res, pts, at: G.t };
   G.score += pts; G.poss++;
-  const rec = { ts: Date.now(), cam: CV.cam, ctrl: CV.ctrl, follow: CV.follow, cov: CV.cov, res, pts, q: G.q, passes: G.passes, drib: r1(G.drib) };
+  const rec = { ts: Date.now(), cam: CV.cam, ctrl: CV.ctrl, follow: CV.follow, cov: CV.cov, res, pts, q: G.q, passes: G.passes, drib: r1(G.drib), best: G.review ? r1(G.review.bestEV) : null, ev: G.review ? r1(G.review.ev) : null, moves: G.moves };
+  G.lastReview = G.review;
   const D = doc('cv'); D.list.push(rec); if (D.list.length > 400) D.list.splice(0, D.list.length - 400); persist('cv');
   G.msg = { make: pts === 3 ? 'Three!' : 'Bucket!', miss: 'Miss', tov: 'Turnover', violation: 'Shot-clock violation' }[res];
   cvPanel();
-  setTimeout(() => { if (CV.G === G && current === 'cv') { cvNewPoss(); G.msg = ''; cvPanel(); } }, 1900);
+  setTimeout(() => { if (CV.G === G && current === 'cv') { cvNewPoss(); G.msg = ''; cvPanel(); } }, 2300);
 }
 
 // ---------- simulation step ----------
@@ -5443,7 +5445,7 @@ function cvStep(dt) {
   G.t += dt; const pos = G.pos, H = G.holder, ME = cvMe(), iHave = H === ME && G.ball.kind === 'hold';
   if (!G.over && G.ball.kind !== 'shot') { G.clock -= dt; if (G.clock <= 0) return cvEnd('violation', 0); }
   // --- your player (with or without the ball)
-  let want = [0, 0]; const vmax = iHave ? CV_SPEED.ball : CV_SPEED.me;
+  let want = [0, 0]; const vmax = iHave ? (G.t - G.burstT < 0.35 ? 19.5 : CV_SPEED.ball) : CV_SPEED.me;
   if (G.ball.kind !== 'shot' || !iHave) {
     const me = pos[ME];
     if (CV.ctrl === 'drag' && G.dragAt) { const v = sub(G.dragAt, me), L = Math.hypot(v[0], v[1]); if (L > 0.6) want = mul(v, Math.min(1, L / 4) * vmax / L); }
@@ -5451,7 +5453,12 @@ function cvStep(dt) {
     const kv = cvKeyVec(); if (kv) want = mul(kv, vmax);
   }
   const k = 1 - Math.exp(-dt * 9);
-  G.vel[ME] = lerpP(G.vel[ME], want, k);
+  if (iHave && Math.hypot(...want) > 6) {
+    const dir = norm(want), old = G.dirHist.find((h) => h.t >= G.t - 0.22);
+    if (old && dir[0] * old.d[0] + dir[1] * old.d[1] < -0.15 && Math.hypot(...G.vel[ME]) > 5 && G.t - G.burstT > 0.8) { G.burstT = G.t; G.moves++; G.flash = 'Crossover!'; G.flashT = G.t; }
+    G.dirHist.push({ t: G.t, d: dir }); while (G.dirHist.length && G.dirHist[0].t < G.t - 0.5) G.dirHist.shift();
+  }
+  G.vel[ME] = lerpP(G.vel[ME], want, G.t - G.burstT < 0.12 ? 0.6 : k);
   if (iHave && Math.hypot(...G.vel[ME]) > 2) G.drib += dt;
   // --- teammates: hold spots, clear out of the driver's way, drift to open space; the AI handler holds and reads you
   for (const o of OFF) {
@@ -5470,7 +5477,7 @@ function cvStep(dt) {
   G.defT -= dt;
   if (G.defT <= 0 && G.ball.kind !== 'shot') {
     G.defT = 0.14;
-    const lag = G.hist.find((h) => h.t >= G.t - 0.24) || G.hist[0], seen = { ...pos, [H]: lag.p, [ME]: lag.m };
+    const crossed = G.t - G.burstT < 0.45, lag = G.hist.find((h) => h.t >= G.t - (crossed ? 0.44 : 0.24)) || G.hist[0], seen = { ...pos, [H]: lag.p, [ME]: lag.m };
     const dH = DEF.find((d) => G.S.assign[d] === H), hv = G.vel[H], sp = Math.hypot(hv[0], hv[1]);
     const behind = dH && distHoop(pos[dH]) > distHoop(pos[H]) + 0.8, ev = [];
     if (G.ball.kind === 'hold' && sp > 8 && distHoop(pos[H]) < 22 && (hv[0] * (0 - pos[H][0]) + hv[1] * (T_HOOP[1] - pos[H][1])) > 0) ev.push({ type: 'drive', user: H, from: G.hist[0].p, contained: !behind });
@@ -5479,10 +5486,22 @@ function cvStep(dt) {
     G.S.pos = pos;
     const D = defend(G.S, seen, G.ball.kind === 'pass' ? G.ball.to : H, ev);
     G.S.assign = D.assign; G.tgt = D.m; G.roles = D.roles;
+    // a drive that beat its man: the whole defense rotates (low man helps, the next man helps the helper, the strong-side corner stays home)
+    const drv = ev.find((e) => e.type === 'drive' && !e.contained);
+    if (drv && CV_DEF_ROT[G.S.cov]) {
+      const sit = { pos: { ...pos }, ball: H, assign: { ...D.assign }, scheme: G.S.cov === 'packline' ? 'pack' : 'man', drive: { who: H, from: drv.from, at: pos[H], beaten: true } };
+      try {
+        const T = teamSpots(sit);
+        for (const d of DEF) { if (d === dH || !T.spots[d]) continue; G.tgt[d] = T.spots[d].p; G.roles[d] = CV_JOB_ROLE[T.spots[d].job] || JOBS[T.spots[d].job].name.toLowerCase(); }
+        if (T.helper && !G.helpLog.some((h) => h.d === T.helper)) G.helpLog.push({ d: T.helper, left: D.assign[T.helper], rot: T.rotator, t: G.t });
+      } catch (e) { /* keep the base coverage */ }
+    }
+    // a hard closeout runs at the catch spot and can't change direction yet: that's the window to attack it
+    if (G.close && G.t - G.close.t < 0.75 && G.holder === G.close.o) { G.tgt[G.close.d] = G.close.at; G.roles[G.close.d] = 'closing out'; }
   }
   for (const d of DEF) {
     const t = G.tgt[d] || pos[d], v = sub(t, pos[d]), L = Math.hypot(v[0], v[1]), onBall = G.S.assign[d] === H;
-    const vm = onBall ? CV_SPEED.onBall : CV_SPEED.def;
+    const vm = G.close && G.close.d === d && G.t - G.close.t < 0.75 ? CV_SPEED.onBall + 2 : onBall ? CV_SPEED.onBall : CV_SPEED.def;
     G.vel[d] = lerpP(G.vel[d], L > 0.3 ? mul(v, Math.min(vm, L * 3.2) / L) : [0, 0], 1 - Math.exp(-dt * (onBall ? 7 : 5)));
   }
   for (const id of [...OFF, ...DEF]) { pos[id] = clampCourt(add(pos[id], mul(G.vel[id], dt))); }
@@ -5513,7 +5532,10 @@ function cvStep(dt) {
   } else if (B.kind === 'pass') {
     B.u += dt / B.dur;
     if (B.u >= 1 && B.to[0] === 'D') { G.ball = { kind: 'dead' }; }
-    else if (B.u >= 1) { G.holder = B.to; G.ball = { kind: 'hold' }; G.passes++; G.caught = G.t; if (CV.follow === 'ball' || B.to === ME) { G.dragAt = null; G.stick = null; } cvPanel(); }
+    else if (B.u >= 1) {
+      const cd = DEF.find((d) => G.S.assign[d] === B.to);
+      if (cd && dist(pos[cd], pos[B.to]) > 6.5) { G.close = { d: cd, o: B.to, t: G.t, at: toward(pos[B.to], pos[cd], 1.2) }; if (B.to === ME) { G.flash = 'Hard closeout: attack it!'; G.flashT = G.t; } }
+      G.holder = B.to; G.ball = { kind: 'hold' }; G.passes++; G.caught = G.t; if (CV.follow === 'ball' || B.to === ME) { G.dragAt = null; G.stick = null; } cvPanel(); }
   } else if (B.kind === 'shot') {
     B.u += dt / B.dur;
     if (B.u >= 1 && !B.done) { B.done = true; if (B.make) cvEnd('make', B.three ? 3 : 2); else { cvEnd('miss', 0); G.ball = { kind: 'reb', u: 0, to: DEF.slice().sort((a, b) => distHoop(pos[a]) - distHoop(pos[b]))[0] }; } }
@@ -5529,6 +5551,35 @@ function cvKeyVec() {
 function cvCamForward() { const G = CV.G; if (CV.cam === 'top') return [0, -1]; if (CV.cam === 'side') return [1, 0]; return G.camF || [0, -1]; }
 function cvBallXY() { const G = CV.G, B = G.ball; if (B.kind === 'hold') { const p = G.pos[G.holder], f = G.face[G.holder] || [0, -1]; return add(p, add(mul([-f[1], f[0]], -1.0), mul(f, 0.6))); } if (B.kind === 'pass') return lerpP(G.pos[B.from], G.pos[B.to], B.u); if (B.kind === 'shot') return lerpP(B.from, T_HOOP, B.u); if (B.kind === 'reb') return lerpP(T_HOOP, G.pos[B.to], B.u); return T_HOOP; }
 function cvBallZ() { const G = CV.G, B = G.ball; if (B.kind === 'hold') return 0.4 + Math.abs(Math.sin(G.t * Math.PI * 2.1)) * 2.7; if (B.kind === 'pass') return 4.2 + 2 * 4 * B.u * (1 - B.u); if (B.kind === 'shot') { const d = distHoop(B.from); return lerp(7.5, 10, B.u) + (4.5 + d * 0.32) * 4 * B.u * (1 - B.u); } if (B.kind === 'reb') return lerp(10, 5, B.u) + 4 * 4 * B.u * (1 - B.u); return 0; }
+
+// ---------- possession review ----------
+const CV_DEF_ROT = { man: 1, packline: 1, pressure: 1, switch: 1 };
+const CV_JOB_ROLE = { helpDrive: 'helping on the drive', rotate: 'rotating (help the helper)', stayHome: 'staying home', stunt: 'stunting', showHelp: 'showing help', low: 'low man' };
+/** Snapshot at the shot (or turnover): the value of what you did vs the best option on the floor at that moment. */
+function cvReview(shooter, ev, res) {
+  const G = CV.G, pos = G.pos, out = [];
+  for (const o of OFF) {
+    if (o === shooter) continue;
+    const p = pos[o], d = distHoop(p), sep = Math.min(...DEF.map((x) => dist(pos[x], p))), three = d >= 22 || (Math.abs(p[0]) >= 22 && p[1] <= 14.2);
+    const lane = Math.min(...DEF.map((x) => (dist(pos[x], pos[shooter]) < 3 ? 99 : segDist(pos[x], toward(pos[shooter], p, 2), toward(p, pos[shooter], 2.5)))));
+    if (d > 27) continue;
+    // the pass loses a little to the defender closing during the flight; a crowded lane is a turnover risk
+    const q = shotProb(d, Math.max(0, sep - dist(pos[shooter], p) / 32 * 5), three, 2), comp = lane < 1.5 ? 0.6 : lane < 3 ? 0.85 : 0.97;
+    out.push({ o, ev: comp * q * (three ? 3 : 2), sep: r1(sep), q, d: r1(d) });
+  }
+  out.sort((a, b) => b.ev - a.ev);
+  G.review = { shooter, ev, res, best: out[0] || null, bestEV: out[0]?.ev || 0, help: G.helpLog.slice() };
+}
+function cvReviewHtml(R) {
+  if (!R) return '';
+  const who = (o) => (o === cvMe() ? 'you' : ROLE[o]);
+  const mine = R.res ? `${R.res === 'tov' ? 'Turnover' : 'Shot-clock violation'}: 0 points.` : `${who(R.shooter)} shot it: ${(R.ev).toFixed(2)} expected points.`;
+  const b = R.best, better = b && b.ev > R.ev + 0.12;
+  const help = R.help.length ? R.help.map((h) => `X${h.d[1]} left ${ROLE[h.left]} to help${h.rot ? `, and X${h.rot[1]} rotated behind him` : ''}.`).join(' ') : 'Nobody had to help: the drive never beat its man.';
+  return `<div class="bd ${better ? 'miss' : 'good'}"><h4>Last possession</h4><p class="small">${mine}</p>
+    <p class="small">${b ? (better ? `<b>Better option:</b> ${ROLE[b.o]} was ${b.sep} ft open at ${b.d} ft (${b.ev.toFixed(2)} expected points).` : `<b>Good choice:</b> nobody else had a better look (best was ${ROLE[b.o]} at ${b.ev.toFixed(2)}).`) : ''}</p>
+    <p class="small"><b>The help:</b> ${help}</p></div>`;
+}
 
 // ---------- actions ----------
 function cvPass(to, ai) {
@@ -5548,7 +5599,7 @@ function cvShoot(fromUser) {
   const p = G.pos[G.holder], d = distHoop(p), closest = Math.min(...DEF.map((x) => dist(G.pos[x], p)));
   const three = d >= 22 || (Math.abs(p[0]) >= 22 && p[1] <= 14.2);
   const q = d > 30 ? 0.04 : shotProb(d, closest, three, 2);
-  G.q = q; G.ball = { kind: 'shot', from: [...p], u: 0, dur: 0.85 + d * 0.022, make: Math.random() < q, three, q };
+  G.q = q; cvReview(G.holder, q * (three ? 3 : 2)); G.ball = { kind: 'shot', from: [...p], u: 0, dur: 0.85 + d * 0.022, make: Math.random() < q, three, q };
   G.msg = `${d < 6 ? 'Layup' : three ? 'Three' : 'Jumper'} · ${Math.round(q * 100)}% shot (closest defender ${closest.toFixed(1)} ft)`;
   cvPanel();
 }
@@ -5685,8 +5736,9 @@ class Court3D {
     g.fillStyle = 'rgba(20,14,10,.92)'; g.beginPath(); if (back) g.arc(x, hy, 0.46 * k, 0, Math.PI * 2); else g.arc(x, hy - 0.12 * k, 0.42 * k, Math.PI, 0); g.fill();
     if (off) { g.fillStyle = kit.trim; g.fillRect(x - 0.42 * k, hy - 0.2 * k, 0.84 * k, 0.1 * k); }
     // label
-    const role = !off && G.roles?.[id] || '', helping = /helping|showing help|pack-line help|tag|trap/.test(role) && G.S.assign[id] !== G.holder;
-    const lab = id === cvMe() && off ? 'YOU' : off ? ROLE[id] + (id === G.holder ? ' ●' : '') : 'X' + n + (helping ? ' HELP' : '');
+    const role = !off && G.roles?.[id] || '', helping = /helping|showing help|pack-line help|tag|trap|rotating|closing/.test(role) && G.S.assign[id] !== G.holder || /closing/.test(role);
+    const tag = /rotating/.test(role) ? ' ROTATE' : /closing/.test(role) ? ' CLOSEOUT' : /staying home/.test(role) ? ' HOME' : helping ? ' HELP' : '';
+    const lab = id === cvMe() && off ? 'YOU' : off ? ROLE[id] + (id === G.holder ? ' ●' : '') : 'X' + n + tag;
     g.font = `700 ${clamp(0.75 * k, 9, 13)}px Inter, sans-serif`; const tw = g.measureText(lab).width + 8;
     g.fillStyle = off ? (lab === 'YOU' ? 'rgba(40,190,110,.92)' : 'rgba(18,40,110,.85)') : helping ? 'rgba(255,90,110,.95)' : 'rgba(60,18,32,.8)'; roundRect(g, x - tw / 2, hy - 0.9 * k - 16, tw, 15, 7); g.fill();
     g.fillStyle = '#fff'; g.fillText(lab, x, hy - 0.9 * k - 8.5);
@@ -5718,11 +5770,13 @@ function cvPanel() {
   const P = $('#cv-panel'), G = CV.G; if (!P || !G) return;
   $('#cv-eyebrow').textContent = `${CAMS[CV.cam].name} · ${CTRLS[CV.ctrl].name} · ${CV_FOLLOW[CV.follow].name} · vs ${CV_DEF[CV.cov]}`;
   const m = $('#cv-msg'); m.hidden = !G.msg; m.textContent = G.msg || '';
+  const rv = cvReviewHtml(G.over ? G.review : G.lastReview);
   const L = doc('cv').list.filter((x) => x.cam === CV.cam), sh = L.filter((x) => x.q != null);
   P.innerHTML = `<div class="decide-head"><span class="eyebrow">Score</span><h3>${G.score} pts · ${G.poss} possession${G.poss === 1 ? '' : 's'}</h3></div>
     <p class="small">${G.holder === cvMe() ? `You have the ball. Drag to move, tap a teammate to pass, tap the backboard to shoot.` : `${ROLE[G.holder]} has it. Cut, relocate or space out; he passes back when you're open. Tap the backboard or double-tap yourself to call for it.`}</p>
+    ${rv}
     <div class="bd"><h4>This camera so far</h4><p class="small">${L.length ? `${L.length} possessions · ${(L.reduce((s, x) => s + (x.pts || 0), 0) / L.length).toFixed(2)} pts each · avg shot quality ${sh.length ? Math.round(100 * mean(sh.map((x) => x.q))) + '%' : '—'} · ${Math.round(100 * L.filter((x) => x.res === 'tov').length / L.length)}% turnovers` : 'No possessions with this camera yet.'}</p></div>
-    <div class="bd def"><h4>How the defense plays</h4><p class="small">${esc(COVERAGES[CV.cov].desc)} The defenders react about a quarter-second after you move, so a hard change of direction gets you a step.</p></div>
+    <div class="bd def"><h4>How the defense plays</h4><p class="small">${esc(COVERAGES[CV.cov].desc)} The defenders react about a quarter-second after you move. A sharp change of direction (drag back the other way) is a crossover: a burst, and your man reacts late. When a pass gets to you and your man is sprinting at you, attack that closeout right away: he can't change direction for a moment.</p></div>
     <p class="hint">Shot quality = make chance at release (distance + closest defender). It grades the decision, not the result.</p>`;
 }
 function cvBindInput(cv) {
@@ -5781,6 +5835,7 @@ function cvLoop() {
     CV.raf = 0; if (current !== 'cv' || !CV.G) return;
     const dt = Math.min(0.04, (now - CV.last) / 1000); CV.last = now;
     cvStep(dt); cvDraw();
+    const fl = $('#cv-msg'); if (fl && CV.G.flash && !CV.G.msg) { const on = CV.G.t - CV.G.flashT < 1.1; fl.hidden = !on; if (on) fl.textContent = CV.G.flash; }
     const c = $('#cv-clock b'); if (c) { c.textContent = Math.max(0, CV.G.clock).toFixed(1); $('#cv-clock').classList.toggle('low', CV.G.clock < 5); }
     CV.raf = requestAnimationFrame(step);
   };
