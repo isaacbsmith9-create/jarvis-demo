@@ -352,6 +352,57 @@ export interface Organization {
   relations: Record<string, number>;
   frontCompanyIds: string[];
   description: string;
+  /** Agreements with other organizations. Relations below -50 mean open conflict. */
+  pacts: Record<string, 'truce' | 'alliance'>;
+  operations: Operation[];
+  situations: Situation[];
+  /** Law-enforcement case against the organization, 0..100. At 100 there is a raid. */
+  investigation: number;
+  /** Day each district was last collected from. */
+  lastCollect: Partial<Record<DistrictId, Day>>;
+}
+
+export type OpKind = 'expand' | 'collect' | 'recruit' | 'legal' | 'turf' | 'sabotage' | 'clean';
+
+export interface Operation {
+  id: string;
+  kind: OpKind;
+  crew: string[];
+  district: DistrictId | null;
+  targetOrgId: string | null;
+  targetRivalId: string | null;
+  cost: Money;
+  chance: number;
+  startDay: Day;
+  endDay: Day;
+}
+
+export interface SituationOption {
+  id: string;
+  label: string;
+  detail: string;
+}
+
+export interface Situation {
+  id: string;
+  kind: 'demand_cut' | 'investigation_target' | 'rival_offer' | 'opportunity' | 'defector';
+  title: string;
+  body: string;
+  options: SituationOption[];
+  /** Option applied automatically if you don't decide in time. */
+  defaultOption: string;
+  expiresDay: Day;
+  memberId?: string;
+  orgId?: string;
+  amount?: Money;
+}
+
+export interface OperationReport {
+  id: string;
+  day: Day;
+  kind: OpKind;
+  outcome: 'success' | 'partial' | 'failure';
+  summary: string;
 }
 
 export interface Contact {
@@ -408,7 +459,10 @@ export interface GameState {
   news: NewsItem[];
   nextNewsId: number;
   objective: Objective;
-  counters: { company: number; employee: number; loan: number; modifier: number };
+  counters: { company: number; employee: number; loan: number; modifier: number; op: number };
+  /** Share (0..100) of each district held by each organization. */
+  territory: Record<DistrictId, Record<string, number>>;
+  opReports: OperationReport[];
   executives: Executive[];
   execCandidates: Executive[];
   settings: { cashSweep: boolean };

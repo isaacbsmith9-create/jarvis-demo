@@ -8,12 +8,12 @@ import { createEconomy } from './economy/economy';
 import { addNews } from './events/news';
 import { orgAccount, PLAYER, transfer, WORLD } from './finance/ledger';
 import { netWorth } from './finance/valuation';
-import { createNpcOrganizations } from './organizations/organizations';
+import { createNpcOrganizations, emptyTerritory } from './organizations/organizations';
 import { createProperties } from './properties/properties';
 import { seedMarket } from './companies/market';
 import { refreshExecCandidates } from './executives/executives';
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export interface NewGameOptions {
   playerName: string;
@@ -63,7 +63,9 @@ export function createNewGame(opts: NewGameOptions): GameState {
       completedDay: null,
       failed: false,
     },
-    counters: { company: 0, employee: 0, loan: 0, modifier: 0 },
+    counters: { company: 0, employee: 0, loan: 0, modifier: 0, op: 0 },
+    territory: emptyTerritory(),
+    opReports: [],
     executives: [],
     execCandidates: [],
     settings: { cashSweep: true },
@@ -148,7 +150,15 @@ export function createNewGame(opts: NewGameOptions): GameState {
       relations: {},
       frontCompanyIds: [],
       description: so.description,
+      pacts: {},
+      operations: [],
+      situations: [],
+      investigation: Math.max(0, so.heat - 30),
+      lastCollect: {},
     };
+    // Starting turf: a strong hold on the first district, a smaller one on the rest.
+    const first = Math.max(4, Math.round(so.influence * 0.7));
+    so.territory.forEach((d, i) => (state.territory[d][org.id] = i === 0 ? first : Math.round(first * 0.6)));
     state.organizations[org.id] = org;
     state.balances[orgAccount(org.id)] = 0;
     transfer(state, WORLD, orgAccount(org.id), dollars(so.treasury), 'starting_capital', `${org.name} treasury`);

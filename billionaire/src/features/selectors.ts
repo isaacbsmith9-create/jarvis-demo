@@ -91,6 +91,9 @@ export function alerts(state: GameState): Alert[] {
   const vacant = Object.values(state.properties).filter((p) => (p.owner === 'player' || p.owner.startsWith('co:')) && p.use.kind === 'vacant');
   for (const p of vacant) out.push({ level: 'warn', text: `${p.name} is vacant and earning nothing.`, propertyId: p.id });
   const org = playerOrganization(state);
+  if (org && org.situations.length) out.push({ level: 'warn', text: `${org.name}: ${org.situations.length} decision${org.situations.length > 1 ? 's' : ''} waiting.`, view: 'organization' });
+  if (org) for (const n of Object.values(state.organizations)) if (n.controlledBy === 'npc' && (org.relations[n.id] ?? 0) <= -50 && !org.pacts[n.id]) out.push({ level: 'neg', text: `Open conflict with ${n.name}. Expect them to push into your turf.`, view: 'organization' });
+  if (org && org.investigation > 70) out.push({ level: 'neg', text: `The case against ${org.name} is ${Math.round(org.investigation)}% complete. A raid comes at 100%.`, view: 'organization' });
   if (org && org.heat > 65) out.push({ level: 'neg', text: `${org.name} heat is ${Math.round(org.heat)}. Investigations become likely above 70.`, view: 'organization' });
   return out;
 }

@@ -6,10 +6,11 @@ import { buyStake, sellStake } from '../src/simulation/competitors/investments';
 import { hasManager } from '../src/simulation/employees/employees';
 import { fireExecutive, hireExecutive } from '../src/simulation/executives/executives';
 import { LEDGER_WINDOW, ledgerConfig } from '../src/simulation/finance/ledger';
+import { foundOrganization, launchOperation, playerOrganization, proposeAlliance, proposeTruce, quoteOperation, resolveSituation, sendGift, shareOf } from '../src/simulation/organizations/organizations';
 import { advanceDays } from '../src/simulation/engine';
 import { balanceSheet, netWorth } from '../src/simulation/finance/valuation';
 import { buyProperty, rentOut, sellProperty } from '../src/simulation/properties/propertyActions';
-import { createNewGame } from '../src/simulation/newGame';
+import { createNewGame, SCHEMA_VERSION } from '../src/simulation/newGame';
 import type { GameState } from '../src/types/core';
 import { validateState } from '../src/persistence/schema';
 import { takeLoan } from '../src/simulation/finance/loans';
@@ -142,7 +143,7 @@ describe('Alpha 0.2 systems', () => {
     delete raw.settings;
     raw.schemaVersion = 1;
     const m = validateState(raw);
-    expect(m.schemaVersion).toBe(2);
+    expect(m.schemaVersion).toBe(SCHEMA_VERSION);
     const cafe = Object.values(m.companies).find((c) => c.owner === 'player')!;
     expect(cafe.branches[0].locationId).toBe('lh-01');
     advanceDays(m, 10);
@@ -264,5 +265,75 @@ describe('save validation', () => {
     future.schemaVersion = 999;
     expect(() => validateState(future)).toThrow(/newer version/);
     expect(() => validateState(null)).toThrow();
+  });
+});
+
+describe('Alpha 0.3 underground', () => {
+  it('runs operations that change turf, money and heat, and keeps money balanced', () => {
+    ledgerConfig.window = 1e9;
+    try {
+      const s = createNewGame({ playerName: 'U', scenarioId: 'boss', seed: 'ops' });
+      const o = playerOrganization(s)!;
+      const crew = o.members.filter((m) => m.rank !== 'boss').map((m) => m.id);
+      const lh = shareOf(s, o.id, 'littlehavana');
+      expect(lh).toBeGreaterThan(0);
+      expect(launchOperation(s, { kind: 'collect', crew: [crew[0]], district: 'littlehavana' }).ok).toBe(true);
+      expect(launchOperation(s, { kind: 'expand', crew: [crew[1], crew[2]], district: 'littlehavana' }).ok).toBe(true);
+      // Busy members can't be reused.
+      expect(launchOperation(s, { kind: 'recruit', crew: [crew[0]] }).ok).toBe(false);
+      // Moving against a rival is possible wherever they hold turf.
+      const q = quoteOperation(s, o, { kind: 'turf', crew: [crew[3], crew[4]], district: 'southbeach', targetOrgId: 'tidebreakers' });
+      expect(q.errors).toEqual([]);
+      expect(q.chance).toBeGreaterThan(0.05);
+      advanceDays(s, 8);
+      expect(o.operations).toHaveLength(0);
+      expect(s.opReports.length).toBeGreaterThanOrEqual(2);
+      expect(Object.values(s.balances).reduce((a, b) => a + b, 0)).toBe(
+        s.ledger.entries.reduce((n, t) => n + (t.from === 'world' ? t.amount : 0) - (t.to === 'world' ? t.amount : 0), 0),
+      );
+    } finally {
+      ledgerConfig.window = LEDGER_WINDOW;
+    }
+  });
+
+  it('diplomacy: gifts, truces and alliances', () => {
+    const s = createNewGame({ playerName: 'U', scenarioId: 'boss', seed: 'dip' });
+    expect(proposeAlliance(s, 'tidebreakers').ok).toBe(false); // needs a truce first
+    expect(proposeTruce(s, 'tidebreakers').ok).toBe(true);
+    for (let i = 0; i < 4; i++) sendGift(s, 'tidebreakers', 3000000);
+    expect(proposeAlliance(s, 'tidebreakers').ok).toBe(true);
+    expect(playerOrganization(s)!.pacts.tidebreakers).toBe('alliance');
+  });
+
+  it('a full case ends in a raid', () => {
+    const s = createNewGame({ playerName: 'U', scenarioId: 'boss', seed: 'raid' });
+    const o = playerOrganization(s)!;
+    o.heat = 95;
+    o.investigation = 99;
+    const members = o.members.length;
+    advanceDays(s, 8);
+    expect(o.investigation).toBeLessThan(50);
+    expect(o.members.length).toBeLessThan(members);
+    expect(s.news.some((n) => n.headline.startsWith('Raid on'))).toBe(true);
+  });
+
+  it('legitimate players can start an organization', () => {
+    const s = createNewGame({ playerName: 'L', scenarioId: 'investor', seed: 'org' });
+    expect(playerOrganization(s)).toBeNull();
+    expect(foundOrganization(s, 'Coral Circle', 'wynwood').ok).toBe(true);
+    const o = playerOrganization(s)!;
+    expect(shareOf(s, o.id, 'wynwood')).toBeGreaterThan(0);
+    advanceDays(s, 60);
+    expect(s.ledger.entries.some((t) => t.category === 'org_income')).toBe(true);
+  });
+
+  it('decisions resolve with consequences', () => {
+    const s = createNewGame({ playerName: 'U', scenarioId: 'boss', seed: 'sit' });
+    const o = playerOrganization(s)!;
+    advanceDays(s, 120);
+    const seen = s.news.length;
+    expect(seen).toBeGreaterThan(0);
+    for (const sit of [...o.situations]) expect(resolveSituation(s, sit.id, sit.options[1].id).ok).toBe(true);
+    expect(o.situations).toHaveLength(0);
   });
 });

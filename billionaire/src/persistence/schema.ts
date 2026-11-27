@@ -43,6 +43,31 @@ export const MIGRATIONS: Record<number, Migration> = {
     d.schemaVersion = 2;
     return d;
   },
+  /** v2 → v3: district turf shares, operations, situations, investigations and pacts. */
+  2: (raw) => {
+    const d = raw as Record<string, any>;
+    const districts = ['brickell', 'downtown', 'wynwood', 'southbeach', 'littlehavana', 'waterfront'];
+    d.territory = d.territory ?? Object.fromEntries(districts.map((x) => [x, {}]));
+    for (const o of Object.values(d.organizations ?? {}) as any[]) {
+      o.pacts = o.pacts ?? {};
+      o.operations = o.operations ?? [];
+      o.situations = o.situations ?? [];
+      o.investigation = o.investigation ?? Math.max(0, (o.heat ?? 0) - 30);
+      o.lastCollect = o.lastCollect ?? {};
+      const list: string[] = o.territory ?? [];
+      const first = Math.max(4, Math.round((o.influence ?? 10) * 0.6));
+      list.forEach((x, i) => {
+        const t = d.territory[x];
+        if (!t) return;
+        const used = Object.values(t).reduce((a: number, v) => a + (v as number), 0) as number;
+        t[o.id] = Math.max(0, Math.min(i === 0 ? first : Math.round(first * 0.6), 100 - used));
+      });
+    }
+    d.counters = { ...d.counters, op: d.counters?.op ?? 0 };
+    d.opReports = d.opReports ?? [];
+    d.schemaVersion = 3;
+    return d;
+  },
 };
 
 export class SaveValidationError extends Error {}

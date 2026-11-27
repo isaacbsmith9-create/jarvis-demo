@@ -16,7 +16,7 @@ import { rollRandomEvents } from './events/randomEvents';
 import { serviceLoans } from './finance/loans';
 import { netWorth } from './finance/valuation';
 import { checkObjective } from './objectives';
-import { simulateOrganizationsWeekly } from './organizations/organizations';
+import { resolveOperationsDaily, simulateOrganizationsWeekly } from './organizations/organizations';
 import { marketWeekly } from './companies/market';
 import { payRivalDividends } from './competitors/investments';
 import { executivesWeekly, payExecutives, refreshExecCandidates } from './executives/executives';
@@ -43,6 +43,7 @@ export function advanceDay(state: GameState): DayReport {
   simulateProperties(state);
   simulateRivalsDaily(state);
   payExecutives(state);
+  resolveOperationsDaily(state);
 
   if (newWeek) {
     simulateRivalsWeekly(state);

@@ -1,4 +1,4 @@
-# BILLIONAIRE — Alpha 0.2 (Miami)
+# BILLIONAIRE — Alpha 0.3 (Miami)
 
 A business-empire and underworld simulation. Start with $500 or a fortune, build companies across four industries, buy and develop property in an isometric Miami, compete with simulated rivals, and save your empire locally.
 
@@ -80,6 +80,16 @@ Design rules the code follows:
 - **Saves are versioned.** `persistence/schema.ts` validates structure and references, and refuses saves made by a newer version. `MIGRATIONS` is where future schema upgrades go. Corrupted saves show up as unloadable in the save list instead of crashing the game.
 - **Rendering is cheap.** All city art is drawn once into cached textures and then rendered as batched sprites. Buildings are generated a few per frame, so the UI never freezes. The city's render loop sleeps while you're on another screen, and the frame rate is capped at 40 fps.
 
+## Alpha 0.3 additions: the underground (abstract and fictional)
+
+- **Turf.** Each district is split into shares held by organizations; your passive weekly income comes from your turf.
+- **Operations.** Assign crew members to *expand influence*, *collect from turf*, *recruit*, *retain lawyers*, *move against a rival*, *disrupt a competitor company* or *move funds through a front*. Every operation shows its cost, duration and odds up front, and resolves after a few days as success, partial or failure, with real effects on money, turf, heat, loyalty and members.
+- **Rival organizations.** Three rivals expand into open turf and push into yours, more often when relations are bad; at −50 or below it's open conflict and your legitimate businesses in contested districts can be hit. You can send gifts, agree truces and seal alliances (allies improve your odds where they hold turf).
+- **Decisions.** Story situations with two choices: a member demanding a bigger cut (refusing can make them defect), investigators targeting a member, a rival's truce offer, a risky opportunity. Unanswered decisions resolve with a default after two weeks.
+- **Investigations.** A case file fills as heat stays high and empties when things are quiet. At 100% there's a raid: 30% of the treasury seized, members arrested, a fifth of your turf lost, public reputation hit.
+- **Ranks.** Promote associates to lieutenant and underboss.
+- **Open to everyone.** Legitimate backgrounds can start their own organization for $25K.
+
 ## Alpha 0.2 additions
 
 - **Multiple locations.** Each company is made of branches, and each branch has its own premises, staff, operations and costs. You can open new locations (60% of a first fit-out), move a location to a bigger or better property, close one (its staff transfer where there's room), and hire or transfer staff per location. SaaS companies stay single-office.
@@ -104,7 +114,7 @@ Design rules the code follows:
 - Save and load across 5 slots, monthly autosave, export and import
 
 **Planned for future releases** (marked in the game where relevant, never faked)
-- Underground missions, territory expansion, alliances, disputes and story-driven investigations
+- More underground story arcs and member-specific events
 - Relationship events and character interactions with contacts
 - Full takeovers of rival companies, and rivals making offers for yours
 - Development of new buildings
