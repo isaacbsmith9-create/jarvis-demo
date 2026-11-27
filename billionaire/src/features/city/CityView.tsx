@@ -27,7 +27,7 @@ export function CityView({ active }: { active: boolean }) {
         <>
           <div className="city-hud">
             <div className="city-title">
-              <div className="eyebrow">Florida · Alpha 0.1</div>
+              <div className="eyebrow">Florida · Alpha 0.3</div>
               <h2>Miami</h2>
               {phone && (
                 <button className="btn sm ghost" style={{ marginTop: 6, marginLeft: -8 }} onClick={() => setHudOpen(!hudOpen)} data-testid="city-hud-toggle">
