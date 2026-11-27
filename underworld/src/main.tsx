@@ -11,7 +11,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 // Dev-only handle for automated smoke tests.
 if (import.meta.env.DEV) {
-  import('./game/world').then(({ world }) => {
-    (window as unknown as { __world: unknown }).__world = world;
+  Promise.all([import('./game/world'), import('./game/store'), import('./game/city')]).then(([w, s, c]) => {
+    Object.assign(window, { __world: w.world, __game: s.useGame, __layout: c.LAYOUT });
   });
 }

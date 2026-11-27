@@ -2,7 +2,10 @@ import { useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Player } from './scene/Player';
 import { City } from './scene/City';
-import { Storefronts } from './scene/Storefronts';
+import { Businesses } from './scene/Businesses';
+import { GameLoop } from './game/GameLoop';
+import { HUD } from './ui/HUD';
+import { useGame } from './game/store';
 import { TouchControls } from './ui/TouchControls';
 import { bindKeyboard, input } from './game/input';
 import { world } from './game/world';
@@ -36,6 +39,12 @@ function Lighting() {
   );
 }
 
+function ActionButton() {
+  const zoneId = useGame((s) => s.zoneId);
+  const owned = useGame((s) => (s.zoneId ? !!s.owned[s.zoneId] : false));
+  return <TouchControls actionLabel={zoneId && owned ? 'UPGRD' : 'ACT'} />;
+}
+
 export function App() {
   const drag = useRef<{ id: number; x: number } | null>(null);
   useEffect(() => bindKeyboard(), []);
@@ -55,10 +64,12 @@ export function App() {
       <Canvas shadows dpr={[1, 1.75]} camera={{ fov: 55, near: 0.1, far: 700, position: [0, 8, 10] }}>
         <Lighting />
         <City />
-        <Storefronts />
+        <Businesses />
+        <GameLoop />
         <Player />
       </Canvas>
-      <TouchControls actionLabel="ACT" />
+      <HUD />
+      <ActionButton />
     </div>
   );
 }
