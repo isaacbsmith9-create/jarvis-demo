@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { Player } from './scene/Player';
 import { City } from './scene/City';
 import { Businesses } from './scene/Businesses';
+import { Police } from './scene/Police';
 import { GameLoop } from './game/GameLoop';
 import { HUD } from './ui/HUD';
 import { useGame } from './game/store';
@@ -65,6 +66,7 @@ export function App() {
         <Lighting />
         <City />
         <Businesses />
+        <Police />
         <GameLoop />
         <Player />
       </Canvas>

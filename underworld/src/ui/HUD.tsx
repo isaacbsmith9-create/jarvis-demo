@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { BUSINESSES, ECONOMY } from '../game/config';
-import { incomePerTick, territoryPct, useGame } from '../game/store';
+import { BUSINESSES, ECONOMY, HEAT } from '../game/config';
+import { incomePerTick, territoryPct, useGame, wantedStars } from '../game/store';
 
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString();
 
@@ -48,6 +48,54 @@ function TerritoryPanel() {
       </div>
     </div>
   );
+}
+
+function HeatPanel() {
+  const heat = useGame((s) => s.heat);
+  const chased = useGame((s) => s.chased);
+  const stars = wantedStars(heat);
+  return (
+    <div className={`panel heat-panel ${chased ? 'chased' : ''}`}>
+      <div className="row">
+        <div className="label">HEAT</div>
+        <div className="stars">
+          {HEAT.wanted.map((_, i) => (
+            <span key={i} className={i < stars ? 'star on' : 'star'}>★</span>
+          ))}
+        </div>
+      </div>
+      <div className="bar">
+        <div className="bar-fill heat" style={{ width: `${heat}%` }} />
+        <div className="bar-mark" style={{ left: `${HEAT.chaseThreshold}%` }} />
+      </div>
+      <div className="sub">
+        {chased ? <span className="hot">POLICE PURSUIT — break line of sight</span> : heat >= HEAT.chaseThreshold ? 'Patrols will chase on sight' : heat > 0 ? 'Cooling off…' : 'Clean'}
+      </div>
+    </div>
+  );
+}
+
+function BustedOverlay() {
+  const busted = useGame((s) => s.busted);
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    if (!busted) return;
+    setShow(true);
+    const t = setTimeout(() => setShow(false), 2600);
+    return () => clearTimeout(t);
+  }, [busted]);
+  if (!show || !busted) return null;
+  return (
+    <div className="busted">
+      <div className="busted-title">BUSTED</div>
+      <div className="busted-sub">Lawyer fees and bribes: −{fmt(busted.penalty)}</div>
+    </div>
+  );
+}
+
+function ChaseVignette() {
+  const chased = useGame((s) => s.chased);
+  return <div className={`chase-vignette ${chased ? 'on' : ''}`} />;
 }
 
 function ZonePrompt() {
@@ -117,13 +165,16 @@ function Toasts() {
 export function HUD({ children }: { children?: React.ReactNode }) {
   return (
     <div className="hud">
+      <ChaseVignette />
       <div className="hud-top-left">
         <CashPanel />
+        <HeatPanel />
         <TerritoryPanel />
-        {children}
       </div>
+      {children}
       <ZonePrompt />
       <Toasts />
+      <BustedOverlay />
     </div>
   );
 }

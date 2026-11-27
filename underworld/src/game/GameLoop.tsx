@@ -1,8 +1,9 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { BUSINESSES, ECONOMY } from './config';
-import { LAYOUT, ZONE_RADIUS } from './city';
-import { incomePerTick, useGame } from './store';
+import { BUSINESSES, ECONOMY, HEAT } from './config';
+import { LAYOUT, SPAWN, ZONE_RADIUS } from './city';
+import { incomePerTick, useGame, wantedStars } from './store';
+import { initPolice, standDown, updatePolice } from './police';
 import { isActionHeld } from './input';
 import { world } from './world';
 
@@ -11,11 +12,13 @@ export const loop = {
   captureId: null as string | null,
   captureProgress: 0, // 0..1
   payoutTimer: ECONOMY.payoutInterval,
+  heatAcc: 0, // fractional heat change not yet committed to the store
 };
 
 // Single place where game rules run each frame. Scene components only render.
 export function GameLoop() {
   const actionWasHeld = useRef(false);
+  const policeReady = useRef(false);
 
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.1);
@@ -80,6 +83,37 @@ export function GameLoop() {
     }
     const payoutIn = Math.ceil(loop.payoutTimer);
     if (payoutIn !== g.payoutIn) useGame.setState({ payoutIn });
+
+    // ---- police + heat ----
+    if (!policeReady.current) {
+      initPolice();
+      policeReady.current = true;
+    }
+    const heat = useGame.getState().heat;
+    const stars = wantedStars(heat);
+    const ev = updatePolice(dt, heat, stars);
+    if (ev.spotted && !g.chased) g.toast('Cops spotted you — run!', 'bad');
+    if (ev.anyChasing !== g.chased) useGame.setState({ chased: ev.anyChasing });
+
+    if (ev.busted) {
+      const penalty = useGame.getState().bust();
+      g.toast(`BUSTED — lost $${penalty.toLocaleString()}`, 'bad');
+      standDown();
+      world.bustedCooldown = 5;
+      world.player.pos.set(SPAWN.x, 0, SPAWN.z);
+      world.player.vel.set(0, 0, 0);
+      loop.captureId = null;
+      loop.captureProgress = 0;
+      loop.heatAcc = 0;
+    } else {
+      // heat cools off — slowly while a unit is on your tail
+      loop.heatAcc -= (ev.anyChasing ? HEAT.decayWhileChased : HEAT.decayPerSec) * dt;
+      if (loop.heatAcc <= -1) {
+        const whole = Math.ceil(loop.heatAcc);
+        loop.heatAcc -= whole;
+        if (heat > 0) g.setHeat(heat + whole);
+      }
+    }
   });
 
   return null;

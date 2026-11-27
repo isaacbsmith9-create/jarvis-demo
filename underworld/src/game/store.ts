@@ -21,12 +21,14 @@ export interface GameState {
   chased: boolean;
   payoutIn: number;
   lastPayout: { amount: number; at: number } | null;
+  busted: { penalty: number; at: number } | null;
   toasts: Toast[];
 
   addCash: (n: number) => void;
   setHeat: (h: number) => void;
   takeOver: (id: string) => void;
   upgrade: (id: string) => boolean;
+  bust: () => number;
   toast: (text: string, tone?: Toast['tone']) => void;
   dismissToast: (id: number) => void;
   reset: () => void;
@@ -53,6 +55,7 @@ const initial = () => ({
   chased: false,
   payoutIn: ECONOMY.payoutInterval,
   lastPayout: null,
+  busted: null,
   toasts: [] as Toast[],
 });
 
@@ -83,6 +86,19 @@ export const useGame = create<GameState>((set, get) => ({
     set((s) => ({ cash: s.cash - cost, owned: { ...s.owned, [id]: level + 1 } }));
     get().toast(`${def.name} upgraded to Lv ${level + 1}`, 'good');
     return true;
+  },
+
+  bust: () => {
+    const { cash } = get();
+    const penalty = Math.min(cash, Math.max(HEAT.bustMinPenalty, Math.round(cash * HEAT.bustPenaltyPct)));
+    set((s) => ({
+      cash: s.cash - penalty,
+      heat: HEAT.bustHeatAfter,
+      busts: s.busts + 1,
+      busted: { penalty, at: Date.now() },
+      chased: false,
+    }));
+    return penalty;
   },
 
   toast: (text, tone = 'info') => {
