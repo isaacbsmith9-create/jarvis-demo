@@ -8,6 +8,8 @@ import { chance, gaussian, nextRandom, pick } from '../../utils/rng';
 import { macroDemand, seasonality } from '../economy/economy';
 import { addNews } from '../events/news';
 import { balance, rivalAccount, transfer, WORLD } from '../finance/ledger';
+import { wipeStake } from './investments';
+import { companyDistricts } from '../companies/units';
 
 export function createRivals(state: GameState): Record<string, Rival> {
   const out: Record<string, Rival> = {};
@@ -29,6 +31,8 @@ export function createRivals(state: GameState): Record<string, Rival> {
       employees: d.employees,
       reputation: d.reputation,
       status: 'active',
+      playerStake: 0,
+      stakeCost: 0,
       weeksUnprofitable: 0,
       weekRevenue: 0,
       weekExpenses: 0,
@@ -46,8 +50,9 @@ function playerPressure(state: GameState, r: Rival): number {
   let n = 0;
   for (const c of Object.values(state.companies)) {
     if (c.status === 'closed' || c.subtype !== r.subtype) continue;
-    const d = c.locationId ? state.properties[c.locationId]?.district : null;
-    if (!d || r.districts.includes(d)) n += 0.5 + c.reputation / 200;
+    const ds = companyDistricts(state, c);
+    const hits = ds.length ? ds.filter((d) => r.districts.includes(d)).length : 1;
+    n += hits * (0.5 + c.reputation / 200);
   }
   return n;
 }
@@ -100,6 +105,7 @@ function decide(state: GameState, r: Rival): void {
   // Bankruptcy
   if (cash < 0) {
     r.status = 'bankrupt';
+    wipeStake(state, r);
     let released = 0;
     for (const p of Object.values(state.properties)) {
       if (p.owner === rivalAccount(r.id)) {

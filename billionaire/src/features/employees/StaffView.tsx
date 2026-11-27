@@ -3,7 +3,9 @@ import { store, useGame } from '../../app/store';
 import { Avatar, Panel, SkillBar } from '../../components/ui';
 import { roleDef, SUBTYPES } from '../../data/companies/industries';
 import { TRAITS } from '../../data/employees/names';
-import { fireEmployee, giveRaise, hireEmployee, maxStaff, trainEmployee, trainingCost } from '../../simulation/companies/companies';
+import { fireEmployee, giveRaise, hireEmployee, maxStaff, maxStaffAt, playerCompanies, roomiestBranch, trainEmployee, trainingCost, transferEmployee } from '../../simulation/companies/companies';
+import { branchLabel, branchStaffIds, findBranch } from '../../simulation/companies/units';
+import { ExecutiveTeam } from './ExecutiveTeam';
 import { effectiveness } from '../../simulation/employees/employees';
 import type { Company, Employee } from '../../types/core';
 import { formatDate } from '../../utils/date';
@@ -17,6 +19,7 @@ export function StaffTable({ employees, showCompany }: { employees: Employee[]; 
   const st = useGame();
   const sel = store.selection.employeeId;
   if (!employees.length) return <div className="empty small">No employees.</div>;
+  const multi = employees.some((e) => e.companyId && (st.companies[e.companyId]?.branches.length ?? 1) > 1);
   return (
     <table className="table" data-testid="staff-table">
       <thead>
@@ -24,6 +27,7 @@ export function StaffTable({ employees, showCompany }: { employees: Employee[]; 
           <th>Name</th>
           <th>Role</th>
           {showCompany && <th>Company</th>}
+          {multi && <th>Location</th>}
           <th className="r">Salary</th>
           <th className="r">Skill</th>
           <th className="r">Performance</th>
@@ -46,6 +50,7 @@ export function StaffTable({ employees, showCompany }: { employees: Employee[]; 
               </td>
               <td className="muted">{c ? roleDef(c.subtype, e.role)?.title : e.role}</td>
               {showCompany && <td className="muted">{c?.name}</td>}
+              {multi && <td className="muted small">{c ? branchLabel(st, c, findBranch(c, e.branchId) ?? c.branches[0]) : ''}</td>}
               <td className="r">{money(e.salary)}</td>
               <td className="r">{Math.round(e.skill)}</td>
               <td className="r">{Math.round(e.performance)}</td>
@@ -110,6 +115,21 @@ export function EmployeeDrawer({ e, onClose }: { e: Employee; onClose: () => voi
         </div>
       </div>
       <div className="insp-actions">
+        {c.branches.length > 1 && (
+          <select
+            className="select"
+            value={findBranch(c, e.branchId)?.id ?? c.branches[0].id}
+            onChange={(ev) => store.act((s) => transferEmployee(s, e.id, ev.target.value))}
+            title="Which location they work at"
+            data-testid="employee-branch"
+          >
+            {c.branches.map((b) => (
+              <option key={b.id} value={b.id}>
+                Works at {branchLabel(st, c, b)} ({branchStaffIds(st, c, b).length}/{maxStaffAt(st, c, b)})
+              </option>
+            ))}
+          </select>
+        )}
         <div className="row" style={{ gap: 8 }}>
           <button className="btn grow" onClick={() => store.act((s) => giveRaise(s, e.id))}>
             Raise 10%
@@ -143,8 +163,10 @@ export function EmployeeDrawer({ e, onClose }: { e: Employee; onClose: () => voi
 export function HiringPanel({ c }: { c: Company }) {
   const st = useGame();
   const [role, setRole] = useState<string>('all');
+  const [branchId, setBranchId] = useState<string>('auto');
   const sub = SUBTYPES[c.subtype];
-  const full = c.employeeIds.length >= maxStaff(st, c);
+  const target = branchId === 'auto' ? roomiestBranch(st, c) : findBranch(c, branchId) ?? null;
+  const full = !target || branchStaffIds(st, c, target).length >= maxStaffAt(st, c, target);
   const cands = c.candidates.filter((e) => role === 'all' || e.role === role);
   return (
     <Panel
@@ -160,11 +182,21 @@ export function HiringPanel({ c }: { c: Company }) {
               </option>
             ))}
           </select>
+          {c.branches.length > 1 && (
+            <select className="select" style={{ height: 28, width: 220 }} value={branchId} onChange={(e) => setBranchId(e.target.value)} data-testid="hire-branch">
+              <option value="auto">Hire into: location with most room</option>
+              {c.branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  Hire into: {branchLabel(st, c, b)} ({branchStaffIds(st, c, b).length}/{maxStaffAt(st, c, b)})
+                </option>
+              ))}
+            </select>
+          )}
           <span className="dim small">New candidates every Monday</span>
         </>
       }
     >
-      {full && <div className="notice warn" style={{ margin: 12 }}>This location is at full staff capacity ({maxStaff(st, c)}). Move to a larger property to grow the team.</div>}
+      {full && <div className="notice warn" style={{ margin: 12 }}>{c.branches.length > 1 && branchId !== 'auto' ? 'That location is full.' : `Every location is full (${maxStaff(st, c)} staff in total).`} Open another location or move to a bigger property to grow the team.</div>}
       {cands.length === 0 ? (
         <div className="empty small">No candidates for this role right now. Check back next week.</div>
       ) : (
@@ -207,7 +239,7 @@ export function HiringPanel({ c }: { c: Company }) {
                 </td>
                 <td className="r">{money(e.salary)}/yr</td>
                 <td className="r">
-                  <button className="btn sm primary" disabled={full} onClick={() => store.act((s) => hireEmployee(s, c.id, e.id))} data-testid="hire">
+                  <button className="btn sm primary" disabled={full} onClick={() => store.act((s) => hireEmployee(s, c.id, e.id, target?.id))} data-testid="hire">
                     Hire
                   </button>
                 </td>
@@ -223,8 +255,9 @@ export function HiringPanel({ c }: { c: Company }) {
 export function StaffView() {
   const st = useGame();
   const [filter, setFilter] = useState<string>('all');
-  const companies = Object.values(st.companies).filter((c) => c.status !== 'closed');
-  const all = Object.values(st.employees).filter((e) => e.companyId && (filter === 'all' || e.companyId === filter));
+  const companies = playerCompanies(st);
+  const mine = new Set(companies.map((c) => c.id));
+  const all = Object.values(st.employees).filter((e) => e.companyId && mine.has(e.companyId) && (filter === 'all' || e.companyId === filter));
   const sel = store.selection.employeeId ? st.employees[store.selection.employeeId] : null;
   const payroll = all.reduce((s, e) => s + e.salary, 0);
   return (
@@ -245,6 +278,7 @@ export function StaffView() {
           </select>
         </div>
       </div>
+      <ExecutiveTeam />
       <div className="grid" style={{ gridTemplateColumns: sel ? 'minmax(0,1fr) 340px' : '1fr' }}>
         <Panel title={`${all.length} employees`} actions={<span className="dim small">Annual payroll {money(payroll)}</span>} tight>
           {all.length ? (

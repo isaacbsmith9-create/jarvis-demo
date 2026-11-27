@@ -10,8 +10,10 @@ import { orgAccount, PLAYER, transfer, WORLD } from './finance/ledger';
 import { netWorth } from './finance/valuation';
 import { createNpcOrganizations } from './organizations/organizations';
 import { createProperties } from './properties/properties';
+import { seedMarket } from './companies/market';
+import { refreshExecCandidates } from './executives/executives';
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export interface NewGameOptions {
   playerName: string;
@@ -62,6 +64,9 @@ export function createNewGame(opts: NewGameOptions): GameState {
       failed: false,
     },
     counters: { company: 0, employee: 0, loan: 0, modifier: 0 },
+    executives: [],
+    execCandidates: [],
+    settings: { cashSweep: true },
     stats: { daysPlayed: 0, propertiesBought: 0, companiesFounded: 0, hires: 0 },
   };
 
@@ -118,8 +123,9 @@ export function createNewGame(opts: NewGameOptions): GameState {
     c.reputation = sc.reputation;
     c.ownerOperated = !!sc.ownerOperated;
     c.foundedDay = -365;
-    if (c.ops.kind === 'technology' && c.subtype === 'agency') c.ops.quality = 55;
-    if (c.ops.kind === 'hospitality') c.ops.quality = Math.max(40, sc.reputation - 5);
+    const ops = c.branches[0].ops;
+    if (ops.kind === 'technology' && c.subtype === 'agency') ops.quality = 55;
+    if (ops.kind === 'hospitality') ops.quality = Math.max(40, sc.reputation - 5);
     seedEmployees(state, c, sc.employees);
   }
 
@@ -153,6 +159,9 @@ export function createNewGame(opts: NewGameOptions): GameState {
   state.contacts = scenario.contacts.map(
     (c, i): Contact => ({ id: `ct${i}`, name: c.name, title: c.title, affiliation: c.affiliation, relationship: c.relationship, note: c.note, underworld: !!c.underworld }),
   );
+
+  seedMarket(state, 4);
+  refreshExecCandidates(state);
 
   if (state.objective.kind === 'debtFree') state.objective.startValue = state.loans.reduce((s, l) => s + l.principal, 0);
   state.player.netWorthHistory.push({ day: 0, value: netWorth(state) });

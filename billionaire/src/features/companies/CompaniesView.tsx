@@ -4,8 +4,12 @@ import { LineChart } from '../../components/charts';
 import { Money, MoneyInput, Notice, Panel, Progress, Stat } from '../../components/ui';
 import { DISTRICTS } from '../../data/cities/miami';
 import { INDUSTRIES, PRICE_LEVELS, RETAIL_ECON, roleDef, SUBTYPES } from '../../data/companies/industries';
-import { closeCompany, injectCapital, maxStaff, renameCompany, setOwnerOperated, updateSettings, withdrawDividend } from '../../simulation/companies/companies';
-import { companyDistrict, managementInfo } from '../../simulation/companies/industryRules';
+import { closeCompany, injectCapital, maxStaff, playerCompanies, renameCompany, setOwnerOperated, setStockTarget, updateSettings, withdrawDividend } from '../../simulation/companies/companies';
+import { buyBusiness } from '../../simulation/companies/market';
+import { branchLabel, companyDistricts, primaryBranch, unitFor } from '../../simulation/companies/units';
+import { execBonus } from '../../simulation/executives/executives';
+import { Locations } from './Locations';
+import { managementInfo } from '../../simulation/companies/industryRules';
 import { dailyPayroll, hasManager, roleUnits } from '../../simulation/employees/employees';
 import { activeModifiersFor } from '../../simulation/events/randomEvents';
 import { balance, companyAccount, PLAYER } from '../../simulation/finance/ledger';
@@ -18,7 +22,7 @@ import { HiringPanel, StaffTable } from '../employees/StaffView';
 export function CompaniesView() {
   const st = useGame();
   const sel = store.selection.companyId;
-  const list = Object.values(st.companies).sort((a, b) => (a.status === 'closed' ? 1 : 0) - (b.status === 'closed' ? 1 : 0) || a.foundedDay - b.foundedDay);
+  const list = playerCompanies(st, true).sort((a, b) => (a.status === 'closed' ? 1 : 0) - (b.status === 'closed' ? 1 : 0) || a.foundedDay - b.foundedDay);
   const selected = sel ? st.companies[sel] : null;
   if (selected) return <CompanyDetail c={selected} />;
   const active = list.filter((c) => c.status !== 'closed');
@@ -78,8 +82,8 @@ function CompanyCard({ c }: { c: Company }) {
   const h = c.history.slice(-30);
   const rev = h.reduce((a, d) => a + d.revenue, 0);
   const prof = h.reduce((a, d) => a + d.profit, 0);
-  const loc = c.locationId ? st.properties[c.locationId] : null;
-  const d = companyDistrict(st, c);
+  const ds = companyDistricts(st, c);
+  const where = c.branches.length > 1 ? `${c.branches.length} locations · ${ds.map((d) => DISTRICTS[d].name).join(', ')}` : branchLabel(st, c, c.branches[0]) + (c.subtype === 'foodtruck' && ds[0] ? ` · ${DISTRICTS[ds[0]].name}` : '');
   return (
     <button className="panel" style={{ textAlign: 'left', cursor: 'pointer', color: 'inherit', padding: 0 }} onClick={() => store.openCompany(c.id)} data-testid={`company-card-${c.id}`}>
       <div className="panel-h">
@@ -101,7 +105,7 @@ function CompanyCard({ c }: { c: Company }) {
         </div>
         <LineChart series={[{ name: 'Profit', color: prof >= 0 ? 'var(--pos)' : 'var(--neg)', values: c.history.slice(-60).map((x) => x.profit), area: true }]} labels={c.history.slice(-60).map((x) => formatShortDate(x.day))} format={(v) => money(v)} height={80} zeroLine />
         <div className="row between small muted">
-          <span>{loc ? loc.name : c.subtype === 'foodtruck' ? `Mobile${d ? ` · ${DISTRICTS[d].name}` : ''}` : 'Home-based'}</span>
+          <span className="ellipsis">{where}</span>
           <span>
             {c.employeeIds.length} staff{c.ownerOperated ? ' + you' : ''}
           </span>
@@ -111,7 +115,7 @@ function CompanyCard({ c }: { c: Company }) {
   );
 }
 
-type Tab = 'overview' | 'staff' | 'financials' | 'manage';
+type Tab = 'overview' | 'locations' | 'staff' | 'financials' | 'manage';
 
 function CompanyDetail({ c }: { c: Company }) {
   const st = useGame();
@@ -122,18 +126,21 @@ function CompanyDetail({ c }: { c: Company }) {
   const h30 = c.history.slice(-30);
   const rev30 = h30.reduce((a, d) => a + d.revenue, 0);
   const prof30 = h30.reduce((a, d) => a + d.profit, 0);
-  const loc = c.locationId ? st.properties[c.locationId] : null;
+  const firstLoc = primaryBranch(c).locationId;
+  const loc = firstLoc ? st.properties[firstLoc] : null;
   const closed = c.status === 'closed';
+  const forSale = c.owner === 'market';
+  const tabs: Tab[] = forSale ? ['overview', 'financials'] : ['overview', 'locations', 'staff', 'financials', 'manage'];
 
   return (
     <div className="page" data-testid="company-detail">
       <div className="page-h">
         <div>
-          <button className="btn sm ghost" style={{ marginBottom: 10, marginLeft: -10 }} onClick={() => store.select({ companyId: null })}>
-            ← All companies
+          <button className="btn sm ghost" style={{ marginBottom: 10, marginLeft: -10 }} onClick={() => (forSale ? (store.select({ companyId: null }), store.setView('market')) : store.select({ companyId: null }))}>
+            {forSale ? '← Businesses for sale' : '← All companies'}
           </button>
           <div className="eyebrow" style={{ color: INDUSTRIES[c.industry].color }}>
-            {INDUSTRIES[c.industry].name} · {sub.name} · Founded {formatDate(Math.max(0, c.foundedDay))}
+            {INDUSTRIES[c.industry].name} · {sub.name} · {c.foundedDay < 0 ? `Established ${Math.max(1, Math.round(-c.foundedDay / 365))} yr before you arrived` : `Founded ${formatDate(c.foundedDay)}`}
           </div>
           <h1>{c.name}</h1>
         </div>
@@ -143,7 +150,7 @@ function CompanyDetail({ c }: { c: Company }) {
               View on map
             </button>
           )}
-          {!closed && (
+          {!closed && !forSale && (
             <button className="btn outline" onClick={() => store.openModal({ kind: 'interior', companyId: c.id })} data-testid="visit-hq">
               Visit {c.industry === 'hospitality' ? 'venue' : c.industry === 'retail' ? 'store' : 'office'}
             </button>
@@ -156,6 +163,7 @@ function CompanyDetail({ c }: { c: Company }) {
         </Notice>
       )}
       {closed && <Notice>This company is closed.</Notice>}
+      {forSale && c.listing && <ForSaleBanner c={c} />}
       <section className="panel">
         <div className="kpis">
           <Stat label="Valuation" value={money(val.total)} sub={`Book ${money(val.book)} + goodwill ${money(val.goodwill)}`} />
@@ -166,13 +174,14 @@ function CompanyDetail({ c }: { c: Company }) {
         </div>
       </section>
       <div className="tabs">
-        {(['overview', 'staff', 'financials', 'manage'] as Tab[]).map((t) => (
+        {tabs.map((t) => (
           <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)} data-testid={`tab-${t}`}>
-            {t === 'overview' ? 'Operations' : t === 'staff' ? `Staff (${c.employeeIds.length})` : t === 'financials' ? 'Financials' : 'Capital & settings'}
+            {t === 'overview' ? 'Operations' : t === 'locations' ? `Locations (${c.branches.length})` : t === 'staff' ? `Staff (${c.employeeIds.length})` : t === 'financials' ? 'Financials' : 'Capital & settings'}
           </button>
         ))}
       </div>
       {tab === 'overview' && <Operations c={c} />}
+      {tab === 'locations' && !forSale && <Locations c={c} />}
       {tab === 'staff' && (
         <div className="col" style={{ gap: 18 }}>
           <Panel title="Team" tight actions={<span className="dim small">{c.employeeIds.length} / {maxStaff(st, c)} positions · payroll {money(dailyPayroll(st, c) * 30)}/mo</span>}>
@@ -199,15 +208,18 @@ function Operations({ c }: { c: Company }) {
   const hist = c.history.slice(-90);
   const labels = hist.map((x) => formatShortDate(x.day));
   const mods = activeModifiersFor(st, c.id, c.industry);
-  const district = companyDistrict(st, c);
-  const closed = c.status === 'closed';
+  const [branchId, setBranchId] = useState(c.branches[0].id);
+  const branch = c.branches.find((b) => b.id === branchId) ?? c.branches[0];
+  const unit = unitFor(st, c, branch);
+  const district = branch.locationId ? st.properties[branch.locationId]?.district : branch.ops.kind === 'hospitality' ? branch.ops.foodTruckDistrict : null;
+  const closed = c.status === 'closed' || c.owner !== 'player';
   const set = (patch: Partial<Company['settings']>) => store.act((s) => updateSettings(s, c.id, patch), { quietSuccess: true });
 
   const opsRows: [string, React.ReactNode][] = [];
-  const o = c.ops;
+  const o = branch.ops;
   if (o.kind === 'technology' && c.subtype === 'agency') {
     const last = c.history[c.history.length - 1];
-    opsRows.push(['Billable capacity', `${(roleUnits(st, c, 'dev') * 6).toFixed(1)} hrs/day`]);
+    opsRows.push(['Billable capacity', `${(roleUnits(st, unit, 'dev') * 6).toFixed(1)} hrs/day`]);
     opsRows.push(['Client demand (last day)', `${(last?.customers ?? 0).toFixed(0)} hrs billed`]);
     opsRows.push(['Utilization', pct(o.utilization)]);
     opsRows.push(['Delivery quality', Math.round(o.quality)]);
@@ -223,13 +235,13 @@ function Operations({ c }: { c: Company }) {
     opsRows.push([`Demand (${unit}/day)`, num(o.lastDemand)]);
     opsRows.push([`Served yesterday`, num(o.lastCustomers)]);
     opsRows.push(['Service quality', Math.round(o.quality)]);
-    if (c.subtype === 'hotel' && c.locationId) opsRows.push(['Rooms', num(Math.floor(st.properties[c.locationId].sqft / 450))]);
+    if (c.subtype === 'hotel' && branch.locationId) opsRows.push(['Rooms', num(Math.floor(st.properties[branch.locationId].sqft / 450))]);
     if (c.subtype === 'foodtruck' && o.foodTruckDistrict) opsRows.push(['Parked today', DISTRICTS[o.foodTruckDistrict].name]);
     if (c.subtype === 'nightclub') opsRows.push(['Open nights', 'Thu – Sun']);
   } else if (o.kind === 'retail') {
     const econ = RETAIL_ECON[c.subtype as 'boutique' | 'convenience' | 'online'];
     opsRows.push(['Inventory', `${num(o.inventory)} units (${money(o.inventory * o.unitCost)})`]);
-    opsRows.push(['Restock target', `${num(c.settings.stockTarget)} units`]);
+    opsRows.push(['Restock target', `${num(branch.stockTarget)} units`]);
     opsRows.push(['Unit cost → shelf price', `${money(o.unitCost)} → ${money(dollars((o.unitCost / 100) * econ.markup * PRICE_LEVELS[c.settings.priceLevel].mult))}`]);
     opsRows.push([c.subtype === 'online' ? 'Orders yesterday' : 'Shoppers yesterday', num(o.lastCustomers)]);
     opsRows.push(['Demand yesterday', num(o.lastDemand)]);
@@ -280,7 +292,7 @@ function Operations({ c }: { c: Company }) {
         </Panel>
       </div>
       <div className="col" style={{ gap: 18 }}>
-        <Panel title="Operations">
+        <Panel title="Operations" actions={c.branches.length > 1 ? <select className="select" style={{ height: 28, width: 200 }} value={branch.id} onChange={(e) => setBranchId(e.target.value)} data-testid="ops-branch">{c.branches.map((b) => <option key={b.id} value={b.id}>{branchLabel(st, c, b)}</option>)}</select> : undefined}>
           <div className="kv">
             {opsRows.map(([k, v]) => (
               <FragmentKV key={k} k={k} v={v} />
@@ -326,10 +338,10 @@ function Operations({ c }: { c: Company }) {
                 <input type="range" min={0} max={mktMax} step={dollars(10)} value={Math.min(mkt, mktMax)} disabled={c.settings.delegated} onChange={(e) => set({ marketingPerDay: Number(e.target.value) })} />
                 <span className="dim tiny">{c.industry === 'technology' || c.subtype === 'online' ? 'Acquires users/orders directly. Rising cost per acquisition at high spend.' : 'Raises local demand with diminishing returns.'}</span>
               </div>
-              {c.ops.kind === 'retail' && (
+              {branch.ops.kind === 'retail' && (
                 <div className="field">
-                  <label>Restock target (units)</label>
-                  <input className="input num" type="number" min={0} value={c.settings.stockTarget} disabled={c.settings.delegated} onChange={(e) => set({ stockTarget: Math.max(0, Math.round(Number(e.target.value) || 0)) })} />
+                  <label>Restock target (units){c.branches.length > 1 ? ` · ${branchLabel(st, c, branch)}` : ''}</label>
+                  <input className="input num" type="number" min={0} value={branch.stockTarget} disabled={c.settings.delegated} onChange={(e) => store.act((s) => setStockTarget(s, c.id, branch.id, Math.max(0, Math.round(Number(e.target.value) || 0))), { quietSuccess: true })} />
                   <span className="dim tiny">Reorders from suppliers when stock falls below 35% of target.</span>
                 </div>
               )}
@@ -342,7 +354,7 @@ function Operations({ c }: { c: Company }) {
               <label className="row small" style={{ gap: 8, cursor: hasManager(st, c) ? 'pointer' : 'not-allowed', opacity: hasManager(st, c) ? 1 : 0.5 }}>
                 <input type="checkbox" checked={c.settings.delegated} disabled={!hasManager(st, c)} onChange={(e) => store.act((s) => updateSettings(s, c.id, { delegated: e.target.checked }))} />
                 <span>
-                  Delegate to manager <span className="dim">{hasManager(st, c) ? '(weekly pricing, marketing & stock decisions)' : '(hire a manager first)'}</span>
+                  Delegate to manager <span className="dim">{hasManager(st, c) ? `(weekly pricing, marketing & stock decisions${execBonus(st, c, 'coo') > 0 ? ' — your COO covers it' : ''})` : '(hire a manager or an empire COO first)'}</span>
                 </span>
               </label>
             </div>
@@ -509,5 +521,52 @@ function Manage({ c }: { c: Company }) {
         </div>
       </Panel>
     </div>
+  );
+}
+
+function ForSaleBanner({ c }: { c: Company }) {
+  const st = useGame();
+  const l = c.listing!;
+  const h = c.history.slice(-30);
+  const prof = h.reduce((a, d) => a + d.profit, 0);
+  const rev = h.reduce((a, d) => a + d.revenue, 0);
+  const cash = balance(st, PLAYER);
+  const years = prof > 0 ? l.askingPrice / (prof * 12) : null;
+  return (
+    <section className="panel" style={{ borderColor: 'var(--gold-dim)' }} data-testid="for-sale">
+      <div className="panel-b row wrap between" style={{ gap: 16 }}>
+        <div className="col" style={{ gap: 4, minWidth: 240, flex: 1 }}>
+          <span className="eyebrow gold">For sale · listed {formatDate(l.listedDay)}</span>
+          <span className="muted small">{l.story} Staff, equipment, stock and the lease transfer to you; the seller keeps the cash in the business.</span>
+          <span className="small">
+            Last 30 days: revenue {money(rev)}, profit <Money v={prof} />.{' '}
+            {years !== null ? <span className="dim">Price is {years.toFixed(1)}× a year of profit.</span> : <span className="neg">Currently losing money.</span>}
+          </span>
+        </div>
+        <div className="col" style={{ gap: 6, alignItems: 'flex-end' }}>
+          <span className="stat"><span className="value">{money(l.askingPrice)}</span></span>
+          <button
+            className="btn primary"
+            disabled={cash < l.askingPrice}
+            data-testid="buy-business"
+            onClick={() =>
+              store.openModal({
+                kind: 'confirm',
+                title: `Buy ${c.name}?`,
+                body: `Pay ${money(l.askingPrice)} for the business, its ${c.employeeIds.length} staff and its location. It will need working capital for payroll right away.`,
+                confirmLabel: 'Buy business',
+                onConfirm: () => {
+                  const res = store.act((s) => buyBusiness(s, c.id));
+                  if (res.ok) store.openCompany(c.id);
+                },
+              })
+            }
+          >
+            Buy business
+          </button>
+          {cash < l.askingPrice && <span className="dim tiny">You need {money(l.askingPrice - cash)} more.</span>}
+        </div>
+      </div>
+    </section>
   );
 }

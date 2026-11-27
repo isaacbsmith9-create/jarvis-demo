@@ -6,6 +6,7 @@ import { SUBTYPES } from '../../data/companies/industries';
 import { PROPERTY_TYPE_LABEL } from '../../data/properties/miami';
 import { balance, PLAYER } from '../../simulation/finance/ledger';
 import { CLOSING_COST_RATE, dailyUpkeep, isOwnedByPlayer, leaseRent, monthlyMarketRent, renovationCost } from '../../simulation/properties/properties';
+import { canHaveBranches, playerCompanies } from '../../simulation/companies/companies';
 import { buyProperty, purchaseTotal, rentOut, renovateProperty, saleProceeds, sellProperty, stopRenting, transferProperty } from '../../simulation/properties/propertyActions';
 import type { Property, SubtypeId } from '../../types/core';
 import { money, moneyFull, pct } from '../../utils/format';
@@ -32,7 +33,8 @@ export function PropertyPanel({ id, onClose, compact }: { id: string; onClose?: 
   const upkeepMonth = dailyUpkeep(p) * 30;
   const capRate = ((rent * 12 * 0.9 - upkeepMonth * 12) / p.value) || 0;
   const occupant = p.use.kind === 'company' ? state.companies[p.use.companyId] : null;
-  const reCompanies = Object.values(state.companies).filter((c) => c.status !== 'closed' && c.industry === 'realestate');
+  const reCompanies = playerCompanies(state).filter((c) => c.industry === 'realestate');
+  const expandable = playerCompanies(state).filter((c) => canHaveBranches(c.subtype) && SUBTYPES[c.subtype].propertyTypes.includes(p.type));
   const cash = balance(state, PLAYER);
   const buyerCash = buyer === 'player' ? cash : balance(state, `co:${buyer}`);
   const total = purchaseTotal(p);
@@ -131,6 +133,11 @@ export function PropertyPanel({ id, onClose, compact }: { id: string; onClose?: 
                 <span className="muted">Operated by </span>
                 {occupant.name}
               </span>
+              {occupant.owner === 'market' && occupant.listing && (
+                <button className="btn sm outline" onClick={() => store.openCompany(occupant.id)}>
+                  For sale · {money(occupant.listing.askingPrice)}
+                </button>
+              )}
               {occupant.owner === 'player' && occupant.status !== 'closed' && (
                 <button className="btn sm outline" onClick={() => store.openCompany(occupant.id)}>
                   Manage
@@ -195,6 +202,21 @@ export function PropertyPanel({ id, onClose, compact }: { id: string; onClose?: 
             </button>
             {buyerCash < total && <div className="dim small">You need {money(total - buyerCash)} more (price + closing costs).</div>}
           </>
+        )}
+        {p.use.kind === 'vacant' && (owned || p.forLease) && expandable.length > 0 && (
+          <select
+            className="select"
+            value=""
+            onChange={(e) => e.target.value && store.openModal({ kind: 'branch', companyId: e.target.value, propertyId: p.id })}
+            data-testid="add-location-here"
+          >
+            <option value="">Open a location of one of your companies here…</option>
+            {expandable.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name} ({SUBTYPES[c.subtype].name}, {c.branches.length} location{c.branches.length > 1 ? 's' : ''})
+              </option>
+            ))}
+          </select>
         )}
         {!owned && p.forLease && p.use.kind === 'vacant' && suit.length > 0 && (
           <button className="btn outline block" data-testid="lease-property" onClick={() => store.openModal({ kind: 'found-company', propertyId: p.id })}>

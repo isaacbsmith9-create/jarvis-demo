@@ -4,6 +4,7 @@ import { fail, ok, type ActionResult } from '../result';
 import { addNews } from '../events/news';
 import { balance, PLAYER, transfer, WORLD } from './ledger';
 import { balanceSheet } from './valuation';
+import { cfoRateCut } from '../executives/executives';
 
 export const BANK_NAME = 'Biscayne National Bank';
 
@@ -22,10 +23,10 @@ export function creditOffer(state: GameState): CreditOffer {
   const termMonths = 60;
   if (rep < 10) return { available: false, maxAmount: 0, annualRate: 0, termMonths, reason: 'Your business reputation is too low for bank credit (needs 10+).' };
   if (state.loans.some((l) => l.missedPayments > 0)) return { available: false, maxAmount: 0, annualRate: 0, termMonths, reason: 'You have missed loan payments. Banks will not lend until you are current.' };
-  const collateral = bs.properties * 0.6 + bs.companyEquity * 0.25 + Math.max(0, bs.cash) * 0.3;
+  const collateral = bs.properties * 0.6 + bs.companyEquity * 0.25 + bs.investments * 0.3 + Math.max(0, bs.cash) * 0.3;
   const capacity = Math.max(0, collateral - bs.loans);
   const maxAmount = Math.floor(capacity / 100000) * 100000;
-  const annualRate = clamp(state.economy.interestRate + 0.02 + (60 - rep) * 0.0008, 0.04, 0.2);
+  const annualRate = clamp(state.economy.interestRate + 0.02 + (60 - rep) * 0.0008 - cfoRateCut(state), 0.03, 0.2);
   if (maxAmount < dollars(1000)) return { available: false, maxAmount: 0, annualRate, termMonths, reason: 'Not enough collateral. Banks lend against property, company equity and cash.' };
   return { available: true, maxAmount, annualRate, termMonths, reason: `Secured against your assets at ${(annualRate * 100).toFixed(2)}% APR.` };
 }
@@ -76,7 +77,7 @@ export function repayLoan(state: GameState, loanId: string, amount: Money): Acti
 /** Monthly debt service on the 1st of each month. */
 export function serviceLoans(state: GameState): void {
   for (const loan of [...state.loans]) {
-    const interest = Math.round((loan.principal * loan.annualRate) / 12);
+    const interest = Math.round((loan.principal * Math.max(0.01, loan.annualRate - cfoRateCut(state))) / 12);
     const due = Math.min(loan.monthlyPayment, loan.principal + interest);
     const cash = balance(state, PLAYER);
     if (cash >= due) {

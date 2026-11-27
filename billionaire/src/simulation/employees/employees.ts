@@ -3,6 +3,7 @@ import { FIRST_NAMES, LAST_NAMES, TRAIT_IDS, TRAITS } from '../../data/employees
 import type { Company, Employee, GameState, Money, TraitId } from '../../types/core';
 import { clamp, dollars } from '../../utils/format';
 import { chance, gaussian, nextRandom, pick, randInt } from '../../utils/rng';
+import { execBonus } from '../executives/executives';
 
 export function generateEmployee(state: GameState, company: Company, roleId: string, skillRange?: [number, number]): Employee {
   const role = roleDef(company.subtype, roleId);
@@ -29,6 +30,7 @@ export function generateEmployee(state: GameState, company: Company, roleId: str
     traits,
     hiredDay: state.day,
     age: randInt(state, 21, 58),
+    branchId: null,
   };
 }
 
@@ -60,11 +62,14 @@ export function managerBoost(state: GameState, company: Company): number {
   for (const e of companyStaff(state, company)) {
     if (roleDef(company.subtype, e.role)?.manager) best = Math.max(best, e.skill);
   }
-  return best > 0 ? 4 + best * 0.1 : 0;
+  const coo = execBonus(state, company, 'coo') * 20;
+  return (best > 0 ? 4 + best * 0.1 : 0) + coo;
 }
 
+/** A manager on staff (anywhere in the company), or an empire COO, can run delegated operations. */
 export function hasManager(state: GameState, company: Company): boolean {
-  return managerBoost(state, company) > 0;
+  if (execBonus(state, company, 'coo') > 0) return true;
+  return companyStaff(state, company).some((e) => roleDef(company.subtype, e.role)?.manager);
 }
 
 /** Sum of effectiveness for a role, including the owner-operator if applicable. */

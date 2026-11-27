@@ -1,11 +1,15 @@
 import { INDUSTRIES } from '../../data/companies/industries';
 import type { Company, GameState, Money } from '../../types/core';
+import { companyEquipment } from '../companies/units';
+import { rivalValuation } from '../competitors/investments';
 import { balance, companyAccount, orgAccount, PLAYER } from './ledger';
 
 export const OWNER_SALARY = 6500000;
 
 export function companyInventoryValue(c: Company): Money {
-  return c.ops.kind === 'retail' ? Math.round(c.ops.inventory * c.ops.unitCost) : 0;
+  let s = 0;
+  for (const b of c.branches) if (b.ops.kind === 'retail') s += Math.round(b.ops.inventory * b.ops.unitCost);
+  return s;
 }
 
 export function companyPropertyValue(state: GameState, c: Company): Money {
@@ -45,7 +49,7 @@ export interface CompanyValuation {
  */
 export function valueCompany(state: GameState, c: Company): CompanyValuation {
   const cash = balance(state, companyAccount(c.id));
-  const equipment = c.equipment;
+  const equipment = companyEquipment(c);
   const inventory = companyInventoryValue(c);
   const properties = companyPropertyValue(state, c);
   const book = cash + equipment + inventory + properties;
@@ -67,6 +71,8 @@ export function valueCompany(state: GameState, c: Company): CompanyValuation {
 export interface BalanceSheet {
   cash: Money;
   companyEquity: Money;
+  /** Market value of your stakes in rival companies. */
+  investments: Money;
   properties: Money;
   organization: Money;
   totalAssets: Money;
@@ -78,14 +84,16 @@ export interface BalanceSheet {
 export function balanceSheet(state: GameState): BalanceSheet {
   const cash = balance(state, PLAYER);
   let companyEquity = 0;
-  for (const c of Object.values(state.companies)) if (c.status !== 'closed') companyEquity += valueCompany(state, c).total;
+  for (const c of Object.values(state.companies)) if (c.owner === 'player' && c.status !== 'closed') companyEquity += valueCompany(state, c).total;
+  let investments = 0;
+  for (const r of Object.values(state.rivals)) if (r.playerStake > 0) investments += Math.round(rivalValuation(state, r) * r.playerStake);
   let properties = 0;
   for (const p of Object.values(state.properties)) if (p.owner === 'player') properties += p.value;
   let organization = 0;
   for (const o of Object.values(state.organizations)) if (o.controlledBy === 'player') organization += balance(state, orgAccount(o.id));
   const loans = state.loans.reduce((s, l) => s + l.principal, 0);
-  const totalAssets = cash + companyEquity + properties + organization;
-  return { cash, companyEquity, properties, organization, totalAssets, loans, totalLiabilities: loans, netWorth: totalAssets - loans };
+  const totalAssets = cash + companyEquity + investments + properties + organization;
+  return { cash, companyEquity, investments, properties, organization, totalAssets, loans, totalLiabilities: loans, netWorth: totalAssets - loans };
 }
 
 export function netWorth(state: GameState): Money {

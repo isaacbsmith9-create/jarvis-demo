@@ -8,7 +8,42 @@ import { SCHEMA_VERSION } from '../simulation/newGame';
 export type Migration = (raw: Record<string, unknown>) => Record<string, unknown>;
 
 /** migrations[n] upgrades a version-n save to version n+1. */
-export const MIGRATIONS: Record<number, Migration> = {};
+export const MIGRATIONS: Record<number, Migration> = {
+  /** v1 → v2: companies get branches; executives, investments and the business market are added. */
+  1: (raw) => {
+    const d = raw as Record<string, any>;
+    for (const c of Object.values(d.companies ?? {}) as any[]) {
+      if (Array.isArray(c.branches)) continue;
+      c.branches = [
+        {
+          id: 'b1',
+          locationId: c.locationId ?? null,
+          ops: c.ops,
+          equipment: c.equipment ?? 0,
+          stockTarget: c.settings?.stockTarget ?? 0,
+          openedDay: c.foundedDay ?? 0,
+        },
+      ];
+      c.nextBranch = 2;
+      c.listing = null;
+      c.owner = c.owner ?? 'player';
+      delete c.locationId;
+      delete c.ops;
+      delete c.equipment;
+      if (c.settings) delete c.settings.stockTarget;
+    }
+    for (const e of Object.values(d.employees ?? {}) as any[]) if (e.branchId === undefined) e.branchId = 'b1';
+    for (const r of Object.values(d.rivals ?? {}) as any[]) {
+      r.playerStake = r.playerStake ?? 0;
+      r.stakeCost = r.stakeCost ?? 0;
+    }
+    d.executives = d.executives ?? [];
+    d.execCandidates = d.execCandidates ?? [];
+    d.settings = d.settings ?? { cashSweep: true };
+    d.schemaVersion = 2;
+    return d;
+  },
+};
 
 export class SaveValidationError extends Error {}
 
@@ -50,7 +85,7 @@ export function validateState(raw: unknown): GameState {
   }
   req(isObj(data.companies), 'Missing companies.');
   for (const c of Object.values(data.companies as Record<string, unknown>)) {
-    req(isObj(c) && typeof c.id === 'string' && isObj(c.ops) && isObj(c.settings) && Array.isArray(c.employeeIds) && isObj(c.current), 'Corrupt company record.');
+    req(isObj(c) && typeof c.id === 'string' && Array.isArray(c.branches) && (c.branches as unknown[]).length > 0 && isObj(c.settings) && Array.isArray(c.employeeIds) && isObj(c.current), 'Corrupt company record.');
   }
   req(isObj(data.employees), 'Missing employees.');
   req(isObj(data.rivals), 'Missing competitors.');

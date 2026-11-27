@@ -9,7 +9,7 @@ import type { DistrictId, GameState, IndustryId, Modifier } from '../../types/co
 import { monthOf } from '../../utils/date';
 import { clamp, dollars, money } from '../../utils/format';
 import { chance, nextRandom, pick, randInt } from '../../utils/rng';
-import { companyDistrict } from '../companies/industryRules';
+import { companyDistricts, companyEquipment } from '../companies/units';
 import { companyStaff } from '../employees/employees';
 import { companyAccount, PLAYER, transfer, WORLD } from '../finance/ledger';
 import { addNews } from './news';
@@ -81,7 +81,7 @@ const EVENTS: EventDef[] = [
     id: 'viral_review',
     p: 0.01,
     run(state) {
-      const cs = Object.values(state.companies).filter((c) => c.status === 'operating' && (c.industry === 'hospitality' || c.industry === 'retail') && c.reputation > 45);
+      const cs = Object.values(state.companies).filter((c) => c.owner === 'player' && c.status === 'operating' && (c.industry === 'hospitality' || c.industry === 'retail') && c.reputation > 45);
       if (!cs.length) return false;
       const c = pick(state, cs);
       c.reputation = clamp(c.reputation + 6, 0, 100);
@@ -94,10 +94,10 @@ const EVENTS: EventDef[] = [
     id: 'inspection',
     p: 0.008,
     run(state) {
-      const cs = Object.values(state.companies).filter((c) => c.status !== 'closed' && (c.subtype === 'restaurant' || c.subtype === 'foodtruck' || c.subtype === 'hotel'));
+      const cs = Object.values(state.companies).filter((c) => c.owner === 'player' && c.status !== 'closed' && (c.subtype === 'restaurant' || c.subtype === 'foodtruck' || c.subtype === 'hotel'));
       if (!cs.length) return false;
       const c = pick(state, cs);
-      const ops = c.ops.kind === 'hospitality' ? c.ops : null;
+      const ops = c.branches[0].ops.kind === 'hospitality' ? c.branches[0].ops : null;
       const passed = (ops?.quality ?? 50) + nextRandom(state) * 40 > 55;
       if (passed) {
         c.reputation = clamp(c.reputation + 1, 0, 100);
@@ -115,10 +115,10 @@ const EVENTS: EventDef[] = [
     id: 'equipment_failure',
     p: 0.006,
     run(state) {
-      const cs = Object.values(state.companies).filter((c) => c.status !== 'closed' && c.equipment > 0);
+      const cs = Object.values(state.companies).filter((c) => c.owner === 'player' && c.status !== 'closed' && companyEquipment(c) > 0);
       if (!cs.length) return false;
       const c = pick(state, cs);
-      const cost = Math.max(dollars(500), Math.round(c.equipment * (0.03 + nextRandom(state) * 0.05)));
+      const cost = Math.max(dollars(500), Math.round(companyEquipment(c) * (0.03 + nextRandom(state) * 0.05)));
       transfer(state, companyAccount(c.id), WORLD, cost, 'event', 'Emergency equipment repair');
       addNews(state, 'company', 'negative', `Equipment breakdown at ${c.name}`, `Emergency repairs cost ${money(cost)}.`, { companyId: c.id });
       return true;
@@ -128,7 +128,7 @@ const EVENTS: EventDef[] = [
     id: 'poaching',
     p: 0.008,
     run(state) {
-      const staff = Object.values(state.employees).filter((e) => e.companyId && e.skill >= 65);
+      const staff = Object.values(state.employees).filter((e) => e.companyId && state.companies[e.companyId]?.owner === 'player' && e.skill >= 65);
       if (!staff.length) return false;
       const e = pick(state, staff);
       const c = state.companies[e.companyId!];
@@ -141,10 +141,11 @@ const EVENTS: EventDef[] = [
     id: 'nightclub_incident',
     p: 0.02,
     run(state) {
-      const cs = Object.values(state.companies).filter((c) => c.status !== 'closed' && c.subtype === 'nightclub' && c.ops.kind === 'hospitality' && c.ops.lastDemand > 0);
+      const cs = Object.values(state.companies).filter((c) => c.owner === 'player' && c.status !== 'closed' && c.subtype === 'nightclub' && c.branches.some((b) => b.ops.kind === 'hospitality' && b.ops.lastDemand > 0));
       const risky = cs.filter((c) => {
         const sec = companyStaff(state, c).filter((e) => e.role === 'security').length;
-        return c.ops.kind === 'hospitality' && c.ops.lastCustomers > sec * 80;
+        const guests = c.branches.reduce((t, b) => t + (b.ops.kind === 'hospitality' ? b.ops.lastCustomers : 0), 0);
+        return guests > sec * 80;
       });
       if (!risky.length) return false;
       const c = pick(state, risky);
@@ -159,7 +160,7 @@ const EVENTS: EventDef[] = [
     id: 'press_feature',
     p: 0.004,
     run(state) {
-      if (!Object.values(state.companies).some((c) => c.status === 'operating')) return false;
+      if (!Object.values(state.companies).some((c) => c.owner === 'player' && c.status === 'operating')) return false;
       state.player.reputation = clamp(state.player.reputation + 3, 0, 100);
       addNews(state, 'business', 'positive', `${state.player.name} profiled in the business press`, 'A feature on your growing empire lifts your public reputation.');
       return true;
@@ -190,8 +191,8 @@ export function rollRandomEvents(state: GameState): void {
 /** Demand modifiers currently affecting a given company. */
 export function activeModifiersFor(state: GameState, companyId: string, industry: IndustryId): Modifier[] {
   const c = state.companies[companyId];
-  const d = c ? companyDistrict(state, c) : null;
-  return state.modifiers.filter((m) => (!m.companyId || m.companyId === companyId) && (m.district === 'all' || m.district === d) && (m.industry === 'all' || m.industry === industry));
+  const ds = c ? companyDistricts(state, c) : [];
+  return state.modifiers.filter((m) => (!m.companyId || m.companyId === companyId) && (m.district === 'all' || ds.includes(m.district)) && (m.industry === 'all' || m.industry === industry));
 }
 
 export { DISTRICT_ORDER };

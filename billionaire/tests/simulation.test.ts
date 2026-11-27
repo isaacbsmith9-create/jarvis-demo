@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { SCENARIOS } from '../src/data/scenarios/scenarios';
-import { foundCompany, hireEmployee, quoteFounding, updateSettings } from '../src/simulation/companies/companies';
+import { closeBranch, foundCompany, hireEmployee, openBranch, quoteFounding, relocateBranch, updateSettings } from '../src/simulation/companies/companies';
+import { buyBusiness, listedBusinesses } from '../src/simulation/companies/market';
+import { buyStake, sellStake } from '../src/simulation/competitors/investments';
+import { hasManager } from '../src/simulation/employees/employees';
+import { fireExecutive, hireExecutive } from '../src/simulation/executives/executives';
+import { LEDGER_WINDOW, ledgerConfig } from '../src/simulation/finance/ledger';
 import { advanceDays } from '../src/simulation/engine';
 import { balanceSheet, netWorth } from '../src/simulation/finance/valuation';
 import { buyProperty, rentOut, sellProperty } from '../src/simulation/properties/propertyActions';
@@ -41,11 +46,107 @@ describe('new game', () => {
 
 describe('ledger', () => {
   it.each(SCENARIOS.map((s) => s.id))('conserves money over 300 days (%s)', (id) => {
-    const s = createNewGame({ playerName: 'Test', scenarioId: id, seed: 'conserve' });
-    advanceDays(s, 300);
-    expect(s.ledger.archived.count).toBe(0); // window large enough for this check
-    expect(totalBalances(s)).toBe(externalInflow(s));
-    for (const v of Object.values(s.balances)) expect(Number.isInteger(v)).toBe(true);
+    ledgerConfig.window = 1e9; // keep every entry so the whole history can be audited
+    try {
+      const s = createNewGame({ playerName: 'Test', scenarioId: id, seed: 'conserve' });
+      advanceDays(s, 300);
+      expect(s.ledger.archived.count).toBe(0);
+      expect(totalBalances(s)).toBe(externalInflow(s));
+      for (const v of Object.values(s.balances)) expect(Number.isInteger(v)).toBe(true);
+    } finally {
+      ledgerConfig.window = LEDGER_WINDOW;
+    }
+  });
+});
+
+describe('Alpha 0.2 systems', () => {
+  function richCompany() {
+    const s = createNewGame({ playerName: 'B', scenarioId: 'investor', seed: 'branches' });
+    const plan = { subtype: 'convenience' as const, locationId: 'lh-07', locationMode: 'lease' as const };
+    const c = s.companies[foundCompany(s, 'Esq', plan, quoteFounding(s, plan).recommended + 5000000).id!];
+    return { s, c };
+  }
+
+  it('opens, staffs, moves and closes a second location', () => {
+    const { s, c } = richCompany();
+    const spot = Object.values(s.properties).find((p) => p.type === 'retail' && p.forLease && p.use.kind === 'vacant' && p.id !== 'lh-07')!;
+    const res = openBranch(s, c.id, spot.id);
+    expect(res.ok, res.message).toBe(true);
+    expect(c.branches).toHaveLength(2);
+    expect(s.properties[spot.id].use).toEqual({ kind: 'company', companyId: c.id });
+    const cand = c.candidates.find((e) => e.role === 'cashier')!;
+    expect(hireEmployee(s, c.id, cand.id, res.id).ok).toBe(true);
+    expect(s.employees[cand.id].branchId).toBe(res.id);
+    advanceDays(s, 20);
+    expect(c.branches.every((b) => b.ops.kind === 'retail' && b.ops.lastCustomers > 0)).toBe(true);
+    const next = Object.values(s.properties).find((p) => p.type === 'retail' && p.forLease && p.use.kind === 'vacant')!;
+    expect(relocateBranch(s, c.id, res.id!, next.id).ok).toBe(true);
+    expect(s.properties[spot.id].use.kind).toBe('vacant');
+    expect(closeBranch(s, c.id, res.id!).ok).toBe(true);
+    expect(c.branches).toHaveLength(1);
+    expect(s.employees[cand.id].branchId).toBe('b1'); // moved, not fired
+  });
+
+  it('lists independent businesses with real track records and sells them', () => {
+    const s = createNewGame({ playerName: 'B', scenarioId: 'investor', seed: 'market' });
+    advanceDays(s, 35);
+    const listed = listedBusinesses(s);
+    expect(listed.length).toBeGreaterThan(0);
+    const biz = listed[0];
+    expect(biz.history.length).toBeGreaterThanOrEqual(21);
+    const nw = netWorth(s);
+    const r = buyBusiness(s, biz.id);
+    expect(r.ok, r.message).toBe(true);
+    expect(biz.owner).toBe('player');
+    expect(netWorth(s)).toBeLessThan(nw); // the seller's premium isn't free
+  });
+
+  it('buys a rival stake, earns dividends, caps at 49%', () => {
+    const s = createNewGame({ playerName: 'B', scenarioId: 'investor', seed: 'stake' });
+    expect(buyStake(s, 'vela', 0.25).ok).toBe(true);
+    expect(buyStake(s, 'vela', 0.25).ok).toBe(false);
+    advanceDays(s, 70);
+    expect(s.ledger.entries.some((t) => t.category === 'dividend' && t.from === 'rival:vela')).toBe(true);
+    expect(balanceSheet(s).investments).toBeGreaterThan(0);
+    expect(sellStake(s, 'vela', 0.25).ok).toBe(true);
+    expect(s.rivals.vela.playerStake).toBe(0);
+  });
+
+  it('executives cost salary and have effects', () => {
+    const { s, c } = richCompany();
+    const coo = s.execCandidates.find((e) => e.role === 'coo')!;
+    expect(hireExecutive(s, coo.id).ok).toBe(true);
+    expect(hasManager(s, c)).toBe(true); // COO can run delegated companies
+    expect(updateSettings(s, c.id, { delegated: true }).ok).toBe(true);
+    advanceDays(s, 3);
+    expect(s.ledger.entries.some((t) => t.memo === 'Executive salaries')).toBe(true);
+    expect(fireExecutive(s, coo.id).ok).toBe(true);
+    expect(s.executives).toHaveLength(0);
+  });
+
+  it('migrates a v1 save to branches', () => {
+    const s = createNewGame({ playerName: 'Old', scenarioId: 'owner', seed: 'v1' });
+    const raw = JSON.parse(JSON.stringify(s));
+    for (const c of Object.values(raw.companies) as any[]) {
+      c.locationId = c.branches[0].locationId;
+      c.ops = c.branches[0].ops;
+      c.equipment = c.branches[0].equipment;
+      c.settings.stockTarget = c.branches[0].stockTarget;
+      delete c.branches;
+      delete c.nextBranch;
+      delete c.listing;
+    }
+    for (const e of Object.values(raw.employees) as any[]) delete e.branchId;
+    delete raw.executives;
+    delete raw.execCandidates;
+    delete raw.settings;
+    raw.schemaVersion = 1;
+    const m = validateState(raw);
+    expect(m.schemaVersion).toBe(2);
+    const cafe = Object.values(m.companies).find((c) => c.owner === 'player')!;
+    expect(cafe.branches[0].locationId).toBe('lh-01');
+    advanceDays(m, 10);
+    expect(cafe.lifetime.revenue).toBeGreaterThan(0);
   });
 });
 

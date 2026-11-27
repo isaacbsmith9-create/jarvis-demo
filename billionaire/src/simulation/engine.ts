@@ -17,6 +17,9 @@ import { serviceLoans } from './finance/loans';
 import { netWorth } from './finance/valuation';
 import { checkObjective } from './objectives';
 import { simulateOrganizationsWeekly } from './organizations/organizations';
+import { marketWeekly } from './companies/market';
+import { payRivalDividends } from './competitors/investments';
+import { executivesWeekly, payExecutives, refreshExecCandidates } from './executives/executives';
 import { refreshListings, simulateProperties } from './properties/propertyActions';
 
 export interface DayReport {
@@ -39,12 +42,15 @@ export function advanceDay(state: GameState): DayReport {
   }
   simulateProperties(state);
   simulateRivalsDaily(state);
+  payExecutives(state);
 
   if (newWeek) {
     simulateRivalsWeekly(state);
     simulateOrganizationsWeekly(state);
     refreshListings(state);
     weeklyCandidateRefresh(state);
+    marketWeekly(state);
+    executivesWeekly(state);
     for (const c of companies) {
       const change = delegateWeekly(state, c);
       if (change) addNews(state, 'company', 'neutral', `${c.name}: manager ${change}`, 'Delegated management adjusted operations based on last week’s demand.', { companyId: c.id });
@@ -53,8 +59,10 @@ export function advanceDay(state: GameState): DayReport {
   }
   if (newMonth) {
     serviceLoans(state);
+    payRivalDividends(state);
+    refreshExecCandidates(state);
     // Reputation slowly tracks the quality of your operating businesses.
-    const active = companies.filter((c) => c.status !== 'closed');
+    const active = companies.filter((c) => c.status !== 'closed' && c.owner === 'player');
     if (active.length) {
       const avg = active.reduce((s, c) => s + c.reputation, 0) / active.length;
       state.player.reputation = clamp(state.player.reputation + (avg - state.player.reputation) * 0.05, 0, 100);
@@ -73,7 +81,7 @@ export function advanceDay(state: GameState): DayReport {
 
 function staffTurnover(state: GameState): void {
   for (const c of Object.values(state.companies)) {
-    if (c.status === 'closed') continue;
+    if (c.status === 'closed' || c.owner !== 'player') continue;
     for (const e of companyStaff(state, c)) {
       if (e.loyalty < 30 && chance(state, (30 - e.loyalty) / 100)) {
         c.employeeIds = c.employeeIds.filter((id) => id !== e.id);

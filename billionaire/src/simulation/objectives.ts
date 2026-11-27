@@ -13,7 +13,7 @@ export interface ObjectiveProgress {
 }
 
 export function objectiveProgress(state: GameState, o: Objective = state.objective): ObjectiveProgress {
-  const active = Object.values(state.companies).filter((c) => c.status !== 'closed');
+  const active = Object.values(state.companies).filter((c) => c.owner === 'player' && c.status !== 'closed');
   switch (o.kind) {
     case 'netWorth': {
       const nw = netWorth(state);
@@ -33,6 +33,7 @@ export function objectiveProgress(state: GameState, o: Objective = state.objecti
       // Best completed month across all companies combined, or current month to date.
       const byPeriod = new Map<string, number>();
       for (const c of Object.values(state.companies)) {
+        if (c.owner !== 'player') continue;
         for (const s of [...c.statements, c.current]) byPeriod.set(s.period, (byPeriod.get(s.period) ?? 0) + s.profit);
       }
       const best = Math.max(0, ...byPeriod.values());
@@ -43,7 +44,7 @@ export function objectiveProgress(state: GameState, o: Objective = state.objecti
       return { current: debt, target: 0, ratio: debt === 0 ? 1 : Math.max(0, 1 - debt / Math.max(1, o.startValue)), label: debt === 0 ? 'Debt free' : `${money(debt)} remaining` };
     }
     case 'employees': {
-      const n = Object.values(state.employees).filter((e) => e.companyId).length;
+      const n = Object.values(state.employees).filter((e) => e.companyId && state.companies[e.companyId]?.owner === 'player').length;
       return { current: n, target: o.target, ratio: n / o.target, label: `${n} / ${o.target} employees` };
     }
     case 'influence': {

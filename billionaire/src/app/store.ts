@@ -32,7 +32,8 @@ export interface Toast {
 }
 
 export interface Modal {
-  kind: 'found-company' | 'interior' | 'confirm';
+  kind: 'found-company' | 'interior' | 'confirm' | 'branch' | 'executives';
+  branchId?: string;
   propertyId?: string;
   companyId?: string;
   subtype?: string;

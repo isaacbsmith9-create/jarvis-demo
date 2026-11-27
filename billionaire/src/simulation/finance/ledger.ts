@@ -2,6 +2,8 @@ import type { AccountId, GameState, Money, Transaction, TxCategory } from '../..
 
 /** Rolling window of ledger entries kept in the save. Older entries are summarized, never lost. */
 export const LEDGER_WINDOW = 6000;
+/** Tunable for tests that audit the complete ledger. */
+export const ledgerConfig = { window: LEDGER_WINDOW };
 
 /** The "world" account represents everyone outside the simulation (customers, suppliers, banks). */
 export const WORLD: AccountId = 'world';
@@ -38,12 +40,12 @@ export function transfer(
   if (to !== WORLD) state.balances[to] = (state.balances[to] ?? 0) + amt;
   const tx: Transaction = { id: state.ledger.nextId++, day: state.day, from, to, amount: amt, category, memo };
   state.ledger.entries.push(tx);
-  if (state.ledger.entries.length > LEDGER_WINDOW + 500) trimLedger(state);
+  if (state.ledger.entries.length > ledgerConfig.window + 500) trimLedger(state);
   return tx;
 }
 
 function trimLedger(state: GameState): void {
-  const excess = state.ledger.entries.length - LEDGER_WINDOW;
+  const excess = state.ledger.entries.length - ledgerConfig.window;
   if (excess <= 0) return;
   const removed = state.ledger.entries.splice(0, excess);
   const arch = state.ledger.archived;
@@ -70,7 +72,7 @@ export function accountFlow(entries: Transaction[], account: AccountId): Money {
 
 export function isPlayerAccount(state: GameState, account: AccountId): boolean {
   if (account === PLAYER) return true;
-  if (account.startsWith('co:')) return !!state.companies[account.slice(3)];
+  if (account.startsWith('co:')) return state.companies[account.slice(3)]?.owner === 'player';
   if (account.startsWith('org:')) return state.organizations[account.slice(4)]?.controlledBy === 'player';
   return false;
 }

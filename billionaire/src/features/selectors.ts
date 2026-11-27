@@ -1,6 +1,7 @@
 /** Derived, read-only views over GameState used by the interface. */
 import { roleDef, SUBTYPES } from '../data/companies/industries';
 import { roleUnits } from '../simulation/employees/employees';
+import { branchLabel, unitFor } from '../simulation/companies/units';
 import { isPlayerAccount } from '../simulation/finance/ledger';
 import { monthlyDebtService } from '../simulation/finance/valuation';
 import { playerOrganization } from '../simulation/organizations/organizations';
@@ -70,14 +71,18 @@ export interface Alert {
 export function alerts(state: GameState): Alert[] {
   const out: Alert[] = [];
   for (const c of Object.values(state.companies)) {
-    if (c.status === 'closed') continue;
+    if (c.status === 'closed' || c.owner !== 'player') continue;
     if (c.status === 'distressed') out.push({ level: 'neg', text: `${c.name} is overdrawn (${45 - c.distressDays} days until forced closure).`, companyId: c.id });
     const sub = SUBTYPES[c.subtype];
-    if (roleUnits(state, c, sub.primaryRole) === 0) out.push({ level: 'neg', text: `${c.name} has no ${roleDef(c.subtype, sub.primaryRole)?.title} and cannot operate.`, companyId: c.id });
-    if (c.ops.kind === 'retail' && c.ops.inventory < 5 && c.settings.stockTarget > 0) out.push({ level: 'warn', text: `${c.name} is out of stock.`, companyId: c.id });
-    if (c.ops.kind === 'hospitality' && c.ops.lastCapacity > 0 && c.ops.lastDemand > c.ops.lastCapacity * 1.5) out.push({ level: 'warn', text: `${c.name} is turning customers away: demand far exceeds capacity. Hire staff or raise prices.`, companyId: c.id });
+    for (const b of c.branches) {
+      const unit = unitFor(state, c, b);
+      const where = c.branches.length > 1 ? ` at ${branchLabel(state, c, b)}` : '';
+      if (roleUnits(state, unit, sub.primaryRole) === 0) out.push({ level: 'neg', text: `${c.name}${where} has no ${roleDef(c.subtype, sub.primaryRole)?.title} and cannot operate.`, companyId: c.id });
+      if (b.ops.kind === 'retail' && b.ops.inventory < 5 && b.stockTarget > 0) out.push({ level: 'warn', text: `${c.name}${where} is out of stock.`, companyId: c.id });
+      if (b.ops.kind === 'hospitality' && b.ops.lastCapacity > 0 && b.ops.lastDemand > b.ops.lastCapacity * 1.5) out.push({ level: 'warn', text: `${c.name}${where} is turning customers away: demand far exceeds capacity. Hire staff or raise prices.`, companyId: c.id });
+    }
   }
-  const flight = Object.values(state.employees).filter((e) => e.companyId && e.loyalty < 30);
+  const flight = Object.values(state.employees).filter((e) => e.companyId && state.companies[e.companyId]?.owner === 'player' && e.loyalty < 30);
   if (flight.length) out.push({ level: 'warn', text: `${flight.length} employee${flight.length > 1 ? 's are' : ' is'} a flight risk (loyalty under 30).`, view: 'staff' });
   const debt = monthlyDebtService(state);
   if (debt > 0 && (state.balances.player ?? 0) < debt) out.push({ level: 'neg', text: `Next month's debt payments (${money(debt)}) exceed your personal cash. Withdraw from a company or the loan will be missed.`, view: 'finance' });

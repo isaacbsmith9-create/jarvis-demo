@@ -3,6 +3,7 @@ import { Icon } from '../components/icons';
 import { CompaniesView } from '../features/companies/CompaniesView';
 import { FoundCompanyModal } from '../features/companies/FoundCompany';
 import { InteriorModal } from '../features/companies/InteriorModal';
+import { BranchModal } from '../features/companies/Locations';
 import { CityView } from '../features/city/CityView';
 import { DashboardView } from '../features/dashboard/DashboardView';
 import { StaffView } from '../features/employees/StaffView';
@@ -248,6 +249,7 @@ export function GameShell() {
       {s.modal?.kind === 'found-company' && <FoundCompanyModal />}
       {s.modal?.kind === 'interior' && <InteriorModal />}
       {s.modal?.kind === 'confirm' && <ConfirmModal />}
+      {s.modal?.kind === 'branch' && <BranchModal />}
     </div>
   );
 }

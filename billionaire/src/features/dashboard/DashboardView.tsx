@@ -4,6 +4,7 @@ import { Money, Notice, Panel, Progress, Stat } from '../../components/ui';
 import { DISTRICTS } from '../../data/cities/miami';
 import { SUBTYPES } from '../../data/companies/industries';
 import { scenarioById } from '../../data/scenarios/scenarios';
+import { playerCompanies } from '../../simulation/companies/companies';
 import { balance, companyAccount } from '../../simulation/finance/ledger';
 import { balanceSheet, monthlyDebtService, valueCompany } from '../../simulation/finance/valuation';
 import { objectiveProgress } from '../../simulation/objectives';
@@ -20,7 +21,7 @@ export function DashboardView() {
   const m30 = sumFlows(flows, 30);
   const obj = st.objective;
   const prog = objectiveProgress(st);
-  const companies = Object.values(st.companies).filter((c) => c.status !== 'closed');
+  const companies = playerCompanies(st);
   const props = Object.values(st.properties).filter((p) => isOwnedByPlayer(st, p));
   const al = alerts(st);
   const nwh = st.player.netWorthHistory;
@@ -51,7 +52,7 @@ export function DashboardView() {
           <Stat label="Net worth" value={money(bs.netWorth)} large sub={`Assets ${money(bs.totalAssets)} · Liabilities ${money(bs.totalLiabilities)}`} />
           <Stat label="Personal cash" value={money(bs.cash)} sub={`${money(bs.companyEquity)} in company equity`} />
           <Stat label="Operating result · 30 days" value={<Money v={m30.net} sign />} sub={`${money(m30.income)} in · ${money(m30.expenses)} out`} />
-          <Stat label="Holdings" value={`${companies.length} co · ${props.length} prop`} sub={`${Object.values(st.employees).filter((e) => e.companyId).length} employees`} />
+          <Stat label="Holdings" value={`${companies.length} co · ${props.length} prop`} sub={`${companies.reduce((s, c) => s + c.employeeIds.length, 0)} employees · ${st.executives.length} executives${bs.investments ? ` · ${money(bs.investments)} in stakes` : ''}`} />
           <Stat label="Debt" value={bs.loans ? <span className="neg">{money(bs.loans)}</span> : '—'} sub={bs.loans ? `${money(monthlyDebtService(st))}/mo payments` : 'Debt free'} />
         </div>
       </section>
@@ -108,7 +109,7 @@ export function DashboardView() {
                             {c.status === 'distressed' && <span className="tag neg">Distressed</span>}
                           </div>
                         </td>
-                        <td className="muted">{SUBTYPES[c.subtype].name}</td>
+                        <td className="muted">{SUBTYPES[c.subtype].name}{c.branches.length > 1 ? ` · ${c.branches.length} locations` : ''}</td>
                         <td className="r">{money(rev)}</td>
                         <td className="r">
                           <Money v={prof} />

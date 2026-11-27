@@ -1,4 +1,4 @@
-# BILLIONAIRE — Alpha 0.1 (Miami)
+# BILLIONAIRE — Alpha 0.2 (Miami)
 
 A business-empire and underworld simulation. Start with $500 or a fortune, build companies across four industries, buy and develop property in an isometric Miami, compete with simulated rivals, and save your empire locally.
 
@@ -80,6 +80,14 @@ Design rules the code follows:
 - **Saves are versioned.** `persistence/schema.ts` validates structure and references, and refuses saves made by a newer version. `MIGRATIONS` is where future schema upgrades go. Corrupted saves show up as unloadable in the save list instead of crashing the game.
 - **Rendering is cheap.** All city art is drawn once into cached textures and then rendered as batched sprites. Buildings are generated a few per frame, so the UI never freezes. The city's render loop sleeps while you're on another screen, and the frame rate is capped at 40 fps.
 
+## Alpha 0.2 additions
+
+- **Multiple locations.** Each company is made of branches, and each branch has its own premises, staff, operations and costs. You can open new locations (60% of a first fit-out), move a location to a bigger or better property, close one (its staff transfer where there's room), and hire or transfer staff per location. SaaS companies stay single-office.
+- **Business-for-sale market.** Independent Miami businesses run in the same simulation as yours. After 21 days of trading they're listed with real financials, so you can judge them before buying. Asking prices track each business's valuation, and sellers get more flexible over time. Buy one to take over its staff, stock and lease.
+- **Investing.** Buy minority stakes (up to 49%) in rival companies, earn 35% of each profitable month as a dividend, and sell at 92% of the current valuation. A stake is lost if the rival goes bankrupt.
+- **Executives.** Hire a COO (raises staff performance everywhere and can run delegated companies), a CFO (lower loan rates and an optional weekly cash sweep), and a CMO (stronger marketing, cheaper acquisition). They're paid from your personal cash, and their loyalty depends on pay.
+- **Saves.** Five campaign slots, autosaved, kept in your claude.ai account. Save schema v2 upgrades v1 saves automatically.
+
 ## Alpha 0.1 status
 
 **Working**
@@ -98,14 +106,13 @@ Design rules the code follows:
 **Planned for future releases** (marked in the game where relevant, never faked)
 - Underground missions, territory expansion, alliances, disputes and story-driven investigations
 - Relationship events and character interactions with contacts
-- Minority stakes in rival companies, acquisitions of rival businesses, rival offers for your companies
-- Relocating a company, multi-location companies, development of new buildings
+- Full takeovers of rival companies, and rivals making offers for yours
+- Development of new buildings
 - Supply chains, product development, marketing campaigns
 - More cities and international expansion
 
 ## Known issues / limitations
 
-- A company cannot move to a new location. Close it and found a new one instead.
 - Office interiors share one layout for every business type, with different furnishing colours by industry.
 - Ledger history beyond the last 6,000 transactions is kept only as category totals.
 - On machines without GPU acceleration the city renders at a reduced frame rate (simulation speed is unaffected).

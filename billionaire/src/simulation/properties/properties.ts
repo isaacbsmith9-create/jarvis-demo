@@ -81,7 +81,7 @@ export function renovationCost(p: Property): Money {
 }
 
 export function isOwnedByPlayer(state: GameState, p: Property): boolean {
-  return p.owner === 'player' || (p.owner.startsWith('co:') && !!state.companies[p.owner.slice(3)]);
+  return p.owner === 'player' || (p.owner.startsWith('co:') && state.companies[p.owner.slice(3)]?.owner === 'player');
 }
 
 /** Recompute market value from base value, district price index and tier. */

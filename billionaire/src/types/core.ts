@@ -55,7 +55,9 @@ export type TxCategory =
   | 'equipment_sale'
   | 'org_income'
   | 'org_upkeep'
-  | 'rival_operations';
+  | 'rival_operations'
+  | 'investment'
+  | 'business_purchase';
 
 export interface Transaction {
   id: number;
@@ -122,6 +124,8 @@ export interface Employee {
   traits: TraitId[];
   hiredDay: Day;
   age: number;
+  /** Which of the company's branches this person works at. */
+  branchId: string | null;
 }
 
 export type PriceLevel = 'budget' | 'standard' | 'premium' | 'luxury';
@@ -131,9 +135,10 @@ export interface CompanySettings {
   marketingPerDay: Money;
   autoFund: boolean;
   delegated: boolean;
-  /** Retail: restock target units. */
-  stockTarget: number;
 }
+
+/** Settings as one branch sees them (retail restock targets are per branch). */
+export type UnitSettings = CompanySettings & { stockTarget: number };
 
 export interface TechOps {
   kind: 'technology';
@@ -189,21 +194,41 @@ export interface PeriodStatement {
   profit: Money;
 }
 
+/** One operating location of a company (a store, a restaurant, an office, a truck). */
+export interface Branch {
+  id: string;
+  locationId: string | null;
+  ops: CompanyOps;
+  /** Book value of this branch's fit-out and equipment; depreciates. */
+  equipment: Money;
+  /** Retail restock target in units. */
+  stockTarget: number;
+  openedDay: Day;
+}
+
+export interface BusinessListing {
+  askingPrice: Money;
+  listedDay: Day;
+  seller: string;
+  story: string;
+}
+
 export interface Company {
   id: string;
   name: string;
   industry: IndustryId;
   subtype: SubtypeId;
-  owner: 'player';
+  /** 'market' = an independent business owned by someone else and listed for sale. */
+  owner: 'player' | 'market';
   foundedDay: Day;
-  locationId: string | null;
   status: 'operating' | 'distressed' | 'closed';
   ownerOperated: boolean;
   reputation: number; // 0..100
-  equipment: Money; // book value, depreciates
   startingCapital: Money;
   settings: CompanySettings;
-  ops: CompanyOps;
+  branches: Branch[];
+  nextBranch: number;
+  listing: BusinessListing | null;
   history: DailyRecord[];
   statements: PeriodStatement[];
   current: PeriodStatement;
@@ -237,6 +262,24 @@ export interface Rival {
   weekExpenses: Money;
   monthly: { period: string; revenue: Money; profit: Money }[];
   description: string;
+  /** Fraction of the company the player owns (0..0.49). */
+  playerStake: number;
+  /** Total the player has invested in stakes (cost basis). */
+  stakeCost: Money;
+}
+
+export type ExecRole = 'coo' | 'cfo' | 'cmo';
+
+export interface Executive {
+  id: string;
+  name: string;
+  role: ExecRole;
+  salary: Money; // annual
+  skill: number;
+  loyalty: number;
+  traits: TraitId[];
+  age: number;
+  hiredDay: Day;
 }
 
 export interface DistrictState {
@@ -366,5 +409,8 @@ export interface GameState {
   nextNewsId: number;
   objective: Objective;
   counters: { company: number; employee: number; loan: number; modifier: number };
+  executives: Executive[];
+  execCandidates: Executive[];
+  settings: { cashSweep: boolean };
   stats: { daysPlayed: number; propertiesBought: number; companiesFounded: number; hires: number };
 }

@@ -7,6 +7,8 @@
 import { DISTRICTS, DISTRICT_ORDER } from '../../data/cities/miami';
 import { PRICE_LEVELS, RETAIL_ECON, SUBTYPES } from '../../data/companies/industries';
 import type { Company, DistrictId, GameState, HospitalityOps, Money, RealEstateOps, RetailOps, TechOps } from '../../types/core';
+import { execBonus } from '../executives/executives';
+import type { OpUnit } from './units';
 import { clamp, dollars } from '../../utils/format';
 import { nextRandom } from '../../utils/rng';
 import { macroDemand, modifierMult, seasonality, weekdayFactor } from '../economy/economy';
@@ -33,7 +35,7 @@ export function emptyResult(): DayResult {
   return { revenue: 0, cogs: 0, utilities: 0, hosting: 0, supplies: 0, commission: 0, marketing: 0, inventoryPurchase: 0, customers: 0, capacity: 0, demand: 0, notes: [] };
 }
 
-export function companyDistrict(state: GameState, c: Company): DistrictId | null {
+export function companyDistrict(state: GameState, c: OpUnit): DistrictId | null {
   if (c.locationId) return state.properties[c.locationId]?.district ?? null;
   if (c.ops.kind === 'hospitality' && c.ops.foodTruckDistrict) return c.ops.foodTruckDistrict;
   return null;
@@ -43,12 +45,13 @@ export function repFactor(c: Company): number {
   return 0.6 + (c.reputation / 100) * 0.8;
 }
 
-export function marketingBoost(perDay: Money, scale = 250): number {
-  return 1 + 0.4 * (1 - Math.exp(-perDay / 100 / scale));
+/** Demand lift from marketing spend, with diminishing returns. A CMO makes each dollar work harder. */
+export function marketingBoost(perDay: Money, scale = 250, cmo = 0): number {
+  return 1 + 0.4 * (1 + cmo) * (1 - Math.exp(-perDay / 100 / scale));
 }
 
 /** Competition: active rivals in the same district and business type reduce demand. */
-export function competitionFactor(state: GameState, c: Company, district: DistrictId | null): number {
+export function competitionFactor(state: GameState, c: OpUnit, district: DistrictId | null): number {
   let f = 1;
   for (const r of Object.values(state.rivals)) {
     if (r.status !== 'active') continue;
@@ -58,14 +61,19 @@ export function competitionFactor(state: GameState, c: Company, district: Distri
   }
   // Other player companies of the same subtype in the same district cannibalize slightly.
   for (const o of Object.values(state.companies)) {
-    if (o.id === c.id || o.status === 'closed' || o.subtype !== c.subtype) continue;
-    if (district && companyDistrict(state, o) === district) f *= 0.93;
+    if (o.status === 'closed' || o.subtype !== c.subtype) continue;
+    if (!district) continue;
+    for (const b of o.branches) {
+      if (o.id === c.id && b.id === c.branchId) continue;
+      const d = b.locationId ? state.properties[b.locationId]?.district : null;
+      if (d === district) f *= 0.93;
+    }
   }
   return f;
 }
 
 /** Shared demand multiplier for location-based consumer businesses. */
-function localDemand(state: GameState, c: Company, district: DistrictId): number {
+function localDemand(state: GameState, c: OpUnit, district: DistrictId): number {
   const prof = DISTRICTS[district];
   const ds = state.economy.districts[district];
   const affinity = prof.affinity[c.subtype] ?? 1;
@@ -78,7 +86,7 @@ function distressMult(c: Company): number {
   return c.status === 'distressed' ? 0.8 : 1;
 }
 
-export function utilitiesFor(state: GameState, c: Company): Money {
+export function utilitiesFor(state: GameState, c: OpUnit): Money {
   if (!c.locationId) return dollars(c.subtype === 'foodtruck' ? 65 : 8);
   const p = state.properties[c.locationId];
   return dollars(p.sqft * 0.03 * DISTRICTS[p.district].costFactor);
@@ -93,7 +101,7 @@ export const OVERHEAD: Record<string, number> = {
 /* TECHNOLOGY                                                          */
 /* ------------------------------------------------------------------ */
 
-function simAgency(state: GameState, c: Company, ops: TechOps, r: DayResult): void {
+function simAgency(state: GameState, c: OpUnit, ops: TechOps, r: DayResult): void {
   const price = PRICE_LEVELS[c.settings.priceLevel];
   const district = companyDistrict(state, c);
   const officeDay = weekdayFactor(state.day, 'office');
@@ -109,7 +117,7 @@ function simAgency(state: GameState, c: Company, ops: TechOps, r: DayResult): vo
     (2 + c.reputation * 0.12 + salesCap * 45) *
     scene *
     macroDemand(state) *
-    marketingBoost(c.settings.marketingPerDay, 150) *
+    marketingBoost(c.settings.marketingPerDay, 150, execBonus(state, c, 'cmo')) *
     price.demand *
     competitionFactor(state, c, district) *
     modifierMult(state, district, 'technology', c.id) *
@@ -129,7 +137,7 @@ function simAgency(state: GameState, c: Company, ops: TechOps, r: DayResult): vo
   c.reputation = clamp(c.reputation + (repTarget - c.reputation) * 0.006, 0, 100);
 }
 
-function simSaas(state: GameState, c: Company, ops: TechOps, r: DayResult): void {
+function simSaas(state: GameState, c: OpUnit, ops: TechOps, r: DayResult): void {
   const price = PRICE_LEVELS[c.settings.priceLevel];
   const district = companyDistrict(state, c);
   const engCap = roleCapacity(state, c, 'eng') + roleCapacity(state, c, 'cto') * 1.5;
@@ -147,7 +155,7 @@ function simSaas(state: GameState, c: Company, ops: TechOps, r: DayResult): void
   const scene = district ? DISTRICTS[district].techScene : 1;
   const q = ops.quality / 100;
   const mkt = c.settings.marketingPerDay / 100;
-  const cac = (35 / (0.5 + q)) / (1 + growthCap * 0.6) * Math.pow(price.mult, 1.3) * (1 + mkt / 5000);
+  const cac = (35 / (0.5 + q)) / (1 + growthCap * 0.6 + execBonus(state, c, 'cmo')) * Math.pow(price.mult, 1.3) * (1 + mkt / 5000);
   const paid = q > 0.08 ? mkt / cac : 0;
   const organic =
     (ops.users * 0.0015 * (q / 0.6) * (1 + growthCap * 0.3) + q * q * 6 * scene) *
@@ -179,7 +187,7 @@ function simSaas(state: GameState, c: Company, ops: TechOps, r: DayResult): void
 /* HOSPITALITY                                                         */
 /* ------------------------------------------------------------------ */
 
-function pickFoodTruckDistrict(state: GameState, c: Company): DistrictId {
+function pickFoodTruckDistrict(state: GameState, c: OpUnit): DistrictId {
   let best: DistrictId = 'downtown';
   let bestScore = -1;
   for (const d of DISTRICT_ORDER) {
@@ -193,7 +201,7 @@ function pickFoodTruckDistrict(state: GameState, c: Company): DistrictId {
   return best;
 }
 
-function simHospitality(state: GameState, c: Company, ops: HospitalityOps, r: DayResult): void {
+function simHospitality(state: GameState, c: OpUnit, ops: HospitalityOps, r: DayResult): void {
   const price = PRICE_LEVELS[c.settings.priceLevel];
   const prop = c.locationId ? state.properties[c.locationId] : null;
   if (c.subtype === 'foodtruck') ops.foodTruckDistrict = pickFoodTruckDistrict(state, c);
@@ -201,7 +209,7 @@ function simHospitality(state: GameState, c: Company, ops: HospitalityOps, r: Da
   if (!district) return;
   const prof = DISTRICTS[district];
   const tier = prop?.tier ?? 2;
-  const base = localDemand(state, c, district) * repFactor(c) * price.demand * competitionFactor(state, c, district) * distressMult(c) * marketingBoost(c.settings.marketingPerDay);
+  const base = localDemand(state, c, district) * repFactor(c) * price.demand * competitionFactor(state, c, district) * distressMult(c) * marketingBoost(c.settings.marketingPerDay, 250, execBonus(state, c, 'cmo'));
   const qualityF = 0.7 + ops.quality / 170;
 
   let capacity = 0;
@@ -300,7 +308,7 @@ function simHospitality(state: GameState, c: Company, ops: HospitalityOps, r: Da
 /* RETAIL                                                              */
 /* ------------------------------------------------------------------ */
 
-function simRetail(state: GameState, c: Company, ops: RetailOps, r: DayResult): void {
+function simRetail(state: GameState, c: OpUnit, ops: RetailOps, r: DayResult): void {
   const sub = c.subtype as 'boutique' | 'convenience' | 'online';
   const econ = RETAIL_ECON[sub];
   const price = PRICE_LEVELS[c.settings.priceLevel];
@@ -314,7 +322,7 @@ function simRetail(state: GameState, c: Company, ops: RetailOps, r: DayResult): 
   if (sub === 'online') {
     const growth = roleCapacity(state, c, 'growth');
     const mkt = c.settings.marketingPerDay / 100;
-    const cac = (18 / (1 + growth * 0.5)) * Math.pow(price.mult, 1.2) * (1 + mkt / 3000);
+    const cac = (18 / (1 + growth * 0.5 + execBonus(state, c, 'cmo'))) * Math.pow(price.mult, 1.2) * (1 + mkt / 3000);
     demand = (mkt / cac + c.reputation * 0.15) * macroDemand(state) * modifierMult(state, null, 'retail', c.id) * distressMult(c) * weekdayFactor(state.day, 'retail');
     capacity = roleUnits(state, c, 'fulfill') * 90;
     shoppers = Math.min(demand, capacity);
@@ -325,7 +333,7 @@ function simRetail(state: GameState, c: Company, ops: RetailOps, r: DayResult): 
       sizeF *
       localDemand(state, c, district) *
       weekdayFactor(state.day, 'retail') *
-      marketingBoost(c.settings.marketingPerDay) *
+      marketingBoost(c.settings.marketingPerDay, 250, execBonus(state, c, 'cmo')) *
       repFactor(c) *
       price.demand *
       competitionFactor(state, c, district) *
@@ -392,13 +400,13 @@ export function managementInfo(state: GameState, c: Company): ManagementInfo {
   return { capacity, managedIds: managed.map((p) => p.id), coverage: need > 0 ? Math.min(1, capacity / need) : 0 };
 }
 
-function simBrokerage(state: GameState, c: Company, ops: RealEstateOps, r: DayResult): void {
+function simBrokerage(state: GameState, c: OpUnit, ops: RealEstateOps, r: DayResult): void {
   const district = companyDistrict(state, c);
   const officeDay = weekdayFactor(state.day, 'office');
   const agents = roleUnits(state, c, 'agent');
   const affinity = district ? (DISTRICTS[district].affinity.brokerage ?? 1) : 0.9;
   const lambda =
-    agents * 0.03 * (state.economy.index / 100) * repFactor(c) * affinity * officeDay * marketingBoost(c.settings.marketingPerDay, 200) * competitionFactor(state, c, district) * distressMult(c);
+    agents * 0.03 * (state.economy.index / 100) * repFactor(c) * affinity * officeDay * marketingBoost(c.settings.marketingPerDay, 200, execBonus(state, c, 'cmo')) * competitionFactor(state, c, district) * distressMult(c);
   ops.pipeline = ops.pipeline * 0.95 + lambda * 20;
   let deals = Math.floor(lambda);
   if (nextRandom(state) < lambda - deals) deals++;
@@ -426,7 +434,7 @@ function simBrokerage(state: GameState, c: Company, ops: RealEstateOps, r: DayRe
 
 /* ------------------------------------------------------------------ */
 
-export function simulateIndustry(state: GameState, c: Company): DayResult {
+export function simulateIndustry(state: GameState, c: OpUnit): DayResult {
   const r = emptyResult();
   const ops = c.ops;
   switch (ops.kind) {
@@ -449,7 +457,7 @@ export function simulateIndustry(state: GameState, c: Company): DayResult {
 }
 
 /** Monthly rent owed by a company occupying a property it doesn't own. */
-export function companyDailyRent(state: GameState, c: Company): Money {
+export function companyDailyRent(state: GameState, c: OpUnit): Money {
   if (!c.locationId) return 0;
   const p = state.properties[c.locationId];
   if (!p?.lease || p.lease.companyId !== c.id) return 0;

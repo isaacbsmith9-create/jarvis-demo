@@ -34,6 +34,9 @@ const CAT_LABEL: Partial<Record<TxCategory, string>> = {
   renovation: 'Renovation',
   closing_costs: 'Closing costs',
   setup: 'Company setup',
+  investment: 'Investments',
+  business_purchase: 'Business purchases',
+  dividend: 'Dividends',
 };
 
 export function FinanceView() {
@@ -137,6 +140,8 @@ function Overview() {
             <span>{money(bs.cash)}</span>
             <span>Company equity (valuation)</span>
             <span>{money(bs.companyEquity)}</span>
+            <span>Stakes in other companies</span>
+            <span>{money(bs.investments)}</span>
             <span>Personally held property</span>
             <span>{money(bs.properties)}</span>
             {bs.organization !== 0 && (
