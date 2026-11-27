@@ -4,10 +4,13 @@ import * as THREE from 'three';
 import { consumeCamYaw, getMoveIntent } from '../game/input';
 import { resolveCircleVsAABBs, segmentHit, world } from '../game/world';
 import { PLAYER } from '../game/config';
+import { useGame } from '../game/store';
 
 const camTarget = new THREE.Vector3();
 const camPos = new THREE.Vector3();
 const desiredVel = new THREE.Vector3();
+// [extra height, distance factor]: progressively steeper views to clear a wall behind the player
+const LIFTS: [number, number][] = [[0, 1], [5, 0.8], [10, 0.6], [16, 0.42], [24, 0.28], [32, 0.16]];
 
 export function Player() {
   const root = useRef<THREE.Group>(null!);
@@ -17,7 +20,9 @@ export function Player() {
   const armL = useRef<THREE.Mesh>(null!);
   const armR = useRef<THREE.Mesh>(null!);
   const walkPhase = useRef(0);
-  const { camera } = useThree();
+  const camLift = useRef(0);
+  const camDist = useRef(1);
+  const { camera, size } = useThree();
 
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.05);
@@ -27,7 +32,7 @@ export function Player() {
     world.camYaw += consumeCamYaw(dt);
 
     // movement relative to camera yaw
-    const intent = getMoveIntent();
+    const intent = useGame.getState().paused ? { x: 0, y: 0, sprint: false } : getMoveIntent();
     const maxSpeed = intent.sprint ? PLAYER.sprintSpeed : PLAYER.walkSpeed;
     const sin = Math.sin(world.camYaw);
     const cos = Math.cos(world.camYaw);
@@ -62,12 +67,42 @@ export function Player() {
     armR.current.rotation.x = swing * 0.8;
     body.current.position.y = Math.abs(Math.sin(walkPhase.current)) * 0.06 * Math.min(1, p.speed / 4);
 
-    // chase camera
-    const dist = PLAYER.camDistance;
+    // chase camera — pulled back with a wider FOV in portrait (phones)
+    const portrait = size.width < size.height;
+    const persp = camera as THREE.PerspectiveCamera;
+    const fov = portrait ? 68 : 55;
+    if (persp.fov !== fov) {
+      persp.fov = fov;
+      persp.updateProjectionMatrix();
+    }
+    const dist = PLAYER.camDistance * (portrait ? 1.3 : 1);
     camTarget.set(p.pos.x, p.pos.y + 1.4, p.pos.z);
-    camPos.set(p.pos.x + sin * dist, p.pos.y + PLAYER.camHeight, p.pos.z + cos * dist);
-    // pull the camera in front of any building between it and the player
-    const hit = segmentHit(camTarget.x, camTarget.y, camTarget.z, camPos.x, camPos.y, camPos.z, world.colliders);
+    const baseH = PLAYER.camHeight * (portrait ? 1.35 : 1);
+    // If a building blocks the view, first try lifting the camera over it
+    // (tilting toward top-down); only pull in close as a last resort.
+    let wantLift = 0;
+    let hit = 1;
+    let wantDist = 1;
+    for (const [lift, f] of LIFTS) {
+      const d = dist * f;
+      hit = segmentHit(camTarget.x, camTarget.y, camTarget.z, p.pos.x + sin * d, p.pos.y + baseH + lift, p.pos.z + cos * d, world.colliders);
+      if (hit >= 1) {
+        wantLift = lift;
+        wantDist = f;
+        break;
+      }
+    }
+    if (hit < 1) {
+      wantLift = 0;
+      wantDist = 1;
+    }
+    const k = 1 - Math.exp(-6 * dt);
+    camLift.current += (wantLift - camLift.current) * k;
+    camDist.current += (wantDist - camDist.current) * k;
+    const d = dist * camDist.current;
+    camPos.set(p.pos.x + sin * d, p.pos.y + baseH + camLift.current, p.pos.z + cos * d);
+    // still blocked (tall downtown towers): pull the camera in front of the wall
+    hit = segmentHit(camTarget.x, camTarget.y, camTarget.z, camPos.x, camPos.y, camPos.z, world.colliders);
     if (hit < 1) {
       const t = Math.max(0.15, hit - 0.06);
       camPos.lerpVectors(camTarget, camPos, t);

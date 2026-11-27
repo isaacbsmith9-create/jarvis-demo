@@ -23,6 +23,7 @@ export function GameLoop() {
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.1);
     const g = useGame.getState();
+    if (g.paused) return;
     const p = world.player.pos;
 
     // ---- which zone are we in? ----

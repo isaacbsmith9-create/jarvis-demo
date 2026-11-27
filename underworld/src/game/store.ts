@@ -19,6 +19,7 @@ export interface GameState {
   /** business zone the player is standing in */
   zoneId: string | null;
   chased: boolean;
+  paused: boolean;
   payoutIn: number;
   lastPayout: { amount: number; at: number } | null;
   busted: { penalty: number; at: number } | null;
@@ -53,6 +54,7 @@ const initial = () => ({
   capture: null,
   zoneId: null,
   chased: false,
+  paused: true,
   payoutIn: ECONOMY.payoutInterval,
   lastPayout: null,
   busted: null,
