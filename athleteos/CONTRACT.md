@@ -285,3 +285,12 @@ Hidden cards are hidden all day. Reset clears everything back to auto.
 `wpBlocks` treats a day as no-school when it's a weekend, a holiday, has a team practice/scrimmage starting before
 1 PM (break week), or sits between two such days. No-school practice/off/sit/unsure days use the Weekend template;
 School blocks are dropped; a template Practice block is skipped whenever the team schedule has a practice or game.
+
+### Command Center (src/cmdcenter.js)
+Hub → Command tab. **Brain dump**: type or talk everything at once; Claude (or a rule-based fallback) sorts it into
+events (→ `aos-plan`, notes "From brain dump"), time blocks (→ `gp-d-<date>`, src "Brain dump"), class work
+(→ `sl-inbox` + pending `life-school` item) and tasks (→ `gp-core.tasks` with `est`). Preview groups by day, flags
+items already on the calendar/task list (unchecked) and overlaps with existing events. **Deadline radar**: `life-school`
+items + dated `gp-core` tasks bucketed overdue / today / next 48h / this week / later. Done marks a Gameplan task done;
+Student Lens items are hidden only (doc `hub-radar {done, dismissed}`). "📡 Due soon" card on Hub Today (layout key
+`radar`); overdue line in the morning brief; shortcuts "Brain dump" and "Deadlines".

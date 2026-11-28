@@ -2,14 +2,14 @@
 // "Customize" on Hub Today opens a list of every card: move it up or down, or hide it. Saved in doc "hub-layout"
 // { v, order: [key], hidden: [key] }. Cards added later (new features) appear in their default spot until moved.
 // Runs last, so it sees every card the other layers added.
-const R4_KEYS = { ac: ['actions', 'Do these today'], cap: ['add', 'Quick add'], 'r3-now': ['now', 'Right now'], 'r3-night': ['night', 'Night shutdown'], 'r2-tpl': ['templates', 'Load a day'], 'r2-score': ['score', 'Daily score'], hb: ['brief', 'Morning briefing'], 'sync-card': ['sync', 'Sync status'], 'wp-card': ['weekplan', 'Plan the week (weekends)'], 'hab-card': ['habits', 'Habits'], 'hsc-bar': ['shortcuts', 'Shortcuts'], 'rd-card': ['morning', 'Morning routine'], 're-why': ['why', 'Why today was good'], 're-trend': ['trends', 'Trends this week'] };
+const R4_KEYS = { ac: ['actions', 'Do these today'], cap: ['add', 'Quick add'], 'r3-now': ['now', 'Right now'], 'r3-night': ['night', 'Night shutdown'], 'r2-tpl': ['templates', 'Load a day'], 'r2-score': ['score', 'Daily score'], hb: ['brief', 'Morning briefing'], 'sync-card': ['sync', 'Sync status'], 'wp-card': ['weekplan', 'Plan the week (weekends)'], 'hab-card': ['habits', 'Habits'], 'hsc-bar': ['shortcuts', 'Shortcuts'], 'rd-card': ['morning', 'Morning routine'], 're-why': ['why', 'Why today was good'], 're-trend': ['trends', 'Trends this week'], 'cc-today': ['radar', 'Due soon (deadline radar)'] };
 let r4Cards = [];
 // Time of day: morning 4:00–11:59, afternoon 12:00–7:59 PM, evening 8 PM–3:59. With auto on (default) each period has its
 // own order (built-in below, or yours once you move a card in that period: hub-layout.orders[period]).
 const R4_TIME = {
-  morning: ['morning', 'brief', 'shortcuts', 'now', 'add', 'actions', 'h:your-day', 'habits', 'weekplan', 'why', 'score', 'trends', 'templates', 'apps', 'sync'],
-  afternoon: ['now', 'shortcuts', 'add', 'h:your-day', 'actions', 'habits', 'score', 'weekplan', 'trends', 'templates', 'brief', 'why', 'apps', 'sync'],
-  evening: ['night', 'score', 'why', 'habits', 'shortcuts', 'add', 'now', 'trends', 'h:your-day', 'actions', 'weekplan', 'templates', 'brief', 'apps', 'sync'],
+  morning: ['morning', 'radar', 'brief', 'shortcuts', 'now', 'add', 'actions', 'h:your-day', 'habits', 'weekplan', 'why', 'score', 'trends', 'templates', 'apps', 'sync'],
+  afternoon: ['now', 'radar', 'shortcuts', 'add', 'h:your-day', 'actions', 'habits', 'score', 'weekplan', 'trends', 'templates', 'brief', 'why', 'apps', 'sync'],
+  evening: ['night', 'radar', 'score', 'why', 'habits', 'shortcuts', 'add', 'now', 'trends', 'h:your-day', 'actions', 'weekplan', 'templates', 'brief', 'apps', 'sync'],
 };
 const R4_NAME = { morning: 'Morning', afternoon: 'Afternoon', evening: 'Evening' };
 const r4Period = () => { const h = new Date().getHours(); return h >= 4 && h < 12 ? 'morning' : h >= 12 && h < 20 ? 'afternoon' : 'evening'; };
