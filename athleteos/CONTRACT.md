@@ -280,3 +280,8 @@ for scores ≥80 / ≤55, the top 3 factors vs your 14-day average. **Recipe** (
 afternoon 12:00–19:59, evening 20:00–3:59. With auto on, the order is your saved `orders[period]` or the built-in
 `R4_TIME[period]`; moving a card saves it for the current period only. With auto off, the single `order` is used.
 Hidden cards are hidden all day. Reset clears everything back to auto.
+
+### Weekly plan: no-school days
+`wpBlocks` treats a day as no-school when it's a weekend, a holiday, has a team practice/scrimmage starting before
+1 PM (break week), or sits between two such days. No-school practice/off/sit/unsure days use the Weekend template;
+School blocks are dropped; a template Practice block is skipped whenever the team schedule has a practice or game.

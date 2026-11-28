@@ -8657,10 +8657,16 @@ function wpBuild(mon = wpMonday(), keep = null) {
   return { v: 1, week: mon, days, readiness: rd, built: Date.now(), approvedAt: null };
 }
 function wpBlocks(x) {
-  const tpl = (hubSafe(() => r2List(), []) || []).find((t) => t.id === WP_KIND[x.kind][1]); if (!tpl) return [];
+  const dow = parseIso(x.date).getDay(), earlyOn = (d) => (hubSafe(() => tdItems(d), []) || []).some((h) => (['practice', 'game'].includes(h.type) || /practice|scrimmage/i.test(h.title || '')) && h.st < 13 * 60);
+  const early = earlyOn(x.date) || (earlyOn(shiftIso(x.date, -1)) && earlyOn(shiftIso(x.date, 1))); // between two break days = break
+  const noSchool = dow === 0 || dow === 6 || !!x.hol || early; // a morning team practice on a weekday = break, no school
+  // weekend / holiday practice days use the weekend template (no school blocks); school-day templates only on school days
+  const tid = noSchool && ['practice', 'off', 'sit', 'unsure', 'game'].includes(x.kind) ? (x.kind === 'game' ? 'game' : 'weekend') : WP_KIND[x.kind][1];
+  const tpl = (hubSafe(() => r2List(), []) || []).find((t) => t.id === tid); if (!tpl) return [];
   const have = hubSafe(() => tdItems(x.date), []) || [], norm = (s) => String(s || '').toLowerCase();
   // skip template blocks your schedule already has (same title, or a practice/game within an hour of it)
-  let out = tpl.blocks.map((b) => ({ ...b })).filter((b) => !have.some((h) => norm(h.title) === norm(b.title) || (['practice'].includes(b.type) && (['practice', 'game'].includes(h.type) || /practice|game/i.test(h.title)) && Math.abs(h.st - b.start) <= 60)));
+  const hasTeam = have.some((h) => ['practice', 'game'].includes(h.type) || /practice|game|scrimmage/i.test(h.title || ''));
+  let out = tpl.blocks.map((b) => ({ ...b })).filter((b) => !(noSchool && b.type === 'school') && !(b.type === 'practice' && hasTeam) && !have.some((h) => norm(h.title) === norm(b.title)));
   const wi = out.findIndex((b) => b.type === 'train' && !/warm-up/i.test(b.title));
   const noExtra = x.level === 'rest' || x.kind === 'game' || /^Practice (is the session|only)/.test(x.focus);
   if (wi >= 0 && noExtra) out.splice(wi, 1);
